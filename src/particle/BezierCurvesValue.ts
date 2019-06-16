@@ -3,7 +3,6 @@ import {ValueGenerator} from "./ValueGenerator";
 
 export class Bezier {
     p: number[];
-    // p[1] p[2] = .3 * derviative
 
     constructor(p1: number, p2: number, p3: number, p4: number) {
         this.p = [p1 ,p2, p3, p4];
@@ -15,7 +14,7 @@ export class Bezier {
         const mt = 1 - t;
         const mt2 = mt * mt;
         const mt3 = mt2 * mt;
-        return this.p[3] * t3 + this.p[2] * t2 * mt * 3 + this.p[1] * t * mt2 * 3 + this.p[0] * mt3;
+        return this.p[0] * mt3 + this.p[1] * mt2 * t * 3 + this.p[2] * mt * t2 * 3 + this.p[3] * t3;
     }
 
     derive(points: number[]): number[][] {
@@ -85,27 +84,24 @@ export class Bezier {
         };
         return result;
     }
+
+    clone() {
+        return new Bezier(this.p[0], this.p[1], this.p[2], this.p[3]);
+    }
 }
 
 
 export class BezierCurvesValue implements ValueGenerator {
 
     // default linear bezier
-    curves: Array<[Bezier, number]> = [[new Bezier(0, 1.0 / 3, 1.0 / 3 * 2, 1), 0]];
-    constructor() {}
+    curves: Array<[Bezier, number]>;
+    constructor(curves: Array<[Bezier, number]> = [[new Bezier(0, 1.0 / 3, 1.0 / 3 * 2, 1), 0]]) {
+        this.curves = curves;
+    }
 
     genValue(t: number = 0): number {
         let index = this.findCurve(t);
-        let n = 1;
-        if (index + 1 < this.curves.length)
-            n = this.curves[index + 1][1];
-        return this.curves[index][0].genValue( (t - this.curves[index][1]) / (n - this.curves[index][1]));
-    }
-
-    private getCurveEnding(index: number): number {
-        if (index + 1 < this.curves.length)
-            return this.curves[index + 1][1];
-        return 1;
+        return this.curves[index][0].genValue( (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index)));
     }
 
     private findCurve(t: number): number {
@@ -113,15 +109,15 @@ export class BezierCurvesValue implements ValueGenerator {
         let left = 0, right = this.curves.length - 1;
         while (left + 1 < right) {
             mid = (left + right) / 2;
-            if (t < this.curves[mid][1])
+            if (t < this.getStartX(mid))
                 right = mid - 1;
-            else if (t > this.getCurveEnding(mid))
+            else if (t > this.getEndX(mid))
                 left = mid + 1;
             else
                 return mid;
         }
         for (let i = left; i <= right; i ++) {
-            if (t >= this.curves[i][1] && t <= this.getCurveEnding(i))
+            if (t >= this.curves[i][1] && t <= this.getEndX(i))
                 return i;
         }
         return -1;
@@ -129,6 +125,30 @@ export class BezierCurvesValue implements ValueGenerator {
 
     get numOfCurves() {
         return this.curves.length
+    }
+
+    getCurve(index: number) {
+        return this.curves[index][0];
+    }
+    setCurve(index: number, bezier: Bezier) {
+        this.curves[index][0] = bezier;
+    }
+
+    getStartX(index: number) {
+        return this.curves[index][1];
+    }
+    setStartX(index: number, x: number) {
+        if (index > 0)
+            this.curves[index][1] = x;
+    }
+    getEndX(index: number) {
+        if (index + 1 < this.curves.length)
+            return this.curves[index + 1][1];
+        return 1;
+    }
+    setEndX(index: number, x: number) {
+        if (index + 1 < this.curves.length)
+            this.curves[index + 1][1] = x;
     }
 
     toSVG(length: number, segments: number) {

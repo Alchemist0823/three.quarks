@@ -1,6 +1,6 @@
 import * as React from "react";
 import {CurveComponent} from "./CurveComponent";
-import {Bezier, BezierCurvesValue} from "../particle/BezierCurvesValue";
+import {Bezier, BezierCurvesValue} from "../../particle/BezierCurvesValue";
 import {HandleComponent} from "./HandleComponent";
 import {createRef} from "react";
 
