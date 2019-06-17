@@ -75,8 +75,9 @@ export class ParticleEmitter extends Mesh {
         if (parameters.texture) {
             defines['USE_MAP'] = '';
             uniforms['map'] = new Uniform(parameters.texture);
+            //@ts-ignore
             uniforms['uvTransform'] = new Uniform(new Matrix3().copy(parameters.texture.matrix));
-            
+
             let uTileCount = parameters.uTileCount || 1;
             let vTileCount = parameters.vTileCount || 1;
             this.tiling = uTileCount > 1 || vTileCount > 1;
