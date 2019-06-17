@@ -1,12 +1,12 @@
 import * as React from "react";
 import {CurveComponent} from "./CurveComponent";
-import {Bezier, BezierCurvesValue} from "../../particle/BezierCurvesValue";
+import {PiecewiseBezier} from "../../particle/functions/PiecewiseBezier";
 import {HandleComponent} from "./HandleComponent";
 import {createRef} from "react";
 
 interface BezierCurvesEditorProps {
-    value: BezierCurvesValue
-    onChange?: (value:BezierCurvesValue) => void,
+    value: PiecewiseBezier
+    onChange?: (value:PiecewiseBezier) => void,
     width: number,
     height: number,
     padding?: Array<number>,
@@ -83,29 +83,29 @@ export class BezierCurvesEditor extends React.Component<BezierCurvesEditorProps,
         if (this.state.down >= 0) {
             e.preventDefault();
             const [x, y] = this.positionForEvent(e);
-            const value = new BezierCurvesValue(this.props.value.curves);
+            const value = new PiecewiseBezier(this.props.value.functions);
 
             let valueX = x / this.props.width;
             let curveIndex = this.state.curve;
-            let curve = value.getCurve(curveIndex);
+            let curve = value.getFunction(curveIndex);
 
             if (this.state.down === 0) {
                 curve.p[0] = (this.props.height - y) / this.props.height;
                 value.setStartX(curveIndex, x / this.props.width);
                 if (curveIndex - 1 >= 0) {
-                    value.getCurve(curveIndex - 1).p[3] = (this.props.height - y) / this.props.height;
-                    value.setCurve(curveIndex - 1, value.getCurve(curveIndex - 1).clone());
+                    value.getFunction(curveIndex - 1).p[3] = (this.props.height - y) / this.props.height;
+                    value.setFunction(curveIndex - 1, value.getFunction(curveIndex - 1).clone());
                 }
-                value.setCurve(curveIndex, curve.clone());
+                value.setFunction(curveIndex, curve.clone());
             }
             if (this.state.down === 3) {
                 curve.p[3] = (this.props.height - y) / this.props.height;
                 value.setEndX(curveIndex, x / this.props.width);
-                if (curveIndex + 1 < value.numOfCurves) {
-                    value.getCurve(curveIndex + 1).p[0] = (this.props.height - y) / this.props.height;
-                    value.setCurve(curveIndex + 1, value.getCurve(curveIndex + 1).clone());
+                if (curveIndex + 1 < value.numOfFunctions) {
+                    value.getFunction(curveIndex + 1).p[0] = (this.props.height - y) / this.props.height;
+                    value.setFunction(curveIndex + 1, value.getFunction(curveIndex + 1).clone());
                 }
-                value.setCurve(curveIndex, curve.clone());
+                value.setFunction(curveIndex, curve.clone());
             }
 
 
@@ -174,10 +174,10 @@ export class BezierCurvesEditor extends React.Component<BezierCurvesEditorProps,
         } = this.state;
 
         let curves = [];
-        for (let i = 0; i < value.numOfCurves; i ++) {
+        for (let i = 0; i < value.numOfFunctions; i ++) {
             let x1 = value.getStartX(i);
             let x2 = value.getEndX(i);
-            let curve = value.getCurve(i);
+            let curve = value.getFunction(i);
             let slope0 = curve.derivative(0);
             let slope1 = curve.derivative(1);
 

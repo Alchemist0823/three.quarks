@@ -1,15 +1,16 @@
 import React, {useState} from 'react';
 import logo from './logo.svg';
 import {BezierCurvesEditor} from "./components/bezier/BezierCurvesEditor";
-import {Bezier, BezierCurvesValue} from "./particle/BezierCurvesValue";
+import {PiecewiseBezier} from "./particle/functions/PiecewiseBezier";
 import {Application} from "./components/Application";
 import 'semantic-ui-css/semantic.min.css';
 import {ThreejsViewport} from "./components/ThreejsViewport";
+import {Bezier} from "./particle/functions/Bezier";
 
 const App: React.FC = () => {
 
   const [bezierCurves, setBezierCurves] = useState(
-      new BezierCurvesValue([
+      new PiecewiseBezier([
         [new Bezier(0, 0.5 / 3, 0.5 / 3 * 2, 0.5), 0],
         [new Bezier(0.5, 0.5, 0.5, 0.5), 0.5],
       ])

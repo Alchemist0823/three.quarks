@@ -10,12 +10,15 @@ import {
     Color,
     SphereBufferGeometry,
     Mesh,
-    MeshStandardMaterial, AmbientLight, Vector4, TextureLoader, AdditiveBlending
+    MeshStandardMaterial, AmbientLight, Vector4, TextureLoader, AdditiveBlending, AxesHelper
 } from "three";
 import {ParticleSystem} from "../particle/ParticleSystem";
 import {RefObject} from "react";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import {ConstantValue} from "../particle/ValueGenerator";
+import {ConeEmitter} from "../particle/shape/ConeEmitter";
+import {ConstantColor} from "../particle/functions/ColorGenerator";
+import {ToonProjectile} from "../example/ToonProjectile";
+import {ConstantValue} from "../particle/functions/ConstantValue";
 
 interface ThreejsViewportProps {
     width: number;
@@ -31,6 +34,7 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
     private particleSystem?: ParticleSystem;
     private clock?: Clock;
     private controls?: OrbitControls;
+    private toonProjectile?: ToonProjectile;
 
     constructor(props: Readonly<ThreejsViewportProps>) {
         super(props);
@@ -71,9 +75,10 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
 
         this.clock = new Clock();
         this.scene = new Scene();
+        this.scene.background = new Color( 0x666666 );
 
         this.camera = new PerspectiveCamera( 50, width / height, 1, 1000 );
-        this.camera.position.set(100, 100, 100);
+        this.camera.position.set(50, 50, 50);
 
         this.controls = new OrbitControls( this.camera, this.renderer.domElement );
         this.controls.enableDamping = true;
@@ -84,30 +89,37 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
         let texture = new TextureLoader().load( "textures/texture1.png" , ()=>{console.log("load")}, ()=>{console.log("progress")}, (e)=>{console.info(e)});
 
         this.particleSystem = new ParticleSystem({
-            maxParticle: 100,
-            emissionOverTime: new ConstantValue(10),
-            startLife: new ConstantValue(10),
-            startSpeed: new ConstantValue(0),
+            maxParticle: 10000,
+            shape: new ConeEmitter(),
+            emissionOverTime: new ConstantValue(100),
+            startLife: new ConstantValue(30),
+            startSpeed: new ConstantValue(10),
             startSize: new ConstantValue(1),
-            startColor: new Vector4(1,1,1, 1),
+            startColor: new ConstantColor(new Vector4(1,1,1, 1)),
             texture: texture,
             blending: AdditiveBlending,
             startTileIndex: 0,
             uTileCount: 10,
             vTileCount: 10,
-            worldSpace: true
+            worldSpace: true,
         });
-        //this.particleSystem.renderer.position.set(10, 0, 0);
-        this.scene.add(this.particleSystem.renderer);
+        //this.particleSystem.emitter.position.set(10, 0, 0);
+        //this.scene.add(this.particleSystem.emitter);
+
+        this.toonProjectile = new ToonProjectile();
+        this.scene.add(this.toonProjectile);
+
+        const axisHelper = new AxesHelper(100);
+        this.scene.add(axisHelper);
 
         const light = new PointLight(new Color(1,1,1), 0.8, 200);
-        light.position.set(20, 20, 20);
+        light.position.set(50, 50, 50);
         this.scene.add(light);
 
         const ambientLight = new AmbientLight(new Color(1, 1, 1), 0.2);
         this.scene.add(ambientLight);
 
-        //const mesh = new Mesh(new SphereBufferGeometry(10, 32, 16), new MeshStandardMaterial({color: 0xDD6644}));
+        //const mesh = new Mesh(new SphereBufferGeometry(5, 32, 16), new MeshStandardMaterial({color: 0xDD6644}));
         //this.scene.add(mesh);
 
         this.renderer.setPixelRatio( window.devicePixelRatio );
@@ -142,11 +154,17 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
 
     renderScene() {
         this.controls!.update();
+        let delta = this.clock!.getDelta();
         //let time = performance.now() * 0.0005;
-        this.particleSystem!.update(this.clock!.getDelta());
+        //this.particleSystem!.update(this.clock!.getDelta());
+        this.toonProjectile!.update(delta);
+        this.toonProjectile!.position.x += delta * 30;
+        if (this.toonProjectile!.position.x > 20)
+            this.toonProjectile!.position.x = -20;
 
-        this.particleSystem!.renderer.position.set(Math.cos(this.clock!.getElapsedTime()) * 20, 0, Math.sin(this.clock!.getElapsedTime()) * 20);
-        //console.log(this.particleSystem!.renderer.modelViewMatrix);
+        //this.particleSystem!.emitter.rotation.y = this.clock!.getElapsedTime();
+        //this.particleSystem!.emitter.position.set(Math.cos(this.clock!.getElapsedTime()) * 20, 0, Math.sin(this.clock!.getElapsedTime()) * 20);
+        //console.log(this.particleSystem!.emitter.modelViewMatrix);
 
         this.renderer!.render( this.scene!, this.camera! );
     }

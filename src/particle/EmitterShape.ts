@@ -1,6 +1,8 @@
+import THREE from "three";
 import {Particle} from "./Particle";
 
-export interface Behavior {
+
+export interface EmitterShape {
+
     initialize(particle: Particle): void;
-    update(particle: Particle, delta: number): void;
 }

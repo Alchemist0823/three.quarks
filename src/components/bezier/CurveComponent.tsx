@@ -1,6 +1,6 @@
 import React from "react";
 import {TransformComponent, TransformProps} from "./TransformComponent";
-import {Bezier} from "../../particle/BezierCurvesValue";
+import {Bezier} from "../../particle/functions/Bezier";
 
 export interface CurveProps extends TransformProps {
     curveColor: string;

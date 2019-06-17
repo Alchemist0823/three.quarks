@@ -1,13 +1,27 @@
-import {ParticleEmitter} from "../ParticleEmitter";
+import {EmitterShape} from "../EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, Math as _Math} from "three";
 
-export class ConeEmitter implements ParticleEmitter {
+export interface ConeEmitterParameters {
+    radius?: number;
+    arc?: number;
+    thickness?: number;
+    angle?: number; // [0, Math.PI / 2]
+}
 
-    radius: number = 10;
-    arc: number = 2.0 * Math.PI;
-    thickness: number = 1;
-    angle: number = Math.PI / 6; // [0, Math.PI / 6]
+export class ConeEmitter implements EmitterShape {
+
+    radius: number;
+    arc: number; // [0, Math.PI * 2]
+    thickness: number;
+    angle: number; // [0, Math.PI / 2]
+
+    constructor(parameters: ConeEmitterParameters = {}) {
+        this.radius = parameters.radius || 10;
+        this.arc = parameters.arc || 2.0 * Math.PI;
+        this.thickness = parameters.thickness || 1;
+        this.angle = parameters.angle || Math.PI / 6;
+    }
 
     initialize(p: Particle) {
         const u = Math.random();

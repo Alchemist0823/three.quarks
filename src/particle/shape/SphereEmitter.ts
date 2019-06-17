@@ -1,12 +1,24 @@
-import {ParticleEmitter} from "../ParticleEmitter";
+import {EmitterShape} from "../EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, Math as _Math} from "three";
 
-export class SphereEmitter implements ParticleEmitter {
+export interface SphereEmitterParameters {
+    radius?: number;
+    arc?: number;
+    thickness?: number;
+}
 
-    radius: number = 10;
-    arc: number = 2.0 * Math.PI;
-    thickness: number = 1; //[0, 1]
+export class SphereEmitter implements EmitterShape {
+
+    radius: number;
+    arc: number;
+    thickness: number; //[0, 1]
+
+    constructor(parameters: SphereEmitterParameters = {}) {
+        this.radius = parameters.radius || 10;
+        this.arc = parameters.arc || 2.0 * Math.PI;
+        this.thickness = parameters.thickness || 1;
+    }
 
     initialize(p: Particle) {
         const u = Math.random();

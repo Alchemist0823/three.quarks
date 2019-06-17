@@ -1,8 +1,8 @@
-import {ParticleEmitter} from "../ParticleEmitter";
+import {EmitterShape} from "../EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, Math as _Math} from "three";
 
-export class DonutEmitter implements ParticleEmitter {
+export class DonutEmitter implements EmitterShape {
 
     radius: number = 10;
     arc: number = 2.0 * Math.PI;
