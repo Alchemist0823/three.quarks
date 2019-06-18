@@ -38,6 +38,7 @@ export interface AppContext {
         removeObject3d: (object: Object3D) => void;
         duplicateObject3d: (object: Object3D) => void;
         updateParticleSystem: (object: ParticleEmitter) => void;
+        updateProperties: () => void;
     }
 }
 
@@ -110,6 +111,9 @@ export class Application extends React.Component<ApplicationProps, AppContext> {
                 },
                 updateParticleSystem: () => {
                 },
+                updateProperties: () => {
+                    this.setState({});
+                }
             }
         };
         this.state = state;

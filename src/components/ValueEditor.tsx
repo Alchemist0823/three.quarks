@@ -9,6 +9,7 @@ import {PiecewiseBezier} from "../particle/functions/PiecewiseBezier";
 import {ColorRange} from "../particle/functions/ColorRange";
 import {RandomColor} from "../particle/functions/RandomColor";
 import {Gradient} from "../particle/functions/Gradient";
+import {NumberEditor} from "./NumberEditor";
 
 type EditorType = 'constant' | 'intervalValue' | 'piecewiseBezier' | 'color' | 'randomColor' | 'colorRange' | 'gradient';
 export type ValueType = 'value' | 'functionValue' | 'color' | 'functionColor';
@@ -81,9 +82,8 @@ export class ValueEditor extends React.Component<ValueEditorProps, ValueEditorSt
         this.props.updateGenerator(new ConstantColor(color));
     };
 
-    changeValue = (e:React.ChangeEvent<HTMLInputElement>) => {
-        let x = parseFloat(e.target.value);
-        if (!Number.isNaN(x) && x !== (this.props.generator as ConstantValue).value)
+    changeValue = (x: number) => {
+        if (!Number.isNaN(x))
             this.props.updateGenerator(new ConstantValue(x));
     };
 
@@ -106,7 +106,7 @@ export class ValueEditor extends React.Component<ValueEditorProps, ValueEditorSt
         switch (this.state.currentEditor) {
             case "constant":
                 console.log('trigger');
-                editor = <div><label>{name}</label><input type="number" value={(generator as ConstantValue).value} onChange={this.changeValue}/></div>;
+                editor = <div><label>{name}</label><NumberEditor value={(generator as ConstantValue).value} onChange={this.changeValue}/></div>;
                 break;
             case "color":
                 let color = (generator as ConstantColor).color;

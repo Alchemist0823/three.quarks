@@ -5,6 +5,8 @@ import {ConstantValue} from "../particle/functions/ConstantValue";
 import {FunctionValueGenerator, ValueGenerator} from "../particle/functions/ValueGenerator";
 import {ColorGenerator, ConstantColor, FunctionColorGenerator} from "../particle/functions/ColorGenerator";
 import {Vector4} from "three";
+import {ObjectProperties} from "./ObjectProperties";
+import { ApplicationReactContext } from "./Application";
 
 interface PropertiesEditorProps {
 
@@ -52,12 +54,22 @@ export class PropertiesEditor extends React.Component<PropertiesEditorProps, Pro
     render() {
         const {activeIndex, value} = this.state;
         return (
-            <Accordion fluid styled>
+        <ApplicationReactContext.Consumer>
+            { context => context && (<Accordion fluid styled>
+
                 <Accordion.Title active={activeIndex === 0} index={0} onClick={this.handleClick}>
+                    <Icon name='dropdown'/>
+                    Object
+                </Accordion.Title>
+                {context.selection.length > 0 && (<Accordion.Content active={activeIndex === 0}>
+                    <ObjectProperties object3d={context.selection[0]} />
+                </Accordion.Content>)}
+
+                <Accordion.Title active={activeIndex === 1} index={1} onClick={this.handleClick}>
                     <Icon name='dropdown'/>
                     Emission
                 </Accordion.Title>
-                <Accordion.Content active={activeIndex === 0}>
+                <Accordion.Content active={activeIndex === 1}>
                     <div><ValueEditor name="startSpeed"
                                       allowedType={['value', 'function'] as Array<ValueType>}
                                       generator={this.state.valueGenerator}
@@ -67,17 +79,8 @@ export class PropertiesEditor extends React.Component<PropertiesEditorProps, Pro
                                       generator={this.state.colorGenerator}
                                       updateGenerator={g => this.setState({colorGenerator: g})}/></div>
 
-
                 </Accordion.Content>
 
-                <Accordion.Title active={activeIndex === 1} index={1} onClick={this.handleClick}>
-                    <Icon name='dropdown'/>
-                    Emission Shape
-                </Accordion.Title>
-                <Accordion.Content active={activeIndex === 1}>
-
-                    <Select placeholder='Emitter' options={this.emitterOptions}/>
-                </Accordion.Content>
 
                 <Accordion.Title active={activeIndex === 2} index={2} onClick={this.handleClick}>
                     <Icon name='dropdown'/>
@@ -85,6 +88,15 @@ export class PropertiesEditor extends React.Component<PropertiesEditorProps, Pro
                 </Accordion.Title>
                 <Accordion.Content active={activeIndex === 2}>
                 </Accordion.Content>
-            </Accordion>);
+
+                <Accordion.Title active={activeIndex === 3} index={3} onClick={this.handleClick}>
+                    <Icon name='dropdown'/>
+                    Emission Shape
+                </Accordion.Title>
+                <Accordion.Content active={activeIndex === 3}>
+                    <Select placeholder='Emitter' options={this.emitterOptions}/>
+                </Accordion.Content>
+            </Accordion>)}
+        </ApplicationReactContext.Consumer>);
     }
 }
