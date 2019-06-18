@@ -1,0 +1,12 @@
+li.item {
+    cursor: pointer;
+    list-style-type: none;
+
+    &:hover {
+        background: aliceblue;
+    }
+
+    &.selected {
+        background: lightgrey;
+    }
+}

@@ -19,12 +19,12 @@ import {ConeEmitter} from "../particle/shape/ConeEmitter";
 import {ConstantColor} from "../particle/functions/ColorGenerator";
 import {ToonProjectile} from "../example/ToonProjectile";
 import {ConstantValue} from "../particle/functions/ConstantValue";
+import {AppContext, ApplicationReactContext} from "./Application";
+import {ParticleEmitter} from "../particle/ParticleEmitter";
 
 interface ThreejsViewportProps {
     width: number;
     height: number;
-    scene: Scene;
-    renderCallback: (delta:number)=>void;
 }
 
 export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
@@ -36,6 +36,8 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
     private clock?: Clock;
     private controls?: OrbitControls;
     private toonProjectile?: ToonProjectile;
+
+    private appContext?: AppContext;
 
     constructor(props: Readonly<ThreejsViewportProps>) {
         super(props);
@@ -56,7 +58,7 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
     }
 
     init() {
-        const scene = this.props.scene;
+        const scene = this.appContext!.scene;
 
         if ( WEBGL.isWebGLAvailable() === false ) {
             document.body.appendChild( WEBGL.getWebGLErrorMessage() );
@@ -98,20 +100,32 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
 
         //window.addEventListener( 'resize', this.onWindowResize, false );
 
+        this.onReize(null);
+
         return true;
 
     }
 
-    onWindowResize = ( event: any ) => {
-        this.camera!.aspect = window.innerWidth / window.innerHeight;
-        this.camera!.updateProjectionMatrix();
+    onReize = ( event: any ) => {
 
-        this.renderer!.setSize( window.innerWidth, window.innerHeight );
+        if (this.renderer!.domElement.parentElement!.clientWidth - 10 != this.renderer!.domElement.width ||
+            this.renderer!.domElement.parentElement!.clientHeight - 10 != this.renderer!.domElement.height) {
+
+            const newWidth = this.renderer!.domElement.parentElement!.clientWidth - 10;
+            const newHeight = this.renderer!.domElement.parentElement!.clientHeight - 10;
+
+            this.camera!.aspect = newWidth / newHeight;
+            this.camera!.updateProjectionMatrix();
+            this.renderer!.domElement.style.width = '100%';
+            this.renderer!.domElement.style.height = '100%';
+            this.renderer!.setSize(newWidth, newHeight);
+        }
     };
 
     animate = () => {
         requestAnimationFrame( this.animate );
 
+        this.onReize(null);
         this.renderScene();
         this.stats!.update();
     };
@@ -121,15 +135,30 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
         let delta = this.clock!.getDelta();
         //let time = performance.now() * 0.0005;
         //this.particleSystem!.update(this.clock!.getDelta());
-        this.props.renderCallback(delta);
+        this.appContext!.script(delta);
         //this.particleSystem!.emitter.rotation.y = this.clock!.getElapsedTime();
         //this.particleSystem!.emitter.position.set(Math.cos(this.clock!.getElapsedTime()) * 20, 0, Math.sin(this.clock!.getElapsedTime()) * 20);
         //console.log(this.particleSystem!.emitter.modelViewMatrix);
 
-        this.renderer!.render( this.props.scene, this.camera! );
+        this.appContext!.scene.traverse(object => {
+           if (object instanceof ParticleEmitter) {
+               object.system.update(delta);
+           }
+        });
+
+        this.renderer!.render( this.appContext!.scene, this.camera! );
     }
 
     render() {
-        return <div ref={this.container}> </div>;
+        return (
+        <ApplicationReactContext.Consumer>
+            { context => {
+                    if (context) {
+                        this.appContext = context;
+                        return <div ref={this.container} style={{width: '100%', height: '100%'}}></div>;
+                    }
+                }
+            }
+        </ApplicationReactContext.Consumer>);
     }
 }

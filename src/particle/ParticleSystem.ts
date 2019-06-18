@@ -150,6 +150,7 @@ export class ParticleSystem {
                 this.particles[i] = this.particles[this.particleNum - 1];
                 this.particles[this.particleNum - 1] = particle;
                 this.particleNum--;
+                i --;
             }
         }
 

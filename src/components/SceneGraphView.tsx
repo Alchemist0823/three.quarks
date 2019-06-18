@@ -1,9 +1,11 @@
 import React from "react";
-import { List } from "semantic-ui-react";
+import {AppContext, ApplicationReactContext} from "./Application";
+import {Mesh, Object3D} from "three";
+import {ParticleSystem} from "../particle/ParticleSystem";
+import {ParticleEmitter} from "../particle/ParticleEmitter";
+import './SceneGraphView.scss';
 
 interface SceneGraphViewProps {
-    scene: THREE.Scene;
-    onObjectClick?: (object3d: THREE.Object3D) => void;
 }
 
 interface SceneGraphViewState {
@@ -20,34 +22,54 @@ export class SceneGraphView extends React.Component<SceneGraphViewProps, SceneGr
         }
     }
 
-    renderObject(object3d: THREE.Object3D, index: number): [React.ReactNode, number] {
+    renderObject(context: AppContext, object3d: THREE.Object3D, index: number, indent: number): [React.ReactNodeArray, number] {
         let items = [];
+
+        let className = 'item';
+        if (context.selection.indexOf(object3d) !== -1) {
+            className += ' selected';
+        }
+        items.push(
+            <li key={object3d.uuid} onClick={()=>this.onClick(context, object3d)} className={className} style={{marginLeft: indent + 'em'}}>
+                {this.getObjectName(object3d)}
+            </li>);
+        index ++;
         for (let child of object3d.children) {
-            const result = this.renderObject(child, index);
+            const result = this.renderObject(context, child, index, indent + 1);
             items.push(result[0]);
             index = result[1];
         }
-        let output;
-        if (items.length > 0) {
-            output = <List.List>{items}</List.List>;
-        }
-        return ([
-            <List.Item key={object3d.uuid} onClick={()=>this.onObjectClick(object3d)}>
-                <List.Icon name='marker' />
-                <List.Content>
-                    <List.Header>Object {object3d.name}</List.Header>
-                </List.Content>
-                {output}
-            </List.Item>,
-        index]);
+        return ([items, index]);
     }
 
-    onObjectClick = (object3d: THREE.Object3D) => {
-        if (this.props.onObjectClick)
-            this.props.onObjectClick(object3d);
-    };
+    renderScene(context: AppContext, scene: THREE.Scene) {
+        return <ul> {this.renderObject(context, scene, 0, 0)[0]} </ul>;
+    }
+
+    getObjectName(object3d: Object3D) {
+        let type = 'object';
+        if (object3d instanceof ParticleEmitter) {
+            type = 'ParticleSystem';
+        } else {
+            type =  object3d.type;
+        }
+        let name = 'unnamed';
+        if (object3d.name) {
+            name = object3d.name;
+        }
+        return `[${type}] ${name}`;
+    }
 
     render() {
-        return (<List>{this.renderObject(this.props.scene, 0)[0]}</List>);
+        return (<ApplicationReactContext.Consumer>
+            {
+                context => context && this.renderScene(context, context.scene)
+            }
+        </ApplicationReactContext.Consumer>);
+    }
+
+    onClick = (context: AppContext, object3d: Object3D) => {
+        //if (object3d.children.length === 0)
+        context.actions.select(object3d);
     }
 }

@@ -4,7 +4,7 @@ import {Dropdown, Grid, Icon, Image, Input, Menu} from "semantic-ui-react";
 export class MainMenu extends React.Component {
     render() {
         return (
-            <Menu inverted>
+            <Menu inverted size="tiny">
                 <Menu.Item as='a' header>
                     <Image size='mini' src='/logo.png' style={{ marginRight: '1.5em' }} />
                     Project Name
