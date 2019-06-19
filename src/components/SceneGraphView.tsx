@@ -1,6 +1,6 @@
 import React from "react";
-import {AppContext, ApplicationReactContext} from "./Application";
-import {Mesh, Object3D} from "three";
+import {AppContext, ApplicationContextConsumer} from "./ApplicationContext";
+import {Object3D} from "three";
 import {ParticleSystem} from "../particle/ParticleSystem";
 import {ParticleEmitter} from "../particle/ParticleEmitter";
 import './SceneGraphView.scss';
@@ -12,7 +12,7 @@ interface SceneGraphViewState {
     openedIndex: Array<number>
 }
 
-export class SceneGraphView extends React.Component<SceneGraphViewProps, SceneGraphViewState> {
+export class SceneGraphView extends React.PureComponent<SceneGraphViewProps, SceneGraphViewState> {
 
 
     constructor(props: Readonly<SceneGraphViewProps>) {
@@ -61,11 +61,11 @@ export class SceneGraphView extends React.Component<SceneGraphViewProps, SceneGr
     }
 
     render() {
-        return (<ApplicationReactContext.Consumer>
+        return (<ApplicationContextConsumer>
             {
                 context => context && this.renderScene(context, context.scene)
             }
-        </ApplicationReactContext.Consumer>);
+        </ApplicationContextConsumer>);
     }
 
     onClick = (context: AppContext, object3d: Object3D) => {

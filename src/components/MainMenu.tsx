@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Dropdown, Grid, Icon, Image, Input, Menu} from "semantic-ui-react";
 
-export class MainMenu extends React.Component {
+export class MainMenu extends React.PureComponent {
     render() {
         return (
             <Menu inverted size="tiny">

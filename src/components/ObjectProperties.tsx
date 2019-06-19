@@ -1,54 +1,63 @@
 import * as React from "react";
-import {Object3D} from "three";
-import {NumberEditor} from "./NumberEditor";
-import {ApplicationReactContext} from "./Application";
+import {Euler, Object3D, Vector3} from "three";
+import {Vector3Editor} from "./Vector3Editor";
+import {ApplicationContextConsumer} from "./ApplicationContext";
 
 
 interface ObjectPropertiesProps {
     object3d: Object3D,
+    updateProperties: Function,
 }
 
 interface ObjectPropertiesState {
 
 }
 
-export class ObjectProperties extends React.Component<ObjectPropertiesProps, ObjectPropertiesState> {
+export class ObjectProperties extends React.PureComponent<ObjectPropertiesProps, ObjectPropertiesState> {
     constructor(props: Readonly<ObjectPropertiesProps>) {
         super(props);
     }
 
-    changeValue = (value: number) => {
+    onChangePosition = (x: number, y: number, z: number) => {
+        this.props.object3d.position.set(x, y, z);
+        this.props.updateProperties();
+    };
+    onChangeScale = (x: number, y: number, z: number) => {
+        this.props.object3d.scale.set(x, y, z);
+        this.props.updateProperties();
+    };
+    onChangeRotation = (x: number, y: number, z: number) => {
+        this.props.object3d.rotation.set(x, y, z);
+        this.props.updateProperties();
+    };
 
-    }
 
     render() {
+        console.log('rendered objectProperties');
         return (
-        <ApplicationReactContext.Consumer>
-        { context => context && (
             <div>
-                <div>
-                    <div>Position:</div>
-                    <label>X:</label><NumberEditor value={this.props.object3d.position.x} onChange={value => {this.props.object3d.position.x = value; context.actions.updateProperties()}}/>
-                    <label>Y:</label><NumberEditor value={this.props.object3d.position.y} onChange={value => {this.props.object3d.position.y = value; context.actions.updateProperties()}}/>
-                    <label>Z:</label><NumberEditor value={this.props.object3d.position.z} onChange={value => {this.props.object3d.position.z = value; context.actions.updateProperties()}}/>
-                </div>
-                <div>
-                    <div>Rotation:</div>
-                    <label>X:</label><NumberEditor value={this.props.object3d.rotation.x} onChange={this.changeValue}/>
-                    <label>Y:</label><NumberEditor value={this.props.object3d.rotation.y} onChange={this.changeValue}/>
-                    <label>Z:</label><NumberEditor value={this.props.object3d.rotation.z} onChange={this.changeValue}/>
-                </div>
-                <div>
-                    <div>Scale:</div>
-                    <label>X:</label><NumberEditor value={this.props.object3d.scale.x} onChange={this.changeValue}/>
-                    <label>Y:</label><NumberEditor value={this.props.object3d.scale.y} onChange={this.changeValue}/>
-                    <label>Z:</label><NumberEditor value={this.props.object3d.scale.z} onChange={this.changeValue}/>
-                </div>
+                <ApplicationContextConsumer>
+                    {context => context &&
+                        <Vector3Editor name="Position" x={this.props.object3d.position.x}
+                                       y={this.props.object3d.position.y} z={this.props.object3d.position.z}
+                                       onChange={this.onChangePosition}/>
+                    }
+                </ApplicationContextConsumer>
+                <ApplicationContextConsumer>
+                    {context => context &&
+                        <Vector3Editor name="Rotation" x={this.props.object3d.rotation.x}
+                                       y={this.props.object3d.rotation.y} z={this.props.object3d.rotation.z}
+                                       onChange={this.onChangeRotation} unitConversion={180 / Math.PI}/>
+                    }
+                </ApplicationContextConsumer>
+                <ApplicationContextConsumer>
+                    {context => context &&
+                        <Vector3Editor name="Scale" x={this.props.object3d.scale.x}
+                                       y={this.props.object3d.scale.y} z={this.props.object3d.scale.z}
+                                       onChange={this.onChangeScale}/>
+                    }
+                </ApplicationContextConsumer>
             </div>
-            )
-        }
-
-        </ApplicationReactContext.Consumer>
         );
     }
 }

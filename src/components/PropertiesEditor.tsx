@@ -4,12 +4,12 @@ import {ValueEditor, ValueType} from "./ValueEditor";
 import {ConstantValue} from "../particle/functions/ConstantValue";
 import {FunctionValueGenerator, ValueGenerator} from "../particle/functions/ValueGenerator";
 import {ColorGenerator, ConstantColor, FunctionColorGenerator} from "../particle/functions/ColorGenerator";
-import {Vector4} from "three";
+import {Object3D, Vector4} from "three";
 import {ObjectProperties} from "./ObjectProperties";
-import { ApplicationReactContext } from "./Application";
+import {ApplicationContextConsumer} from "./ApplicationContext";
 
 interface PropertiesEditorProps {
-
+    object3d: Object3D
 }
 
 interface PropertiesEditorState {
@@ -19,7 +19,7 @@ interface PropertiesEditorState {
     colorGenerator: ValueGenerator | FunctionValueGenerator | ColorGenerator | FunctionColorGenerator
 }
 
-export class PropertiesEditor extends React.Component<PropertiesEditorProps, PropertiesEditorState> {
+export class PropertiesEditor extends React.PureComponent<PropertiesEditorProps, PropertiesEditorState> {
     state = {
         activeIndex: 0,
         value: "1",
@@ -37,32 +37,26 @@ export class PropertiesEditor extends React.Component<PropertiesEditorProps, Pro
 
     handleChange = (e: React.MouseEvent, {value}: ItemProps) => this.setState({value})
 
-
     emitterOptions = [
         {key: 'af', value: 'af', text: 'Sphere Emitter'},
         {key: 'ax', value: 'ax', text: 'Cone Emitter'},
         {key: 'ad', value: 'ad', text: 'Donut Emitter'},
     ];
 
-    options = [
-        {key: 'm', text: 'Male', value: 'male'},
-        {key: 'f', text: 'Female', value: 'female'},
-        {key: 'o', text: 'Other', value: 'other'},
-    ];
-
-
     render() {
         const {activeIndex, value} = this.state;
         return (
-        <ApplicationReactContext.Consumer>
-            { context => context && (<Accordion fluid styled>
-
+            <Accordion fluid styled>
                 <Accordion.Title active={activeIndex === 0} index={0} onClick={this.handleClick}>
                     <Icon name='dropdown'/>
                     Object
                 </Accordion.Title>
-                {context.selection.length > 0 && (<Accordion.Content active={activeIndex === 0}>
-                    <ObjectProperties object3d={context.selection[0]} />
+                {this.props.object3d && (<Accordion.Content active={activeIndex === 0}>
+                    <ApplicationContextConsumer>
+                        {context => context &&
+                            <ObjectProperties object3d={this.props.object3d} updateProperties={context.actions.updateProperties}/>
+                        }
+                    </ApplicationContextConsumer>
                 </Accordion.Content>)}
 
                 <Accordion.Title active={activeIndex === 1} index={1} onClick={this.handleClick}>
@@ -96,7 +90,6 @@ export class PropertiesEditor extends React.Component<PropertiesEditorProps, Pro
                 <Accordion.Content active={activeIndex === 3}>
                     <Select placeholder='Emitter' options={this.emitterOptions}/>
                 </Accordion.Content>
-            </Accordion>)}
-        </ApplicationReactContext.Consumer>);
+            </Accordion>);
     }
 }

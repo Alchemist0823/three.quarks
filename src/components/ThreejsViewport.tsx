@@ -19,23 +19,21 @@ import {ConeEmitter} from "../particle/shape/ConeEmitter";
 import {ConstantColor} from "../particle/functions/ColorGenerator";
 import {ToonProjectile} from "../example/ToonProjectile";
 import {ConstantValue} from "../particle/functions/ConstantValue";
-import {AppContext, ApplicationReactContext} from "./Application";
 import {ParticleEmitter} from "../particle/ParticleEmitter";
+import {AppContext, ApplicationContextConsumer} from "./ApplicationContext";
 
 interface ThreejsViewportProps {
     width: number;
     height: number;
 }
 
-export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
+export class ThreejsViewport extends React.PureComponent<ThreejsViewportProps> {
     container: RefObject<HTMLDivElement>;
     stats?: Stats;
     camera?: PerspectiveCamera;
     renderer?: WebGLRenderer;
-    private particleSystem?: ParticleSystem;
     private clock?: Clock;
     private controls?: OrbitControls;
-    private toonProjectile?: ToonProjectile;
 
     private appContext?: AppContext;
 
@@ -53,12 +51,13 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
     componentDidUpdate(prevProps: Readonly<ThreejsViewportProps>, prevState: Readonly<{}>, snapshot?: any): void {
         this.camera!.aspect = this.props.width / this.props.height;
         this.camera!.updateProjectionMatrix();
-
         this.renderer!.setSize( this.props.width, this.props.height );
     }
 
     init() {
-        const scene = this.appContext!.scene;
+        if (!this.container.current) {
+            return false;
+        }
 
         if ( WEBGL.isWebGLAvailable() === false ) {
             document.body.appendChild( WEBGL.getWebGLErrorMessage() );
@@ -131,27 +130,30 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
     };
 
     renderScene() {
-        this.controls!.update();
-        let delta = this.clock!.getDelta();
-        //let time = performance.now() * 0.0005;
-        //this.particleSystem!.update(this.clock!.getDelta());
-        this.appContext!.script(delta);
-        //this.particleSystem!.emitter.rotation.y = this.clock!.getElapsedTime();
-        //this.particleSystem!.emitter.position.set(Math.cos(this.clock!.getElapsedTime()) * 20, 0, Math.sin(this.clock!.getElapsedTime()) * 20);
-        //console.log(this.particleSystem!.emitter.modelViewMatrix);
+        if (this.appContext) {
+            this.controls!.update();
+            let delta = this.clock!.getDelta();
+            //let time = performance.now() * 0.0005;
+            //this.particleSystem!.update(this.clock!.getDelta());
+            this.appContext.script(delta);
+            //this.particleSystem!.emitter.rotation.y = this.clock!.getElapsedTime();
+            //this.particleSystem!.emitter.position.set(Math.cos(this.clock!.getElapsedTime()) * 20, 0, Math.sin(this.clock!.getElapsedTime()) * 20);
+            //console.log(this.particleSystem!.emitter.modelViewMatrix);
 
-        this.appContext!.scene.traverse(object => {
-           if (object instanceof ParticleEmitter) {
-               object.system.update(delta);
-           }
-        });
+            this.appContext.scene.traverse(object => {
+                if (object instanceof ParticleEmitter) {
+                    object.system.update(delta);
+                }
+            });
 
-        this.renderer!.render( this.appContext!.scene, this.camera! );
+            this.renderer!.render(this.appContext.scene, this.camera!);
+        }
     }
 
     render() {
+        console.log( "rendering ThreejsViewPort");
         return (
-        <ApplicationReactContext.Consumer>
+        <ApplicationContextConsumer>
             { context => {
                     if (context) {
                         this.appContext = context;
@@ -159,6 +161,6 @@ export class ThreejsViewport extends React.Component<ThreejsViewportProps> {
                     }
                 }
             }
-        </ApplicationReactContext.Consumer>);
+        </ApplicationContextConsumer>);
     }
 }

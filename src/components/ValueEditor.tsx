@@ -88,6 +88,7 @@ export class ValueEditor extends React.Component<ValueEditorProps, ValueEditorSt
     };
 
     render() {
+        console.log('render ValueEditor');
         const {name, generator} = this.props;
 
         const popover: React.CSSProperties = {
@@ -105,7 +106,6 @@ export class ValueEditor extends React.Component<ValueEditorProps, ValueEditorSt
         let editor;
         switch (this.state.currentEditor) {
             case "constant":
-                console.log('trigger');
                 editor = <div><label>{name}</label><NumberEditor value={(generator as ConstantValue).value} onChange={this.changeValue}/></div>;
                 break;
             case "color":
