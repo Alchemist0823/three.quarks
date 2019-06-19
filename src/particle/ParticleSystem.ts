@@ -172,7 +172,6 @@ export class ParticleSystem {
         //console.log(this.particleNum + " " + this.particles.length);
         this.emitter.update();
 
-
         this.waitEmiting += delta * this.emissionOverTime.genValue(this.time);
         this.time += delta;
     }

@@ -1,20 +1,24 @@
 import * as React from "react";
 import {Dropdown, Grid, Icon, Image, Input, Menu} from "semantic-ui-react";
 
-export class MainMenu extends React.PureComponent {
+interface MainMenuProps {
+    onSaveAs: ()=>void;
+}
+
+export class MainMenu extends React.PureComponent<MainMenuProps> {
     render() {
         return (
             <Menu inverted size="tiny">
                 <Menu.Item as='a' header>
                     <Image size='mini' src='/logo.png' style={{ marginRight: '1.5em' }} />
-                    Project Name
+                    Three.Quarks
                 </Menu.Item>
 
                 <Dropdown item simple text='File'>
                     <Dropdown.Menu>
                         <Dropdown.Item text='New' />
                         <Dropdown.Item text='Open...' description='ctrl + o' />
-                        <Dropdown.Item text='Save as...' description='ctrl + s' />
+                        <Dropdown.Item text='Save as...' description='ctrl + s' onClick={this.props.onSaveAs} />
                         <Dropdown.Item text='Rename' description='ctrl + r' />
                         <Dropdown.Item text='Make a copy' />
                         <Dropdown.Item icon='folder' text='Move to folder' />
@@ -26,7 +30,7 @@ export class MainMenu extends React.PureComponent {
                     </Dropdown.Menu>
                 </Dropdown>
 
-                <Dropdown item simple text='Dropdown'>
+                <Dropdown item simple text='Edit'>
                     <Dropdown.Menu>
                         <Dropdown.Item>
                             <Input placeholder='Search...' />
@@ -67,7 +71,7 @@ export class MainMenu extends React.PureComponent {
                     </Dropdown.Menu>
                 </Dropdown>
 
-                <Dropdown item simple text='Dropdown'>
+                <Dropdown item simple text='Tools'>
                     <Dropdown.Menu>
                         <Dropdown.Item>List Item</Dropdown.Item>
                         <Dropdown.Item>List Item</Dropdown.Item>
@@ -83,7 +87,7 @@ export class MainMenu extends React.PureComponent {
                     </Dropdown.Menu>
                 </Dropdown>
 
-                <Menu.Item as='a'>Home</Menu.Item>
+                <Menu.Item as='a'>About</Menu.Item>
             </Menu>);
     }
 }

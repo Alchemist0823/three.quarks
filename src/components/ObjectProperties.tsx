@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Euler, Object3D, Vector3} from "three";
-import {Vector3Editor} from "./Vector3Editor";
+import {Vector3Editor} from "./editors/Vector3Editor";
 import {ApplicationContextConsumer} from "./ApplicationContext";
 
 

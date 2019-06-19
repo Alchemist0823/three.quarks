@@ -23,7 +23,11 @@ export class Application extends React.Component<ApplicationProps> {
             <ApplicationContextProvider>
                 <div className="application">
                     <div className="main-menu">
-                        <MainMenu></MainMenu>
+                        <ApplicationContextConsumer>
+                            {context => context &&
+                                <MainMenu onSaveAs={context.actions.onSaveAs}></MainMenu>
+                            }
+                        </ApplicationContextConsumer>
                     </div>
                     <div className="main">
                         <div className="viewport">
@@ -32,7 +36,7 @@ export class Application extends React.Component<ApplicationProps> {
                         <div className="sidebar">
                             <SceneGraphView/>
                             <ApplicationContextConsumer>
-                                { context => context &&
+                                { context => context && context.selection.length > 0 &&
                                     <PropertiesEditor object3d={context.selection[0]}/>
                                 }
                             </ApplicationContextConsumer>

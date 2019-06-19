@@ -1,6 +1,6 @@
 import * as React from "react";
 import {CurveComponent} from "./CurveComponent";
-import {PiecewiseBezier} from "../../particle/functions/PiecewiseBezier";
+import {PiecewiseBezier} from "../../../particle/functions/PiecewiseBezier";
 import {HandleComponent} from "./HandleComponent";
 import {createRef} from "react";
 

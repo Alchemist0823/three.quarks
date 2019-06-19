@@ -29,6 +29,7 @@ export interface AppContext {
     script: (delta: number) => void;
     selection: Array<Object3D>;
     actions: {
+        onSaveAs: ()=>void;
         select: (object: Object3D) => void;
         selectAddition: (object: Object3D) => void;
         addObject3d: (type: string) => void;
@@ -74,6 +75,9 @@ export class ApplicationContextProvider extends React.Component<ApplicationConte
             script: this.animate,
             selection: [],
             actions: {
+                onSaveAs: () => {
+                    console.log(state.scene.toJSON());
+                },
                 select: object => {
                     this.setState({selection: [object]});
                 },
@@ -133,11 +137,18 @@ export class ApplicationContextProvider extends React.Component<ApplicationConte
         }
     };
 
+
+    update = 0;
     animate = (delta: number) => {
         this.toonProjectile!.position.x += delta * 30;
         if (this.toonProjectile!.position.x > 20)
             this.toonProjectile!.position.x = -20;
-        this.state.actions.updateProperties();
+
+        this.update += delta;
+        if (this.update > 0.1) {
+            this.state.actions.updateProperties();
+            this.update = 0;
+        }
     };
 
     render() {

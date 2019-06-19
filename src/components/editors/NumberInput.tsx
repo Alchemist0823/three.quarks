@@ -1,11 +1,12 @@
 import * as React from 'react';
+import "./NumberInput.scss";
 
-interface NumberEditorProps{
+interface NumberInputProps{
     value: number;
     onChange: (value: number)=>void;
 }
 
-export const NumberEditor : React.FC<NumberEditorProps> = (props) => {
+export const NumberInput : React.FC<NumberInputProps> = (props) => {
 
     const [inputValue, setInputValue] = React.useState(props.value + '');
     const [focus, setFocus] = React.useState(false);
@@ -36,7 +37,7 @@ export const NumberEditor : React.FC<NumberEditorProps> = (props) => {
             props.onChange(x);
     };
 
-    return <input className="number-input" type="number" value={focus? inputValue: props.value}
+    return <input className="number-input" value={focus? inputValue: props.value} size={5}
             onChange={onInputChange} onBlur={onInputBlur} onFocus={onInputFocus} onKeyDown={onKeyDown}
         />;
 };
