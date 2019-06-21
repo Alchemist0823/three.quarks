@@ -40,6 +40,11 @@ export class ParticleSystemProperties extends React.PureComponent<ParticleSystem
         this.props.particleSystem.startColor = g as ColorGenerator | FunctionColorGenerator;
         this.props.updateProperties();
     };
+    OnChangeStartRotation = (g: GenericGenerator) => {
+        console.log("change start rotation");
+        this.props.particleSystem.startRotation = g as ValueGenerator | FunctionValueGenerator;
+        this.props.updateProperties();
+    };
 
     render() {
         console.log('rendered objectProperties');
@@ -77,6 +82,14 @@ export class ParticleSystemProperties extends React.PureComponent<ParticleSystem
                                          allowedType={colorValueFunctionTypes}
                                          generator={this.props.particleSystem.startColor}
                                          updateGenerator={this.onChangeStartColor}/>
+                    }
+                </ApplicationContextConsumer>
+                <ApplicationContextConsumer>
+                    {context => context &&
+                        <GeneratorEditor name="Start Rotation"
+                                         allowedType={valueFunctionTypes}
+                                         generator={this.props.particleSystem.startRotation}
+                                         updateGenerator={this.OnChangeStartRotation}/>
                     }
                 </ApplicationContextConsumer>
             </div>

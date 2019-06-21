@@ -64,6 +64,31 @@ export class ParticleSystem {
     emitterShape: EmitterShape;
     emitter: ParticleEmitter;
 
+    get texture() {
+        return this.emitter.material.uniforms.map.value;
+    }
+
+    set texture(texture: Texture) {
+        this.emitter.material.uniforms.map.value = texture;
+    }
+
+
+    get uTileCount() {
+        return this.emitter.material.uniforms.tileCount.value.x;
+    }
+
+    set uTileCount(u: number) {
+        this.emitter.material.uniforms.tileCount.value.x = u;
+    }
+
+    get vTileCount() {
+        return this.emitter.material.uniforms.tileCount.value.y;
+    }
+
+    set vTileCount(v: number) {
+        this.emitter.material.uniforms.tileCount.value.y = v;
+    }
+
     constructor(parameters: ParticleSystemParameters = {}) {
         this.duration = parameters.duration || 1;
         this.maxParticle = parameters.maxParticle || 100;
