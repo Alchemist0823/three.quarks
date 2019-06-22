@@ -34,7 +34,11 @@ export class Application extends React.Component<ApplicationProps> {
                             <ThreejsViewport width={600} height={600}/>
                         </div>
                         <div className="sidebar">
-                            <SceneGraphView/>
+                            <ApplicationContextConsumer>
+                                {
+                                    context => context && <SceneGraphView context={context} scene={context.scene} />
+                                }
+                            </ApplicationContextConsumer>
                             <ApplicationContextConsumer>
                                 { context => context && context.selection.length > 0 &&
                                     <PropertiesEditor object3d={context.selection[0]}/>

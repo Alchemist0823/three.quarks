@@ -1,5 +1,7 @@
 import {ValueGenerator} from "./ValueGenerator";
 import {Math as _Math} from "three";
+import {FunctionJSON} from "./FunctionJSON";
+import {ColorToJSON} from "../util/JSONUtil";
 
 export class IntervalValue implements ValueGenerator {
 
@@ -12,4 +14,12 @@ export class IntervalValue implements ValueGenerator {
     }
 
     type: "value";
+
+    toJSON(): FunctionJSON {
+        return {
+            type: "intervalValue",
+            a: this.a,
+            b: this.b,
+        };
+    }
 }

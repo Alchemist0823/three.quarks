@@ -12,4 +12,10 @@ export class SizeOverLife implements Behavior {
     update(particle: Particle): void {
         particle.size = particle.startSize * this.func.genValue(particle.age / particle.life);
     }
+    toJSON(): any {
+        return {
+            type: 'SizeOverLife',
+            func: this.func.toJSON(),
+        };
+    }
 }

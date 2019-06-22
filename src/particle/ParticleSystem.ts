@@ -2,12 +2,13 @@ import {FunctionValueGenerator, ValueGenerator} from "./functions/ValueGenerator
 import {Behavior} from "./Behavior";
 import {Particle} from "./Particle";
 import {ParticleEmitter} from "./ParticleEmitter";
-import {EmitterShape} from "./EmitterShape";
+import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
 import {Blending, Matrix3, Texture, Vector4} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
 import {ColorGenerator, ConstantColor, FunctionColorGenerator} from "./functions/ColorGenerator";
 import {ConstantValue} from "./functions/ConstantValue";
+import {FunctionJSON} from "./functions/FunctionJSON";
 
 
 export interface ParticleSystemParameters {
@@ -33,6 +34,33 @@ export interface ParticleSystemParameters {
 
     worldSpace?: boolean;
 
+}
+
+export interface ParticleSystemJSONParameters {
+
+    // parameters
+    looping: boolean;
+    duration: number;
+    maxParticle: number;
+
+    shape: ShapeJSON;
+    startLife: FunctionJSON;
+    startSpeed: FunctionJSON;
+    startRotation: FunctionJSON;
+    startSize: FunctionJSON;
+    startColor: FunctionJSON;
+    emissionOverTime: FunctionJSON;
+    emissionOverDistance: FunctionJSON;
+
+    texture: string;
+    startTileIndex: number;
+    uTileCount: number;
+    vTileCount: number;
+    blending: number;
+
+    behaviors: Array<any>;
+
+    worldSpace: boolean;
 }
 
 export class ParticleSystem {
@@ -87,6 +115,14 @@ export class ParticleSystem {
 
     set vTileCount(v: number) {
         this.emitter.material.uniforms.tileCount.value.y = v;
+    }
+
+    get blending() {
+        return this.emitter.material.blending;
+    }
+
+    set blending(blending) {
+        this.emitter.material.blending = blending;
     }
 
     constructor(parameters: ParticleSystemParameters = {}) {
@@ -201,8 +237,31 @@ export class ParticleSystem {
         this.time += delta;
     }
 
-    toJson() {
+    toJSON(): ParticleSystemJSONParameters {
+        return {
+            looping: this.looping,
+            duration: this.duration,
+            maxParticle: this.maxParticle,
 
+            shape: this.emitterShape.toJSON(),
+            startLife: this.startLife.toJSON(),
+            startSpeed: this.startSpeed.toJSON(),
+            startRotation: this.startRotation.toJSON(),
+            startSize: this.startSize.toJSON(),
+            startColor: this.startColor.toJSON(),
+            emissionOverTime: this.emissionOverTime.toJSON(),
+            emissionOverDistance: this.emissionOverDistance.toJSON(),
+
+            texture: this.texture.name,
+            startTileIndex: this.startTileIndex,
+            uTileCount: this.uTileCount,
+            vTileCount: this.vTileCount,
+            blending: this.blending,
+
+            behaviors: this.behaviors.map(behavior => behavior.toJSON()),
+
+            worldSpace: this.worldSpace,
+        };
     }
 
     addBehavior(behavior: Behavior) {

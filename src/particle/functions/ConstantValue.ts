@@ -1,4 +1,5 @@
 import {ValueGenerator} from "./ValueGenerator";
+import {FunctionJSON} from "./FunctionJSON";
 
 export class ConstantValue implements ValueGenerator {
     type: "value";
@@ -10,4 +11,11 @@ export class ConstantValue implements ValueGenerator {
         return this.value;
     }
 
+
+    toJSON(): FunctionJSON {
+        return {
+            type: "constantValue",
+            value: this.value
+        };
+    }
 }

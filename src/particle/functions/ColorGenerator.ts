@@ -1,13 +1,17 @@
 import {Vector4} from "three";
+import {FunctionJSON} from "./FunctionJSON";
+import {ColorToJSON} from "../util/JSONUtil";
 
 export interface ColorGenerator {
     type: 'value';
     genColor(color: Vector4): Vector4;
+    toJSON(): FunctionJSON;
 }
 
 export interface FunctionColorGenerator {
     type: 'function';
     genColor(color: Vector4, t: number): Vector4;
+    toJSON(): FunctionJSON;
 }
 
 export class ConstantColor implements ColorGenerator {
@@ -19,4 +23,11 @@ export class ConstantColor implements ColorGenerator {
     }
 
     type: "value";
+
+    toJSON(): FunctionJSON {
+        return {
+            type: "constantColor",
+            color: ColorToJSON(this.color)
+        };
+    }
 }

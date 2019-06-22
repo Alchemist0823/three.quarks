@@ -8,7 +8,7 @@ import {
     InstancedBufferAttribute,
     InstancedBufferGeometry,
     InterleavedBuffer,
-    InterleavedBufferAttribute, Matrix3, Mesh, ShaderMaterial, Texture, Uniform, Vector2, Vector4
+    InterleavedBufferAttribute, Matrix3, Mesh, ShaderMaterial, Texture, TrianglesDrawMode, Uniform, Vector2, Vector4
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
@@ -143,5 +143,49 @@ export class ParticleEmitter extends Mesh {
                 this.uvTileBuffer!.needsUpdate = true;
             }
         }
+    }
+
+    toJSON(meta?: { geometries: any; materials: any; textures: any; images: any }): any {
+        let output: any = {};
+
+        // standard Object3D serialization
+
+        let object: any = {};
+
+        object.uuid = this.uuid;
+        object.type = this.type;
+
+        if ( this.name !== '' ) object.name = this.name;
+        if ( this.castShadow === true ) object.castShadow = true;
+        if ( this.receiveShadow === true ) object.receiveShadow = true;
+        if ( this.visible === false ) object.visible = false;
+        if ( this.frustumCulled === false ) object.frustumCulled = false;
+        if ( this.renderOrder !== 0 ) object.renderOrder = this.renderOrder;
+
+        if ( JSON.stringify( this.userData ) !== '{}' ) object.userData = this.userData;
+
+        object.layers = this.layers.mask;
+        object.matrix = this.matrix.toArray();
+
+        if ( this.matrixAutoUpdate === false ) object.matrixAutoUpdate = false;
+
+        // object specific properties
+
+        if ( this.isMesh && this.drawMode !== TrianglesDrawMode ) object.drawMode = this.drawMode;
+
+        object.ps = this.system.toJSON();
+
+
+        // children
+        if ( this.children.length > 0 ) {
+            object.children = [];
+            for ( var i = 0; i < this.children.length; i ++ ) {
+                object.children.push( this.children[ i ].toJSON( meta ).object );
+            }
+        }
+
+        output.object = object;
+
+        return output;
     }
 }

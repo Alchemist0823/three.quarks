@@ -13,4 +13,11 @@ export class ColerOverLife implements Behavior {
     update(particle: Particle, delta: number): void {
         this.func.genColor(particle.color, particle.age / particle.life).dot(particle.startColor);
     }
+
+    toJSON(): any {
+        return {
+            type: 'ColerOverLife',
+            func: this.func.toJSON(),
+        };
+    }
 }

@@ -1,4 +1,4 @@
-import {EmitterShape} from "../EmitterShape";
+import {EmitterShape, ShapeJSON} from "../EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, Math as _Math} from "three";
 
@@ -22,5 +22,11 @@ export class PointEmitter implements EmitterShape {
         p.velocity.z = r * cosPhi;
 
         p.position.setScalar(0);
+    }
+
+    toJSON(): ShapeJSON {
+        return {
+            type: 'point',
+        };
     }
 }

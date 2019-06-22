@@ -1,4 +1,4 @@
-import {EmitterShape} from "../EmitterShape";
+import {EmitterShape, ShapeJSON} from "../EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, Math as _Math} from "three";
 
@@ -37,5 +37,14 @@ export class SphereEmitter implements EmitterShape {
 
         p.velocity.setScalar(0).addScaledVector(p.position, p.startSpeed);
         p.position.multiplyScalar(this.radius);
+    }
+
+    toJSON(): ShapeJSON {
+        return {
+            type: "sphere",
+            radius: this.radius,
+            arc: this.arc,
+            thickness: this.thickness,
+        };
     }
 }

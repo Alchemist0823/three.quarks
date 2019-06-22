@@ -3,6 +3,7 @@ import {ColorGenerator, FunctionColorGenerator} from "./ColorGenerator";
 import {Vector4} from "three";
 import {ColorRange} from "./ColorRange";
 import {Bezier} from "./Bezier";
+import {FunctionJSON} from "./FunctionJSON";
 
 export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionColorGenerator {
 
@@ -23,4 +24,8 @@ export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionC
     }
 
     type: "function";
+
+    toJSON(): FunctionJSON {
+        return {};
+    }
 }

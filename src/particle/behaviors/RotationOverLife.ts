@@ -22,4 +22,10 @@ export class RotationOverLife implements Behavior {
             particle.rotation += delta * this.angularVelocityFunc.genValue(particle.age / particle.life);
         }
     }
+    toJSON(): any {
+        return {
+            type: 'RotationOverLife',
+            angularVelocityFunc: this.angularVelocityFunc.toJSON(),
+        };
+    }
 }

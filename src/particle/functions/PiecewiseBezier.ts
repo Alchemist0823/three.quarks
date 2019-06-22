@@ -1,6 +1,8 @@
 import {FunctionValueGenerator, ValueGenerator} from "./ValueGenerator";
 import {PiecewiseFunction} from "./PiecewiseFunction";
 import {Bezier} from "./Bezier";
+import {FunctionJSON} from "./FunctionJSON";
+import {ColorToJSON} from "../util/JSONUtil";
 
 export class PiecewiseBezier extends PiecewiseFunction<Bezier> implements FunctionValueGenerator {
 
@@ -31,4 +33,11 @@ export class PiecewiseBezier extends PiecewiseFunction<Bezier> implements Functi
     }
 
     type: "function";
+
+    toJSON(): FunctionJSON {
+        return {
+            type: "piecewiseBezier",
+            beziers: this.functions.map(([bezier, start]) => ({function: bezier.toJSON(), start: start})),
+        };
+    }
 }

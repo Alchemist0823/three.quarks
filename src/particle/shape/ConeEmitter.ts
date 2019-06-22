@@ -1,4 +1,4 @@
-import {EmitterShape} from "../EmitterShape";
+import {EmitterShape, ShapeJSON} from "../EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, Math as _Math} from "three";
 
@@ -38,5 +38,15 @@ export class ConeEmitter implements EmitterShape {
         p.velocity.set(0, 0, Math.cos(angle)).addScaledVector(p.position, Math.sin(angle)).multiplyScalar(p.startSpeed);
         //const v = Math.random();
         p.position.multiplyScalar(this.radius);
+    }
+
+    toJSON(): ShapeJSON {
+        return {
+            type: "sphere",
+            radius: this.radius,
+            arc: this.arc,
+            thickness: this.thickness,
+            angle: this.angle,
+        };
     }
 }

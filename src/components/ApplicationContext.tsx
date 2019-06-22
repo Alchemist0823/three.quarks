@@ -32,7 +32,7 @@ export interface AppContext {
         onSaveAs: ()=>void;
         select: (object: Object3D) => void;
         selectAddition: (object: Object3D) => void;
-        addObject3d: (type: string) => void;
+        addObject3d: (type: string, parent: Object3D) => void;
         removeObject3d: (object: Object3D) => void;
         duplicateObject3d: (object: Object3D) => void;
         updateParticleSystem: (object: ParticleEmitter) => void;
@@ -76,7 +76,11 @@ export class ApplicationContextProvider extends React.Component<ApplicationConte
             selection: [],
             actions: {
                 onSaveAs: () => {
-                    console.log(state.scene.toJSON());
+                    const a = document.createElement("a");
+                    const file = new Blob([JSON.stringify(state.scene.toJSON())], {type: "application/json"});
+                    a.href = URL.createObjectURL(file);
+                    a.download = "scene.json";
+                    a.click();
                 },
                 select: object => {
                     this.setState({selection: [object]});
@@ -88,8 +92,7 @@ export class ApplicationContextProvider extends React.Component<ApplicationConte
                     }
                 },
                 addObject3d: this.addObject3d,
-                removeObject3d: () => {
-                },
+                removeObject3d: this.removeObject3d,
                 duplicateObject3d: () => {
                 },
                 updateParticleSystem: () => {
@@ -103,7 +106,13 @@ export class ApplicationContextProvider extends React.Component<ApplicationConte
         this.state = state;
     }
 
-    addObject3d = (type: string) => {
+    removeObject3d = (object3D: Object3D) => {
+        if (object3D.parent) {
+            object3D.parent.remove(object3D);
+        }
+    };
+
+    addObject3d = (type: string, parent: Object3D) => {
         let object;
         switch (type) {
             case 'particle':
@@ -132,6 +141,7 @@ export class ApplicationContextProvider extends React.Component<ApplicationConte
                 break;
         }
         if (object) {
+            parent.add(object);
             this.state.actions.select(object);
             this.setState({});
         }

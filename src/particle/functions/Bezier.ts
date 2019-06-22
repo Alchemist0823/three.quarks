@@ -85,5 +85,14 @@ export class Bezier {
     clone() {
         return new Bezier(this.p[0], this.p[1], this.p[2], this.p[3]);
     }
+
+    toJSON() {
+        return {
+            p0 : this.p[0],
+            p1 : this.p[1],
+            p2 : this.p[2],
+            p3 : this.p[3],
+        };
+    }
 }
 
