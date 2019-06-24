@@ -48,7 +48,7 @@ export class ParticleSystemProperties extends React.PureComponent<ParticleSystem
 
     render() {
         console.log('rendered objectProperties');
-        const valueFunctionTypes = ['value', 'function'] as Array<ValueType>;
+        const valueFunctionTypes = ['value', 'functionValue'] as Array<ValueType>;
         const colorValueFunctionTypes = ['color', 'functionColor'] as Array<ValueType>;
         return (
             <div>

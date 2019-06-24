@@ -1,7 +1,41 @@
 {
-  "name": "threejs-particle",
+  "name": "three.quarks",
+  "description": "A General-Purpose Particle System for three.js",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "homepage": "http://Alchemist0823.github.io/three.quarks",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Alchemist0823/three.quarks.git"
+  },
+  "keywords": ["three.js", "particle", "vfx", "graphics", "js", "ts"],
+  "author": "Forrest Sun <the.forrest.sun@gmail.com> (https://github.com/Alchemist0823)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Alchemist0823/three.quarks/issues"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "deploy": "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
   "dependencies": {
     "@types/jest": "24.0.14",
     "@types/node": "12.0.8",
@@ -28,28 +62,8 @@
     "three": "^0.105.2",
     "typescript": "3.5.2"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "devDependencies": {
-    "@types/stats.js": "^0.17.0"
+    "@types/stats.js": "^0.17.0",
+    "gh-pages": "^2.0.1"
   }
 }

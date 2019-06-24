@@ -50,6 +50,7 @@ export class ToonProjectile extends Group {
         });
         this.mainBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.25, 0.05, 0), 0]])));
         this.mainBeam.emitter.renderOrder = 2;
+        this.mainBeam.emitter.name = 'mainBeam';
 
         this.add(this.mainBeam.emitter);
 
@@ -78,6 +79,7 @@ export class ToonProjectile extends Group {
         });
         this.glowBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         this.glowBeam.emitter.renderOrder = 2;
+        this.glowBeam.emitter.name = 'glowBeam';
 
         this.add(this.glowBeam.emitter);
 
@@ -109,6 +111,7 @@ export class ToonProjectile extends Group {
         this.particles.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.25, 0.05, 0), 0]])));
         this.particles.emitter.renderOrder = 2;
         this.particles.emitter.rotateY(-Math.PI/2);
+        this.particles.emitter.name = 'particles';
 
         this.add(this.particles.emitter);
 
@@ -137,6 +140,7 @@ export class ToonProjectile extends Group {
         this.smoke.addBehavior(new ColerOverLife(new ColorRange(new Vector4(1, 0.1509503, 0.07352942, 1), new Vector4(0, 0, 0, 0))));
         this.smoke.addBehavior(new RotationOverLife(new IntervalValue(-Math.PI * 2, Math.PI * 2)));
         this.smoke.emitter.renderOrder = -2;
+        this.smoke.emitter.name = 'smoke';
 
         this.add(this.smoke.emitter);
 

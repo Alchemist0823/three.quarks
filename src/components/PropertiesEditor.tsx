@@ -8,8 +8,8 @@ import {ObjectProperties} from "./ObjectProperties";
 import {ApplicationContextConsumer} from "./ApplicationContext";
 import {ParticleEmitter} from "../particle/ParticleEmitter";
 import {ParticleSystemProperties} from "./ParticleSystemProperties";
-import "./PropertiesEditor.scss";
 import {ParticleRendererProperties} from "./ParticleRendererProperties";
+import "./PropertiesEditor.scss";
 
 interface PropertiesEditorProps {
     object3d: Object3D

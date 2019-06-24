@@ -32,9 +32,11 @@ export const NumberInput : React.FC<NumberInputProps> = (props) => {
     };
 
     const onKeyDown = (e: React.KeyboardEvent) => {
-        const x = parseFloat(inputValue);
-        if (x !== props.value)
-            props.onChange(x);
+        if (e.key === 'Enter') {
+            const x = parseFloat(inputValue);
+            if (x !== props.value)
+                props.onChange(x);
+        }
     };
 
     return <input className="number-input" value={focus? inputValue: props.value} size={5}

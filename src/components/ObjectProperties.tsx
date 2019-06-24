@@ -2,6 +2,7 @@ import * as React from "react";
 import {Euler, Object3D, Vector3} from "three";
 import {Vector3Editor} from "./editors/Vector3Editor";
 import {ApplicationContextConsumer} from "./ApplicationContext";
+import {StringInput} from "./editors/StringInput";
 
 
 interface ObjectPropertiesProps {
@@ -18,6 +19,10 @@ export class ObjectProperties extends React.PureComponent<ObjectPropertiesProps,
         super(props);
     }
 
+    onChangeName = (name: string) => {
+        this.props.object3d.name = name;
+        this.props.updateProperties();
+    };
     onChangePosition = (x: number, y: number, z: number) => {
         this.props.object3d.position.set(x, y, z);
         this.props.updateProperties();
@@ -31,11 +36,18 @@ export class ObjectProperties extends React.PureComponent<ObjectPropertiesProps,
         this.props.updateProperties();
     };
 
-
     render() {
         console.log('rendered objectProperties');
         return (
             <div>
+                <ApplicationContextConsumer>
+                    {context => context &&
+                        <div className="property">
+                            <label className="name">Name:</label>
+                            <StringInput value={this.props.object3d.name} onChange={this.onChangeName}/>
+                        </div>
+                    }
+                </ApplicationContextConsumer>
                 <ApplicationContextConsumer>
                     {context => context &&
                         <Vector3Editor name="Position" x={this.props.object3d.position.x}

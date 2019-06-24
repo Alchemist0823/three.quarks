@@ -10,6 +10,7 @@ import {RandomColor} from "../../particle/functions/RandomColor";
 import {Gradient} from "../../particle/functions/Gradient";
 import {NumberInput} from "./NumberInput";
 import {ColorEditor} from "./ColorEditor";
+import "./GeneratorEditor.scss";
 
 type EditorType =
     'constant'
@@ -49,6 +50,29 @@ export class GeneratorEditor extends React.PureComponent<GeneratorEditorProps, G
         this.state = {
             open: false,
         }
+    }
+    changeEditor = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const editorType = e.target.value;
+        let generator: GenericGenerator | null = null;
+        switch(editorType) {
+            case "constant":
+                generator = new ConstantValue(0);
+                break;
+            case "color":
+                generator = new ConstantColor(new Vector4(1,1,1,1));
+                break;
+            case "intervalValue":
+                generator = new IntervalValue(0, 1);
+                break;
+            case "colorRange":
+                generator = new ColorRange(new Vector4(0,0,0,1), new Vector4(1,1,1,1));
+                break;
+            case "randomColor":
+                generator = new RandomColor(new Vector4(0,0,0,1), new Vector4(1,1,1,1));
+                break;
+        }
+        if (generator)
+            this.props.updateGenerator(generator);
     }
 
     changeValue = (x: number) => {
@@ -107,7 +131,16 @@ export class GeneratorEditor extends React.PureComponent<GeneratorEditorProps, G
 
     render() {
         console.log('render GeneratorEditor');
-        const {name, generator} = this.props;
+        const {name, generator, allowedType} = this.props;
+
+        let editorTypes = [];
+        for (let valueType of allowedType) {
+            console.log(valueType);
+            console.log(ValueToEditor[valueType]);
+            for (let editorType of ValueToEditor[valueType]) {
+                editorTypes.push(editorType);
+            }
+        }
 
         let currentEditor = this.getEditorType(generator);
 
@@ -145,6 +178,9 @@ export class GeneratorEditor extends React.PureComponent<GeneratorEditorProps, G
         return <div className="property">
             <label className="name">{name}</label>
             {editor}
+            <select className="editor-select" onChange={this.changeEditor}>
+                {editorTypes.map(editorType => <option key={editorType} value={editorType} selected={currentEditor === editorType}>{editorType}</option>)}
+            </select>
         </div>;
     }
 }
