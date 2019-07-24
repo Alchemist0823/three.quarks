@@ -1,40 +1,28 @@
-## THREE.QUARKS
+# three.quarks
+![npm](https://img.shields.io/npm/v/three.quarks.svg)
+![test status](https://travis-ci.org/Alchemist0823/three.quarks.svg?branch=master)
+![Github Star](https://img.shields.io/github/stars/Alchemist0823/three.quarks.svg?style=social)
 
-Three.quarks is a fast powerful and general purpose particle engine for [three.js](https://threejs.org).
+**three.quarks** is a high-performance javascript particle system library for threejs written in modern **TypeScript**.
 
-### Demo
+### Difference from Physics Engines
 
-Projectile Demo
+Most physics engines bundles all the physics related data structure and 
+algorithm together. It makes setup easy but it limits the flexibility of
+the application or games. Because in lots of scenario except physics simulation,
+objects are not intended to move according to physics laws.
 
-Cartoon Demo
-
-The particle system editor is [Here]().
+This library is much light weight than a physics engine, and gives users a customizable
+environment to setup their own 2d world.
 
 ### Install
-
-It includes a core runtime library and a **particle system editor**.
-
-#### Core Runtime
-
-```
+#### npm install
+```bash
 npm install three.quarks
 ```
 
-The runtime library has only one three.js dependency.
+#### browser install
 
-It uses GPU instancing and interleaved buffer technology to maximize performance.
-
-Most particle system parameters can be input as bezier curves. For curve parameters,
-It has a lookup table for best performance.
-
-#### Editor
-
-```
-npm install three.quarks-editor
-```
-
-The particle system has an in-house bezier editor and WYSIWYG particle system viewport.
-
-#### Thanks
-
-powered by Three.js, React, Semantic.UI
+### Examples
+Check [test](test) folder
+More examples will come up later.
