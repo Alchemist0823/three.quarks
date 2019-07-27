@@ -1,18 +1,19 @@
-import {FunctionValueGenerator, ValueGenerator} from "./functions/ValueGenerator";
-import {Behavior} from "./Behavior";
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./functions/ValueGenerator";
+import {Behavior, BehaviorFromJSON} from "./Behavior";
 import {Particle} from "./Particle";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
 import {Blending, Matrix3, Texture, Vector4} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
-import {ColorGenerator, ConstantColor, FunctionColorGenerator} from "./functions/ColorGenerator";
+import {ColorGenerator, ConstantColor, FunctionColorGenerator, ColorGeneratorFromJSON} from "./functions/ColorGenerator";
 import {ConstantValue} from "./functions/ConstantValue";
 import {FunctionJSON} from "./functions/FunctionJSON";
 
 
 export interface ParticleSystemParameters {
     // parameters
+    autoDestroy?: boolean;
     looping?: boolean;
     duration?: number;
     maxParticle?: number;
@@ -25,6 +26,8 @@ export interface ParticleSystemParameters {
     startColor?: ColorGenerator | FunctionColorGenerator;
     emissionOverTime?: ValueGenerator | FunctionValueGenerator;
     emissionOverDistance?: ValueGenerator | FunctionValueGenerator;
+
+    behaviors?: Array<Behavior>;
 
     texture?: Texture;
     startTileIndex?: number;
@@ -39,6 +42,7 @@ export interface ParticleSystemParameters {
 export interface ParticleSystemJSONParameters {
 
     // parameters
+    autoDestroy: boolean;
     looping: boolean;
     duration: number;
     maxParticle: number;
@@ -65,6 +69,7 @@ export interface ParticleSystemJSONParameters {
 
 export class ParticleSystem {
     // parameters
+    autoDestroy: boolean;
     looping: boolean;
     duration: number;
     maxParticle: number;
@@ -85,6 +90,8 @@ export class ParticleSystem {
     particleNum: number;
     private time: number;
     private waitEmiting: number;
+    private emitEnded: boolean;
+    private markForDestroy: boolean;
 
     private behaviors: Array<Behavior>;
 
@@ -126,6 +133,7 @@ export class ParticleSystem {
     }
 
     constructor(parameters: ParticleSystemParameters = {}) {
+        this.autoDestroy = parameters.autoDestroy || false;
         this.duration = parameters.duration || 1;
         this.maxParticle = parameters.maxParticle || 100;
         this.looping = parameters.looping === undefined ? true : parameters.looping;
@@ -138,11 +146,12 @@ export class ParticleSystem {
         this.emissionOverDistance = parameters.emissionOverDistance || new ConstantValue(0);
         this.emitterShape = parameters.shape || new SphereEmitter();
 
+        this.behaviors = parameters.behaviors || new Array<Behavior>();
+
         if (parameters.worldSpace === undefined)
             parameters.worldSpace = true;
         this.worldSpace = parameters.worldSpace;
 
-        this.behaviors = new Array<Behavior>();
         this.particles = new Array<Particle>();
 
 
@@ -153,10 +162,8 @@ export class ParticleSystem {
 
         this.time = 0;
         this.waitEmiting = 0;
-    }
-
-    end() {
-
+        this.emitEnded = false;
+        this.markForDestroy = false;
     }
 
     spawn() {
@@ -189,16 +196,30 @@ export class ParticleSystem {
 
     normalMatrix: Matrix3 = new Matrix3();
 
+    endEmit() {
+        this.emitEnded = true;
+        if (this.autoDestroy) {
+            this.markForDestroy = true;
+        }
+    }
+
     update(delta: number) {
         if (delta > 0.1)
             delta = 0.1;
+
+        if (this.emitEnded && this.particleNum === 0) {
+            if (this.markForDestroy && this.emitter.parent)
+                this.emitter.parent.remove(this.emitter);
+            return;
+        }
 
         if (this.time > this.duration) {
             if (this.looping) {
                 this.time -= this.duration;
             } else {
-                this.end();
-                return;
+                if (!this.emitEnded) {
+                    this.endEmit();
+                }
             }
         }
 
@@ -216,7 +237,7 @@ export class ParticleSystem {
         }
 
         // spawn
-        while (this.waitEmiting > 0 && this.particleNum < this.maxParticle) {
+        while (this.waitEmiting > 0 && this.particleNum < this.maxParticle && !this.emitEnded) {
             this.spawn();
             this.waitEmiting--;
         }
@@ -233,12 +254,15 @@ export class ParticleSystem {
         //console.log(this.particleNum + " " + this.particles.length);
         this.emitter.update();
 
-        this.waitEmiting += delta * this.emissionOverTime.genValue(this.time);
+        if (!this.emitEnded) {
+            this.waitEmiting += delta * this.emissionOverTime.genValue(this.time);
+        }
         this.time += delta;
     }
 
-    toJSON(): ParticleSystemJSONParameters {
+    toJSON(meta: any): ParticleSystemJSONParameters {
         return {
+            autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,
             maxParticle: this.maxParticle,
@@ -252,7 +276,7 @@ export class ParticleSystem {
             emissionOverTime: this.emissionOverTime.toJSON(),
             emissionOverDistance: this.emissionOverDistance.toJSON(),
 
-            texture: this.texture.name,
+            texture: this.texture.toJSON(meta).uuid,
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
@@ -262,6 +286,47 @@ export class ParticleSystem {
 
             worldSpace: this.worldSpace,
         };
+    }
+
+    static fromJSON(json: ParticleSystemJSONParameters, textures: {[a:string]:Texture}): ParticleSystem {
+        let shape;
+        switch(json.shape.type) {
+            case 'cone':
+                shape = new ConeEmitter(json.shape);
+                break;
+            case 'sphere':
+                shape = new SphereEmitter(json.shape);
+                break;
+            default:
+                shape = new SphereEmitter(json.shape);
+                break;
+        }
+
+        return new ParticleSystem({
+            autoDestroy: json.autoDestroy,
+            looping: json.looping,
+            duration: json.duration,
+            maxParticle: json.maxParticle,
+
+            shape: shape,
+            startLife: ValueGeneratorFromJSON(json.startLife),
+            startSpeed: ValueGeneratorFromJSON(json.startSpeed),
+            startRotation: ValueGeneratorFromJSON(json.startRotation),
+            startSize: ValueGeneratorFromJSON(json.startSize),
+            startColor: ColorGeneratorFromJSON(json.startColor),
+            emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
+            emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
+
+            texture: textures[json.texture],
+            startTileIndex: json.startTileIndex,
+            uTileCount: json.uTileCount,
+            vTileCount: json.vTileCount,
+            blending: json.blending,
+
+            behaviors: json.behaviors.map(behavior => BehaviorFromJSON(behavior)),
+
+            worldSpace: json.worldSpace,
+        });
     }
 
     addBehavior(behavior: Behavior) {

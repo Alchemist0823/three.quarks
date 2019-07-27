@@ -147,7 +147,6 @@ export class ParticleEmitter extends Mesh {
 
     toJSON(meta?: { geometries: any; materials: any; textures: any; images: any }): any {
         let output: any = {};
-
         // standard Object3D serialization
 
         let object: any = {};
@@ -173,7 +172,7 @@ export class ParticleEmitter extends Mesh {
 
         if ( this.isMesh && this.drawMode !== TrianglesDrawMode ) object.drawMode = this.drawMode;
 
-        object.ps = this.system.toJSON();
+        object.ps = this.system.toJSON(meta);
 
 
         // children

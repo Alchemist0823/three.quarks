@@ -94,5 +94,8 @@ export class Bezier {
             p3 : this.p[3],
         };
     }
-}
 
+    static fromJSON(json: {p0: number, p1: number, p2: number, p3: number}): Bezier {
+        return new Bezier(json.p0, json.p1, json.p2, json.p3);
+    }
+}

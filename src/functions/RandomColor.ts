@@ -1,7 +1,7 @@
 import {Math as _Math, Vector4} from "three";
 import {ColorGenerator} from "./ColorGenerator";
 import {FunctionJSON} from "./FunctionJSON";
-import {ColorToJSON} from "../util/JSONUtil";
+import {ColorToJSON, JSONToColor} from "../util/JSONUtil";
 
 export class RandomColor implements ColorGenerator {
     constructor(public a: Vector4, public b: Vector4) {
@@ -21,5 +21,9 @@ export class RandomColor implements ColorGenerator {
             a: ColorToJSON(this.a),
             b: ColorToJSON(this.b),
         };
+    }
+
+    static fromJSON(json: FunctionJSON): RandomColor {
+        return new RandomColor(JSONToColor(json.a), JSONToColor(json.b));
     }
 }

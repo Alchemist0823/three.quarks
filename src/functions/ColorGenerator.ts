@@ -1,6 +1,8 @@
 import {Vector4} from "three";
 import {FunctionJSON} from "./FunctionJSON";
-import {ColorToJSON} from "../util/JSONUtil";
+import {ColorToJSON, JSONToColor} from "../util/JSONUtil";
+import { RandomColor } from "./RandomColor";
+import { ColorRange } from "./ColorRange";
 
 export interface ColorGenerator {
     type: 'value';
@@ -29,5 +31,22 @@ export class ConstantColor implements ColorGenerator {
             type: "constantColor",
             color: ColorToJSON(this.color)
         };
+    }
+
+    static fromJSON(json: FunctionJSON): ConstantColor {
+        return new ConstantColor(JSONToColor(json.color));
+    }
+}
+
+export function ColorGeneratorFromJSON(json: FunctionJSON) {
+    switch(json.type) {
+        case 'constantColor':
+            return ConstantColor.fromJSON(json);
+        case 'colorRange':
+            return ColorRange.fromJSON(json);
+        case 'randomColor':
+            return RandomColor.fromJSON(json);
+        default:
+            return new ConstantColor(new Vector4(1, 1, 1, 1));
     }
 }

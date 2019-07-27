@@ -42,7 +42,7 @@ export class ConeEmitter implements EmitterShape {
 
     toJSON(): ShapeJSON {
         return {
-            type: "sphere",
+            type: "cone",
             radius: this.radius,
             arc: this.arc,
             thickness: this.thickness,
