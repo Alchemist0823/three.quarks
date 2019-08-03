@@ -28,7 +28,7 @@ export class ConstantColor implements ColorGenerator {
 
     toJSON(): FunctionJSON {
         return {
-            type: "constantColor",
+            type: "ConstantColor",
             color: ColorToJSON(this.color)
         };
     }
@@ -40,11 +40,11 @@ export class ConstantColor implements ColorGenerator {
 
 export function ColorGeneratorFromJSON(json: FunctionJSON) {
     switch(json.type) {
-        case 'constantColor':
+        case 'ConstantColor':
             return ConstantColor.fromJSON(json);
-        case 'colorRange':
+        case 'ColorRange':
             return ColorRange.fromJSON(json);
-        case 'randomColor':
+        case 'RandomColor':
             return RandomColor.fromJSON(json);
         default:
             return new ConstantColor(new Vector4(1, 1, 1, 1));

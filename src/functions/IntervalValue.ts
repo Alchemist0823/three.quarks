@@ -17,7 +17,7 @@ export class IntervalValue implements ValueGenerator {
 
     toJSON(): FunctionJSON {
         return {
-            type: "intervalValue",
+            type: "IntervalValue",
             a: this.a,
             b: this.b,
         };

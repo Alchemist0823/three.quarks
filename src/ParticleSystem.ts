@@ -9,6 +9,8 @@ import {SphereEmitter} from "./shape/SphereEmitter";
 import {ColorGenerator, ConstantColor, FunctionColorGenerator, ColorGeneratorFromJSON} from "./functions/ColorGenerator";
 import {ConstantValue} from "./functions/ConstantValue";
 import {FunctionJSON} from "./functions/FunctionJSON";
+import { PointEmitter } from "./shape/PointEmitter";
+import { DonutEmitter } from "./shape/DonutEmitter";
 
 
 export interface ParticleSystemParameters {
@@ -294,6 +296,12 @@ export class ParticleSystem {
             case 'cone':
                 shape = new ConeEmitter(json.shape);
                 break;
+            /*case 'donut':
+                shape = new DonutEmitter(json.shape);
+                break;
+            case 'point':
+                shape = new PointEmitter(json.shape);
+                break;*/
             case 'sphere':
                 shape = new SphereEmitter(json.shape);
                 break;

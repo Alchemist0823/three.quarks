@@ -14,7 +14,7 @@ export class ConstantValue implements ValueGenerator {
 
     toJSON(): FunctionJSON {
         return {
-            type: "constantValue",
+            type: "ConstantValue",
             value: this.value
         };
     }

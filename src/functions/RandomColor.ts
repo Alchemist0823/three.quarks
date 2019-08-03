@@ -17,7 +17,7 @@ export class RandomColor implements ColorGenerator {
 
     toJSON(): FunctionJSON {
         return {
-            type: "randomColor",
+            type: "RandomColor",
             a: ColorToJSON(this.a),
             b: ColorToJSON(this.b),
         };

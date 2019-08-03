@@ -16,7 +16,7 @@ export class ColorRange implements FunctionColorGenerator {
 
     toJSON(): FunctionJSON {
         return {
-            type: "colorRange",
+            type: "ColorRange",
             a: ColorToJSON(this.a),
             b: ColorToJSON(this.b),
         };

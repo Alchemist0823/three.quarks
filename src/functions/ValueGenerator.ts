@@ -17,11 +17,11 @@ export interface FunctionValueGenerator {
 
 export function ValueGeneratorFromJSON(json: FunctionJSON) {
     switch(json.type) {
-        case 'constantValue':
+        case 'ConstantValue':
             return ConstantValue.fromJSON(json);
-        case 'intervalValue':
+        case 'IntervalValue':
             return IntervalValue.fromJSON(json);
-        case 'piecewiseBezier':
+        case 'PiecewiseBezier':
             return PiecewiseBezier.fromJSON(json);
         default:
             return new ConstantValue(0);

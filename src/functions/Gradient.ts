@@ -26,6 +26,13 @@ export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionC
     type: "function";
 
     toJSON(): FunctionJSON {
-        return {};
+        return {
+            type: "Gradient",
+            functions: this.functions.map(([range, start]) => ({function: range.toJSON(), start: start})),
+        };
+    }
+
+    static fromJSON(json: FunctionJSON): Gradient {
+        return new Gradient(json.functions.map((piecewiseFunction: any) => ([ColorRange.fromJSON(piecewiseFunction.function), piecewiseFunction.start])));
     }
 }

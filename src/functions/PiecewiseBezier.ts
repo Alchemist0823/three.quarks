@@ -36,12 +36,12 @@ export class PiecewiseBezier extends PiecewiseFunction<Bezier> implements Functi
 
     toJSON(): FunctionJSON {
         return {
-            type: "piecewiseBezier",
-            beziers: this.functions.map(([bezier, start]) => ({function: bezier.toJSON(), start: start})),
+            type: "PiecewiseBezier",
+            functions: this.functions.map(([bezier, start]) => ({function: bezier.toJSON(), start: start})),
         };
     }
 
     static fromJSON(json: FunctionJSON): PiecewiseBezier {
-        return new PiecewiseBezier(json.beziers.map((piecewiseFunction: any) => ([Bezier.fromJSON(piecewiseFunction.function), piecewiseFunction.start])));
+        return new PiecewiseBezier(json.functions.map((piecewiseFunction: any) => ([Bezier.fromJSON(piecewiseFunction.function), piecewiseFunction.start])));
     }
 }
