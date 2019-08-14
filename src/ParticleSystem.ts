@@ -1,5 +1,5 @@
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./functions/ValueGenerator";
-import {Behavior, BehaviorFromJSON} from "./Behavior";
+import {Behavior, BehaviorFromJSON} from "./behaviors/Behavior";
 import {Particle} from "./Particle";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
@@ -95,7 +95,7 @@ export class ParticleSystem {
     private emitEnded: boolean;
     private markForDestroy: boolean;
 
-    private behaviors: Array<Behavior>;
+    behaviors: Array<Behavior>;
 
     particles: Array<Particle>;
     emitterShape: EmitterShape;

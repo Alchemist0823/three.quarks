@@ -1,4 +1,4 @@
-import {Behavior} from './Behavior';
+import {Behavior} from './behaviors/Behavior';
 import {Particle} from './Particle';
 import {ParticleSystem} from './ParticleSystem';
 import {

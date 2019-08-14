@@ -75,7 +75,7 @@ export class QuarksLoader {
         return this;
     }
 
-	load ( url:string, onLoad:()=>void, onProgress:()=>void, onError:(error:any)=>void ) {
+	load ( url:string, onLoad:(object3d: Object3D)=>void, onProgress:()=>void, onError:(error:any)=>void ) {
 		var scope = this;
 
 		var path = ( this.path === undefined ) ? LoaderUtils.extractUrlBase( url ) : this.path;

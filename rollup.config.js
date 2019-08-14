@@ -41,9 +41,9 @@ export default [
         input: 'src/index.ts',
         output: [
             {
-                file: pkg.browser,
+                file: pkg.browser_NO_NPM,
                 format: 'iife',
-                name: 'three.quarks',
+                name: 'THREE.QUARKS',
                 // the global which can be used in a browser
                 // https://rollupjs.org/guide/en#output-globals-g-globals
                 globals: {

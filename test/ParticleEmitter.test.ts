@@ -1,5 +1,16 @@
-import {ParticleSystem, IntervalValue, ConstantValue, ConstantColor, SphereEmitter, SizeOverLife, PiecewiseBezier, Bezier} from "../src";
+import {
+    ParticleSystem,
+    IntervalValue,
+    ConstantValue,
+    ConstantColor,
+    SphereEmitter,
+    SizeOverLife,
+    PiecewiseBezier,
+    Bezier,
+    ParticleEmitter
+} from "../src";
 import {Vector4, Texture, AdditiveBlending} from "three";
+import {QuarksLoader} from "../src/QuarksLoader";
 
 
 describe("ParticleEmitter", () => {
@@ -63,8 +74,12 @@ describe("ParticleEmitter", () => {
     });
 
     test(".fromJSON", ()=> {
-        const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
-        const json = glowBeam.emitter.toJSON(meta);
+        //const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
+        const json = glowBeam.emitter.toJSON();
+        const loader = new QuarksLoader();
+        const emitter = loader.parse(json, () => {}) as ParticleEmitter;
 
+        expect(emitter.system.startTileIndex).toBe(1);
+        expect(emitter.system.behaviors.length).toBe(1);
     });
 });

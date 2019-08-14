@@ -1,4 +1,4 @@
-import {Behavior} from "../Behavior";
+import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
 import {FunctionValueGenerator, ValueGenerator} from "../functions/ValueGenerator";
 
@@ -25,7 +25,7 @@ export class RotationOverLife implements Behavior {
     toJSON(): any {
         return {
             type: 'RotationOverLife',
-            angularVelocityFunc: this.angularVelocityFunc.toJSON(),
+            func: this.angularVelocityFunc.toJSON(),
         };
     }
 }

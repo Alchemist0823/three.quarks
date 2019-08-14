@@ -1,8 +1,8 @@
-import {Behavior} from "../Behavior";
+import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
 import {FunctionColorGenerator} from "../functions/ColorGenerator";
 
-export class ColerOverLife implements Behavior {
+export class ColorOverLife implements Behavior {
 
     constructor(public func: FunctionColorGenerator) {
     }
@@ -16,7 +16,7 @@ export class ColerOverLife implements Behavior {
 
     toJSON(): any {
         return {
-            type: 'ColerOverLife',
+            type: 'ColorOverLife',
             func: this.func.toJSON(),
         };
     }

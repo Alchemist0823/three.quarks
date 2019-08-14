@@ -1,4 +1,4 @@
-import {Behavior} from "../Behavior";
+import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
 import {FunctionValueGenerator} from "../functions/ValueGenerator";
 
