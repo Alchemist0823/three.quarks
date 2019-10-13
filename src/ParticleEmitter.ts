@@ -147,6 +147,10 @@ export class ParticleEmitter extends Mesh {
         }
     }
 
+    dispose() {
+        this.geometry.dispose();
+    }
+
     // extract data from the cache hash
     // remove metadata on each item
     // and return as array

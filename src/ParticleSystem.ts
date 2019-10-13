@@ -205,13 +205,19 @@ export class ParticleSystem {
         }
     }
 
+    dispose() {
+        this.emitter!.dispose();
+        if (this.emitter.parent)
+            this.emitter.parent.remove(this.emitter);
+    }
+
     update(delta: number) {
         if (delta > 0.1)
             delta = 0.1;
 
         if (this.emitEnded && this.particleNum === 0) {
             if (this.markForDestroy && this.emitter.parent)
-                this.emitter.parent.remove(this.emitter);
+                this.dispose();
             return;
         }
 
