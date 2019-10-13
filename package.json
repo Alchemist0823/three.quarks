@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A General-Purpose Particle System for three.js",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/index.cjs.js",
@@ -40,8 +40,10 @@
   },
   "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
   "dependencies": {
-    "@babel/runtime": "^7.5.0",
-    "three": "^0.109.0"
+    "@babel/runtime": "^7.5.0"
+  },
+  "peerDependencies": {
+    "three": ">= 0.108.0 < 0.110.0"
   },
   "devDependencies": {
     "@babel/core": "^7.4.4",
@@ -59,6 +61,7 @@
     "rollup-plugin-commonjs": "^10.0.0",
     "rollup-plugin-node-resolve": "^5.0.3",
     "rollup-plugin-uglify": "^6.0.2",
+    "three": "^0.109.0",
     "ts-jest": "^24.0.2",
     "typedoc": "^0.14.2",
     "typescript": "^3.5.2"
