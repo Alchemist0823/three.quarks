@@ -1,66 +1,101 @@
 import resolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
 import babel from 'rollup-plugin-babel'
-import {uglify} from 'rollup-plugin-uglify'
+import minify from "rollup-plugin-babel-minify";
 import pkg from './package.json'
 
+const date = (new Date()).toDateString();
+
+const banner = `/**
+ * ${pkg.name} v${pkg.version} build ${date}
+ * ${pkg.homepage}
+ * Copyright ${date.slice(-4)} ${pkg.author.name}, ${pkg.license}
+ */`;
+
+const production = (process.env.NODE_ENV === "production");
+const globals = { three: "THREE" };
 const extensions = [
     '.js', '.jsx', '.ts', '.tsx',
 ];
 
-export default [
-    {
-        input: 'src/index.ts',
-        output: [
-            {
-                file: pkg.main,
-                format: 'cjs',
-            },
-            {
-                file: pkg.module,
-                format: 'es',
-            },
-        ],
-        external: ['three'],
+export const lib = {
+    module: {
+        input: "src/index.ts",
+        external: Object.keys(globals),
         plugins: [
-            // Allows node_modules resolution
-            resolve({ extensions }),
-
-            // Allow bundling cjs modules. Rollup doesn't understand cjs
-            commonjs(),
-
-            // Compile TypeScript/JavaScript files
+            resolve({
+                extensions: extensions,
+                customResolveOptions: {
+                    moduleDirectory: 'src'
+                }
+            }),
             babel({
                 extensions,
                 include: ['src/**/*'],
-                runtimeHelpers: true,
-            }),
+                //runtimeHelpers: true,
+            })
         ],
+        output: {
+            file: pkg.module,
+            format: "esm",
+            globals,
+            banner
+        }
     },
-    {
-        input: 'src/index.ts',
-        output: [
-            {
-                file: pkg.browser_NO_NPM,
-                format: 'iife',
-                name: 'THREE.QUARKS',
-                // the global which can be used in a browser
-                // https://rollupjs.org/guide/en#output-globals-g-globals
-                globals: {
-                    'three': 'THREE',
-                },
-            }
-        ],
-        external: ['three'],
+
+    main: {
+        input: "src/index.ts",
+        external: Object.keys(globals),
         plugins: [
-            resolve({ extensions }),
-            commonjs(),
+            resolve({
+                extensions: extensions,
+                customResolveOptions: {
+                    moduleDirectory: 'src'
+                }
+            }),
             babel({
                 extensions,
                 include: ['src/**/*'],
-                runtimeHelpers: true,
-            }),
-            uglify(),
+                //runtimeHelpers: true,
+            })
         ],
+        output: {
+            file: pkg.main,
+            format: "umd",
+            name: pkg.name.replace(/-/g, "").toUpperCase(),
+            globals,
+            banner
+        }
+    },
+
+    min: {
+        input: "src/index.ts",
+        external: Object.keys(globals),
+        plugins: [
+            resolve({
+                extensions: extensions,
+                customResolveOptions: {
+                    moduleDirectory: 'src'
+                }
+            }),
+            minify({
+                bannerNewLine: true,
+                comments: false
+            }),
+            babel({
+                extensions,
+                include: ['src/**/*'],
+                //runtimeHelpers: true,
+            })
+        ],
+        output: {
+            file: pkg.main.replace(".js", ".min.js"),
+            format: "umd",
+            name: pkg.name.replace(/-/g, "").toUpperCase(),
+            globals,
+            banner
+        }
     }
-]
+};
+export default (production ? [
+    lib.module, lib.main, lib.min,
+] : [lib.module]);

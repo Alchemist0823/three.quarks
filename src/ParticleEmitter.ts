@@ -8,7 +8,17 @@ import {
     InstancedBufferAttribute,
     InstancedBufferGeometry,
     InterleavedBuffer,
-    InterleavedBufferAttribute, Matrix3, Mesh, ShaderMaterial, Texture, Uniform, Vector2, Vector4, Object3D, TrianglesDrawMode
+    InterleavedBufferAttribute,
+    Matrix3,
+    Mesh,
+    ShaderMaterial,
+    Texture,
+    Uniform,
+    Vector2,
+    Vector4,
+    Object3D,
+    TrianglesDrawMode,
+    DynamicDrawUsage
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
@@ -55,21 +65,21 @@ export class ParticleEmitter extends Mesh {
         const interleavedBuffer = new InterleavedBuffer(float32Array, 5);
 
         this.geometry.setIndex([0, 1, 2, 0, 2, 3]);
-        this.geometry.addAttribute('position', new InterleavedBufferAttribute(interleavedBuffer, 3, 0, false));
-        this.geometry.addAttribute('uv', new InterleavedBufferAttribute(interleavedBuffer, 2, 3, false));
+        this.geometry.setAttribute('position', new InterleavedBufferAttribute(interleavedBuffer, 3, 0, false));
+        this.geometry.setAttribute('uv', new InterleavedBufferAttribute(interleavedBuffer, 2, 3, false));
 
         this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 3), 3);
-        this.offsetBuffer.setDynamic(true);
-        this.geometry.addAttribute('offset', this.offsetBuffer);
+        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('offset', this.offsetBuffer);
         this.colorBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 4), 4);
-        this.colorBuffer.setDynamic(true);
-        this.geometry.addAttribute('color', this.colorBuffer);
+        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('color', this.colorBuffer);
         this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
-        this.rotationBuffer.setDynamic(true);
-        this.geometry.addAttribute('rotation', this.rotationBuffer);
+        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('rotation', this.rotationBuffer);
         this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
-        this.sizeBuffer.setDynamic(true);
-        this.geometry.addAttribute('size', this.sizeBuffer);
+        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('size', this.sizeBuffer);
 
 
         this.tiling = false;
@@ -86,8 +96,8 @@ export class ParticleEmitter extends Mesh {
             this.system.tileCount = uTileCount * vTileCount;
             if (this.tiling) {
                 this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
-                this.uvTileBuffer.setDynamic(true);
-                this.geometry.addAttribute('uvTile', this.uvTileBuffer);
+                this.uvTileBuffer.setUsage(DynamicDrawUsage);
+                this.geometry.setAttribute('uvTile', this.uvTileBuffer);
                 defines['UV_TILE']='';
                 uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
             }

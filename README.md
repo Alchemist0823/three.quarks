@@ -16,9 +16,9 @@ This library is much light weight than a physics engine, and gives users a custo
 environment to setup their own 2d world.
 
 ### Install
-#### npm install
+#### Package install
 ```bash
-npm install three.quarks
+yarn install three.quarks
 ```
 
 #### browser install
