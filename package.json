@@ -1,10 +1,10 @@
 {
   "name": "three.quarks",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "A General-Purpose Particle System for three.js",
   "types": "./dist/types/index.d.ts",
-  "main": "./dist/index.cjs.js",
-  "module": "./dist/index.es.js",
+  "main": "./dist/three.quarks.js",
+  "module": "./dist/three.quarks.esm.js",
   "browser_NO_NPM": "./dist/three.quarks.min.js",
   "files": [
     "dist"
@@ -15,7 +15,8 @@
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
     "build": "yarn run build:types && yarn run build:js",
-    "prepublishOnly": "yarn run build",
+    "build:production": "cross-env NODE_ENV=production yarn run build",
+    "prepublishOnly": "yarn run build:production",
     "doc": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -39,31 +40,29 @@
     "url": "https://github.com/Alchemist0823/three.quarks/issues"
   },
   "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
-  "dependencies": {
-    "@babel/runtime": "^7.5.0"
-  },
+  "dependencies": {},
   "peerDependencies": {
-    "three": ">= 0.106.0 < 0.107.0"
+    "three": ">= 0.110.0 < 0.111.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
-    "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
-    "@babel/plugin-transform-runtime": "^7.5.0",
-    "@babel/preset-env": "^7.4.4",
-    "@babel/preset-typescript": "^7.3.3",
+    "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
+    "@babel/preset-env": "^7.7.1",
+    "@babel/preset-typescript": "^7.7.2",
     "@types/jest": "^24.0.15",
     "@types/node": "^12.0.2",
     "cpx": "^1.5.0",
-    "jest": "^24.8.0",
-    "rollup": "^1.15.6",
-    "rollup-plugin-babel": "^4.3.2",
-    "rollup-plugin-commonjs": "^10.0.0",
-    "rollup-plugin-node-resolve": "^5.0.3",
-    "rollup-plugin-uglify": "^6.0.2",
-    "three": "^0.107.0",
-    "ts-jest": "^24.0.2",
-    "typedoc": "^0.14.2",
-    "typescript": "^3.5.2"
+    "cross-env": "^6.0.3",
+    "jest": "^24.9.0",
+    "rollup": "^1.26.5",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-babel-minify": "^9.1.1",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "three": "^0.110.0",
+    "ts-jest": "^24.1.0",
+    "typedoc": "^0.15.0",
+    "typescript": "^3.7.2"
   }
 }
