@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A General-Purpose Particle System for three.js",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/three.quarks.js",
@@ -12,10 +12,9 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "type-check:watch": "yarn run type-check -- --watch",
-    "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build": "yarn run build:types && yarn run build:js",
-    "build:production": "cross-env NODE_ENV=production yarn run build",
+    "build:production": "cross-env NODE_ENV=production yarn run build:js",
+    "build": "yarn run build:production",
     "prepublishOnly": "yarn run build:production",
     "doc": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "test": "jest",
@@ -60,6 +59,7 @@
     "rollup-plugin-babel-minify": "^9.1.1",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-typescript2": "^0.25.2",
     "three": "^0.110.0",
     "ts-jest": "^24.1.0",
     "typedoc": "^0.15.0",

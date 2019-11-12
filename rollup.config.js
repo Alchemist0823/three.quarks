@@ -2,6 +2,7 @@ import resolve from 'rollup-plugin-node-resolve'
 import babel from 'rollup-plugin-babel'
 import minify from "rollup-plugin-babel-minify";
 import pkg from './package.json'
+import typescript from "rollup-plugin-typescript2";
 
 const date = (new Date()).toDateString();
 
@@ -28,30 +29,32 @@ export const lib = {
                     moduleDirectory: 'src'
                 }
             }),
-            babel({
-                extensions,
-                include: ['src/**/*'],
-                //runtimeHelpers: true,
-            })
+            typescript({
+                useTsconfigDeclarationDir: true
+            }),
         ],
-        output: {
+        output: [{
             file: pkg.module,
             format: "esm",
             globals,
             banner
-        }
+        },
+        {
+            file: pkg.main,
+            format: "esm",
+            globals,
+        },
+        {
+            file: pkg.main.replace(".js", ".min.js"),
+            format: "esm",
+            globals,
+        }]
     },
 
     main: {
-        input: "src/index.ts",
+        input: pkg.main,
         external: Object.keys(globals),
         plugins: [
-            resolve({
-                extensions: extensions,
-                customResolveOptions: {
-                    moduleDirectory: 'src'
-                }
-            }),
             babel({
                 extensions,
                 include: ['src/**/*'],
@@ -68,15 +71,9 @@ export const lib = {
     },
 
     min: {
-        input: "src/index.ts",
+        input: pkg.main.replace(".js", ".min.js"),
         external: Object.keys(globals),
         plugins: [
-            resolve({
-                extensions: extensions,
-                customResolveOptions: {
-                    moduleDirectory: 'src'
-                }
-            }),
             minify({
                 bannerNewLine: true,
                 comments: false
