@@ -1,10 +1,10 @@
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./functions/ValueGenerator";
 import {Behavior, BehaviorFromJSON} from "./behaviors/Behavior";
 import {Particle} from "./Particle";
-import {ParticleEmitter} from "./ParticleEmitter";
+import {ParticleEmitter, RenderMode} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
-import {Blending, Matrix3, Texture, Vector4} from "three";
+import {Blending, Matrix3, Texture, Vector3, Vector4} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
 import {ColorGenerator, ConstantColor, FunctionColorGenerator, ColorGeneratorFromJSON} from "./functions/ColorGenerator";
 import {ConstantValue} from "./functions/ConstantValue";
@@ -31,6 +31,8 @@ export interface ParticleSystemParameters {
 
     behaviors?: Array<Behavior>;
 
+    renderMode?: RenderMode;
+    speedFactor?: number;
     texture?: Texture;
     startTileIndex?: number;
     uTileCount?: number;
@@ -58,6 +60,8 @@ export interface ParticleSystemJSONParameters {
     emissionOverTime: FunctionJSON;
     emissionOverDistance: FunctionJSON;
 
+    renderMode: number;
+    speedFactor?: number;
     texture: string;
     startTileIndex: number;
     uTileCount: number;
@@ -109,7 +113,6 @@ export class ParticleSystem {
         this.emitter.material.uniforms.map.value = texture;
     }
 
-
     get uTileCount() {
         return this.emitter.material.uniforms.tileCount.value.x;
     }
@@ -124,6 +127,18 @@ export class ParticleSystem {
 
     set vTileCount(v: number) {
         this.emitter.material.uniforms.tileCount.value.y = v;
+    }
+
+    get renderMode(): RenderMode {
+        return this.emitter.renderMode;
+    }
+
+    get speedFactor(): number {
+        return this.emitter.material.uniforms.speedFactor.value;
+    }
+
+    set speedFactor(v: number) {
+        this.emitter.material.uniforms.speedFactor.value = v;
     }
 
     get blending() {
@@ -284,6 +299,8 @@ export class ParticleSystem {
             emissionOverTime: this.emissionOverTime.toJSON(),
             emissionOverDistance: this.emissionOverDistance.toJSON(),
 
+            renderMode: this.renderMode,
+            speedFactor: this.speedFactor,
             texture: this.texture.toJSON(meta).uuid,
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
@@ -302,17 +319,17 @@ export class ParticleSystem {
             case 'cone':
                 shape = new ConeEmitter(json.shape);
                 break;
-            /*case 'donut':
+            case 'donut':
                 shape = new DonutEmitter(json.shape);
                 break;
             case 'point':
-                shape = new PointEmitter(json.shape);
-                break;*/
+                shape = new PointEmitter();
+                break;
             case 'sphere':
                 shape = new SphereEmitter(json.shape);
                 break;
             default:
-                shape = new SphereEmitter(json.shape);
+                shape = new PointEmitter();
                 break;
         }
 
@@ -331,6 +348,7 @@ export class ParticleSystem {
             emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
 
+            renderMode: json.renderMode,
             texture: textures[json.texture],
             startTileIndex: json.startTileIndex,
             uTileCount: json.uTileCount,

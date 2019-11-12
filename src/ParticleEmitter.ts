@@ -23,15 +23,23 @@ import {
 
 import particle_frag from './shaders/particle_frag.glsl';
 import particle_vert from './shaders/particle_vert.glsl';
+import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 
 export interface ParticleRendererParameters {
+    instancingGeometry?: Float32Array;
     texture?: Texture;
     uTileCount?: number;
     vTileCount?: number;
     worldSpace?: boolean;
     blending?: Blending;
+    renderMode? : RenderMode;
+    speedFactor? : number;
 }
 
+export enum RenderMode {
+    BillBoard = 0,
+    StretchedBillBoard = 1,
+}
 
 export class ParticleEmitter extends Mesh {
 
@@ -39,20 +47,26 @@ export class ParticleEmitter extends Mesh {
     system: ParticleSystem;
     geometry: InstancedBufferGeometry;
     material: ShaderMaterial;
+
     private rotationBuffer: InstancedBufferAttribute;
     private sizeBuffer: InstancedBufferAttribute;
     private colorBuffer: InstancedBufferAttribute;
     private offsetBuffer: InstancedBufferAttribute;
+    private velocityBuffer? : InstancedBufferAttribute;
 
     private tiling: boolean;
     private uvTileBuffer?: InstancedBufferAttribute;
+    public renderMode: RenderMode;
+    private speedFactor: number;
 
     constructor(system: ParticleSystem, parameters: ParticleRendererParameters) {
         super();
         this.system = system;
         this.geometry = new InstancedBufferGeometry();
+        this.renderMode = parameters.renderMode || RenderMode.BillBoard;
+        this.speedFactor = parameters.speedFactor || 1;
 
-        const float32Array = new Float32Array([
+        const instancingGeometry = parameters.instancingGeometry || new Float32Array([
             -0.5, -0.5, 0, 0, 0,
             0.5, -0.5, 0, 1, 0,
             0.5, 0.5, 0, 1, 1,
@@ -62,7 +76,7 @@ export class ParticleEmitter extends Mesh {
         let uniforms: {[a:string]:Uniform} = {};
         let defines: {[b:string]:string} = {};
 
-        const interleavedBuffer = new InterleavedBuffer(float32Array, 5);
+        const interleavedBuffer = new InterleavedBuffer(instancingGeometry, 5);
 
         this.geometry.setIndex([0, 1, 2, 0, 2, 3]);
         this.geometry.setAttribute('position', new InterleavedBufferAttribute(interleavedBuffer, 3, 0, false));
@@ -107,15 +121,35 @@ export class ParticleEmitter extends Mesh {
             defines['WORLD_SPACE']='';
         }
 
-        this.material = new ShaderMaterial({
-            uniforms: uniforms,
-            defines: defines,
-            vertexShader: particle_vert,
-            fragmentShader: particle_frag,
-            transparent: true,
-            depthWrite: false,
-            blending: parameters.blending || AdditiveBlending,
-        });
+        if (this.renderMode === RenderMode.BillBoard) {
+            this.material = new ShaderMaterial({
+                uniforms: uniforms,
+                defines: defines,
+                vertexShader: particle_vert,
+                fragmentShader: particle_frag,
+                transparent: true,
+                depthWrite: false,
+                blending: parameters.blending || AdditiveBlending,
+            });
+        } else if (this.renderMode === RenderMode.StretchedBillBoard) {
+
+            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 3);
+            this.velocityBuffer.setUsage(DynamicDrawUsage);
+            this.geometry.setAttribute('velocity', this.velocityBuffer);
+
+            uniforms['speedFactor'] = new Uniform(parameters.speedFactor);
+            this.material = new ShaderMaterial({
+                uniforms: uniforms,
+                defines: defines,
+                vertexShader: stretched_bb_particle_vert,
+                fragmentShader: particle_frag,
+                transparent: true,
+                depthWrite: false,
+                blending: parameters.blending || AdditiveBlending,
+            });
+        } else {
+            throw new Error("render mode unavailable");
+        }
 
         // TODO: implement boundingVolume
         this.frustumCulled = false;
@@ -132,6 +166,9 @@ export class ParticleEmitter extends Mesh {
             this.colorBuffer.setXYZW(i, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
             this.rotationBuffer.setX(i, particle.rotation);
             this.sizeBuffer.setX(i, particle.size);
+            if (this.renderMode === RenderMode.StretchedBillBoard) {
+                this.velocityBuffer!.setXYZ(i, particle.velocity.x, particle.velocity.y, particle.velocity.z);
+            }
             if (this.tiling) {
                 this.uvTileBuffer!.setX(i, particle.uvTile);
             }
@@ -149,6 +186,11 @@ export class ParticleEmitter extends Mesh {
 
             this.sizeBuffer.updateRange.count = particleNum;
             this.sizeBuffer.needsUpdate = true;
+
+            if (this.renderMode === RenderMode.StretchedBillBoard) {
+                this.velocityBuffer!.updateRange.count = particleNum;
+                this.velocityBuffer!.needsUpdate = true;
+            }
 
             if (this.tiling) {
                 this.uvTileBuffer!.updateRange.count = particleNum;
