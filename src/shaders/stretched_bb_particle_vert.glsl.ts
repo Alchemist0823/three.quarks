@@ -36,7 +36,7 @@ void main() {
 	#endif
 
     vec3 scaledPos = vec3(position.xy * size, position.z);
-    mvPosition.xyz += dot(position, viewVelocity) * viewVelocity * speedFactor + scaledPos;
+    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;
 
 	vColor = color;
 
@@ -48,6 +48,13 @@ void main() {
 }
 `;
 /*
+
+    vec3 instancePos = vec3(position.xy * size, position.z);
+    instancePos += dot(instancePos, viewVelocity) * viewVelocity * speedFactor;
+    mvPosition.xyz += instancePos;
+
+	vColor = color; //vec4(1, 1, 1, 1); //color; //length(viewVelocity) * 0.1
+
 	#ifndef USE_SIZEATTENUATION
 		bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
 		if ( isPerspective ) computedSize *= - mvPosition.z;

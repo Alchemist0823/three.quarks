@@ -7,6 +7,7 @@ import { RotationOverLife } from "./RotationOverLife";
 import { SizeOverLife } from "./SizeOverLife";
 import { Vector4 } from "three";
 import { ColorRange } from "../functions/ColorRange";
+import {FrameOverLife} from "./FrameOverLife";
 
 export interface Behavior {
     initialize(particle: Particle): void;
@@ -23,6 +24,8 @@ export function BehaviorFromJSON(json: {type: string, func: FunctionJSON}): Beha
             return new RotationOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
         case 'SizeOverLife':
             return new SizeOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+        case 'FrameOverLife':
+            return new FrameOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
         default:
             return new ColorOverLife(new ColorRange(new Vector4(1,1,1,1), new Vector4(1,1,1,1)));
     }

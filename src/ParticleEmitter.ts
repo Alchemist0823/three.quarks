@@ -145,7 +145,7 @@ export class ParticleEmitter extends Mesh {
             });
         } else if (this.renderMode === RenderMode.StretchedBillBoard) {
 
-            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 3);
+            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 3), 3);
             this.velocityBuffer.setUsage(DynamicDrawUsage);
             this.geometry.setAttribute('velocity', this.velocityBuffer);
 
@@ -200,7 +200,7 @@ export class ParticleEmitter extends Mesh {
             this.sizeBuffer.needsUpdate = true;
 
             if (this.renderMode === RenderMode.StretchedBillBoard) {
-                this.velocityBuffer!.updateRange.count = particleNum;
+                this.velocityBuffer!.updateRange.count = particleNum * 3;
                 this.velocityBuffer!.needsUpdate = true;
             }
 

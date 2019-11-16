@@ -4,13 +4,18 @@ import {Particle} from "./Particle";
 import {ParticleEmitter, RenderMode} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
-import {Blending, Matrix3, Texture, Vector3, Vector4} from "three";
+import {Blending, Matrix3, Texture, Vector4} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
-import {ColorGenerator, ConstantColor, FunctionColorGenerator, ColorGeneratorFromJSON} from "./functions/ColorGenerator";
+import {
+    ColorGenerator,
+    ColorGeneratorFromJSON,
+    ConstantColor,
+    FunctionColorGenerator
+} from "./functions/ColorGenerator";
 import {ConstantValue} from "./functions/ConstantValue";
 import {FunctionJSON} from "./functions/FunctionJSON";
-import { PointEmitter } from "./shape/PointEmitter";
-import { DonutEmitter } from "./shape/DonutEmitter";
+import {PointEmitter} from "./shape/PointEmitter";
+import {DonutEmitter} from "./shape/DonutEmitter";
 
 
 export interface BurstParameters {
@@ -325,7 +330,6 @@ export class ParticleSystem {
             particle.position.addScaledVector(particle.velocity, delta);
             particle.age += delta;
         }
-        //console.log(this.particleNum + " " + this.particles.length);
         this.emitter.update();
 
         if (!this.emitEnded) {
@@ -352,7 +356,7 @@ export class ParticleSystem {
             emissionBursts: this.emissionBursts,
 
             renderMode: this.renderMode,
-            speedFactor: this.speedFactor,
+            speedFactor: this.renderMode == RenderMode.StretchedBillBoard ? this.speedFactor: 0,
             texture: this.texture.toJSON(meta).uuid,
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
@@ -402,6 +406,7 @@ export class ParticleSystem {
             emissionBursts: json.emissionBursts,
 
             renderMode: json.renderMode,
+            speedFactor: json.speedFactor,
             texture: textures[json.texture],
             startTileIndex: json.startTileIndex,
             uTileCount: json.uTileCount,
