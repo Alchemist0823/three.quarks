@@ -18,11 +18,12 @@ import {
     Vector4,
     Object3D,
     TrianglesDrawMode,
-    DynamicDrawUsage
+    DynamicDrawUsage, DoubleSide, FrontSide
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
 import particle_vert from './shaders/particle_vert.glsl';
+import local_particle_vert from './shaders/local_particle_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 
 export interface ParticleRendererParameters {
@@ -39,6 +40,7 @@ export interface ParticleRendererParameters {
 export enum RenderMode {
     BillBoard = 0,
     StretchedBillBoard = 1,
+    LocalSpaceBillBoard = 2,
 }
 
 export class ParticleEmitter extends Mesh {
@@ -121,15 +123,25 @@ export class ParticleEmitter extends Mesh {
             defines['WORLD_SPACE']='';
         }
 
-        if (this.renderMode === RenderMode.BillBoard) {
+        if (this.renderMode === RenderMode.BillBoard || this.renderMode === RenderMode.LocalSpaceBillBoard) {
+            let vertexShader;
+            let side;
+            if (this.renderMode === RenderMode.LocalSpaceBillBoard) {
+                vertexShader = local_particle_vert;
+                side = DoubleSide;
+            } else {
+                vertexShader = particle_vert;
+                side = FrontSide;
+            }
             this.material = new ShaderMaterial({
                 uniforms: uniforms,
                 defines: defines,
-                vertexShader: particle_vert,
+                vertexShader: vertexShader,
                 fragmentShader: particle_frag,
                 transparent: true,
                 depthWrite: false,
                 blending: parameters.blending || AdditiveBlending,
+                side: side,
             });
         } else if (this.renderMode === RenderMode.StretchedBillBoard) {
 

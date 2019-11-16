@@ -20,6 +20,7 @@ export class PointEmitter implements EmitterShape {
         p.velocity.x = r * sinPhi * cosTheta;
         p.velocity.y = r * sinPhi * sinTheta;
         p.velocity.z = r * cosPhi;
+        p.velocity.multiplyScalar(p.startSpeed);
 
         p.position.setScalar(0);
     }
