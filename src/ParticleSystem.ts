@@ -13,6 +13,14 @@ import { PointEmitter } from "./shape/PointEmitter";
 import { DonutEmitter } from "./shape/DonutEmitter";
 
 
+export interface BurstParameters {
+    time: number,
+    count: number,
+    cycle: number,
+    interval: number,
+    probability: number,
+}
+
 export interface ParticleSystemParameters {
     // parameters
     autoDestroy?: boolean;
@@ -28,6 +36,7 @@ export interface ParticleSystemParameters {
     startColor?: ColorGenerator | FunctionColorGenerator;
     emissionOverTime?: ValueGenerator | FunctionValueGenerator;
     emissionOverDistance?: ValueGenerator | FunctionValueGenerator;
+    emissionBursts?: Array<BurstParameters>;
 
     behaviors?: Array<Behavior>;
 
@@ -59,6 +68,7 @@ export interface ParticleSystemJSONParameters {
     startColor: FunctionJSON;
     emissionOverTime: FunctionJSON;
     emissionOverDistance: FunctionJSON;
+    emissionBursts?: Array<BurstParameters>;
 
     renderMode: number;
     speedFactor?: number;
@@ -88,13 +98,17 @@ export class ParticleSystem {
 
     emissionOverTime: ValueGenerator | FunctionValueGenerator;
     emissionOverDistance: ValueGenerator | FunctionValueGenerator;
+    emissionBursts: Array<BurstParameters>;
 
     tileCount: number = 1;
     worldSpace: boolean;
 
     // runtime data
     particleNum: number;
+    private burstIndex: number;
+    private burstWaveIndex: number;
     private time: number;
+    paused: boolean;
     private waitEmiting: number;
     private emitEnded: boolean;
     private markForDestroy: boolean;
@@ -161,6 +175,7 @@ export class ParticleSystem {
         this.startColor = parameters.startColor || new ConstantColor(new Vector4(1, 1, 1, 1));
         this.emissionOverTime = parameters.emissionOverTime || new ConstantValue(10);
         this.emissionOverDistance = parameters.emissionOverDistance || new ConstantValue(0);
+        this.emissionBursts = parameters.emissionBursts || [];
         this.emitterShape = parameters.shape || new SphereEmitter();
 
         this.behaviors = parameters.behaviors || new Array<Behavior>();
@@ -176,11 +191,21 @@ export class ParticleSystem {
         this.emitter = new ParticleEmitter(this, parameters);
 
         this.particleNum = 0;
-
+        this.burstIndex = 0;
+        this.burstWaveIndex = 0;
         this.time = 0;
+        this.paused = false;
         this.waitEmiting = 0;
         this.emitEnded = false;
         this.markForDestroy = false;
+    }
+
+    pause() {
+        this.paused = true;
+    }
+
+    play() {
+        this.paused = false;
     }
 
     spawn() {
@@ -226,9 +251,23 @@ export class ParticleSystem {
             this.emitter.parent.remove(this.emitter);
     }
 
+    restart() {
+        this.paused = false;
+        this.particleNum = 0;
+        this.burstIndex = 0;
+        this.burstWaveIndex = 0;
+        this.time = 0;
+        this.waitEmiting = 0;
+        this.emitEnded = false;
+        this.markForDestroy = false;
+    }
+
     update(delta: number) {
         if (delta > 0.1)
             delta = 0.1;
+
+        if (this.paused)
+            return;
 
         if (this.emitEnded && this.particleNum === 0) {
             if (this.markForDestroy && this.emitter.parent)
@@ -265,6 +304,18 @@ export class ParticleSystem {
             this.waitEmiting--;
         }
 
+        // spawn burst
+        while (this.burstIndex < this.emissionBursts.length && this.emissionBursts[this.burstIndex].time >= this.time) {
+            if (Math.random() < this.emissionBursts[this.burstIndex].probability) {
+                let count = this.emissionBursts[this.burstIndex].count;
+                while (count > 0 && this.particleNum < this.maxParticle) {
+                    this.spawn();
+                    count --;
+                }
+            }
+            this.burstIndex ++;
+        }
+
         for (let i = 0; i < this.particleNum; i++) {
             let particle = this.particles[i];
 
@@ -298,6 +349,7 @@ export class ParticleSystem {
             startColor: this.startColor.toJSON(),
             emissionOverTime: this.emissionOverTime.toJSON(),
             emissionOverDistance: this.emissionOverDistance.toJSON(),
+            emissionBursts: this.emissionBursts,
 
             renderMode: this.renderMode,
             speedFactor: this.speedFactor,
@@ -347,6 +399,7 @@ export class ParticleSystem {
             startColor: ColorGeneratorFromJSON(json.startColor),
             emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
+            emissionBursts: json.emissionBursts,
 
             renderMode: json.renderMode,
             texture: textures[json.texture],
