@@ -27,7 +27,8 @@ import local_particle_vert from './shaders/local_particle_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 
 export interface ParticleRendererParameters {
-    instancingGeometry?: Float32Array;
+    // 5 component x,y,z,u,v
+    instancingGeometry?: Array<number>;
     texture?: Texture;
     uTileCount?: number;
     vTileCount?: number;
@@ -49,6 +50,7 @@ export class ParticleEmitter extends Mesh {
     system: ParticleSystem;
     geometry: InstancedBufferGeometry;
     material: ShaderMaterial;
+    interleavedBuffer: InterleavedBuffer;
 
     private rotationBuffer: InstancedBufferAttribute;
     private sizeBuffer: InstancedBufferAttribute;
@@ -68,7 +70,7 @@ export class ParticleEmitter extends Mesh {
         this.renderMode = parameters.renderMode || RenderMode.BillBoard;
         this.speedFactor = parameters.speedFactor || 1;
 
-        const instancingGeometry = parameters.instancingGeometry || new Float32Array([
+        const instancingGeometry = new Float32Array(parameters.instancingGeometry || [
             -0.5, -0.5, 0, 0, 0,
             0.5, -0.5, 0, 1, 0,
             0.5, 0.5, 0, 1, 1,
@@ -78,11 +80,11 @@ export class ParticleEmitter extends Mesh {
         let uniforms: {[a:string]:Uniform} = {};
         let defines: {[b:string]:string} = {};
 
-        const interleavedBuffer = new InterleavedBuffer(instancingGeometry, 5);
+        this.interleavedBuffer = new InterleavedBuffer(instancingGeometry, 5);
 
         this.geometry.setIndex([0, 1, 2, 0, 2, 3]);
-        this.geometry.setAttribute('position', new InterleavedBufferAttribute(interleavedBuffer, 3, 0, false));
-        this.geometry.setAttribute('uv', new InterleavedBufferAttribute(interleavedBuffer, 2, 3, false));
+        this.geometry.setAttribute('position', new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
+        this.geometry.setAttribute('uv', new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
 
         this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 3), 3);
         this.offsetBuffer.setUsage(DynamicDrawUsage);

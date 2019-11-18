@@ -45,6 +45,7 @@ export interface ParticleSystemParameters {
 
     behaviors?: Array<Behavior>;
 
+    instancingGeometry?: Array<number>;
     renderMode?: RenderMode;
     speedFactor?: number;
     texture?: Texture;
@@ -75,6 +76,7 @@ export interface ParticleSystemJSONParameters {
     emissionOverDistance: FunctionJSON;
     emissionBursts?: Array<BurstParameters>;
 
+    instancingGeometry?: Array<number>;
     renderMode: number;
     speedFactor?: number;
     texture: string;
@@ -355,6 +357,7 @@ export class ParticleSystem {
             emissionOverDistance: this.emissionOverDistance.toJSON(),
             emissionBursts: this.emissionBursts,
 
+            instancingGeometry: Array.from(this.emitter.interleavedBuffer.array as Float32Array),
             renderMode: this.renderMode,
             speedFactor: this.renderMode == RenderMode.StretchedBillBoard ? this.speedFactor: 0,
             texture: this.texture.toJSON(meta).uuid,
@@ -405,6 +408,7 @@ export class ParticleSystem {
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
             emissionBursts: json.emissionBursts,
 
+            instancingGeometry: json.instancingGeometry,
             renderMode: json.renderMode,
             speedFactor: json.speedFactor,
             texture: textures[json.texture],
