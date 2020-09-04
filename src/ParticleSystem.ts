@@ -19,11 +19,11 @@ import {DonutEmitter} from "./shape/DonutEmitter";
 
 
 export interface BurstParameters {
-    time: number,
-    count: number,
-    cycle: number,
-    interval: number,
-    probability: number,
+    time: number;
+    count: number;
+    cycle: number;
+    interval: number;
+    probability: number;
 }
 
 export interface ParticleSystemParameters {
@@ -341,6 +341,18 @@ export class ParticleSystem {
     }
 
     toJSON(meta: any): ParticleSystemJSONParameters {
+        const isRootObject = ( meta === undefined || typeof meta === 'string' );
+
+        this.texture.toJSON(meta)
+
+        if ( this.texture.image !== undefined ) {
+            const image = this.texture.image;
+            meta.images[ image.uuid ] = {
+                uuid: image.uuid,
+                url: this.texture.name
+            };
+        }
+
         return {
             autoDestroy: this.autoDestroy,
             looping: this.looping,
@@ -360,7 +372,7 @@ export class ParticleSystem {
             instancingGeometry: Array.from(this.emitter.interleavedBuffer.array as Float32Array),
             renderMode: this.renderMode,
             speedFactor: this.renderMode == RenderMode.StretchedBillBoard ? this.speedFactor: 0,
-            texture: this.texture.toJSON(meta).uuid,
+            texture: this.texture.uuid,
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,

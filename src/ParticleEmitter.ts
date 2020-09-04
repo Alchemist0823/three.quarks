@@ -100,7 +100,7 @@ export class ParticleEmitter extends Mesh {
         this.geometry.setAttribute('size', this.sizeBuffer);
 
 
-        this.tiling = false;
+        this.tiling = true;
         if (parameters.texture) {
             defines['USE_MAP'] = '';
             defines['USE_UV'] = '';
@@ -110,7 +110,7 @@ export class ParticleEmitter extends Mesh {
 
             let uTileCount = parameters.uTileCount || 1;
             let vTileCount = parameters.vTileCount || 1;
-            this.tiling = uTileCount > 1 || vTileCount > 1;
+            //this.tiling = uTileCount > 1 || vTileCount > 1;
             this.system.tileCount = uTileCount * vTileCount;
             if (this.tiling) {
                 this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
