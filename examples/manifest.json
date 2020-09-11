@@ -1,0 +1,13 @@
+{
+  "short_name": "Three.quarks Editor",
+  "name": "Three.quarks Particle System Editor",
+  "icons": [
+    {
+      "src": "favicon.png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
