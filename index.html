@@ -161,19 +161,6 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize( window.innerWidth, window.innerHeight );
-
-            /*if (renderer.domElement.parentElement.clientWidth - 10 !== renderer.domElement.width ||
-            renderer.domElement.parentElement.clientHeight - 10 !== renderer.domElement.height) {
-
-                const newWidth = renderer.domElement.parentElement.clientWidth - 10;
-                const newHeight = renderer.domElement.parentElement.clientHeight - 10;
-
-                camera.aspect = newWidth / newHeight;
-                camera.updateProjectionMatrix();
-                renderer.domElement.style.width = '100%';
-                renderer.domElement.style.height = '100%';
-                renderer.setSize(newWidth, newHeight);
-            }*/
         }
 
         function animate() {
@@ -197,12 +184,6 @@
         function render() {
             controls.update();
             let delta = clock.getDelta();
-
-            //let time = performance.now() * 0.0005;
-            //this.particleSystem!.update(this.clock!.getDelta());
-            //this.particleSystem!.emitter.rotation.y = this.clock!.getElapsedTime();
-            //this.particleSystem!.emitter.position.set(Math.cos(this.clock!.getElapsedTime()) * 20, 0, Math.sin(this.clock!.getElapsedTime()) * 20);
-            //console.log(this.particleSystem!.emitter.modelViewMatrix);
 
             group.traverse(object => {
                 if (object.userData && object.userData.func) {
