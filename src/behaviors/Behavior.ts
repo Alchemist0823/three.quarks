@@ -10,6 +10,7 @@ import { ColorRange } from "../functions/ColorRange";
 import {FrameOverLife} from "./FrameOverLife";
 
 export interface Behavior {
+    type: string;
     initialize(particle: Particle): void;
     update(particle: Particle, delta: number): void;
 

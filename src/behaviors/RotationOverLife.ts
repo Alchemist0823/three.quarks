@@ -4,6 +4,8 @@ import {FunctionValueGenerator, ValueGenerator} from "../functions/ValueGenerato
 
 export class RotationOverLife implements Behavior {
 
+    type = 'RotationOverLife';
+
     constructor(public angularVelocityFunc: FunctionValueGenerator | ValueGenerator) {
     }
 
@@ -24,7 +26,7 @@ export class RotationOverLife implements Behavior {
     }
     toJSON(): any {
         return {
-            type: 'RotationOverLife',
+            type: this.type,
             func: this.angularVelocityFunc.toJSON(),
         };
     }

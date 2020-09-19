@@ -3,6 +3,8 @@ import {Particle} from "../Particle";
 import {FunctionValueGenerator} from "../functions/ValueGenerator";
 
 export class SizeOverLife implements Behavior {
+    type = 'SizeOverLife';
+
     initialize(particle: Particle): void {
     }
 
@@ -14,7 +16,7 @@ export class SizeOverLife implements Behavior {
     }
     toJSON(): any {
         return {
-            type: 'SizeOverLife',
+            type: this.type,
             func: this.func.toJSON(),
         };
     }

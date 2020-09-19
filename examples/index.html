@@ -25,6 +25,26 @@
             margin: 0;
             padding: 0;
         }
+        #renderer-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        .btn {
+            color: white;
+            border: white 1px;
+            font-size: 3em;
+            cursor: pointer;
+        }
+        .next {
+            position: absolute;
+            top: 50%;
+            right: 0;
+        }
+        .previous {
+            position: absolute;
+            top: 50%;
+        }
     </style>
     <script type="module">
         import {OrbitControls} from "./js/OrbitControls.js";
@@ -114,14 +134,15 @@
                 return false;
             }
 
-            renderer = new WebGLRenderer();
+            container = document.getElementById('home');
+            let canvas = document.getElementById('renderer-canvas');
+            renderer = new WebGLRenderer({canvas: canvas});
 
             if (renderer.extensions.get('ANGLE_instanced_arrays') === null) {
                 document.getElementById('notSupported').style.display = '';
                 return false;
             }
 
-            container = document.getElementById('home');
 
             let width = container.width;
             let height = container.height;
@@ -142,7 +163,7 @@
 
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(width, height);
-            container.appendChild(renderer.domElement);
+            //container.appendChild(renderer.domElement);
 
             stats = new Stats();
             stats.dom.style.position = "absolute";
@@ -426,5 +447,9 @@
 
     </script>
 </head>
-<body id="home"></body>
+<body id="home">
+    <canvas id="renderer-canvas"></canvas>
+    <div class="next btn">&#62;</div>
+    <div class="previous btn">&#60;</div>
+</body>
 </html>

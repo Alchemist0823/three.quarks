@@ -4,6 +4,8 @@ import {FunctionColorGenerator} from "../functions/ColorGenerator";
 
 export class ColorOverLife implements Behavior {
 
+    type = 'ColorOverLife';
+
     constructor(public func: FunctionColorGenerator) {
     }
 
@@ -16,7 +18,7 @@ export class ColorOverLife implements Behavior {
 
     toJSON(): any {
         return {
-            type: 'ColorOverLife',
+            type: this.type,
             func: this.func.toJSON(),
         };
     }

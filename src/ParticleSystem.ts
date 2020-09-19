@@ -171,7 +171,7 @@ export class ParticleSystem {
     }
 
     constructor(parameters: ParticleSystemParameters = {}) {
-        this.autoDestroy = parameters.autoDestroy || false;
+        this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
         this.duration = parameters.duration || 1;
         this.maxParticle = parameters.maxParticle || 100;
         this.looping = parameters.looping === undefined ? true : parameters.looping;
@@ -184,12 +184,8 @@ export class ParticleSystem {
         this.emissionOverDistance = parameters.emissionOverDistance || new ConstantValue(0);
         this.emissionBursts = parameters.emissionBursts || [];
         this.emitterShape = parameters.shape || new SphereEmitter();
-
         this.behaviors = parameters.behaviors || new Array<Behavior>();
-
-        if (parameters.worldSpace === undefined)
-            parameters.worldSpace = true;
-        this.worldSpace = parameters.worldSpace;
+        this.worldSpace = parameters.worldSpace === undefined ? false : parameters.worldSpace;
 
         this.particles = new Array<Particle>();
 

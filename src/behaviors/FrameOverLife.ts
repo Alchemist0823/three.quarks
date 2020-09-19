@@ -4,6 +4,7 @@ import {FunctionValueGenerator} from "../functions";
 
 export class FrameOverLife implements Behavior {
 
+    type = 'FrameOverLife';
     constructor(public func: FunctionValueGenerator) {
     }
 
@@ -16,7 +17,7 @@ export class FrameOverLife implements Behavior {
 
     toJSON(): any {
         return {
-            type: 'FrameOverLife',
+            type: this.type,
             func: this.func.toJSON(),
         };
     }
