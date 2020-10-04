@@ -1,6 +1,6 @@
 import {EmitterShape, ShapeJSON} from "../EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, Math as _Math} from "three";
+import {Vector3, MathUtils} from "three";
 
 export class PointEmitter implements EmitterShape {
 

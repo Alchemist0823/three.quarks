@@ -1,6 +1,6 @@
 import {EmitterShape, ShapeJSON} from "../EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, Math as _Math} from "three";
+import {Vector3, MathUtils} from "three";
 
 export interface SphereEmitterParameters {
     radius?: number;
@@ -23,7 +23,7 @@ export class SphereEmitter implements EmitterShape {
     initialize(p: Particle) {
         const u = Math.random();
         const v = Math.random();
-        const rand = _Math.lerp(1 - this.thickness, 1, Math.random());
+        const rand = MathUtils.lerp(1 - this.thickness, 1, Math.random());
         const theta = u * this.arc;
         const phi = Math.acos(2.0 * v - 1.0);
         const r = Math.cbrt(rand);

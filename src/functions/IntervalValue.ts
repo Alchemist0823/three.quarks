@@ -1,5 +1,5 @@
 import {ValueGenerator} from "./ValueGenerator";
-import {Math as _Math} from "three";
+import {MathUtils} from "three";
 import {FunctionJSON} from "./FunctionJSON";
 import {ColorToJSON} from "../util/JSONUtil";
 
@@ -10,7 +10,7 @@ export class IntervalValue implements ValueGenerator {
     }
 
     genValue(): number {
-        return _Math.lerp(this.a, this.b, Math.random());
+        return MathUtils.lerp(this.a, this.b, Math.random());
     }
 
     type: "value";

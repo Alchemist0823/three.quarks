@@ -173,7 +173,7 @@ export class ParticleEmitter extends Mesh {
         const particles = this.system.particles;
         let particleNum = this.system.particleNum;
 
-        this.geometry.maxInstancedCount = particleNum;
+        this.geometry.instanceCount = particleNum;
         for (let i = 0; i < particleNum; i ++) {
             let particle = particles[i];
             this.offsetBuffer.setXYZ(i, particle.position.x, particle.position.y, particle.position.z);
@@ -232,42 +232,45 @@ export class ParticleEmitter extends Mesh {
         return values;
     }
 
-    toJSON(meta?: { geometries: any; materials: any; textures: any; images: any }): any {
+    toJSON(meta?: { geometries: any; materials: any; textures: any; images: any, shapes: any }): any {
 		// meta is a string when called from JSON.stringify
 		var isRootObject = ( meta === undefined || typeof meta === 'string' );
 		var output: any = {};
 		// meta is a hash used to collect geometries, materials.
 		// not providing it implies that this is the root object
 		// being serialized.
-		if ( isRootObject ) {
-			// initialize meta obj
-			meta = {
-				geometries: {},
-				materials: {},
-				textures: {},
-				images: {}
-			};
+        if ( isRootObject ) {
 
-			output.metadata = {
-				version: 4.5,
-				type: 'Object',
-				generator: 'Object3D.toJSON'
-			};
-		}
+            // initialize meta obj
+            meta = {
+                geometries: {},
+                materials: {},
+                textures: {},
+                images: {},
+                shapes: {}
+            };
+
+            output.metadata = {
+                version: 4.5,
+                type: 'Object',
+                generator: 'Object3D.toJSON'
+            };
+
+        }
 
 		// standard Object3D serialization
 		var object: any = {};
 
-		object.uuid = this.uuid;
-		object.type = this.type;
+        object.uuid = this.uuid;
+        object.type = this.type;
 
-		if ( this.name !== '' ) object.name = this.name;
-		if ( this.castShadow === true ) object.castShadow = true;
-		if ( this.receiveShadow === true ) object.receiveShadow = true;
-		if ( this.visible === false ) object.visible = false;
-		if ( this.frustumCulled === false ) object.frustumCulled = false;
-		if ( this.renderOrder !== 0 ) object.renderOrder = this.renderOrder;
-		if ( JSON.stringify( this.userData ) !== '{}' ) object.userData = this.userData;
+        if ( this.name !== '' ) object.name = this.name;
+        if ( this.castShadow === true ) object.castShadow = true;
+        if ( this.receiveShadow === true ) object.receiveShadow = true;
+        if ( this.visible === false ) object.visible = false;
+        if ( this.frustumCulled === false ) object.frustumCulled = false;
+        if ( this.renderOrder !== 0 ) object.renderOrder = this.renderOrder;
+        if ( JSON.stringify( this.userData ) !== '{}' ) object.userData = this.userData;
 
 		object.layers = this.layers.mask;
 		object.matrix = this.matrix.toArray();
@@ -275,8 +278,6 @@ export class ParticleEmitter extends Mesh {
 		if ( this.matrixAutoUpdate === false ) object.matrixAutoUpdate = false;
 
 		// object specific properties
-
-		if ( this.isMesh && this.drawMode !== TrianglesDrawMode ) object.drawMode = this.drawMode;
 
         if ( this.system !== null ) object.ps = this.system.toJSON(meta);
 

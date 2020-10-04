@@ -45,7 +45,7 @@ describe("ParticleEmitter", () => {
 
     test(".toJSON", () => {
 
-        const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
+        const meta = { geometries: {}, materials: {}, textures: {}, images: {}, shapes: {} };
         const json = glowBeam.emitter.toJSON(meta);
 
         //expect(meta.textures).toBe();
