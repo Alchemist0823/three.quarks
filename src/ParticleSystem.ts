@@ -308,7 +308,7 @@ export class ParticleSystem {
         }
 
         // spawn burst
-        while (this.burstIndex < this.emissionBursts.length && this.emissionBursts[this.burstIndex].time >= this.time) {
+        while (this.burstIndex < this.emissionBursts.length && this.emissionBursts[this.burstIndex].time <= this.time) {
             if (Math.random() < this.emissionBursts[this.burstIndex].probability) {
                 let count = this.emissionBursts[this.burstIndex].count;
                 while (count > 0 && this.particleNum < this.maxParticle) {
@@ -367,7 +367,7 @@ export class ParticleSystem {
 
             instancingGeometry: Array.from(this.emitter.interleavedBuffer.array as Float32Array),
             renderMode: this.renderMode,
-            speedFactor: this.renderMode == RenderMode.StretchedBillBoard ? this.speedFactor: 0,
+            speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor: 0,
             texture: this.texture.uuid,
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
