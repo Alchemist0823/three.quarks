@@ -14,12 +14,13 @@ export class Bezier {
         return this.p[0] * mt3 + this.p[1] * mt2 * t * 3 + this.p[2] * mt * t2 * 3 + this.p[3] * t3;
     }
 
-    derive(points: number[]): number[][] {
+    // get the coefficients of the polynomial's derivatives
+    derivativeCoefficients(points: number[]): number[][] {
         let dpoints = [];
-        for (let p = points, d = p.length, c = d - 1; d > 1; d--, c--) {
+        for (let p = points, c = p.length - 1; c > 0; c--) {
             let list = [];
-            for (let j = 0, dpt; j < c; j++) {
-                dpt = c * (p[j + 1] - p[j]);
+            for (let j = 0; j < c; j++) {
+                let dpt = c * (p[j + 1] - p[j]);
                 list.push(dpt);
             }
             dpoints.push(list);
@@ -28,14 +29,15 @@ export class Bezier {
         return dpoints;
     }
 
-    derivative(t: number): number {
-        const p = this.derive(this.p)[0];
+    // calculate the slope
+    getSlope(t: number): number {
+        const p = this.derivativeCoefficients(this.p)[0];
         const mt = 1 - t;
         const a = mt * mt;
         const b = mt * t * 2;
         const c = t * t;
         return  a * p[0] + b * p[1] + c * p[2];
-        return  a * (p[1] - p[0]) * 3 + b * (p[2] - p[1]) * 3 + c * (p[3] - p[2]) * 3;
+        //return  a * (p[1] - p[0]) * 3 + b * (p[2] - p[1]) * 3 + c * (p[3] - p[2]) * 3;
     }
 
     // derivative(0) = (p[1] - p[0]) * 3
