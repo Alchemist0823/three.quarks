@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A General-Purpose Particle System for three.js",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/three.quarks.js",
@@ -42,7 +42,7 @@
   "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
   "dependencies": {},
   "peerDependencies": {
-    "three": ">= 0.110.0 < 0.111.0"
+    "three": ">= 0.120.0 < 0.121.0"
   },
   "devDependencies": {
     "@babel/core": "^7.11.5",
