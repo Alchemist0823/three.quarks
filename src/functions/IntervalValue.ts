@@ -26,4 +26,8 @@ export class IntervalValue implements ValueGenerator {
     static fromJSON(json: FunctionJSON): IntervalValue {
         return new IntervalValue(json.a, json.b);
     }
+
+    clone(): ValueGenerator {
+        return new IntervalValue(this.a, this.b);
+    }
 }

@@ -49,4 +49,13 @@ export class ConeEmitter implements EmitterShape {
             angle: this.angle,
         };
     }
+
+    clone(): EmitterShape {
+        return  new ConeEmitter({
+            radius: this.radius,
+            arc: this.arc,
+            thickness: this.thickness,
+            angle: this.angle,
+        });
+    }
 }

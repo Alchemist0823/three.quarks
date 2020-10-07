@@ -22,4 +22,8 @@ export class ConstantValue implements ValueGenerator {
     static fromJSON(json: FunctionJSON): ConstantValue {
         return new ConstantValue(json.value);
     }
+
+    clone(): ValueGenerator {
+        return new ConstantValue(this.value);
+    }
 }

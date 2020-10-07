@@ -49,4 +49,13 @@ export class DonutEmitter implements EmitterShape {
             angle: this.angle
         };
     }
+
+    clone(): EmitterShape {
+        return  new DonutEmitter({
+            radius: this.radius,
+            arc: this.arc,
+            thickness: this.thickness,
+            angle: this.angle,
+        });
+    }
 }

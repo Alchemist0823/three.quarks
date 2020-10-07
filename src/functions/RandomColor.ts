@@ -26,4 +26,8 @@ export class RandomColor implements ColorGenerator {
     static fromJSON(json: FunctionJSON): RandomColor {
         return new RandomColor(JSONToColor(json.a), JSONToColor(json.b));
     }
+
+    clone(): ColorGenerator {
+        return new RandomColor(this.a.clone(), this.b.clone());
+    }
 }

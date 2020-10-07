@@ -30,4 +30,8 @@ export class PointEmitter implements EmitterShape {
             type: 'point',
         };
     }
+
+    clone(): EmitterShape {
+        return  new PointEmitter();
+    }
 }

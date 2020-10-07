@@ -30,4 +30,8 @@ export class RotationOverLife implements Behavior {
             func: this.angularVelocityFunc.toJSON(),
         };
     }
+
+    clone(): Behavior {
+        return new RotationOverLife(this.angularVelocityFunc);
+    }
 }

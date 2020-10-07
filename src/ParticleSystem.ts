@@ -45,7 +45,7 @@ export interface ParticleSystemParameters {
 
     behaviors?: Array<Behavior>;
 
-    instancingGeometry?: Array<number>;
+    instancingGeometry?: ArrayLike<number>;
     renderMode?: RenderMode;
     speedFactor?: number;
     texture?: Texture;
@@ -76,7 +76,7 @@ export interface ParticleSystemJSONParameters {
     emissionOverDistance: FunctionJSON;
     emissionBursts?: Array<BurstParameters>;
 
-    instancingGeometry?: Array<number>;
+    instancingGeometry?: ArrayLike<number>;
     renderMode: number;
     speedFactor?: number;
     texture: string;
@@ -155,7 +155,11 @@ export class ParticleSystem {
     }
 
     get speedFactor(): number {
-        return this.emitter.material.uniforms.speedFactor.value;
+        if (this.emitter.material.uniforms.speedFactor) {
+            return this.emitter.material.uniforms.speedFactor.value;
+        } else {
+            return 0;
+        }
     }
 
     set speedFactor(v: number) {
@@ -188,7 +192,6 @@ export class ParticleSystem {
         this.worldSpace = parameters.worldSpace === undefined ? false : parameters.worldSpace;
 
         this.particles = new Array<Particle>();
-
 
         this.startTileIndex = parameters.startTileIndex || 0;
         this.emitter = new ParticleEmitter(this, parameters);
@@ -433,5 +436,49 @@ export class ParticleSystem {
 
     addBehavior(behavior: Behavior) {
         this.behaviors.push(behavior);
+    }
+
+    clone() {
+        let newEmissionBursts: Array<BurstParameters> = [];
+        for (let emissionBurst of this.emissionBursts) {
+            let newEmissionBurst = {};
+            Object.assign(newEmissionBurst, emissionBurst)
+            newEmissionBursts.push(newEmissionBurst as BurstParameters);
+        }
+
+        let newBehaviors: Array<Behavior> = [];
+        for (let behavior of this.behaviors) {
+            newBehaviors.push(behavior.clone());
+        }
+
+        return new ParticleSystem({
+            autoDestroy: this.autoDestroy,
+            looping: this.looping,
+            duration: this.duration,
+            maxParticle: this.maxParticle,
+
+            shape: this.emitterShape.clone(),
+            startLife:this.startLife.clone(),
+            startSpeed: this.startSpeed.clone(),
+            startRotation: this.startRotation.clone(),
+            startSize: this.startSize.clone(),
+            startColor: this.startColor.clone(),
+            emissionOverTime: this.emissionOverTime.clone(),
+            emissionOverDistance: this.emissionOverDistance.clone(),
+            emissionBursts: newEmissionBursts,
+
+            instancingGeometry: this.emitter.interleavedBuffer.array,
+            renderMode: this.renderMode,
+            speedFactor: this.speedFactor,
+            texture: this.texture,
+            startTileIndex: this.startTileIndex,
+            uTileCount: this.uTileCount,
+            vTileCount: this.vTileCount,
+            blending: this.blending,
+
+            behaviors: newBehaviors,
+
+            worldSpace: this.worldSpace,
+        });
     }
 }

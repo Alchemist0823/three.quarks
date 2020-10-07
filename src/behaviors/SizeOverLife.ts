@@ -20,4 +20,8 @@ export class SizeOverLife implements Behavior {
             func: this.func.toJSON(),
         };
     }
+
+    clone(): Behavior {
+        return new SizeOverLife(this.func.clone());
+    }
 }

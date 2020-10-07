@@ -7,12 +7,14 @@ export interface ValueGenerator {
     type: 'value';
     genValue(): number;
     toJSON(): FunctionJSON;
+    clone(): ValueGenerator;
 }
 
 export interface FunctionValueGenerator {
     type: 'function';
     genValue(t: number): number;
     toJSON(): FunctionJSON;
+    clone(): FunctionValueGenerator;
 }
 
 export function ValueGeneratorFromJSON(json: FunctionJSON) {

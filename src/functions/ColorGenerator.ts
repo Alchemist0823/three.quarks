@@ -8,12 +8,14 @@ export interface ColorGenerator {
     type: 'value';
     genColor(color: Vector4): Vector4;
     toJSON(): FunctionJSON;
+    clone(): ColorGenerator;
 }
 
 export interface FunctionColorGenerator {
     type: 'function';
     genColor(color: Vector4, t: number): Vector4;
     toJSON(): FunctionJSON;
+    clone(): FunctionColorGenerator;
 }
 
 export class ConstantColor implements ColorGenerator {
@@ -35,6 +37,10 @@ export class ConstantColor implements ColorGenerator {
 
     static fromJSON(json: FunctionJSON): ConstantColor {
         return new ConstantColor(JSONToColor(json.color));
+    }
+
+    clone(): ColorGenerator {
+        return new ConstantColor(this.color.clone());
     }
 }
 

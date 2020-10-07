@@ -44,4 +44,8 @@ export class PiecewiseBezier extends PiecewiseFunction<Bezier> implements Functi
     static fromJSON(json: FunctionJSON): PiecewiseBezier {
         return new PiecewiseBezier(json.functions.map((piecewiseFunction: any) => ([Bezier.fromJSON(piecewiseFunction.function), piecewiseFunction.start])));
     }
+
+    clone(): FunctionValueGenerator {
+        return new PiecewiseBezier(this.functions.map(([bezier, start]) => ([bezier.clone(), start])));
+    }
 }

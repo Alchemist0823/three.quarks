@@ -21,4 +21,8 @@ export class FrameOverLife implements Behavior {
             func: this.func.toJSON(),
         };
     }
+
+    clone(): Behavior {
+        return new FrameOverLife(this.func.clone());
+    }
 }

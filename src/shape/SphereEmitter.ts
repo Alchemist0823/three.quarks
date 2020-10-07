@@ -47,4 +47,12 @@ export class SphereEmitter implements EmitterShape {
             thickness: this.thickness,
         };
     }
+
+    clone(): EmitterShape {
+        return  new SphereEmitter({
+            radius: this.radius,
+            arc: this.arc,
+            thickness: this.thickness,
+        });
+    }
 }

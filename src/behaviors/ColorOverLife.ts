@@ -22,4 +22,8 @@ export class ColorOverLife implements Behavior {
             func: this.func.toJSON(),
         };
     }
+
+    clone(): Behavior {
+        return new ColorOverLife(this.func.clone());
+    }
 }

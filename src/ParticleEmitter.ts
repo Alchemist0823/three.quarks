@@ -28,7 +28,7 @@ import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.gls
 
 export interface ParticleRendererParameters {
     // 5 component x,y,z,u,v
-    instancingGeometry?: Array<number>;
+    instancingGeometry?: ArrayLike<number>;
     texture?: Texture;
     uTileCount?: number;
     vTileCount?: number;
@@ -62,6 +62,7 @@ export class ParticleEmitter extends Mesh {
     private uvTileBuffer?: InstancedBufferAttribute;
     public renderMode: RenderMode;
     private speedFactor: number;
+    private worldSpace: boolean;
 
     constructor(system: ParticleSystem, parameters: ParticleRendererParameters) {
         super();
@@ -69,6 +70,7 @@ export class ParticleEmitter extends Mesh {
         this.geometry = new InstancedBufferGeometry();
         this.renderMode = parameters.renderMode || RenderMode.BillBoard;
         this.speedFactor = parameters.speedFactor || 1;
+        this.worldSpace = (parameters.worldSpace !== undefined) ? parameters.worldSpace : false;
 
         const instancingGeometry = new Float32Array(parameters.instancingGeometry || [
             -0.5, -0.5, 0, 0, 0,
@@ -167,6 +169,11 @@ export class ParticleEmitter extends Mesh {
 
         // TODO: implement boundingVolume
         this.frustumCulled = false;
+    }
+
+    clone() {
+        let system = this.system.clone();
+        return system.emitter as any;
     }
 
     update() {

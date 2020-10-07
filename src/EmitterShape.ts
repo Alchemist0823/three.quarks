@@ -12,4 +12,6 @@ export interface EmitterShape {
 
     initialize(particle: Particle): void;
     toJSON(): ShapeJSON;
+
+    clone(): EmitterShape;
 }

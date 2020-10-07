@@ -26,4 +26,8 @@ export class ColorRange implements FunctionColorGenerator {
     static fromJSON(json: FunctionJSON): ColorRange {
         return new ColorRange(JSONToColor(json.a), JSONToColor(json.b));
     }
+
+    clone(): FunctionColorGenerator {
+        return new ColorRange(this.a.clone(), this.b.clone());
+    }
 }

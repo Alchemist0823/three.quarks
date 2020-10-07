@@ -1,6 +1,6 @@
 import {PiecewiseFunction} from "./PiecewiseFunction";
 import {ColorGenerator, FunctionColorGenerator} from "./ColorGenerator";
-import {Vector4} from "three";
+import {Color, Vector4} from "three";
 import {ColorRange} from "./ColorRange";
 import {Bezier} from "./Bezier";
 import {FunctionJSON} from "./FunctionJSON";
@@ -34,5 +34,9 @@ export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionC
 
     static fromJSON(json: FunctionJSON): Gradient {
         return new Gradient(json.functions.map((piecewiseFunction: any) => ([ColorRange.fromJSON(piecewiseFunction.function), piecewiseFunction.start])));
+    }
+
+    clone(): FunctionColorGenerator {
+        return new Gradient(this.functions.map(([range, start])=> ([range.clone() as ColorRange, start])));
     }
 }
