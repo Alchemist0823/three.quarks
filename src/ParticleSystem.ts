@@ -334,7 +334,7 @@ export class ParticleSystem {
         this.emitter.update();
 
         if (!this.emitEnded) {
-            this.waitEmiting += delta * this.emissionOverTime.genValue(this.time);
+            this.waitEmiting += delta * this.emissionOverTime.genValue(this.time / this.duration);
         }
         this.time += delta;
     }
