@@ -4,7 +4,7 @@ import {Particle} from "./Particle";
 import {ParticleEmitter, RenderMode} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
-import {Blending, Matrix3, Texture, Vector4} from "three";
+import {Blending, Matrix3, Matrix4, Texture, Vector4} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
 import {
     ColorGenerator,
@@ -214,34 +214,39 @@ export class ParticleSystem {
         this.paused = false;
     }
 
-    spawn() {
-        while (this.particleNum >= this.particles.length) {
-            this.particles.push(new Particle());
+    spawn(count: number) {
+        for (let i = 0; i < count && this.particleNum < this.maxParticle; i ++) {
+
+            this.particleNum++;
+            while (this.particles.length < this.particleNum) {
+                this.particles.push(new Particle());
+            }
+            const particle = this.particles[this.particleNum - 1];
+
+            this.startColor.genColor(particle.startColor, this.time);
+            particle.color.copy(particle.startColor);
+            particle.startSpeed = this.startSpeed.genValue(this.time);
+            particle.life = this.startLife.genValue(this.time);
+            particle.age = 0;
+            particle.rotation = this.startRotation.genValue(this.time);
+            particle.startSize = particle.size = this.startSize.genValue(this.time);
+            particle.uvTile = this.startTileIndex;
+
+            this.emitterShape.initialize(particle);
+
+            if (this.worldSpace) {
+                particle.position.applyMatrix4(this.emitter.matrixWorld);
+                particle.velocity.applyMatrix3(this.normalMatrix);
+            }
+
+            for (let j = 0; j < this.behaviors.length; j++) {
+                this.behaviors[j].initialize(particle);
+            }
         }
-        this.particleNum++;
-        const particle = this.particles[this.particleNum - 1];
 
-        this.startColor.genColor(particle.startColor, this.time);
-        particle.color.copy(particle.startColor);
-        particle.startSpeed = this.startSpeed.genValue(this.time);
-        particle.life = this.startLife.genValue(this.time);
-        particle.age = 0;
-        particle.rotation = this.startRotation.genValue(this.time);
-        particle.startSize = particle.size = this.startSize.genValue(this.time);
-        particle.uvTile = this.startTileIndex;
-
-        this.emitterShape.initialize(particle);
-
-        if (this.worldSpace) {
-            particle.position.applyMatrix4(this.emitter.matrixWorld);
-            particle.velocity.applyMatrix3(this.normalMatrix);
-        }
-
-        for (let j = 0; j < this.behaviors.length; j++) {
-            this.behaviors[j].initialize(particle);
-        }
     }
 
+    oldWorldMatrix: Matrix4 = new Matrix4();
     normalMatrix: Matrix3 = new Matrix3();
 
     endEmit() {
@@ -305,19 +310,17 @@ export class ParticleSystem {
         }
 
         // spawn
-        while (this.waitEmiting > 0 && this.particleNum < this.maxParticle && !this.emitEnded) {
-            this.spawn();
-            this.waitEmiting--;
+        if (!this.emitEnded) {
+            const totalSpawn = Math.floor(this.waitEmiting);
+            this.spawn(totalSpawn);
+            this.waitEmiting -= totalSpawn;
         }
 
         // spawn burst
         while (this.burstIndex < this.emissionBursts.length && this.emissionBursts[this.burstIndex].time <= this.time) {
             if (Math.random() < this.emissionBursts[this.burstIndex].probability) {
                 let count = this.emissionBursts[this.burstIndex].count;
-                while (count > 0 && this.particleNum < this.maxParticle) {
-                    this.spawn();
-                    count --;
-                }
+                this.spawn(count);
             }
             this.burstIndex ++;
         }
@@ -332,6 +335,8 @@ export class ParticleSystem {
             particle.age += delta;
         }
         this.emitter.update();
+
+        this.oldWorldMatrix.copy(this.emitter.matrixWorld);
 
         if (!this.emitEnded) {
             this.waitEmiting += delta * this.emissionOverTime.genValue(this.time / this.duration);
