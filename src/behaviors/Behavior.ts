@@ -5,6 +5,7 @@ import {ColorOverLife} from "./ColorOverLife";
 import { ValueGeneratorFromJSON, FunctionValueGenerator } from "../functions/ValueGenerator";
 import { RotationOverLife } from "./RotationOverLife";
 import { SizeOverLife } from "./SizeOverLife";
+import { SpeedOverLife } from "./SpeedOverLife";
 import { Vector4 } from "three";
 import { ColorRange } from "../functions/ColorRange";
 import {FrameOverLife} from "./FrameOverLife";
@@ -26,6 +27,8 @@ export function BehaviorFromJSON(json: {type: string, func: FunctionJSON}): Beha
             return new RotationOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
         case 'SizeOverLife':
             return new SizeOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+        case 'SpeedOverLife':
+            return new SpeedOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
         case 'FrameOverLife':
             return new FrameOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
         case 'OrbitOverLife':
