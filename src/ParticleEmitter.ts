@@ -94,13 +94,13 @@ export class ParticleEmitter extends Mesh {
         this.offsetBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('offset', this.offsetBuffer);
         this.colorBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 4), 4);
-        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.colorBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('color', this.colorBuffer);
         this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
-        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.rotationBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('rotation', this.rotationBuffer);
         this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
-        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.sizeBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('size', this.sizeBuffer);
 
 

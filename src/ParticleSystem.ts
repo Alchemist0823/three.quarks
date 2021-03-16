@@ -317,7 +317,7 @@ export class ParticleSystem {
 
         // spawn
         if (!this.emitEnded) {
-            const totalSpawn = Math.floor(this.waitEmiting);
+            const totalSpawn = Math.ceil(this.waitEmiting);
             this.spawn(totalSpawn);
             this.waitEmiting -= totalSpawn;
         }
