@@ -4,7 +4,7 @@ import {Particle} from "./Particle";
 import {ParticleEmitter, RenderMode} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
-import {Blending, Matrix3, Matrix4, Texture, Vector4} from "three";
+import {Blending, BufferGeometry, Matrix3, Matrix4, Texture, Vector2, Vector4} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
 import {
     ColorGenerator,
@@ -45,7 +45,7 @@ export interface ParticleSystemParameters {
 
     behaviors?: Array<Behavior>;
 
-    instancingGeometry?: ArrayLike<number>;
+    instancingGeometry?: BufferGeometry;
     renderMode?: RenderMode;
     speedFactor?: number;
     texture?: Texture;
@@ -76,7 +76,7 @@ export interface ParticleSystemJSONParameters {
     emissionOverDistance: FunctionJSON;
     emissionBursts?: Array<BurstParameters>;
 
-    instancingGeometry?: ArrayLike<number>;
+    instancingGeometry?: any;
     renderMode: number;
     speedFactor?: number;
     texture: string;
@@ -107,7 +107,7 @@ export class ParticleSystem {
     emissionOverDistance: ValueGenerator | FunctionValueGenerator;
     emissionBursts: Array<BurstParameters>;
 
-    tileCount: number = 1;
+    tileCount: Vector2;
     worldSpace: boolean;
 
     // runtime data
@@ -127,26 +127,29 @@ export class ParticleSystem {
     emitter: ParticleEmitter;
 
     get texture() {
-        return this.emitter.material.uniforms.map.value;
+        return this.emitter.texture!;
     }
 
     set texture(texture: Texture) {
+        this.emitter.texture = texture;
         this.emitter.material.uniforms.map.value = texture;
     }
 
     get uTileCount() {
-        return this.emitter.material.uniforms.tileCount.value.x;
+        return this.tileCount.x;
     }
 
     set uTileCount(u: number) {
+        this.tileCount.x = u;
         this.emitter.material.uniforms.tileCount.value.x = u;
     }
 
     get vTileCount() {
-        return this.emitter.material.uniforms.tileCount.value.y;
+        return this.tileCount.y;
     }
 
     set vTileCount(v: number) {
+        this.tileCount.y = v;
         this.emitter.material.uniforms.tileCount.value.y = v;
     }
 
@@ -154,15 +157,17 @@ export class ParticleSystem {
         return this.emitter.renderMode;
     }
 
+    set renderMode(renderMode: RenderMode) {
+        this.emitter.renderMode = renderMode;
+        this.emitter.rebuildMaterial();
+    }
+
     get speedFactor(): number {
-        if (this.emitter.material.uniforms.speedFactor) {
-            return this.emitter.material.uniforms.speedFactor.value;
-        } else {
-            return 0;
-        }
+        return this.emitter.speedFactor;
     }
 
     set speedFactor(v: number) {
+        this.emitter.speedFactor = v;
         this.emitter.material.uniforms.speedFactor.value = v;
     }
 
@@ -190,6 +195,7 @@ export class ParticleSystem {
         this.emitterShape = parameters.shape || new SphereEmitter();
         this.behaviors = parameters.behaviors || new Array<Behavior>();
         this.worldSpace = parameters.worldSpace === undefined ? false : parameters.worldSpace;
+        this.tileCount = new Vector2(parameters.uTileCount, parameters.vTileCount);
 
         this.particles = new Array<Particle>();
 
@@ -373,7 +379,7 @@ export class ParticleSystem {
             emissionOverDistance: this.emissionOverDistance.toJSON(),
             emissionBursts: this.emissionBursts,
 
-            instancingGeometry: Array.from(this.emitter.interleavedBuffer.array as Float32Array),
+            instancingGeometry: this.emitter.instancingGeometry.toJSON(),//Array.from(this.emitter.interleavedBuffer.array as Float32Array),
             renderMode: this.renderMode,
             speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor: 0,
             texture: this.texture.uuid,
@@ -424,7 +430,7 @@ export class ParticleSystem {
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
             emissionBursts: json.emissionBursts,
 
-            instancingGeometry: json.instancingGeometry,
+            //instancingGeometry: json.instancingGeometry, //TODO: Support instancing Geometry in deserialization
             renderMode: json.renderMode,
             speedFactor: json.speedFactor,
             texture: textures[json.texture],
@@ -472,7 +478,7 @@ export class ParticleSystem {
             emissionOverDistance: this.emissionOverDistance.clone(),
             emissionBursts: newEmissionBursts,
 
-            instancingGeometry: this.emitter.interleavedBuffer.array,
+            instancingGeometry: this.emitter.instancingGeometry.clone(),//.interleavedBuffer.array,
             renderMode: this.renderMode,
             speedFactor: this.speedFactor,
             texture: this.texture,

@@ -31,9 +31,9 @@ void main() {
     rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;
     
 	#ifdef WORLD_SPACE
-	    vec4 mvPosition = viewMatrix * vec4( offset + vec3(rotatedPosition, 0.0), 1.0 );
+	    vec4 mvPosition = viewMatrix * vec4( offset + vec3(rotatedPosition, position.z), 1.0 );
 	#else
-	    vec4 mvPosition = modelViewMatrix * vec4( offset + vec3(rotatedPosition, 0.0), 1.0 );
+	    vec4 mvPosition = modelViewMatrix * vec4( offset + vec3(rotatedPosition, position.z), 1.0 );
 	#endif
 
 	vColor = color;

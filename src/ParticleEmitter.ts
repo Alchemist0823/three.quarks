@@ -18,7 +18,7 @@ import {
     Vector4,
     Object3D,
     TrianglesDrawMode,
-    DynamicDrawUsage, DoubleSide, FrontSide
+    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, PlaneBufferGeometry, NormalBlending
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
@@ -28,7 +28,7 @@ import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.gls
 
 export interface ParticleRendererParameters {
     // 5 component x,y,z,u,v
-    instancingGeometry?: ArrayLike<number>;
+    instancingGeometry?: BufferGeometry;
     texture?: Texture;
     uTileCount?: number;
     vTileCount?: number;
@@ -49,8 +49,8 @@ export class ParticleEmitter extends Mesh {
     type: string = "ParticleEmitter";
     system: ParticleSystem;
     geometry: InstancedBufferGeometry;
-    material: ShaderMaterial;
-    interleavedBuffer: InterleavedBuffer;
+    material!: ShaderMaterial;
+    //interleavedBuffer: InterleavedBuffer;
 
     private rotationBuffer: InstancedBufferAttribute;
     private sizeBuffer: InstancedBufferAttribute;
@@ -61,8 +61,10 @@ export class ParticleEmitter extends Mesh {
     private tiling: boolean;
     private uvTileBuffer?: InstancedBufferAttribute;
     public renderMode: RenderMode;
-    private speedFactor: number;
-    private worldSpace: boolean;
+    speedFactor: number;
+    texture?: Texture;
+    private blending: Blending
+    instancingGeometry: BufferGeometry;
 
     constructor(system: ParticleSystem, parameters: ParticleRendererParameters) {
         super();
@@ -70,23 +72,23 @@ export class ParticleEmitter extends Mesh {
         this.geometry = new InstancedBufferGeometry();
         this.renderMode = parameters.renderMode || RenderMode.BillBoard;
         this.speedFactor = parameters.speedFactor || 1;
-        this.worldSpace = (parameters.worldSpace !== undefined) ? parameters.worldSpace : false;
+        //this.worldSpace = (parameters.worldSpace !== undefined) ? parameters.worldSpace : false;
 
-        const instancingGeometry = new Float32Array(parameters.instancingGeometry || [
+        this.instancingGeometry = parameters.instancingGeometry || new PlaneBufferGeometry(1, 1, 1, 1);
+        this.texture = parameters.texture;
+        this.blending = parameters.blending || NormalBlending;
+        /*const instancingGeometry = new Float32Array([
             -0.5, -0.5, 0, 0, 0,
             0.5, -0.5, 0, 1, 0,
             0.5, 0.5, 0, 1, 1,
             -0.5, 0.5, 0, 0, 1
-        ]);
+        ]);*/
 
-        let uniforms: {[a:string]:Uniform} = {};
-        let defines: {[b:string]:string} = {};
+        //this.interleavedBuffer = new InterleavedBuffer(instancingGeometry., 5);
 
-        this.interleavedBuffer = new InterleavedBuffer(instancingGeometry, 5);
-
-        this.geometry.setIndex([0, 1, 2, 0, 2, 3]);
-        this.geometry.setAttribute('position', new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
-        this.geometry.setAttribute('uv', new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
+        this.geometry.setIndex(this.instancingGeometry.getIndex());
+        this.geometry.setAttribute('position', this.instancingGeometry.getAttribute('position'));//new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
+        this.geometry.setAttribute('uv', this.instancingGeometry.getAttribute('uv'));//new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
 
         this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 3), 3);
         this.offsetBuffer.setUsage(DynamicDrawUsage);
@@ -103,28 +105,37 @@ export class ParticleEmitter extends Mesh {
 
 
         this.tiling = true;
-        if (parameters.texture) {
+
+        this.rebuildMaterial();
+        // TODO: implement boundingVolume
+        this.frustumCulled = false;
+    }
+
+    rebuildMaterial() {
+        let uniforms: { [a: string]: Uniform } = {};
+        let defines: { [b: string]: string } = {};
+
+        if (this.texture) {
             defines['USE_MAP'] = '';
             defines['USE_UV'] = '';
-            uniforms['map'] = new Uniform(parameters.texture);
+            uniforms['map'] = new Uniform(this.texture);
             //@ts-ignore
-            uniforms['uvTransform'] = new Uniform(new Matrix3().copy(parameters.texture.matrix));
+            uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.texture.matrix));
 
-            let uTileCount = parameters.uTileCount || 1;
-            let vTileCount = parameters.vTileCount || 1;
+            let uTileCount = this.system.uTileCount || 1;
+            let vTileCount = this.system.vTileCount || 1;
             //this.tiling = uTileCount > 1 || vTileCount > 1;
-            this.system.tileCount = uTileCount * vTileCount;
             if (this.tiling) {
-                this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
+                this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(this.system.maxParticle), 1);
                 this.uvTileBuffer.setUsage(DynamicDrawUsage);
                 this.geometry.setAttribute('uvTile', this.uvTileBuffer);
-                defines['UV_TILE']='';
+                defines['UV_TILE'] = '';
                 uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
             }
         }
 
-        if (parameters.worldSpace !== undefined? parameters.worldSpace: true) {
-            defines['WORLD_SPACE']='';
+        if (this.system.worldSpace) {
+            defines['WORLD_SPACE'] = '';
         }
 
         if (this.renderMode === RenderMode.BillBoard || this.renderMode === RenderMode.LocalSpaceBillBoard) {
@@ -144,16 +155,16 @@ export class ParticleEmitter extends Mesh {
                 fragmentShader: particle_frag,
                 transparent: true,
                 depthWrite: false,
-                blending: parameters.blending || AdditiveBlending,
+                blending: this.blending || AdditiveBlending,
                 side: side,
             });
         } else if (this.renderMode === RenderMode.StretchedBillBoard) {
 
-            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 3), 3);
+            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(this.system.maxParticle * 3), 3);
             this.velocityBuffer.setUsage(DynamicDrawUsage);
             this.geometry.setAttribute('velocity', this.velocityBuffer);
 
-            uniforms['speedFactor'] = new Uniform(parameters.speedFactor);
+            uniforms['speedFactor'] = new Uniform(this.speedFactor);
             this.material = new ShaderMaterial({
                 uniforms: uniforms,
                 defines: defines,
@@ -161,14 +172,11 @@ export class ParticleEmitter extends Mesh {
                 fragmentShader: particle_frag,
                 transparent: true,
                 depthWrite: false,
-                blending: parameters.blending || AdditiveBlending,
+                blending: this.blending || AdditiveBlending,
             });
         } else {
             throw new Error("render mode unavailable");
         }
-
-        // TODO: implement boundingVolume
-        this.frustumCulled = false;
     }
 
     clone() {
