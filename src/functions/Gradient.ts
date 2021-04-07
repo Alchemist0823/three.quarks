@@ -20,7 +20,7 @@ export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionC
             console.error(t);
             return color.copy(this.functions[0][0].a);
         }
-        return this.getFunction(index).genColor(color, t);
+        return this.getFunction(index).genColor(color, (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index)));
     }
 
     type: "function";

@@ -2,6 +2,44 @@ import {Gradient, ColorRange} from "../../src";
 import { Vector4 } from "three";
 
 describe("Gradient", () => {
+
+
+    test(".genColor", () => {
+        const gradient = new Gradient([[new ColorRange(new Vector4(0,0,0,1), new Vector4(1,1,1,1)),0],
+            [new ColorRange(new Vector4(1,1,1,1), new Vector4(1,1,1,1)),0.2],
+            [new ColorRange(new Vector4(1,1,1,1), new Vector4(0,0,0,1)),0.8]
+        ]);
+        const color = new Vector4();
+        gradient.genColor(color, 0);
+        expect(color.x).toEqual(0);
+        expect(color.y).toEqual(0);
+        expect(color.z).toEqual(0);
+        gradient.genColor(color, 1);
+        expect(color.x).toEqual(0);
+        expect(color.y).toEqual(0);
+        expect(color.z).toEqual(0);
+        gradient.genColor(color, 0.5);
+        expect(color.x).toEqual(1);
+        expect(color.y).toEqual(1);
+        expect(color.z).toEqual(1);
+        gradient.genColor(color, 0.8);
+        expect(color.x).toEqual(1);
+        expect(color.y).toEqual(1);
+        expect(color.z).toEqual(1);
+        gradient.genColor(color, 0.2);
+        expect(color.x).toEqual(1);
+        expect(color.y).toEqual(1);
+        expect(color.z).toEqual(1);
+        gradient.genColor(color, 0.1);
+        expect(color.x).toBeCloseTo(0.5);
+        expect(color.y).toBeCloseTo(0.5);
+        expect(color.z).toBeCloseTo(0.5);
+        gradient.genColor(color, 0.9);
+        expect(color.x).toBeCloseTo(0.5);
+        expect(color.y).toBeCloseTo(0.5);
+        expect(color.z).toBeCloseTo(0.5);
+    });
+
     test(".toJSON", () => {
         const gradient = new Gradient([[new ColorRange(new Vector4(0, .25, .75, 1), new Vector4(1, .75, .25, 0)), 0]]);
         const json = gradient.toJSON();

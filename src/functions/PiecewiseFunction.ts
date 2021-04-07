@@ -10,7 +10,7 @@ export abstract class PiecewiseFunction<T> {
         let mid = 0;
         let left = 0, right = this.functions.length - 1;
         while (left + 1 < right) {
-            mid = (left + right) / 2;
+            mid = Math.floor((left + right) / 2);
             if (t < this.getStartX(mid))
                 right = mid - 1;
             else if (t > this.getEndX(mid))
