@@ -25,7 +25,7 @@ export const lib = {
             resolve({
                 extensions: extensions,
                 customResolveOptions: {
-                    moduleDirectory: 'src'
+                    moduleDirectories: ['src']
                 }
             }),
             babel({

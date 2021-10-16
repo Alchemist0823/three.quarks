@@ -1,10 +1,10 @@
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./functions/ValueGenerator";
 import {Behavior, BehaviorFromJSON} from "./behaviors/Behavior";
 import {Particle} from "./Particle";
-import {ParticleEmitter, RenderMode} from "./ParticleEmitter";
+import {ParticleEmitter} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
-import {Blending, BufferGeometry, Matrix3, Matrix4, Texture, Vector2, Vector4} from "three";
+import {Blending, BufferGeometry, Matrix3, Matrix4, NormalBlending, PlaneBufferGeometry, Texture, Vector4} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
 import {
     ColorGenerator,
@@ -16,6 +16,8 @@ import {ConstantValue} from "./functions/ConstantValue";
 import {FunctionJSON} from "./functions/FunctionJSON";
 import {PointEmitter} from "./shape/PointEmitter";
 import {DonutEmitter} from "./shape/DonutEmitter";
+import {ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
+import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
 
 
 export interface BurstParameters {
@@ -48,10 +50,11 @@ export interface ParticleSystemParameters {
     instancingGeometry?: BufferGeometry;
     renderMode?: RenderMode;
     speedFactor?: number;
-    texture?: Texture;
+    texture: Texture;
     startTileIndex?: number;
     uTileCount?: number;
     vTileCount?: number;
+    renderOrder?: number;
     blending?: Blending;
 
     worldSpace?: boolean;
@@ -78,6 +81,7 @@ export interface ParticleSystemJSONParameters {
 
     instancingGeometry?: any;
     renderMode: number;
+    renderOrder?: number;
     speedFactor?: number;
     texture: string;
     startTileIndex: number;
@@ -89,6 +93,8 @@ export interface ParticleSystemJSONParameters {
 
     worldSpace: boolean;
 }
+
+const DEFAULT_GEOMETRY = new PlaneBufferGeometry(1, 1, 1, 1)
 
 export class ParticleSystem {
     // parameters
@@ -107,8 +113,8 @@ export class ParticleSystem {
     emissionOverDistance: ValueGenerator | FunctionValueGenerator;
     emissionBursts: Array<BurstParameters>;
 
-    tileCount: Vector2;
     worldSpace: boolean;
+    speedFactor: number;
 
     // runtime data
     particleNum: number;
@@ -126,81 +132,101 @@ export class ParticleSystem {
     emitterShape: EmitterShape;
     emitter: ParticleEmitter;
 
+    rendererSettings: ParticleSystemBatchSettings;
+    renderer: BatchedParticleRenderer;
+    neededToUpdateRender: boolean;
+
     get texture() {
-        return this.emitter.texture!;
+        return this.rendererSettings.texture;
     }
 
     set texture(texture: Texture) {
-        this.emitter.texture = texture;
-        this.emitter.material.uniforms.map.value = texture;
+        this.rendererSettings.texture = texture;
+        this.neededToUpdateRender = true;
+        //this.emitter.material.uniforms.map.value = texture;
     }
 
     get uTileCount() {
-        return this.tileCount.x;
+        return this.rendererSettings.uTileCount;
     }
 
     set uTileCount(u: number) {
-        this.tileCount.x = u;
-        this.emitter.material.uniforms.tileCount.value.x = u;
+        this.rendererSettings.uTileCount = u;
+        this.neededToUpdateRender = true;
+        //this.emitter.material.uniforms.tileCount.value.x = u;
     }
 
     get vTileCount() {
-        return this.tileCount.y;
+        return this.rendererSettings.vTileCount;
     }
 
     set vTileCount(v: number) {
-        this.tileCount.y = v;
-        this.emitter.material.uniforms.tileCount.value.y = v;
+        this.rendererSettings.vTileCount = v;
+        this.neededToUpdateRender = true;
     }
 
     get renderMode(): RenderMode {
-        return this.emitter.renderMode;
+        return this.rendererSettings.renderMode;
     }
 
     set renderMode(renderMode: RenderMode) {
-        this.emitter.renderMode = renderMode;
-        this.emitter.rebuildMaterial();
+        this.rendererSettings.renderMode = renderMode;
+        this.neededToUpdateRender = true;
+        //this.emitter.rebuildMaterial();
     }
 
-    get speedFactor(): number {
-        return this.emitter.speedFactor;
+    get renderOrder(): number {
+        return this.rendererSettings.renderOrder;
     }
 
-    set speedFactor(v: number) {
-        this.emitter.speedFactor = v;
-        this.emitter.material.uniforms.speedFactor.value = v;
+    set renderOrder(renderOrder: number) {
+        this.rendererSettings.renderOrder = renderOrder;
+        this.neededToUpdateRender = true;
+        //this.emitter.rebuildMaterial();
     }
 
     get blending() {
-        return this.emitter.material.blending;
+        return this.rendererSettings.blending;
     }
 
     set blending(blending) {
-        this.emitter.material.blending = blending;
+        this.rendererSettings.blending = blending;
+        this.neededToUpdateRender = true;
     }
 
-    constructor(parameters: ParticleSystemParameters = {}) {
+    constructor(renderer: BatchedParticleRenderer, parameters: ParticleSystemParameters) {
+        this.renderer = renderer;
         this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
-        this.duration = parameters.duration || 1;
-        this.maxParticle = parameters.maxParticle || 100;
+        this.duration = parameters.duration ?? 1;
+        this.maxParticle = parameters.maxParticle ?? 100;
         this.looping = parameters.looping === undefined ? true : parameters.looping;
-        this.startLife = parameters.startLife || new ConstantValue(5);
-        this.startSpeed = parameters.startSpeed || new ConstantValue(0);
-        this.startRotation = parameters.startRotation || new ConstantValue(0);
-        this.startSize = parameters.startSize || new ConstantValue(1);
-        this.startColor = parameters.startColor || new ConstantColor(new Vector4(1, 1, 1, 1));
-        this.emissionOverTime = parameters.emissionOverTime || new ConstantValue(10);
-        this.emissionOverDistance = parameters.emissionOverDistance || new ConstantValue(0);
-        this.emissionBursts = parameters.emissionBursts || [];
-        this.emitterShape = parameters.shape || new SphereEmitter();
-        this.behaviors = parameters.behaviors || new Array<Behavior>();
-        this.worldSpace = parameters.worldSpace === undefined ? false : parameters.worldSpace;
-        this.tileCount = new Vector2(parameters.uTileCount, parameters.vTileCount);
+        this.startLife = parameters.startLife ?? new ConstantValue(5);
+        this.startSpeed = parameters.startSpeed ?? new ConstantValue(0);
+        this.startRotation = parameters.startRotation ?? new ConstantValue(0);
+        this.startSize = parameters.startSize ?? new ConstantValue(1);
+        this.startColor = parameters.startColor ?? new ConstantColor(new Vector4(1, 1, 1, 1));
+        this.emissionOverTime = parameters.emissionOverTime ?? new ConstantValue(10);
+        this.emissionOverDistance = parameters.emissionOverDistance ?? new ConstantValue(0);
+        this.emissionBursts = parameters.emissionBursts ?? [];
+        this.emitterShape = parameters.shape ?? new SphereEmitter();
+        this.behaviors = parameters.behaviors ?? new Array<Behavior>();
+        this.worldSpace = parameters.worldSpace ?? false;
+        this.speedFactor = parameters.speedFactor ?? 0;
+        this.rendererSettings = {
+            blending: parameters.blending ?? NormalBlending,
+            instancingGeometry: parameters.instancingGeometry ?? DEFAULT_GEOMETRY,
+            renderMode: parameters.renderMode ?? RenderMode.BillBoard,
+            renderOrder: parameters.renderOrder ?? 0,
+            texture: parameters.texture,
+            uTileCount: parameters.uTileCount ?? 1,
+            vTileCount: parameters.vTileCount ?? 1
+        };
+        this.neededToUpdateRender = true;
 
         this.particles = new Array<Particle>();
 
         this.startTileIndex = parameters.startTileIndex || 0;
-        this.emitter = new ParticleEmitter(this, parameters);
+        this.emitter = new ParticleEmitter(this);
 
         this.particleNum = 0;
         this.burstIndex = 0;
@@ -210,6 +236,8 @@ export class ParticleSystem {
         this.waitEmiting = 0;
         this.emitEnded = false;
         this.markForDestroy = false;
+
+        this.renderer.addSystem(this);
     }
 
     pause() {
@@ -263,6 +291,7 @@ export class ParticleSystem {
     }
 
     dispose() {
+        this.renderer.deleteSystem(this);
         this.emitter!.dispose();
         if (this.emitter.parent)
             this.emitter.parent.remove(this.emitter);
@@ -300,6 +329,11 @@ export class ParticleSystem {
                     this.endEmit();
                 }
             }
+        }
+
+        if (this.neededToUpdateRender) {
+            this.renderer.updateSystem(this);
+            this.neededToUpdateRender = false;
         }
 
         this.normalMatrix.getNormalMatrix(this.emitter.matrixWorld);
@@ -340,7 +374,7 @@ export class ParticleSystem {
             particle.position.addScaledVector(particle.velocity, delta);
             particle.age += delta;
         }
-        this.emitter.update();
+        //this.emitter.update();
 
         this.oldWorldMatrix.copy(this.emitter.matrixWorld);
 
@@ -379,7 +413,8 @@ export class ParticleSystem {
             emissionOverDistance: this.emissionOverDistance.toJSON(),
             emissionBursts: this.emissionBursts,
 
-            instancingGeometry: this.emitter.instancingGeometry.toJSON(),//Array.from(this.emitter.interleavedBuffer.array as Float32Array),
+            instancingGeometry: this.rendererSettings.instancingGeometry.toJSON(),//Array.from(this.emitter.interleavedBuffer.array as Float32Array),
+            renderOrder: this.renderOrder,
             renderMode: this.renderMode,
             speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor: 0,
             texture: this.texture.uuid,
@@ -394,7 +429,7 @@ export class ParticleSystem {
         };
     }
 
-    static fromJSON(json: ParticleSystemJSONParameters, textures: {[a:string]:Texture}): ParticleSystem {
+    static fromJSON(json: ParticleSystemJSONParameters, textures: {[a:string]:Texture}, renderer: BatchedParticleRenderer): ParticleSystem {
         let shape;
         switch(json.shape.type) {
             case 'cone':
@@ -414,7 +449,7 @@ export class ParticleSystem {
                 break;
         }
 
-        return new ParticleSystem({
+        return new ParticleSystem(renderer,{
             autoDestroy: json.autoDestroy,
             looping: json.looping,
             duration: json.duration,
@@ -432,6 +467,7 @@ export class ParticleSystem {
 
             //instancingGeometry: json.instancingGeometry, //TODO: Support instancing Geometry in deserialization
             renderMode: json.renderMode,
+            renderOrder: json.renderOrder,
             speedFactor: json.speedFactor,
             texture: textures[json.texture],
             startTileIndex: json.startTileIndex,
@@ -449,6 +485,10 @@ export class ParticleSystem {
         this.behaviors.push(behavior);
     }
 
+    getRendererSettings() {
+        return this.rendererSettings;
+    }
+
     clone() {
         let newEmissionBursts: Array<BurstParameters> = [];
         for (let emissionBurst of this.emissionBursts) {
@@ -462,7 +502,7 @@ export class ParticleSystem {
             newBehaviors.push(behavior.clone());
         }
 
-        return new ParticleSystem({
+        return new ParticleSystem(this.renderer,{
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,
@@ -478,7 +518,7 @@ export class ParticleSystem {
             emissionOverDistance: this.emissionOverDistance.clone(),
             emissionBursts: newEmissionBursts,
 
-            instancingGeometry: this.emitter.instancingGeometry.clone(),//.interleavedBuffer.array,
+            instancingGeometry: this.rendererSettings.instancingGeometry,//.interleavedBuffer.array,
             renderMode: this.renderMode,
             speedFactor: this.speedFactor,
             texture: this.texture,
@@ -492,4 +532,5 @@ export class ParticleSystem {
             worldSpace: this.worldSpace,
         });
     }
+
 }

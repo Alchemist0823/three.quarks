@@ -1,6 +1,6 @@
 {
   "presets": [
-    "@babel/preset-flow",
+    "@babel/preset-env",
     "@babel/typescript"
   ],
   "plugins": [

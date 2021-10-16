@@ -1,24 +1,10 @@
-import {Behavior} from './behaviors/Behavior';
-import {Particle} from './Particle';
+
 import {ParticleSystem} from './ParticleSystem';
 import {
-    AdditiveBlending,
     Blending,
-    BufferAttribute,
-    InstancedBufferAttribute,
-    InstancedBufferGeometry,
-    InterleavedBuffer,
-    InterleavedBufferAttribute,
-    Matrix3,
-    Mesh,
-    ShaderMaterial,
     Texture,
-    Uniform,
-    Vector2,
-    Vector4,
     Object3D,
-    TrianglesDrawMode,
-    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, PlaneBufferGeometry, NormalBlending
+    BufferGeometry
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
@@ -26,157 +12,17 @@ import particle_vert from './shaders/particle_vert.glsl';
 import local_particle_vert from './shaders/local_particle_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 
-export interface ParticleRendererParameters {
-    // 5 component x,y,z,u,v
-    instancingGeometry?: BufferGeometry;
-    texture?: Texture;
-    uTileCount?: number;
-    vTileCount?: number;
-    worldSpace?: boolean;
-    blending?: Blending;
-    renderMode? : RenderMode;
-    speedFactor? : number;
-}
-
-export enum RenderMode {
-    BillBoard = 0,
-    StretchedBillBoard = 1,
-    LocalSpaceBillBoard = 2,
-}
-
-export class ParticleEmitter extends Mesh {
+export class ParticleEmitter extends Object3D {
 
     type: string = "ParticleEmitter";
     system: ParticleSystem;
-    geometry: InstancedBufferGeometry;
-    material!: ShaderMaterial;
     //interleavedBuffer: InterleavedBuffer;
 
-    private rotationBuffer: InstancedBufferAttribute;
-    private sizeBuffer: InstancedBufferAttribute;
-    private colorBuffer: InstancedBufferAttribute;
-    private offsetBuffer: InstancedBufferAttribute;
-    private velocityBuffer? : InstancedBufferAttribute;
-
-    private tiling: boolean;
-    private uvTileBuffer?: InstancedBufferAttribute;
-    public renderMode: RenderMode;
-    speedFactor: number;
-    texture?: Texture;
-    private blending: Blending
-    instancingGeometry: BufferGeometry;
-
-    constructor(system: ParticleSystem, parameters: ParticleRendererParameters) {
+    constructor(system: ParticleSystem) {
         super();
         this.system = system;
-        this.geometry = new InstancedBufferGeometry();
-        this.renderMode = parameters.renderMode || RenderMode.BillBoard;
-        this.speedFactor = parameters.speedFactor || 1;
-        //this.worldSpace = (parameters.worldSpace !== undefined) ? parameters.worldSpace : false;
-
-        this.instancingGeometry = parameters.instancingGeometry || new PlaneBufferGeometry(1, 1, 1, 1);
-        this.texture = parameters.texture;
-        this.blending = parameters.blending || NormalBlending;
-        /*const instancingGeometry = new Float32Array([
-            -0.5, -0.5, 0, 0, 0,
-            0.5, -0.5, 0, 1, 0,
-            0.5, 0.5, 0, 1, 1,
-            -0.5, 0.5, 0, 0, 1
-        ]);*/
-
-        //this.interleavedBuffer = new InterleavedBuffer(instancingGeometry., 5);
-
-        this.geometry.setIndex(this.instancingGeometry.getIndex());
-        this.geometry.setAttribute('position', this.instancingGeometry.getAttribute('position'));//new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
-        this.geometry.setAttribute('uv', this.instancingGeometry.getAttribute('uv'));//new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
-
-        this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 3), 3);
-        this.offsetBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('offset', this.offsetBuffer);
-        this.colorBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle * 4), 4);
-        this.colorBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('color', this.colorBuffer);
-        this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
-        this.rotationBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('rotation', this.rotationBuffer);
-        this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(system.maxParticle), 1);
-        this.sizeBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('size', this.sizeBuffer);
-
-
-        this.tiling = true;
-
-        this.rebuildMaterial();
+        this.visible = false;
         // TODO: implement boundingVolume
-        this.frustumCulled = false;
-    }
-
-    rebuildMaterial() {
-        let uniforms: { [a: string]: Uniform } = {};
-        let defines: { [b: string]: string } = {};
-
-        if (this.texture) {
-            defines['USE_MAP'] = '';
-            defines['USE_UV'] = '';
-            uniforms['map'] = new Uniform(this.texture);
-            //@ts-ignore
-            uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.texture.matrix));
-
-            let uTileCount = this.system.uTileCount || 1;
-            let vTileCount = this.system.vTileCount || 1;
-            //this.tiling = uTileCount > 1 || vTileCount > 1;
-            if (this.tiling) {
-                this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(this.system.maxParticle), 1);
-                this.uvTileBuffer.setUsage(DynamicDrawUsage);
-                this.geometry.setAttribute('uvTile', this.uvTileBuffer);
-                defines['UV_TILE'] = '';
-                uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
-            }
-        }
-
-        if (this.system.worldSpace) {
-            defines['WORLD_SPACE'] = '';
-        }
-
-        if (this.renderMode === RenderMode.BillBoard || this.renderMode === RenderMode.LocalSpaceBillBoard) {
-            let vertexShader;
-            let side;
-            if (this.renderMode === RenderMode.LocalSpaceBillBoard) {
-                vertexShader = local_particle_vert;
-                side = DoubleSide;
-            } else {
-                vertexShader = particle_vert;
-                side = FrontSide;
-            }
-            this.material = new ShaderMaterial({
-                uniforms: uniforms,
-                defines: defines,
-                vertexShader: vertexShader,
-                fragmentShader: particle_frag,
-                transparent: true,
-                depthWrite: false,
-                blending: this.blending || AdditiveBlending,
-                side: side,
-            });
-        } else if (this.renderMode === RenderMode.StretchedBillBoard) {
-
-            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(this.system.maxParticle * 3), 3);
-            this.velocityBuffer.setUsage(DynamicDrawUsage);
-            this.geometry.setAttribute('velocity', this.velocityBuffer);
-
-            uniforms['speedFactor'] = new Uniform(this.speedFactor);
-            this.material = new ShaderMaterial({
-                uniforms: uniforms,
-                defines: defines,
-                vertexShader: stretched_bb_particle_vert,
-                fragmentShader: particle_frag,
-                transparent: true,
-                depthWrite: false,
-                blending: this.blending || AdditiveBlending,
-            });
-        } else {
-            throw new Error("render mode unavailable");
-        }
     }
 
     clone() {
@@ -184,53 +30,9 @@ export class ParticleEmitter extends Mesh {
         return system.emitter as any;
     }
 
-    update() {
-        const particles = this.system.particles;
-        let particleNum = this.system.particleNum;
-
-        this.geometry.instanceCount = particleNum;
-        for (let i = 0; i < particleNum; i ++) {
-            let particle = particles[i];
-            this.offsetBuffer.setXYZ(i, particle.position.x, particle.position.y, particle.position.z);
-            this.colorBuffer.setXYZW(i, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
-            this.rotationBuffer.setX(i, particle.rotation);
-            this.sizeBuffer.setX(i, particle.size);
-            if (this.renderMode === RenderMode.StretchedBillBoard) {
-                this.velocityBuffer!.setXYZ(i, particle.velocity.x, particle.velocity.y, particle.velocity.z);
-            }
-            if (this.tiling) {
-                this.uvTileBuffer!.setX(i, particle.uvTile);
-            }
-        }
-
-        if (particleNum > 0) {
-            this.offsetBuffer.updateRange.count = particleNum * 3;
-            this.offsetBuffer.needsUpdate = true;
-
-            this.colorBuffer.updateRange.count = particleNum * 4;
-            this.colorBuffer.needsUpdate = true;
-
-            this.rotationBuffer.updateRange.count = particleNum;
-            this.rotationBuffer.needsUpdate = true;
-
-            this.sizeBuffer.updateRange.count = particleNum;
-            this.sizeBuffer.needsUpdate = true;
-
-            if (this.renderMode === RenderMode.StretchedBillBoard) {
-                this.velocityBuffer!.updateRange.count = particleNum * 3;
-                this.velocityBuffer!.needsUpdate = true;
-            }
-
-            if (this.tiling) {
-                this.uvTileBuffer!.updateRange.count = particleNum;
-                this.uvTileBuffer!.needsUpdate = true;
-            }
-        }
-    }
-
     dispose() {
-        this.geometry.dispose();
     }
+
 
     // extract data from the cache hash
     // remove metadata on each item

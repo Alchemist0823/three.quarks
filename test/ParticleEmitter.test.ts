@@ -11,12 +11,15 @@ import {
 } from "../src";
 import {Vector4, Texture, AdditiveBlending} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
+import {BatchedParticleRenderer} from "../src/BatchedParticleRenderer";
 
 
 describe("ParticleEmitter", () => {
 
+
+    const renderer = new BatchedParticleRenderer();
     const texture = new Texture();
-    const glowBeam = new ParticleSystem({
+    const glowBeam = new ParticleSystem(renderer,{
         duration: 1,
         looping: true,
         startLife: new IntervalValue(0.1, 0.15),
@@ -38,9 +41,9 @@ describe("ParticleEmitter", () => {
         startTileIndex: 1,
         uTileCount: 10,
         vTileCount: 10,
+        renderOrder: 2,
     });
     glowBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
-    glowBeam.emitter.renderOrder = 2;
     glowBeam.emitter.name = 'glowBeam';
 
     test(".toJSON", () => {
@@ -67,6 +70,7 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.startTileIndex).toBe(1);
         expect(json.object.ps.uTileCount).toBe(10);
         expect(json.object.ps.vTileCount).toBe(10);
+        expect(json.object.ps.renderOrder).toBe(2);
 
         expect(json.object.ps.behaviors.length).toBe(1);
         expect(json.object.ps.behaviors[0].type).toBe("SizeOverLife");
@@ -75,9 +79,10 @@ describe("ParticleEmitter", () => {
 
     test(".fromJSON", ()=> {
         //const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
+        const renderer = new BatchedParticleRenderer();
         const json = glowBeam.emitter.toJSON();
         const loader = new QuarksLoader();
-        const emitter = loader.parse(json, () => {}) as ParticleEmitter;
+        const emitter = loader.parse(json, () => {}, renderer) as ParticleEmitter;
 
         expect(emitter.system.startTileIndex).toBe(1);
         expect(emitter.system.behaviors.length).toBe(1);

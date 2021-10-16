@@ -20,6 +20,7 @@ import {
 	LinearMipMapNearestFilter,
 	LinearMipMapLinearFilter
 } from 'three';
+import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
 
 const TEXTURE_MAPPING = {
 	UVMapping: UVMapping,
@@ -74,7 +75,7 @@ export class QuarksLoader {
         return this;
     }
 
-	load ( url:string, onLoad:(object3d: Object3D)=>void, onProgress:()=>void, onError:(error:any)=>void ) {
+	load ( url:string, renderer: BatchedParticleRenderer, onLoad:(object3d: Object3D)=>void, onProgress:()=>void, onError:(error:any)=>void ) {
 		var scope = this;
 
 		var path = ( this.path === undefined ) ? LoaderUtils.extractUrlBase( url ) : this.path;
@@ -89,7 +90,7 @@ export class QuarksLoader {
 
 			try {
 				json = JSON.parse( text as string );
-			} catch ( error ) {
+			} catch ( error: any ) {
 				if ( onError !== undefined ) onError( error );
 				console.error( 'THREE:ObjectLoader: Can\'t parse ' + url + '.', error.message );
 				return;
@@ -102,7 +103,7 @@ export class QuarksLoader {
 				return;
 			}
 
-			scope.parse( json, onLoad );
+			scope.parse( json, onLoad, renderer );
 		}, onProgress, onError );
 	}
 
@@ -215,11 +216,11 @@ export class QuarksLoader {
 
 	}
 
-	parseObject(data: any, textures: {[uuid:string]:Texture}) {
-		var object;
+	parseObject(data: any, textures: {[uuid:string]:Texture}, renderer: BatchedParticleRenderer) {
+		let object;
 		switch ( data.type ) {
 			case 'ParticleEmitter':
-				object = ParticleSystem.fromJSON(data.ps, textures).emitter;
+				object = ParticleSystem.fromJSON(data.ps, textures, renderer).emitter;
 				break;
 			case 'Group':
 				object = new Group();
@@ -255,18 +256,18 @@ export class QuarksLoader {
 		if ( data.children !== undefined ) {
 			var children = data.children;
 			for ( var i = 0; i < children.length; i ++ ) {
-				object.add( this.parseObject( children[ i ], textures ) );
+				object.add( this.parseObject( children[ i ], textures, renderer ) );
 			}
 		}
 		return object;
 	}
 
-	parse ( json: any, onLoad: (object: any) => void ) {
+	parse ( json: any, onLoad: (object: any) => void, renderer: BatchedParticleRenderer) {
 		var images = this.parseImages( json.images, function () {
 			if ( onLoad !== undefined ) onLoad( object );
 		} );
 		var textures = this.parseTextures( json.textures, images );
-		var object = this.parseObject( json.object, textures );
+		var object = this.parseObject( json.object, textures, renderer);
 
 		if ( json.images === undefined || json.images.length === 0 ) {
 			if ( onLoad !== undefined ) onLoad( object );

@@ -17,12 +17,12 @@ If you ever developed 3D applications on browsers, you must know the well-known
 three.quarks Particle Engine provides following features:
 
 - Group Particle System
+- Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
 - Customizable Behaviors
 - Customizable RenderMode and BlendMode
-- 1D Bezier Curve
+- 1D Bézier curve function for adjusting
 - Texture Atlas Animation
-- Outstanding performance
 - User Extension and Customization
 - A realtime editor to test and create visual effects [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor)
 - VFX json load and save 
@@ -34,13 +34,22 @@ three.quarks computes most particles information on CPU, and it uses customized 
 
 ### Examples
 
+Launch Examples
+
+```bash
+yarn example
+```
+
 #### Check [examples](examples) folder
+
 
 Add particle system to the scene
 
 ```javascript
+const batchSystem = new BatchedParticleRenderer();
+const texture = new TextureLoader().load("atlas.png");
 // Particle system configuration
-let muzzle = {
+const muzzle = {
     duration: 1,
     looping: false,
     startLife: new IntervalValue(0.1, 0.2),
@@ -65,18 +74,18 @@ let muzzle = {
     startTileIndex: 91,
     uTileCount: 10,
     vTileCount: 10,
+    renderOrder: 2,
     renderMode: RenderMode.LocalSpaceBillBoard
 };
 
 // Create particle system based on your configuration
-muzzle1 = new ParticleSystem(muzzle);
+muzzle1 = new ParticleSystem(batchSystem, {muzzle});
 // developers can customize how the particle system works by 
 // using existing behavior or adding their own Behavior.
 muzzle1.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
 muzzle1.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
 // texture atlas animation
 muzzle1.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
-muzzle1.emitter.renderOrder = 2;
 muzzle1.emitter.name = 'muzzle1';
 muzzle1.emitter.position.x = 1;
 
@@ -87,7 +96,10 @@ scene.add(muzzle1.emitter);
 Add particle system update in your main loop
 
 ```javascript
+// update particle system
 muzzle1.update(delta);
+// update batched renderer
+batchSystem.update();
 ```
 
 #### Import VFX JSON
