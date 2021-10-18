@@ -8,7 +8,7 @@ const date = (new Date()).toDateString();
 const banner = `/**
  * ${pkg.name} v${pkg.version} build ${date}
  * ${pkg.homepage}
- * Copyright ${date.slice(-4)} ${pkg.author.name}, ${pkg.license}
+ * Copyright ${date.slice(-4)} ${pkg.author}, ${pkg.license}
  */`;
 
 const production = (process.env.NODE_ENV === "production");

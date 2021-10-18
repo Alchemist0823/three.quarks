@@ -14,6 +14,9 @@ If you ever developed 3D applications on browsers, you must know the well-known
   system library with a WYSIWYG visual editor 
   [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor) for it.
 
+If you want the best performance please consider `yarn link` [https://github.com/Alchemist0823/three.js](https://github.com/Alchemist0823/three.js).
+This version of three.js performs much better than official release, because it avoids unnecessary `getProgramCachedKey()` calls and material updates.
+
 three.quarks Particle Engine provides following features:
 
 - Group Particle System
@@ -50,32 +53,32 @@ const batchSystem = new BatchedParticleRenderer();
 const texture = new TextureLoader().load("atlas.png");
 // Particle system configuration
 const muzzle = {
-    duration: 1,
-    looping: false,
-    startLife: new IntervalValue(0.1, 0.2),
-    startSpeed: new ConstantValue(0),
-    startSize: new IntervalValue(1, 5),
-    startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
-    worldSpace: false,
+ duration: 1,
+ looping: false,
+ startLife: new IntervalValue(0.1, 0.2),
+ startSpeed: new ConstantValue(0),
+ startSize: new IntervalValue(1, 5),
+ startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
+ worldSpace: false,
 
-    maxParticle: 5,
-    emissionOverTime: new ConstantValue(0),
-    emissionBursts: [{
-        time: 0,
-        count: 1,
-        cycle: 1,
-        interval: 0.01,
-        probability: 1,
-    }],
+ maxParticle: 5,
+ emissionOverTime: new ConstantValue(0),
+ emissionBursts: [{
+  time: 0,
+  count: 1,
+  cycle: 1,
+  interval: 0.01,
+  probability: 1,
+ }],
 
-    shape: new PointEmitter(),
-    texture: texture,
-    blending: AdditiveBlending,
-    startTileIndex: 91,
-    uTileCount: 10,
-    vTileCount: 10,
-    renderOrder: 2,
-    renderMode: RenderMode.LocalSpaceBillBoard
+ shape: new PointEmitter(),
+ texture: texture,
+ blending: AdditiveBlending,
+ startTileIndex: 91,
+ uTileCount: 10,
+ vTileCount: 10,
+ renderOrder: 2,
+ renderMode: RenderMode.LocalSpace
 };
 
 // Create particle system based on your configuration

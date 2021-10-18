@@ -24,11 +24,7 @@ void main() {
         #include <uv_vertex>
     #endif
 	
-	#ifdef WORLD_SPACE
-	    vec4 mvPosition = viewMatrix * vec4( offset, 1.0 );
-	#else
-	    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
-	#endif
+    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
 	
     vec2 alignedPosition = ( position.xy ) * size;
     

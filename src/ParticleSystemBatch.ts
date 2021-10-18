@@ -18,7 +18,7 @@ import {
     Vector4,
     Object3D,
     TrianglesDrawMode,
-    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, PlaneBufferGeometry, NormalBlending, Vector3
+    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, PlaneBufferGeometry, NormalBlending, Vector3, Quaternion
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
@@ -40,10 +40,11 @@ export interface ParticleSystemBatchSettings {
 export enum RenderMode {
     BillBoard = 0,
     StretchedBillBoard = 1,
-    LocalSpaceBillBoard = 2,
+    LocalSpace = 2,
 }
 
 const DEFAULT_MAX_PARTICLE = 1000;
+const UP = new Vector3(0, 0, 1);
 
 export class ParticleSystemBatch extends Mesh {
     type: string = "ParticleSystemBatch";
@@ -51,45 +52,20 @@ export class ParticleSystemBatch extends Mesh {
     geometry: InstancedBufferGeometry;
     material!: ShaderMaterial;
 
+    private offsetBuffer: InstancedBufferAttribute;
     private rotationBuffer: InstancedBufferAttribute;
     private sizeBuffer: InstancedBufferAttribute;
     private colorBuffer: InstancedBufferAttribute;
-    private offsetBuffer: InstancedBufferAttribute;
     private uvTileBuffer: InstancedBufferAttribute;
     private velocityBuffer? : InstancedBufferAttribute;
 
     settings: ParticleSystemBatchSettings;
-    /*
-    public renderMode: RenderMode;
-    speedFactor: number;
-    uTileCount: number;
-    vTileCount: number;
-    texture: Texture;
-    private blending: Blending
-    instancingGeometry: BufferGeometry;*/
 
     constructor(settings: ParticleSystemBatchSettings) {
         super();
         this.systems = new Set<ParticleSystem>();
         this.geometry = new InstancedBufferGeometry();
         this.settings = settings;
-
-        /*this.renderMode = parameters.renderMode || RenderMode.BillBoard;
-        this.speedFactor = parameters.speedFactor || 1;
-        //this.worldSpace = (parameters.worldSpace !== undefined) ? parameters.worldSpace : false;
-        this.uTileCount = parameters.uTileCount;
-        this.vTileCount = parameters.vTileCount;
-        this.texture = parameters.texture;
-        this.blending = parameters.blending || NormalBlending;
-        this.instancingGeometry = parameters.instancingGeometry || new PlaneBufferGeometry(1, 1, 1, 1);*/
-        /*const instancingGeometry = new Float32Array([
-            -0.5, -0.5, 0, 0, 0,
-            0.5, -0.5, 0, 1, 0,
-            0.5, 0.5, 0, 1, 1,
-            -0.5, 0.5, 0, 0, 1
-        ]);*/
-
-        //this.interleavedBuffer = new InterleavedBuffer(instancingGeometry., 5);
 
         this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
         this.geometry.setAttribute('position', this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
@@ -101,7 +77,11 @@ export class ParticleSystemBatch extends Mesh {
         this.colorBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 4);
         this.colorBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('color', this.colorBuffer);
-        this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
+        if (settings.renderMode === RenderMode.LocalSpace) {
+            this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 4);
+        } else {
+            this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
+        }
         this.rotationBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('rotation', this.rotationBuffer);
         this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
@@ -141,10 +121,10 @@ export class ParticleSystemBatch extends Mesh {
         uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
 
-        if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpaceBillBoard) {
+        if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpace) {
             let vertexShader;
             let side;
-            if (this.settings.renderMode === RenderMode.LocalSpaceBillBoard) {
+            if (this.settings.renderMode === RenderMode.LocalSpace) {
                 vertexShader = local_particle_vert;
                 side = DoubleSide;
             } else {
@@ -188,15 +168,32 @@ export class ParticleSystemBatch extends Mesh {
         return system.emitter as any;
     }*/
     vector_: Vector3 = new Vector3();
+    quaternion_: Quaternion = new Quaternion();
+    quaternion2_: Quaternion = new Quaternion();
+    rotationMat_: Matrix3 = new Matrix3();
 
     update() {
         let index = 0;
+
         this.systems.forEach(system => {
             const particles = system.particles;
             let particleNum = system.particleNum;
+            this.quaternion2_.setFromRotationMatrix(system.emitter.matrixWorld);
+            this.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
 
             for (let j = 0; j < particleNum; j++, index ++) {
                 let particle = particles[j];
+                if (this.settings.renderMode === RenderMode.LocalSpace) {
+                    particle.rotationQuat!.setFromAxisAngle(UP, particle.rotation)
+                    if (system.worldSpace) {
+                        this.rotationBuffer.setXYZW(index, particle.rotationQuat!.x, particle.rotationQuat!.y, particle.rotationQuat!.z, particle.rotationQuat!.w);
+                    } else {
+                        this.quaternion_.copy(particle.rotationQuat!).multiply(this.quaternion2_);
+                        this.rotationBuffer.setXYZW(index, this.quaternion_.x, this.quaternion_.y, this.quaternion_.z, this.quaternion_.w);
+                    }
+                } else {
+                    this.rotationBuffer.setX(index, particle.rotation);
+                }
                 if (system.worldSpace) {
                     this.offsetBuffer.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
                 } else {
@@ -204,12 +201,16 @@ export class ParticleSystemBatch extends Mesh {
                     this.offsetBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
                 }
                 this.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
-                this.rotationBuffer.setX(index, particle.rotation);
                 this.sizeBuffer.setX(index, particle.size);
-                this.uvTileBuffer!.setX(index, particle.uvTile);
+                this.uvTileBuffer.setX(index, particle.uvTile);
 
                 if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
-                    this.velocityBuffer!.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
+                    if (system.worldSpace) {
+                        this.velocityBuffer!.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
+                    } else {
+                        this.vector_.copy(particle.velocity).applyMatrix3(this.rotationMat_);
+                        this.velocityBuffer!.setXYZ(index, this.vector_.x * system.speedFactor, this.vector_.y * system.speedFactor, this.vector_.z * system.speedFactor);
+                    }
                 }
             }
         });
@@ -219,22 +220,26 @@ export class ParticleSystemBatch extends Mesh {
             this.offsetBuffer.updateRange.count = index * 3;
             this.offsetBuffer.needsUpdate = true;
 
-            this.colorBuffer.updateRange.count = index * 4;
-            this.colorBuffer.needsUpdate = true;
-
-            this.rotationBuffer.updateRange.count = index;
-            this.rotationBuffer.needsUpdate = true;
-
             this.sizeBuffer.updateRange.count = index;
             this.sizeBuffer.needsUpdate = true;
 
-            this.uvTileBuffer!.updateRange.count = index;
-            this.uvTileBuffer!.needsUpdate = true;
+            this.colorBuffer.updateRange.count = index * 4;
+            this.colorBuffer.needsUpdate = true;
+
+            this.uvTileBuffer.updateRange.count = index;
+            this.uvTileBuffer.needsUpdate = true;
 
             if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
                 this.velocityBuffer!.updateRange.count = index * 3;
                 this.velocityBuffer!.needsUpdate = true;
             }
+
+            if (this.settings.renderMode === RenderMode.LocalSpace) {
+                this.rotationBuffer.updateRange.count = index * 4;
+            } else {
+                this.rotationBuffer.updateRange.count = index;
+            }
+            this.rotationBuffer.needsUpdate = true;
         }
     }
 

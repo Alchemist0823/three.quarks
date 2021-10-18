@@ -1,4 +1,4 @@
-import {Color, Vector3, Vector4} from "three";
+import {Color, Quaternion, Vector3, Vector4} from "three";
 
 export class Particle {
 
@@ -16,8 +16,8 @@ export class Particle {
     // GPU
     position: Vector3 = new Vector3();
     rotation: number = 0;
+    rotationQuat?: Quaternion;
     size: number = 1;
     color: Vector4 = new Vector4();
     uvTile: number = 0;
-
 }

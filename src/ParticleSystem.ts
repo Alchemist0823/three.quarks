@@ -4,7 +4,17 @@ import {Particle} from "./Particle";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
-import {Blending, BufferGeometry, Matrix3, Matrix4, NormalBlending, PlaneBufferGeometry, Texture, Vector4} from "three";
+import {
+    Blending,
+    BufferGeometry,
+    Matrix3,
+    Matrix4,
+    NormalBlending,
+    PlaneBufferGeometry,
+    Quaternion,
+    Texture, Vector3,
+    Vector4
+} from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
 import {
     ColorGenerator,
@@ -27,6 +37,8 @@ export interface BurstParameters {
     interval: number;
     probability: number;
 }
+
+const UP = new Vector3(0,0,1);
 
 export interface ParticleSystemParameters {
     // parameters
@@ -236,8 +248,6 @@ export class ParticleSystem {
         this.waitEmiting = 0;
         this.emitEnded = false;
         this.markForDestroy = false;
-
-        this.renderer.addSystem(this);
     }
 
     pause() {
@@ -263,6 +273,8 @@ export class ParticleSystem {
             particle.life = this.startLife.genValue(this.time);
             particle.age = 0;
             particle.rotation = this.startRotation.genValue(this.time);
+            if (this.rendererSettings.renderMode === RenderMode.LocalSpace)
+                particle.rotationQuat = new Quaternion().setFromAxisAngle(UP, particle.rotation);
             particle.startSize = particle.size = this.startSize.genValue(this.time);
             particle.uvTile = this.startTileIndex;
 
@@ -308,7 +320,13 @@ export class ParticleSystem {
         this.markForDestroy = false;
     }
 
+    firstTimeUpdate = true;
+
     update(delta: number) {
+        if (this.firstTimeUpdate) {
+            this.renderer.addSystem(this);
+            this.firstTimeUpdate = false;
+        }
         if (delta > 0.1)
             delta = 0.1;
 

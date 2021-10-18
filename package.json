@@ -17,6 +17,7 @@
     "build:production": "yarn run build:types && cross-env NODE_ENV=production yarn run build:js ",
     "build": "yarn run build:production",
     "prepublishOnly": "yarn run build:production",
+    "deploy": "gh-pages -d examples",
     "doc": "typedoc --out docs --theme default src",
     "example": "http-server ./examples",
     "test": "jest",
@@ -69,6 +70,7 @@
     "ts-jest": "^27.0.6",
     "tslib": "^2.3.1",
     "typedoc": "^0.22.5",
-    "typescript": "^4.4.4"
+    "typescript": "^4.4.4",
+    "gh-pages": "^2.2.0"
   }
 }

@@ -19111,18 +19111,48 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 	}
 
+	function getStringHash( str, hash ) {
+
+		if ( str == null ) return hash;
+		if ( typeof str !== 'string' ) str = str + '';
+
+		let i, chr;
+		if ( str.length === 0 ) return hash;
+		let inc = 1;
+		if ( str.length > 20 ) {
+
+			inc = str.length / 20.0;
+
+		}
+
+		for ( i = 0; i < str.length; i += inc ) {
+
+			chr = str.charCodeAt( Math.floor( i ) );
+			hash = ( ( hash << 5 ) - hash ) + chr;
+			hash |= 0; // Convert to 32bit integer
+
+		}
+
+		chr = ','.charCodeAt( 0 );
+		hash = ( ( hash << 5 ) - hash ) + chr;
+		hash |= 0;
+
+		return hash;
+
+	}
+
 	function getProgramCacheKey( parameters ) {
 
-		const array = [];
+		let hash = 0;
 
 		if ( parameters.shaderID ) {
 
-			array.push( parameters.shaderID );
+			hash = getStringHash( parameters.shaderID, hash );
 
 		} else {
 
-			array.push( parameters.fragmentShader );
-			array.push( parameters.vertexShader );
+			hash = getStringHash( parameters.fragmentShader, hash );
+			hash = getStringHash( parameters.vertexShader, hash );
 
 		}
 
@@ -19130,8 +19160,8 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 			for ( const name in parameters.defines ) {
 
-				array.push( name );
-				array.push( parameters.defines[ name ] );
+				hash = getStringHash( name, hash );
+				hash = getStringHash( parameters.defines[ name ], hash );
 
 			}
 
@@ -19141,18 +19171,18 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 
 			for ( let i = 0; i < parameterNames.length; i ++ ) {
 
-				array.push( parameters[ parameterNames[ i ] ] );
+				hash = getStringHash( parameters[ parameterNames[ i ] ], hash );
 
 			}
 
-			array.push( renderer.outputEncoding );
-			array.push( renderer.gammaFactor );
+			hash = getStringHash( renderer.outputEncoding, hash );
+			hash = getStringHash( renderer.gammaFactor, hash );
 
 		}
 
-		array.push( parameters.customProgramCacheKey );
+		hash = getStringHash( parameters.customProgramCacheKey, hash );
 
-		return array.join();
+		return hash + '';
 
 	}
 
@@ -20543,7 +20573,7 @@ function WebGLShadowMap( _renderer, _objects, _capabilities ) {
 
 		if ( ( _renderer.localClippingEnabled && material.clipShadows === true && material.clippingPlanes.length !== 0 ) ||
 			( material.displacementMap && material.displacementScale !== 0 ) ||
-			( material.alphaMap && material.alphaTest > 0 ) ) {
+			( material.alphaMap && material.alphaTest > 0 ) || object.isSkinnedMesh || object.isInstancedMesh ) {
 
 			// in this case we need a unique material instance reflecting the
 			// appropriate state
@@ -26425,7 +26455,7 @@ function WebGLRenderer( parameters = {} ) {
 
 		} else {
 
-			if ( material.transparent === true && material.side === DoubleSide ) {
+			/*if ( material.transparent === true && material.side === DoubleSide ) {
 
 				material.side = BackSide;
 				material.needsUpdate = true;
@@ -26437,11 +26467,11 @@ function WebGLRenderer( parameters = {} ) {
 
 				material.side = DoubleSide;
 
-			} else {
+			} else {*/
 
-				_this.renderBufferDirect( camera, scene, geometry, material, object, group );
+			_this.renderBufferDirect( camera, scene, geometry, material, object, group );
 
-			}
+			//}
 
 		}
 

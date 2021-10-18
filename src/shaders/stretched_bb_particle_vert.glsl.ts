@@ -27,13 +27,8 @@ void main() {
         #include <uv_vertex>
     #endif
 	
-	#ifdef WORLD_SPACE
-	    vec4 mvPosition = viewMatrix * vec4( offset, 1.0 );
-        vec3 viewVelocity = vec3(viewMatrix * vec4(velocity, 1.0));
-	#else
-	    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
-        vec3 viewVelocity = vec3(modelViewMatrix * vec4(velocity, 1.0));
-	#endif
+    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
+    vec3 viewVelocity = normalMatrix * velocity;
 
     vec3 scaledPos = vec3(position.xy * size, position.z);
     mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;

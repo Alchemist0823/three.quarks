@@ -1,9 +1,9 @@
 /**
- * three.quarks v0.4.0 build Sat Oct 16 2021
+ * three.quarks v0.4.0 build Sun Oct 17 2021
  * https://github.com/Alchemist0823/three.quarks#readme
- * Copyright 2021 undefined, MIT
+ * Copyright 2021 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
-import { Object3D, Vector4, Vector3, MathUtils, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Matrix3, Vector2, ShaderMaterial, AdditiveBlending, Mesh, DoubleSide, FrontSide, PlaneBufferGeometry, Matrix4, NormalBlending, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, CubeTexture, Texture, Group, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, CubeUVRefractionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter } from './three.module.js';
+import { Object3D, Vector4, Vector3, MathUtils, Quaternion, Matrix3, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Vector2, ShaderMaterial, AdditiveBlending, Mesh, DoubleSide, FrontSide, PlaneBufferGeometry, Matrix4, NormalBlending, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, CubeTexture, Texture, Group, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, CubeUVRefractionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter } from './three.module.js';
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -376,6 +376,8 @@ var Particle = function Particle() {
   _defineProperty(this, "position", new Vector3());
 
   _defineProperty(this, "rotation", 0);
+
+  _defineProperty(this, "rotationQuat", void 0);
 
   _defineProperty(this, "size", 1);
 
@@ -1423,7 +1425,7 @@ var particle_frag = /* glsl */
 */
 
 var particle_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n\t#ifdef WORLD_SPACE\n\t    vec4 mvPosition = viewMatrix * vec4( offset, 1.0 );\n\t#else\n\t    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n\t#endif\n\t\n    vec2 alignedPosition = ( position.xy ) * size;\n    \n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    \n    mvPosition.xy += rotatedPosition;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n\t\n    vec2 alignedPosition = ( position.xy ) * size;\n    \n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    \n    mvPosition.xy += rotatedPosition;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
 /*
 	#ifndef USE_SIZEATTENUATION
 		bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
@@ -1432,10 +1434,10 @@ var particle_vert = /* glsl */
  */
 
 var local_particle_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec2 alignedPosition = ( position.xy ) * size;\n    \n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    \n\t#ifdef WORLD_SPACE\n\t    vec4 mvPosition = viewMatrix * vec4( offset + vec3(rotatedPosition, position.z), 1.0 );\n\t#else\n\t    vec4 mvPosition = modelViewMatrix * vec4( offset + vec3(rotatedPosition, position.z), 1.0 );\n\t#endif\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute vec4 rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n    \n    float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;\n    float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;\n    float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;\n    float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;\n    float sx = size, sy = size, sz = size;\n    \n    mat4 matrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column\n                      ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column\n                      ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column\n                      offset.x, offset.y, offset.z, 1.0);\n    \n    vec4 mvPosition = modelViewMatrix * (matrix * vec4( position, 1.0 ));\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
 
 var stretched_bb_particle_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute vec3 velocity;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nuniform float speedFactor;\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n\t#ifdef WORLD_SPACE\n\t    vec4 mvPosition = viewMatrix * vec4( offset, 1.0 );\n        vec3 viewVelocity = vec3(viewMatrix * vec4(velocity, 1.0));\n\t#else\n\t    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n        vec3 viewVelocity = vec3(modelViewMatrix * vec4(velocity, 1.0));\n\t#endif\n\n    vec3 scaledPos = vec3(position.xy * size, position.z);\n    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute vec3 velocity;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nuniform float speedFactor;\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n    vec3 viewVelocity = normalMatrix * velocity;\n\n    vec3 scaledPos = vec3(position.xy * size, position.z);\n    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
 /*
 
     vec3 instancePos = vec3(position.xy * size, position.z);
@@ -1455,23 +1457,16 @@ var RenderMode;
 (function (RenderMode) {
   RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
   RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
-  RenderMode[RenderMode["LocalSpaceBillBoard"] = 2] = "LocalSpaceBillBoard";
+  RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
 })(RenderMode || (RenderMode = {}));
 
 var DEFAULT_MAX_PARTICLE = 1000;
+var UP$1 = new Vector3(0, 0, 1);
 var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
   _inherits(ParticleSystemBatch, _Mesh);
 
   var _super = _createSuper(ParticleSystemBatch);
 
-  /*
-  public renderMode: RenderMode;
-  speedFactor: number;
-  uTileCount: number;
-  vTileCount: number;
-  texture: Texture;
-  private blending: Blending
-  instancingGeometry: BufferGeometry;*/
   function ParticleSystemBatch(settings) {
     var _this;
 
@@ -1487,13 +1482,13 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
 
     _defineProperty(_assertThisInitialized(_this), "material", void 0);
 
+    _defineProperty(_assertThisInitialized(_this), "offsetBuffer", void 0);
+
     _defineProperty(_assertThisInitialized(_this), "rotationBuffer", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "sizeBuffer", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "colorBuffer", void 0);
-
-    _defineProperty(_assertThisInitialized(_this), "offsetBuffer", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "uvTileBuffer", void 0);
 
@@ -1503,25 +1498,15 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
 
     _defineProperty(_assertThisInitialized(_this), "vector_", new Vector3());
 
+    _defineProperty(_assertThisInitialized(_this), "quaternion_", new Quaternion());
+
+    _defineProperty(_assertThisInitialized(_this), "quaternion2_", new Quaternion());
+
+    _defineProperty(_assertThisInitialized(_this), "rotationMat_", new Matrix3());
+
     _this.systems = new Set();
     _this.geometry = new InstancedBufferGeometry();
     _this.settings = settings;
-    /*this.renderMode = parameters.renderMode || RenderMode.BillBoard;
-    this.speedFactor = parameters.speedFactor || 1;
-    //this.worldSpace = (parameters.worldSpace !== undefined) ? parameters.worldSpace : false;
-    this.uTileCount = parameters.uTileCount;
-    this.vTileCount = parameters.vTileCount;
-    this.texture = parameters.texture;
-    this.blending = parameters.blending || NormalBlending;
-    this.instancingGeometry = parameters.instancingGeometry || new PlaneBufferGeometry(1, 1, 1, 1);*/
-
-    /*const instancingGeometry = new Float32Array([
-        -0.5, -0.5, 0, 0, 0,
-        0.5, -0.5, 0, 1, 0,
-        0.5, 0.5, 0, 1, 1,
-        -0.5, 0.5, 0, 0, 1
-    ]);*/
-    //this.interleavedBuffer = new InterleavedBuffer(instancingGeometry., 5);
 
     _this.geometry.setIndex(_this.settings.instancingGeometry.getIndex());
 
@@ -1543,7 +1528,11 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
 
     _this.geometry.setAttribute('color', _this.colorBuffer);
 
-    _this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
+    if (settings.renderMode === RenderMode.LocalSpace) {
+      _this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 4);
+    } else {
+      _this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
+    }
 
     _this.rotationBuffer.setUsage(DynamicDrawUsage);
 
@@ -1594,11 +1583,11 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
       defines['UV_TILE'] = '';
       uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
-      if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpaceBillBoard) {
+      if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpace) {
         var vertexShader;
         var side;
 
-        if (this.settings.renderMode === RenderMode.LocalSpaceBillBoard) {
+        if (this.settings.renderMode === RenderMode.LocalSpace) {
           vertexShader = local_particle_vert;
           side = DoubleSide;
         } else {
@@ -1650,8 +1639,26 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
         var particles = system.particles;
         var particleNum = system.particleNum;
 
+        _this2.quaternion2_.setFromRotationMatrix(system.emitter.matrixWorld);
+
+        _this2.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
+
         for (var j = 0; j < particleNum; j++, index++) {
           var particle = particles[j];
+
+          if (_this2.settings.renderMode === RenderMode.LocalSpace) {
+            particle.rotationQuat.setFromAxisAngle(UP$1, particle.rotation);
+
+            if (system.worldSpace) {
+              _this2.rotationBuffer.setXYZW(index, particle.rotationQuat.x, particle.rotationQuat.y, particle.rotationQuat.z, particle.rotationQuat.w);
+            } else {
+              _this2.quaternion_.copy(particle.rotationQuat).multiply(_this2.quaternion2_);
+
+              _this2.rotationBuffer.setXYZW(index, _this2.quaternion_.x, _this2.quaternion_.y, _this2.quaternion_.z, _this2.quaternion_.w);
+            }
+          } else {
+            _this2.rotationBuffer.setX(index, particle.rotation);
+          }
 
           if (system.worldSpace) {
             _this2.offsetBuffer.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
@@ -1663,14 +1670,18 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
 
           _this2.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
 
-          _this2.rotationBuffer.setX(index, particle.rotation);
-
           _this2.sizeBuffer.setX(index, particle.size);
 
           _this2.uvTileBuffer.setX(index, particle.uvTile);
 
           if (_this2.settings.renderMode === RenderMode.StretchedBillBoard) {
-            _this2.velocityBuffer.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
+            if (system.worldSpace) {
+              _this2.velocityBuffer.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
+            } else {
+              _this2.vector_.copy(particle.velocity).applyMatrix3(_this2.rotationMat_);
+
+              _this2.velocityBuffer.setXYZ(index, _this2.vector_.x * system.speedFactor, _this2.vector_.y * system.speedFactor, _this2.vector_.z * system.speedFactor);
+            }
           }
         }
       });
@@ -1679,12 +1690,10 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
       if (index > 0) {
         this.offsetBuffer.updateRange.count = index * 3;
         this.offsetBuffer.needsUpdate = true;
-        this.colorBuffer.updateRange.count = index * 4;
-        this.colorBuffer.needsUpdate = true;
-        this.rotationBuffer.updateRange.count = index;
-        this.rotationBuffer.needsUpdate = true;
         this.sizeBuffer.updateRange.count = index;
         this.sizeBuffer.needsUpdate = true;
+        this.colorBuffer.updateRange.count = index * 4;
+        this.colorBuffer.needsUpdate = true;
         this.uvTileBuffer.updateRange.count = index;
         this.uvTileBuffer.needsUpdate = true;
 
@@ -1692,6 +1701,14 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
           this.velocityBuffer.updateRange.count = index * 3;
           this.velocityBuffer.needsUpdate = true;
         }
+
+        if (this.settings.renderMode === RenderMode.LocalSpace) {
+          this.rotationBuffer.updateRange.count = index * 4;
+        } else {
+          this.rotationBuffer.updateRange.count = index;
+        }
+
+        this.rotationBuffer.needsUpdate = true;
       }
     }
   }, {
@@ -1704,6 +1721,7 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
   return ParticleSystemBatch;
 }(Mesh);
 
+var UP = new Vector3(0, 0, 1);
 var DEFAULT_GEOMETRY = new PlaneBufferGeometry(1, 1, 1, 1);
 var ParticleSystem = /*#__PURE__*/function () {
   function ParticleSystem(renderer, parameters) {
@@ -1775,6 +1793,8 @@ var ParticleSystem = /*#__PURE__*/function () {
 
     _defineProperty(this, "normalMatrix", new Matrix3());
 
+    _defineProperty(this, "firstTimeUpdate", true);
+
     this.renderer = renderer;
     this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
     this.duration = (_parameters$duration = parameters.duration) !== null && _parameters$duration !== void 0 ? _parameters$duration : 1;
@@ -1813,7 +1833,6 @@ var ParticleSystem = /*#__PURE__*/function () {
     this.waitEmiting = 0;
     this.emitEnded = false;
     this.markForDestroy = false;
-    this.renderer.addSystem(this);
   }
 
   _createClass(ParticleSystem, [{
@@ -1899,6 +1918,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         particle.life = this.startLife.genValue(this.time);
         particle.age = 0;
         particle.rotation = this.startRotation.genValue(this.time);
+        if (this.rendererSettings.renderMode === RenderMode.LocalSpace) particle.rotationQuat = new Quaternion().setFromAxisAngle(UP, particle.rotation);
         particle.startSize = particle.size = this.startSize.genValue(this.time);
         particle.uvTile = this.startTileIndex;
         this.emitterShape.initialize(particle);
@@ -1944,6 +1964,11 @@ var ParticleSystem = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(delta) {
+      if (this.firstTimeUpdate) {
+        this.renderer.addSystem(this);
+        this.firstTimeUpdate = false;
+      }
+
       if (delta > 0.1) delta = 0.1;
       if (this.paused) return;
 
