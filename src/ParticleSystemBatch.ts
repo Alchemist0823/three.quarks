@@ -65,7 +65,15 @@ export class ParticleSystemBatch extends Mesh {
         super();
         this.systems = new Set<ParticleSystem>();
         this.geometry = new InstancedBufferGeometry();
-        this.settings = settings;
+        this.settings = {
+            blending: settings.blending,
+            instancingGeometry: settings.instancingGeometry,
+            renderMode: settings.renderMode,
+            renderOrder: settings.renderOrder,
+            texture: settings.texture,
+            uTileCount: settings.uTileCount,
+            vTileCount: settings.vTileCount,
+        };
 
         this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
         this.geometry.setAttribute('position', this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
@@ -112,6 +120,7 @@ export class ParticleSystemBatch extends Mesh {
         defines['USE_MAP'] = '';
         defines['USE_UV'] = '';
         uniforms['map'] = new Uniform(this.settings.texture);
+        console.log(this.settings.texture);
         //@ts-ignore
         uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
         let uTileCount = this.settings.uTileCount;

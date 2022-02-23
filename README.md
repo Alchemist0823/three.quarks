@@ -5,8 +5,10 @@
 
 **three.quarks** is a high-performance javascript particle system based visual effect library for threejs
  written in modern **TypeScript**.
- 
- ## [Demo](https://alchemist0823.github.io/three.quarks/)
+
+![landing image](./landing.png)
+
+## [Demo](https://alchemist0823.github.io/three.quarks/)
 
 If you ever developed 3D applications on browsers, you must know the well-known
  WebGL library called [three.js](https://threejs.org). Now you have 

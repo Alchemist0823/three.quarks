@@ -5,6 +5,7 @@ import {Group, Object3D} from "three";
 
 export class BatchedParticleRenderer extends Object3D {
     batches: Array<ParticleSystemBatch> = [];
+    systemToBatchIndex: Map<ParticleSystem, number> = new Map<ParticleSystem, number>();
     type: string = "BatchedParticleRenderer";
 
     constructor() {
@@ -26,27 +27,35 @@ export class BatchedParticleRenderer extends Object3D {
         for (let i = 0; i < this.batches.length; i++) {
             if (BatchedParticleRenderer.equals(this.batches[i].settings, settings)) {
                 this.batches[i].addSystem(system);
+                this.systemToBatchIndex.set(system, i);
                 return;
             }
         }
         let batch = new ParticleSystemBatch(settings);
         batch.addSystem(system);
         this.batches.push(batch);
+        this.systemToBatchIndex.set(system, this.batches.length - 1);
         this.add(batch);
     }
 
     deleteSystem(system: ParticleSystem) {
-        const settings = system.getRendererSettings();
+        let batchIndex = this.systemToBatchIndex.get(system);
+        if (batchIndex != undefined) {
+            this.batches[batchIndex].removeSystem(system);
+            this.systemToBatchIndex.delete(system);
+        }
+        /*const settings = system.getRendererSettings();
         for (let i = 0; i < this.batches.length; i++) {
             if (BatchedParticleRenderer.equals(this.batches[i].settings, settings)) {
                 this.batches[i].removeSystem(system);
                 return;
             }
-        }
+        }*/
     }
 
     updateSystem(system: ParticleSystem) {
-
+        this.deleteSystem(system);
+        this.addSystem(system);
     }
 
     update() {
