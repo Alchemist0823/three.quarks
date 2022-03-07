@@ -10,6 +10,7 @@ export interface ShapeJSON {
 
 export interface EmitterShape {
 
+    type: string;
     initialize(particle: Particle): void;
     toJSON(): ShapeJSON;
 

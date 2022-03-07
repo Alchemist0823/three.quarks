@@ -9,7 +9,7 @@ export interface SphereEmitterParameters {
 }
 
 export class SphereEmitter implements EmitterShape {
-
+    type: string = "sphere";
     radius: number;
     arc: number;
     thickness: number; //[0, 1]

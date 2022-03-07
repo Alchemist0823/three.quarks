@@ -405,7 +405,7 @@ export class ParticleSystem {
     toJSON(meta: any): ParticleSystemJSONParameters {
         const isRootObject = ( meta === undefined || typeof meta === 'string' );
 
-        this.texture.toJSON(meta)
+        this.texture.toJSON(meta);
 
         if ( this.texture.image !== undefined ) {
             const image = this.texture.image;

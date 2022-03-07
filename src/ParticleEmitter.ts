@@ -21,7 +21,7 @@ export class ParticleEmitter extends Object3D {
     constructor(system: ParticleSystem) {
         super();
         this.system = system;
-        this.visible = false;
+        // this.visible = false;
         // TODO: implement boundingVolume
     }
 

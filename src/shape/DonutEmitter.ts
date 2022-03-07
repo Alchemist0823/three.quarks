@@ -11,6 +11,7 @@ export interface DonutEmitterParameters {
 }
 
 export class DonutEmitter implements EmitterShape {
+    type: string = "donut";
     radius: number;
     arc: number; // [0, Math.PI * 2]
     thickness: number;

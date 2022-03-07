@@ -11,9 +11,10 @@ export interface ConeEmitterParameters {
 
 export class ConeEmitter implements EmitterShape {
 
+    type: string = "cone";
     radius: number;
     arc: number; // [0, Math.PI * 2]
-    thickness: number;
+    thickness: number; // [0, 1]
     angle: number; // [0, Math.PI / 2]
 
     constructor(parameters: ConeEmitterParameters = {}) {
