@@ -407,13 +407,14 @@ export class ParticleSystem {
 
         this.texture.toJSON(meta);
 
-        if ( this.texture.image !== undefined ) {
-            const image = this.texture.image;
+        // TODO: support URL
+        /*if ( this.texture.source !== undefined ) {
+            const image = this.texture.source;
             meta.images[ image.uuid ] = {
                 uuid: image.uuid,
-                url: this.texture.name
+                url: this.texture.image.url,
             };
-        }
+        }*/
 
         return {
             autoDestroy: this.autoDestroy,

@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "A General-Purpose Particle System for three.js",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/three.quarks.js",
@@ -42,35 +42,37 @@
     "url": "https://github.com/Alchemist0823/three.quarks/issues"
   },
   "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
-  "dependencies": {},
+  "dependencies": {
+
+  },
   "peerDependencies": {
-    "three": ">= 0.120.0 < 0.133.2"
+    "three": ">= 0.120.0 < 0.138.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.8",
-    "@babel/plugin-proposal-class-properties": "^7.14.5",
-    "@babel/plugin-proposal-object-rest-spread": "^7.15.6",
-    "@babel/preset-env": "^7.15.8",
-    "@babel/preset-flow": "^7.14.5",
-    "@babel/preset-typescript": "^7.15.0",
-    "@rollup/plugin-babel": "^5.3.0",
-    "@rollup/plugin-commonjs": "^21.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.5",
-    "@rollup/plugin-typescript": "^8.3.0",
+    "@babel/core": "^7.17.5",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/plugin-proposal-object-rest-spread": "^7.17.3",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-flow": "^7.16.7",
+    "@babel/preset-typescript": "^7.16.7",
+    "@rollup/plugin-babel": "^5.3.1",
+    "@rollup/plugin-commonjs": "^21.0.2",
+    "@rollup/plugin-node-resolve": "^13.1.3",
+    "@rollup/plugin-typescript": "^8.3.1",
     "@types/jest": "^27.0.2",
     "@types/node": "^14.6.3",
-    "@types/three": "^0.133.1",
+    "@types/three": "^0.138.0",
     "cpx": "^1.5.0",
     "cross-env": "^7.0.3",
     "http-server": "^13.0.2",
-    "jest": "^27.2.5",
-    "rollup": "^2.58.0",
+    "jest": "^27.5.1",
+    "rollup": "^2.70.0",
     "rollup-plugin-terser": "^7.0.2",
-    "three": "^0.133.1",
-    "ts-jest": "^27.0.6",
+    "three": "^0.138.3",
+    "ts-jest": "^27.1.3",
     "tslib": "^2.3.1",
-    "typedoc": "^0.22.5",
-    "typescript": "^4.4.4",
+    "typedoc": "^0.22.13",
+    "typescript": "^4.6.2",
     "gh-pages": "^2.2.0"
   }
 }

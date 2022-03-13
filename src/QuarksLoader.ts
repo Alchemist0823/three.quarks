@@ -1,4 +1,21 @@
-import {Texture, Sprite, Group, Object3D, CubeTexture, LoadingManager, ImageLoader, FileLoader, LoaderUtils, DefaultLoadingManager} from "three";
+import {
+	Texture,
+	Sprite,
+	Group,
+	Object3D,
+	CubeTexture,
+	LoadingManager,
+	ImageLoader,
+	FileLoader,
+	LoaderUtils,
+	DefaultLoadingManager,
+	DataTexture,
+	Source,
+	LinearMipmapLinearFilter,
+	LinearMipmapNearestFilter,
+	NearestMipmapLinearFilter,
+	NearestMipmapNearestFilter
+} from "three";
 import {ParticleSystem} from "./ParticleSystem";
 import {
 	UVMapping,
@@ -7,47 +24,31 @@ import {
 	EquirectangularReflectionMapping,
 	EquirectangularRefractionMapping,
 	CubeUVReflectionMapping,
-	CubeUVRefractionMapping,
 
 	RepeatWrapping,
 	ClampToEdgeWrapping,
 	MirroredRepeatWrapping,
 
 	NearestFilter,
-	NearestMipMapNearestFilter,
-	NearestMipMapLinearFilter,
 	LinearFilter,
-	LinearMipMapNearestFilter,
-	LinearMipMapLinearFilter
 } from 'three';
 import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
 
-const TEXTURE_MAPPING = {
-	UVMapping: UVMapping,
-	CubeReflectionMapping: CubeReflectionMapping,
-	CubeRefractionMapping: CubeRefractionMapping,
-	EquirectangularReflectionMapping: EquirectangularReflectionMapping,
-	EquirectangularRefractionMapping: EquirectangularRefractionMapping,
-	//SphericalReflectionMapping: SphericalReflectionMapping,
-	CubeUVReflectionMapping: CubeUVReflectionMapping,
-	CubeUVRefractionMapping: CubeUVRefractionMapping
+const TYPED_ARRAYS: {[index: string]: any} = {
+	Int8Array: Int8Array,
+	Uint8Array: Uint8Array,
+	Uint8ClampedArray: Uint8ClampedArray,
+	Int16Array: Int16Array,
+	Uint16Array: Uint16Array,
+	Int32Array: Int32Array,
+	Uint32Array: Uint32Array,
+	Float32Array: Float32Array,
+	Float64Array: Float64Array
 };
 
-const TEXTURE_WRAPPING = {
-	RepeatWrapping: RepeatWrapping,
-	ClampToEdgeWrapping: ClampToEdgeWrapping,
-	MirroredRepeatWrapping: MirroredRepeatWrapping
-};
-
-const TEXTURE_FILTER = {
-	NearestFilter: NearestFilter,
-	NearestMipmapNearestFilter: NearestMipMapNearestFilter,
-	NearestMipmapLinearFilter: NearestMipMapLinearFilter,
-	LinearFilter: LinearFilter,
-	LinearMipmapNearestFilter: LinearMipMapNearestFilter,
-	LinearMipmapLinearFilter: LinearMipMapLinearFilter
-};
-
+function getTypedArray( type: string, buffer: any ) {
+	return new TYPED_ARRAYS[ type ]( buffer );
+}
 
 export class QuarksLoader {
     manager: LoadingManager;
@@ -107,7 +108,7 @@ export class QuarksLoader {
 		}, onProgress, onError );
 	}
 
-    loadImage(loader:ImageLoader, url:string ) {
+    loadImage(loader :ImageLoader, url:string ) {
         const scope = this;
         scope.manager.itemStart( url );
 
@@ -120,78 +121,138 @@ export class QuarksLoader {
 
     }
 
-	parseImages ( json: any, onLoad: ()=>void ) {
+	deserializeImage(loader :ImageLoader, image: any ) {
+		if ( typeof image === 'string' ) {
+			const url = image;
+			const path = /^(\/\/)|([a-z]+:(\/\/)?)/i.test( url ) ? url : this.resourcePath + url;
+			return this.loadImage( loader, path );
+		} else {
+			if ( image.data ) {
+				return {
+					data: getTypedArray( image.type, image.data ),
+					width: image.width,
+					height: image.height
+				};
+			} else {
+				return null;
+			}
+		}
+	}
 
-		var scope = this;
-		var images :any= {};
-
+	parseImages( json: any, onLoad: () => void ) {
+		const scope = this;
+		const images: any = {};
+		let loader;
 		if ( json !== undefined && json.length > 0 ) {
-
-			var manager = new LoadingManager( onLoad );
-
-			var loader = new ImageLoader( manager );
+			const manager = new LoadingManager( onLoad );
+			loader = new ImageLoader( manager );
 			loader.setCrossOrigin( this.crossOrigin );
-
-			for ( var i = 0, il = json.length; i < il; i ++ ) {
-				var image = json[ i ];
-				var url = image.url;
-
+			for ( let i = 0, il = json.length; i < il; i ++ ) {
+				const image = json[ i ];
+				const url = image.url;
 				if ( Array.isArray( url ) ) {
 					// load array of images e.g CubeTexture
-
-					images[ image.uuid ] = [];
-					for ( var j = 0, jl = url.length; j < jl; j ++ ) {
-						var currentUrl = url[ j ];
-						var path = /^(\/\/)|([a-z]+:(\/\/)?)/i.test( currentUrl ) ? currentUrl : scope.resourcePath + currentUrl;
-						images[ image.uuid ].push( this.loadImage( loader, path ) );
+					const imageArray = [];
+					for ( let j = 0, jl = url.length; j < jl; j ++ ) {
+						const currentUrl = url[ j ];
+						const deserializedImage = scope.deserializeImage(loader, currentUrl);
+						if ( deserializedImage !== null ) {
+							if ( deserializedImage instanceof HTMLImageElement ) {
+								imageArray.push( deserializedImage );
+							} else {
+								// special case: handle array of data textures for cube textures
+								imageArray.push( new DataTexture( deserializedImage.data, deserializedImage.width, deserializedImage.height ) );
+							}
+						}
 					}
+					images[ image.uuid ] = new Source( imageArray );
 				} else {
 					// load single image
-					var path = /^(\/\/)|([a-z]+:(\/\/)?)/i.test( image.url ) ? image.url : scope.resourcePath + image.url;
-					images[ image.uuid ] = this.loadImage( loader, path );
+					const deserializedImage = scope.deserializeImage(loader, image.url);
+					images[ image.uuid ] = new Source( deserializedImage );
 				}
 			}
 		}
 		return images;
 	}
 
-	parseTextures ( json: any, images: {[uuid:string]: any} ) {
+	parseTextures( json: any, images : any) {
 
-		function parseConstant( value: any, type: any ) {
+		function parseConstant( value: any, type : any) {
+
 			if ( typeof value === 'number' ) return value;
+
 			console.warn( 'THREE.ObjectLoader.parseTexture: Constant should be in numeric form.', value );
+
 			return type[ value ];
+
 		}
 
-		var textures: {[uuid:string]: Texture} = {};
+		const textures: any = {};
+
 		if ( json !== undefined ) {
-			for ( var i = 0, l = json.length; i < l; i ++ ) {
-				var data = json[ i ];
+
+			for ( let i = 0, l = json.length; i < l; i ++ ) {
+
+				const data = json[ i ];
+
 				if ( data.image === undefined ) {
+
 					console.warn( 'THREE.ObjectLoader: No "image" specified for', data.uuid );
-				}
-				if ( images[ data.image ] === undefined ) {
-					console.warn( 'THREE.ObjectLoader: Undefined image', data.image );
+
 				}
 
-				var texture;
-				if ( Array.isArray( images[ data.image ] ) ) {
-					texture = new CubeTexture( images[ data.image ] );
-				} else {
-					texture = new Texture( images[ data.image ] );
+				if ( images[ data.image ] === undefined ) {
+
+					console.warn( 'THREE.ObjectLoader: Undefined image', data.image );
+
 				}
-				texture.needsUpdate = true;
+
+				const source = images[ data.image ];
+				const image = source.data;
+
+				let texture;
+
+				if ( Array.isArray( image ) ) {
+
+					texture = new CubeTexture();
+
+					if ( image.length === 6 ) texture.needsUpdate = true;
+
+				} else {
+
+					if ( image && image.data ) {
+
+						texture = new DataTexture();
+
+					} else {
+
+						texture = new Texture();
+
+					}
+
+					if ( image ) texture.needsUpdate = true; // textures can have undefined image data
+
+				}
+
+				texture.source = source;
+
 				texture.uuid = data.uuid;
+
 				if ( data.name !== undefined ) texture.name = data.name;
+
 				if ( data.mapping !== undefined ) texture.mapping = parseConstant( data.mapping, TEXTURE_MAPPING );
+
 				if ( data.offset !== undefined ) texture.offset.fromArray( data.offset );
 				if ( data.repeat !== undefined ) texture.repeat.fromArray( data.repeat );
 				if ( data.center !== undefined ) texture.center.fromArray( data.center );
 				if ( data.rotation !== undefined ) texture.rotation = data.rotation;
 
 				if ( data.wrap !== undefined ) {
+
 					texture.wrapS = parseConstant( data.wrap[ 0 ], TEXTURE_WRAPPING );
 					texture.wrapT = parseConstant( data.wrap[ 1 ], TEXTURE_WRAPPING );
+
 				}
 
 				if ( data.format !== undefined ) texture.format = data.format;
@@ -207,7 +268,10 @@ export class QuarksLoader {
 				if ( data.premultiplyAlpha !== undefined ) texture.premultiplyAlpha = data.premultiplyAlpha;
 				if ( data.unpackAlignment !== undefined ) texture.unpackAlignment = data.unpackAlignment;
 
+				if ( data.userData !== undefined ) texture.userData = data.userData;
+
 				textures[ data.uuid ] = texture;
+
 			}
 
 		}
@@ -263,7 +327,7 @@ export class QuarksLoader {
 	}
 
 	parse ( json: any, onLoad: (object: any) => void, renderer: BatchedParticleRenderer) {
-		var images = this.parseImages( json.images, function () {
+		var images = this.parseImages( json.images,  () => {
 			if ( onLoad !== undefined ) onLoad( object );
 		} );
 		var textures = this.parseTextures( json.textures, images );
@@ -275,3 +339,27 @@ export class QuarksLoader {
 		return object;
 	}
 }
+
+const TEXTURE_MAPPING = {
+	UVMapping: UVMapping,
+	CubeReflectionMapping: CubeReflectionMapping,
+	CubeRefractionMapping: CubeRefractionMapping,
+	EquirectangularReflectionMapping: EquirectangularReflectionMapping,
+	EquirectangularRefractionMapping: EquirectangularRefractionMapping,
+	CubeUVReflectionMapping: CubeUVReflectionMapping
+};
+
+const TEXTURE_WRAPPING = {
+	RepeatWrapping: RepeatWrapping,
+	ClampToEdgeWrapping: ClampToEdgeWrapping,
+	MirroredRepeatWrapping: MirroredRepeatWrapping
+};
+
+const TEXTURE_FILTER = {
+	NearestFilter: NearestFilter,
+	NearestMipmapNearestFilter: NearestMipmapNearestFilter,
+	NearestMipmapLinearFilter: NearestMipmapLinearFilter,
+	LinearFilter: LinearFilter,
+	LinearMipmapNearestFilter: LinearMipmapNearestFilter,
+	LinearMipmapLinearFilter: LinearMipmapLinearFilter
+};
