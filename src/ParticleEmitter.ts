@@ -27,6 +27,7 @@ export class ParticleEmitter extends Object3D {
 
     clone() {
         let system = this.system.clone();
+        system.emitter.copy(this, true);
         return system.emitter as any;
     }
 
