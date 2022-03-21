@@ -147,84 +147,6 @@ export class TrailBatch extends ParticleSystemBatch {
         return system.emitter as any;
     }*/
 
-    update2() {
-        /*this.colorBuffer.setXYZW(0, 1, 1, 1, 1);
-        this.colorBuffer.setXYZW(1, 1, 1, 1, 1);
-        this.colorBuffer.setXYZW(2, 1, 1, 1, 1);
-        this.colorBuffer.setXYZW(3, 1, 1, 1, 1);
-
-        this.colorBuffer.updateRange.count = 4;
-        this.colorBuffer.needsUpdate = true;*/
-
-        this.positionBuffer.setXYZ(0, 0, 0, 0);
-        this.positionBuffer.setXYZ(1, 1, 0, 0);
-        this.positionBuffer.setXYZ(2, 0, 1, 0);
-        this.positionBuffer.setXYZ(3, 1, 1, 0);
-        this.positionBuffer.setXYZ(4, 0, 2, 0);
-        this.positionBuffer.setXYZ(5, 1, 2, 0);
-
-        this.positionBuffer.updateRange.count = 6;
-        this.positionBuffer.needsUpdate = true;
-
-        this.previousBuffer.setXYZ(0, 0, 0, 0);
-        this.previousBuffer.setXYZ(1, 1, 0, 0);
-        this.previousBuffer.setXYZ(2, 0, 0, 0);
-        this.previousBuffer.setXYZ(3, 1, 0, 0);
-        this.previousBuffer.setXYZ(4, 0, 1, 0);
-        this.previousBuffer.setXYZ(5, 1, 1, 0);
-
-        this.previousBuffer.updateRange.count = 6;
-        this.previousBuffer.needsUpdate = true;
-
-        this.nextBuffer.setXYZ(0, 0, 1, 0);
-        this.nextBuffer.setXYZ(1, 1, 1, 0);
-        this.nextBuffer.setXYZ(2, 0, 2, 0);
-        this.nextBuffer.setXYZ(3, 1, 2, 0);
-        this.nextBuffer.setXYZ(4, 0, 2, 0);
-        this.nextBuffer.setXYZ(5, 1, 2, 0);
-
-        this.nextBuffer.updateRange.count = 6;
-        this.nextBuffer.needsUpdate = true;
-
-        this.sideBuffer.setX(0, -1);
-        this.sideBuffer.setX(1, 1);
-        this.sideBuffer.setX(2, -1);
-        this.sideBuffer.setX(3, 1);
-        this.sideBuffer.setX(4, -1);
-        this.sideBuffer.setX(5, 1);
-
-        this.sideBuffer.updateRange.count = 6;
-        this.sideBuffer.needsUpdate = true;
-
-        this.widthBuffer.setX(0, 1);
-        this.widthBuffer.setX(1, 1);
-        this.widthBuffer.setX(2, 1);
-        this.widthBuffer.setX(3, 1);
-        this.widthBuffer.setX(4, 1);
-        this.widthBuffer.setX(5, 1);
-
-        this.widthBuffer.updateRange.count = 6;
-        this.widthBuffer.needsUpdate = true;
-
-        this.indexBuffer.setX(0, 0);
-        this.indexBuffer.setX(1, 1);
-        this.indexBuffer.setX(2, 2);
-        this.indexBuffer.setX(3, 2);
-        this.indexBuffer.setX(4, 1);
-        this.indexBuffer.setX(5, 3);
-        this.indexBuffer.setX(6, 2);
-        this.indexBuffer.setX(7, 3);
-        this.indexBuffer.setX(8, 4);
-        this.indexBuffer.setX(9, 4);
-        this.indexBuffer.setX(10, 3);
-        this.indexBuffer.setX(11, 5);
-
-        this.indexBuffer.updateRange.count = 12;
-        this.indexBuffer.needsUpdate = true;
-
-        this.geometry.setDrawRange(0, 12);
-    }
-
     update() {
         let index = 0;
         let triangles = 0;
@@ -236,14 +158,6 @@ export class TrailBatch extends ParticleSystemBatch {
 
             for (let j = 0; j < particleNum; j++) {
                 let particle = particles[j] as TrailParticle;
-                //TODO: remove
-                /*particle.previous = [
-                    new RecordState(new Vector3(0, 0, 0), 0.1, new Vector4(1,1,1,1)),
-                    new RecordState(new Vector3(1, 1, 0), 0.1, new Vector4(1,1,1,1)),
-                    new RecordState(new Vector3(2, 2, 1), 0.1, new Vector4(1,1,1,1)),
-                    new RecordState(new Vector3(3, 3, 1), 0.1, new Vector4(1,1,1,1)),
-                    new RecordState(new Vector3(4, 4, 2), 0.1, new Vector4(1,1,1,1)),
-                ];*/
 
                 for (let i = 0; i < particle.previous.length; i++, index += 2) {
                     const recordState = particle.previous[i];
