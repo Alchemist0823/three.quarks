@@ -6,10 +6,11 @@ import { ValueGeneratorFromJSON, FunctionValueGenerator } from "../functions/Val
 import { RotationOverLife } from "./RotationOverLife";
 import { SizeOverLife } from "./SizeOverLife";
 import { SpeedOverLife } from "./SpeedOverLife";
-import { Vector4 } from "three";
+import {Vector3, Vector4} from "three";
 import { ColorRange } from "../functions/ColorRange";
 import {FrameOverLife} from "./FrameOverLife";
 import {OrbitOverLife} from "./OrbitOverLife";
+import {ApplyForce} from "./ApplyForce";
 
 export interface Behavior {
     type: string;
@@ -19,8 +20,10 @@ export interface Behavior {
     clone(): Behavior;
 }
 
-export function BehaviorFromJSON(json: {type: string, func: FunctionJSON}): Behavior {
+export function BehaviorFromJSON(json: {type: string, direction?: Array<number>, func: FunctionJSON}): Behavior {
     switch(json.type) {
+        case 'ApplyForce':
+            return new ApplyForce(new Vector3(json.direction![0], json.direction![1],json.direction![2]), ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
         case 'ColorOverLife':
             return new ColorOverLife(ColorGeneratorFromJSON(json.func) as FunctionColorGenerator);
         case 'RotationOverLife':

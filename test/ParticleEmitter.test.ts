@@ -10,9 +10,9 @@ import {
     SizeOverLife,
     PiecewiseBezier,
     Bezier,
-    ParticleEmitter
+    ParticleEmitter, ApplyForce
 } from "../src";
-import {Vector4, Texture, AdditiveBlending} from "three";
+import {Vector4, Texture, AdditiveBlending, Vector3} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedParticleRenderer} from "../src/BatchedParticleRenderer";
 
@@ -29,6 +29,7 @@ describe("ParticleEmitter", () => {
         startSpeed: new ConstantValue(0),
         startSize: new ConstantValue(3.5),
         startColor: new ConstantColor(new Vector4(1, 0.1509503, 0.07352942, .5)),
+        startLength: new ConstantValue(40),
         worldSpace: true,
 
         maxParticle: 100,
@@ -47,6 +48,7 @@ describe("ParticleEmitter", () => {
         renderOrder: 2,
     });
     glowBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
+    glowBeam.addBehavior(new ApplyForce(new Vector3(0, 1, 0), new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
     glowBeam.emitter.name = 'glowBeam';
 
     test(".toJSON", () => {
@@ -61,6 +63,7 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.startSpeed.type).toBe("ConstantValue");
         expect(json.object.ps.startSize.type).toBe("ConstantValue");
         expect(json.object.ps.startColor.type).toBe("ConstantColor");
+        expect(json.object.ps.startLength.type).toBe("ConstantValue");
         expect(json.object.ps.worldSpace).toBe(true);
         expect(json.object.ps.maxParticle).toBe(100);
         expect(json.object.ps.emissionOverTime.type).toBe("ConstantValue");
@@ -75,9 +78,12 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.vTileCount).toBe(10);
         expect(json.object.ps.renderOrder).toBe(2);
 
-        expect(json.object.ps.behaviors.length).toBe(1);
+        expect(json.object.ps.behaviors.length).toBe(2);
         expect(json.object.ps.behaviors[0].type).toBe("SizeOverLife");
         expect(json.object.ps.behaviors[0].func.type).toBe("PiecewiseBezier");
+        expect(json.object.ps.behaviors[1].type).toBe("ApplyForce");
+        expect(json.object.ps.behaviors[1].direction[1]).toBe(1);
+        expect(json.object.ps.behaviors[1].func.type).toBe("PiecewiseBezier");
     });
 
     test(".fromJSON", ()=> {
@@ -88,6 +94,6 @@ describe("ParticleEmitter", () => {
         const emitter = loader.parse(json, () => {}, renderer) as ParticleEmitter;
 
         expect(emitter.system.startTileIndex).toBe(1);
-        expect(emitter.system.behaviors.length).toBe(1);
+        expect(emitter.system.behaviors.length).toBe(2);
     });
 });

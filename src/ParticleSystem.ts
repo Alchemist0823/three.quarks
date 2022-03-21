@@ -89,6 +89,7 @@ export interface ParticleSystemJSONParameters {
     startSpeed: FunctionJSON;
     startRotation: FunctionJSON;
     startSize: FunctionJSON;
+    startLength: FunctionJSON;
     startColor: FunctionJSON;
     emissionOverTime: FunctionJSON;
     emissionOverDistance: FunctionJSON;
@@ -459,6 +460,7 @@ export class ParticleSystem {
             startSpeed: this.startSpeed.toJSON(),
             startRotation: this.startRotation.toJSON(),
             startSize: this.startSize.toJSON(),
+            startLength: this.startLength.toJSON(),
             startColor: this.startColor.toJSON(),
             emissionOverTime: this.emissionOverTime.toJSON(),
             emissionOverDistance: this.emissionOverDistance.toJSON(),
@@ -510,6 +512,7 @@ export class ParticleSystem {
             startLife: ValueGeneratorFromJSON(json.startLife),
             startSpeed: ValueGeneratorFromJSON(json.startSpeed),
             startRotation: ValueGeneratorFromJSON(json.startRotation),
+            startLength: ValueGeneratorFromJSON(json.startLength),
             startSize: ValueGeneratorFromJSON(json.startSize),
             startColor: ColorGeneratorFromJSON(json.startColor),
             emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),

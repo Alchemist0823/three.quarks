@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.4.4 build Mon Mar 21 2022
+ * three.quarks v0.5.0 build Mon Mar 21 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -3208,7 +3208,7 @@ var ApplyForce = /*#__PURE__*/function () {
     key: "update",
     value: function update(particle, delta) {
       var force = this.func.genValue(particle.age / particle.life);
-      particle.velocity.addScaledVector(this.direction, force);
+      particle.velocity.addScaledVector(this.direction, force * delta);
     }
   }, {
     key: "toJSON",

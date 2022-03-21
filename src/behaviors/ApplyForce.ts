@@ -15,7 +15,7 @@ export class ApplyForce implements Behavior {
 
     update(particle: Particle, delta: number): void {
         const force = this.func.genValue(particle.age / particle.life);
-        particle.velocity.addScaledVector(this.direction, force);
+        particle.velocity.addScaledVector(this.direction, force * delta);
     }
 
     toJSON(): any {

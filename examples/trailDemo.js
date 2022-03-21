@@ -68,8 +68,8 @@ export class TrailDemo {
         const beam = new ParticleSystem(this.batchRenderer, {
             duration: 1,
             looping: false,
-            startLife: new IntervalValue(1, 3),
-            startSpeed: new IntervalValue(5, 20),
+            startLife: new IntervalValue(0.8, 1.4),
+            startSpeed: new IntervalValue(10, 15),
             startSize: new ConstantValue(0.1),
             startLength: new ConstantValue(20),
             startColor: new ColorRange(new Vector4(1, 0.585716, 0.1691176, 1), new Vector4(1, 1, 1, 1)),
@@ -97,7 +97,7 @@ export class TrailDemo {
         beam.emitter.name = 'beam';
         beam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         beam.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(0, 0, 0, 1))));
-        beam.addBehavior(new ApplyForce(new Vector3(0, -1, 0), new ConstantValue(0.5)));
+        beam.addBehavior(new ApplyForce(new Vector3(0, -1, 0), new ConstantValue(20)));
         beam.emitter.rotation.x = - Math.PI / 2;
         group.add(beam.emitter);
 
