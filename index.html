@@ -61,6 +61,7 @@
         import {
             MuzzleFlashDemo,
         } from "./muzzleFlashDemo.js";
+        import {TrailDemo} from "./trailDemo.js";
 
         const WEBGL = {
             isWebGLAvailable: function () {
@@ -124,6 +125,9 @@
         let scene;
         let demo;
 
+        let demos = [MuzzleFlashDemo, TrailDemo];
+        let demoIndex = 0;
+
         function init() {
             if (WEBGL.isWebGLAvailable() === false) {
                 document.body.appendChild(WEBGL.getWebGLErrorMessage());
@@ -163,8 +167,13 @@
 
             window.addEventListener('resize', onReize, false);
 
-            demo = new MuzzleFlashDemo();
+            demoIndex = 0;
+            demo = new demos[demoIndex]();
             scene = demo.initScene();
+
+            document.getElementById("nextBtn").addEventListener("click", nextDemo, false);
+            document.getElementById("previousBtn").addEventListener("click", previousDemo, false);
+
             onReize();
         }
 
@@ -192,11 +201,21 @@
 
 
         function nextDemo() {
-
+            demoIndex++;
+            if (demoIndex >= demos.length) {
+                demoIndex = 0;
+            }
+            demo = new demos[demoIndex]();
+            scene = demo.initScene();
         }
 
         function previousDemo() {
-
+            demoIndex--;
+            if (demoIndex < 0) {
+                demoIndex = demos.length - 1;
+            }
+            demo = new demos[demoIndex]();
+            scene = demo.initScene();
         }
 
         init();
@@ -206,7 +225,7 @@
 </head>
 <body id="home">
 <canvas id="renderer-canvas"></canvas>
-<div class="next btn" onclick="nextDemo()">&#62;</div>
-<div class="previous btn" onclick="previousDemo()">&#60;</div>
+<div id="nextBtn" class="next btn">&#62;</div>
+<div id="previousBtn" class="previous btn">&#60;</div>
 </body>
 </html>

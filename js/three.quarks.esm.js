@@ -1,9 +1,9 @@
 /**
- * three.quarks v0.4.0 build Sun Oct 17 2021
+ * three.quarks v0.5.0 build Mon Mar 21 2022
  * https://github.com/Alchemist0823/three.quarks#readme
- * Copyright 2021 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
+ * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
-import { Object3D, Vector4, Vector3, MathUtils, Quaternion, Matrix3, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Vector2, ShaderMaterial, AdditiveBlending, Mesh, DoubleSide, FrontSide, PlaneBufferGeometry, Matrix4, NormalBlending, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, CubeTexture, Texture, Group, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, CubeUVRefractionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter } from './three.module.js';
+import { Object3D, Vector4, Vector3, MathUtils, Mesh, PlaneBufferGeometry, Matrix4, Matrix3, NormalBlending, Quaternion, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, DataTexture, Source, CubeTexture, Texture, Group, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter } from 'three';
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -24,6 +24,9 @@ function _defineProperties(target, props) {
 function _createClass(Constructor, protoProps, staticProps) {
   if (protoProps) _defineProperties(Constructor.prototype, protoProps);
   if (staticProps) _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
   return Constructor;
 }
 
@@ -53,6 +56,9 @@ function _inherits(subClass, superClass) {
       writable: true,
       configurable: true
     }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
   });
   if (superClass) _setPrototypeOf(subClass, superClass);
 }
@@ -256,8 +262,8 @@ var ParticleEmitter = /*#__PURE__*/function (_Object3D) {
 
     _defineProperty(_assertThisInitialized(_this), "system", void 0);
 
-    _this.system = system;
-    _this.visible = false; // TODO: implement boundingVolume
+    _this.system = system; // this.visible = false;
+    // TODO: implement boundingVolume
 
     return _this;
   }
@@ -266,6 +272,7 @@ var ParticleEmitter = /*#__PURE__*/function (_Object3D) {
     key: "clone",
     value: function clone() {
       var system = this.system.clone();
+      system.emitter.copy(this, true);
       return system.emitter;
     }
   }, {
@@ -303,7 +310,10 @@ var ParticleEmitter = /*#__PURE__*/function (_Object3D) {
           materials: {},
           textures: {},
           images: {},
-          shapes: {}
+          shapes: {},
+          skeletons: {},
+          animations: {},
+          nodes: {}
         };
         output.metadata = {
           version: 4.5,
@@ -356,8 +366,8 @@ var ParticleEmitter = /*#__PURE__*/function (_Object3D) {
   return ParticleEmitter;
 }(Object3D);
 
-var Particle = function Particle() {
-  _classCallCheck(this, Particle);
+var SpriteParticle = /*#__PURE__*/_createClass(function SpriteParticle() {
+  _classCallCheck(this, SpriteParticle);
 
   _defineProperty(this, "startSpeed", 0);
 
@@ -365,26 +375,80 @@ var Particle = function Particle() {
 
   _defineProperty(this, "startSize", 1);
 
+  _defineProperty(this, "position", new Vector3());
+
   _defineProperty(this, "velocity", new Vector3());
 
   _defineProperty(this, "age", 0);
 
   _defineProperty(this, "life", 1);
 
-  _defineProperty(this, "angularVelocity", void 0);
+  _defineProperty(this, "size", 1);
 
-  _defineProperty(this, "position", new Vector3());
+  _defineProperty(this, "angularVelocity", void 0);
 
   _defineProperty(this, "rotation", 0);
 
   _defineProperty(this, "rotationQuat", void 0);
 
-  _defineProperty(this, "size", 1);
-
   _defineProperty(this, "color", new Vector4());
 
   _defineProperty(this, "uvTile", 0);
-};
+});
+var RecordState = /*#__PURE__*/_createClass(function RecordState(position, size, color) {
+  _classCallCheck(this, RecordState);
+
+  this.position = position;
+  this.size = size;
+  this.color = color;
+});
+var TrailParticle = /*#__PURE__*/function () {
+  function TrailParticle() {
+    _classCallCheck(this, TrailParticle);
+
+    _defineProperty(this, "startSpeed", 0);
+
+    _defineProperty(this, "startColor", new Vector4());
+
+    _defineProperty(this, "startSize", 1);
+
+    _defineProperty(this, "position", new Vector3());
+
+    _defineProperty(this, "velocity", new Vector3());
+
+    _defineProperty(this, "age", 0);
+
+    _defineProperty(this, "life", 1);
+
+    _defineProperty(this, "size", 1);
+
+    _defineProperty(this, "length", 100);
+
+    _defineProperty(this, "color", new Vector4());
+
+    _defineProperty(this, "previous", []);
+
+    _defineProperty(this, "uvTile", 0);
+  }
+
+  _createClass(TrailParticle, [{
+    key: "recordCurrentState",
+    value: function recordCurrentState() {
+      this.previous.push(new RecordState(this.position.clone(), this.size, this.color.clone()));
+
+      while (this.previous.length > this.length) {
+        this.previous.shift();
+      }
+    }
+  }, {
+    key: "reset",
+    value: function reset() {
+      this.previous.length = 0;
+    }
+  }]);
+
+  return TrailParticle;
+}();
 
 var ConstantValue = /*#__PURE__*/function () {
   function ConstantValue(value) {
@@ -962,19 +1026,23 @@ var RotationOverLife = /*#__PURE__*/function () {
   _createClass(RotationOverLife, [{
     key: "initialize",
     value: function initialize(particle) {
-      if (this.angularVelocityFunc.type === 'value') {
-        particle.angularVelocity = this.angularVelocityFunc.genValue();
-      } else {
-        particle.angularVelocity = 0;
+      if (particle instanceof SpriteParticle) {
+        if (this.angularVelocityFunc.type === 'value') {
+          particle.angularVelocity = this.angularVelocityFunc.genValue();
+        } else {
+          particle.angularVelocity = 0;
+        }
       }
     }
   }, {
     key: "update",
     value: function update(particle, delta) {
-      if (this.angularVelocityFunc.type === 'value') {
-        particle.rotation += delta * particle.angularVelocity;
-      } else {
-        particle.rotation += delta * this.angularVelocityFunc.genValue(particle.age / particle.life);
+      if (particle instanceof SpriteParticle) {
+        if (this.angularVelocityFunc.type === 'value') {
+          particle.rotation += delta * particle.angularVelocity;
+        } else {
+          particle.rotation += delta * this.angularVelocityFunc.genValue(particle.age / particle.life);
+        }
       }
     }
   }, {
@@ -1113,10 +1181,12 @@ var OrbitOverLife = /*#__PURE__*/function () {
   _createClass(OrbitOverLife, [{
     key: "initialize",
     value: function initialize(particle) {
-      if (this.angularVelocityFunc.type === 'value') {
-        particle.angularVelocity = this.angularVelocityFunc.genValue();
-      } else {
-        particle.angularVelocity = 0;
+      if (particle instanceof SpriteParticle) {
+        if (this.angularVelocityFunc.type === 'value') {
+          particle.angularVelocity = this.angularVelocityFunc.genValue();
+        } else {
+          particle.angularVelocity = 0;
+        }
       }
     }
   }, {
@@ -1153,8 +1223,49 @@ var OrbitOverLife = /*#__PURE__*/function () {
   return OrbitOverLife;
 }();
 
+var ApplyForce = /*#__PURE__*/function () {
+  function ApplyForce(direction, func) {
+    _classCallCheck(this, ApplyForce);
+
+    this.direction = direction;
+    this.func = func;
+
+    _defineProperty(this, "type", 'ApplyForce');
+  }
+
+  _createClass(ApplyForce, [{
+    key: "initialize",
+    value: function initialize(particle) {}
+  }, {
+    key: "update",
+    value: function update(particle, delta) {
+      var force = this.func.genValue(particle.age / particle.life);
+      particle.velocity.addScaledVector(this.direction, force * delta);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        direction: [this.direction.x, this.direction.y, this.direction.z],
+        func: this.func.toJSON()
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new ApplyForce(this.direction.clone(), this.func.clone());
+    }
+  }]);
+
+  return ApplyForce;
+}();
+
 function BehaviorFromJSON(json) {
   switch (json.type) {
+    case 'ApplyForce':
+      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.func));
+
     case 'ColorOverLife':
       return new ColorOverLife(ColorGeneratorFromJSON(json.func));
 
@@ -1180,11 +1291,16 @@ function BehaviorFromJSON(json) {
 
 var ConeEmitter = /*#__PURE__*/function () {
   // [0, Math.PI * 2]
+  // [0, 1]
   // [0, Math.PI / 2]
   function ConeEmitter() {
+    var _parameters$radius, _parameters$arc, _parameters$thickness, _parameters$angle;
+
     var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     _classCallCheck(this, ConeEmitter);
+
+    _defineProperty(this, "type", "cone");
 
     _defineProperty(this, "radius", void 0);
 
@@ -1194,10 +1310,10 @@ var ConeEmitter = /*#__PURE__*/function () {
 
     _defineProperty(this, "angle", void 0);
 
-    this.radius = parameters.radius || 10;
-    this.arc = parameters.arc || 2.0 * Math.PI;
-    this.thickness = parameters.thickness || 1;
-    this.angle = parameters.angle || Math.PI / 6;
+    this.radius = (_parameters$radius = parameters.radius) !== null && _parameters$radius !== void 0 ? _parameters$radius : 10;
+    this.arc = (_parameters$arc = parameters.arc) !== null && _parameters$arc !== void 0 ? _parameters$arc : 2.0 * Math.PI;
+    this.thickness = (_parameters$thickness = parameters.thickness) !== null && _parameters$thickness !== void 0 ? _parameters$thickness : 1;
+    this.angle = (_parameters$angle = parameters.angle) !== null && _parameters$angle !== void 0 ? _parameters$angle : Math.PI / 6;
   }
 
   _createClass(ConeEmitter, [{
@@ -1246,9 +1362,13 @@ var ConeEmitter = /*#__PURE__*/function () {
 var SphereEmitter = /*#__PURE__*/function () {
   //[0, 1]
   function SphereEmitter() {
+    var _parameters$radius, _parameters$arc, _parameters$thickness;
+
     var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     _classCallCheck(this, SphereEmitter);
+
+    _defineProperty(this, "type", "sphere");
 
     _defineProperty(this, "radius", void 0);
 
@@ -1256,9 +1376,9 @@ var SphereEmitter = /*#__PURE__*/function () {
 
     _defineProperty(this, "thickness", void 0);
 
-    this.radius = parameters.radius || 10;
-    this.arc = parameters.arc || 2.0 * Math.PI;
-    this.thickness = parameters.thickness || 1;
+    this.radius = (_parameters$radius = parameters.radius) !== null && _parameters$radius !== void 0 ? _parameters$radius : 10;
+    this.arc = (_parameters$arc = parameters.arc) !== null && _parameters$arc !== void 0 ? _parameters$arc : 2.0 * Math.PI;
+    this.thickness = (_parameters$thickness = parameters.thickness) !== null && _parameters$thickness !== void 0 ? _parameters$thickness : 1;
   }
 
   _createClass(SphereEmitter, [{
@@ -1307,6 +1427,8 @@ var SphereEmitter = /*#__PURE__*/function () {
 var PointEmitter = /*#__PURE__*/function () {
   function PointEmitter() {
     _classCallCheck(this, PointEmitter);
+
+    _defineProperty(this, "type", "point");
   }
 
   _createClass(PointEmitter, [{
@@ -1348,9 +1470,13 @@ var DonutEmitter = /*#__PURE__*/function () {
   // [0, Math.PI * 2]
   // [0, Math.PI / 2]
   function DonutEmitter() {
+    var _parameters$radius, _parameters$arc, _parameters$thickness, _parameters$angle;
+
     var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     _classCallCheck(this, DonutEmitter);
+
+    _defineProperty(this, "type", "donut");
 
     _defineProperty(this, "radius", void 0);
 
@@ -1360,10 +1486,10 @@ var DonutEmitter = /*#__PURE__*/function () {
 
     _defineProperty(this, "angle", void 0);
 
-    this.radius = parameters.radius || 10;
-    this.arc = parameters.arc || 2.0 * Math.PI;
-    this.thickness = parameters.thickness || 1;
-    this.angle = parameters.angle || Math.PI / 6;
+    this.radius = (_parameters$radius = parameters.radius) !== null && _parameters$radius !== void 0 ? _parameters$radius : 10;
+    this.arc = (_parameters$arc = parameters.arc) !== null && _parameters$arc !== void 0 ? _parameters$arc : 2.0 * Math.PI;
+    this.thickness = (_parameters$thickness = parameters.thickness) !== null && _parameters$thickness !== void 0 ? _parameters$thickness : 1;
+    this.angle = (_parameters$angle = parameters.angle) !== null && _parameters$angle !== void 0 ? _parameters$angle : Math.PI / 6;
   }
 
   _createClass(DonutEmitter, [{
@@ -1409,59 +1535,15 @@ var DonutEmitter = /*#__PURE__*/function () {
   return DonutEmitter;
 }();
 
-var particle_frag = /* glsl */
-"\n\n#include <common>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nvarying vec4 vColor;\n\nvoid main() {\n\n    #include <clipping_planes_fragment>\n    \n    vec3 outgoingLight = vec3( 0.0 );\n    vec4 diffuseColor = vColor;\n    \n    #include <logdepthbuf_fragment>\n    \n    #ifdef USE_MAP\n    vec4 texelColor = texture2D( map, vUv);\n    diffuseColor *= texelColor;\n    #endif\n\n    outgoingLight = diffuseColor.rgb;\n\n    gl_FragColor = vec4( outgoingLight, diffuseColor.a );\n    \n    #include <tonemapping_fragment>\n\n}\n";
-/*
-    gl_FragColor = vec4(vUv.x, vUv.y, 1.0, 1.0);
-
-    #ifdef USE_MAP
-    vec4 texelColor = texture2D( map, vUv);
-    diffuseColor *= texelColor;
-    #endif
-
-    outgoingLight = diffuseColor.rgb;
-
-    gl_FragColor = vec4( outgoingLight, diffuseColor.a );
-*/
-
-var particle_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n\t\n    vec2 alignedPosition = ( position.xy ) * size;\n    \n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    \n    mvPosition.xy += rotatedPosition;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
-/*
-	#ifndef USE_SIZEATTENUATION
-		bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
-		if ( isPerspective ) computedSize *= - mvPosition.z;
-	#endif
- */
-
-var local_particle_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute vec4 rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n    \n    float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;\n    float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;\n    float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;\n    float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;\n    float sx = size, sy = size, sz = size;\n    \n    mat4 matrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column\n                      ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column\n                      ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column\n                      offset.x, offset.y, offset.z, 1.0);\n    \n    vec4 mvPosition = modelViewMatrix * (matrix * vec4( position, 1.0 ));\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
-
-var stretched_bb_particle_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute vec3 velocity;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nuniform float speedFactor;\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n    vec3 viewVelocity = normalMatrix * velocity;\n\n    vec3 scaledPos = vec3(position.xy * size, position.z);\n    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
-/*
-
-    vec3 instancePos = vec3(position.xy * size, position.z);
-    instancePos += dot(instancePos, viewVelocity) * viewVelocity * speedFactor;
-    mvPosition.xyz += instancePos;
-
-	vColor = color; //vec4(1, 1, 1, 1); //color; //length(viewVelocity) * 0.1
-
-	#ifndef USE_SIZEATTENUATION
-		bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
-		if ( isPerspective ) computedSize *= - mvPosition.z;
-	#endif
- */
-
-var RenderMode;
+var RenderMode$2;
 
 (function (RenderMode) {
   RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
   RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
   RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
-})(RenderMode || (RenderMode = {}));
+  RenderMode[RenderMode["Trail"] = 3] = "Trail";
+})(RenderMode$2 || (RenderMode$2 = {}));
 
-var DEFAULT_MAX_PARTICLE = 1000;
-var UP$1 = new Vector3(0, 0, 1);
 var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
   _inherits(ParticleSystemBatch, _Mesh);
 
@@ -1478,81 +1560,21 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
 
     _defineProperty(_assertThisInitialized(_this), "systems", void 0);
 
-    _defineProperty(_assertThisInitialized(_this), "geometry", void 0);
-
     _defineProperty(_assertThisInitialized(_this), "material", void 0);
-
-    _defineProperty(_assertThisInitialized(_this), "offsetBuffer", void 0);
-
-    _defineProperty(_assertThisInitialized(_this), "rotationBuffer", void 0);
-
-    _defineProperty(_assertThisInitialized(_this), "sizeBuffer", void 0);
-
-    _defineProperty(_assertThisInitialized(_this), "colorBuffer", void 0);
-
-    _defineProperty(_assertThisInitialized(_this), "uvTileBuffer", void 0);
-
-    _defineProperty(_assertThisInitialized(_this), "velocityBuffer", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "settings", void 0);
 
-    _defineProperty(_assertThisInitialized(_this), "vector_", new Vector3());
-
-    _defineProperty(_assertThisInitialized(_this), "quaternion_", new Quaternion());
-
-    _defineProperty(_assertThisInitialized(_this), "quaternion2_", new Quaternion());
-
-    _defineProperty(_assertThisInitialized(_this), "rotationMat_", new Matrix3());
-
     _this.systems = new Set();
-    _this.geometry = new InstancedBufferGeometry();
-    _this.settings = settings;
-
-    _this.geometry.setIndex(_this.settings.instancingGeometry.getIndex());
-
-    _this.geometry.setAttribute('position', _this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
-
-
-    _this.geometry.setAttribute('uv', _this.settings.instancingGeometry.getAttribute('uv')); //new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
-
-
-    _this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 3), 3);
-
-    _this.offsetBuffer.setUsage(DynamicDrawUsage);
-
-    _this.geometry.setAttribute('offset', _this.offsetBuffer);
-
-    _this.colorBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 4);
-
-    _this.colorBuffer.setUsage(DynamicDrawUsage);
-
-    _this.geometry.setAttribute('color', _this.colorBuffer);
-
-    if (settings.renderMode === RenderMode.LocalSpace) {
-      _this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 4);
-    } else {
-      _this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
-    }
-
-    _this.rotationBuffer.setUsage(DynamicDrawUsage);
-
-    _this.geometry.setAttribute('rotation', _this.rotationBuffer);
-
-    _this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
-
-    _this.sizeBuffer.setUsage(DynamicDrawUsage);
-
-    _this.geometry.setAttribute('size', _this.sizeBuffer);
-
-    _this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
-
-    _this.uvTileBuffer.setUsage(DynamicDrawUsage);
-
-    _this.geometry.setAttribute('uvTile', _this.uvTileBuffer);
-
-    _this.rebuildMaterial(); // TODO: implement boundingVolume
-
-
+    _this.settings = {
+      blending: settings.blending,
+      instancingGeometry: settings.instancingGeometry,
+      renderMode: settings.renderMode,
+      renderOrder: settings.renderOrder,
+      texture: settings.texture,
+      uTileCount: settings.uTileCount,
+      vTileCount: settings.vTileCount,
+      transparent: settings.transparent
+    };
     _this.frustumCulled = false;
     _this.renderOrder = _this.settings.renderOrder;
     return _this;
@@ -1568,164 +1590,16 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
     value: function removeSystem(system) {
       this.systems["delete"](system);
     }
-  }, {
-    key: "rebuildMaterial",
-    value: function rebuildMaterial() {
-      var uniforms = {};
-      var defines = {};
-      defines['USE_MAP'] = '';
-      defines['USE_UV'] = '';
-      uniforms['map'] = new Uniform(this.settings.texture); //@ts-ignore
-
-      uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
-      var uTileCount = this.settings.uTileCount;
-      var vTileCount = this.settings.vTileCount;
-      defines['UV_TILE'] = '';
-      uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
-
-      if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpace) {
-        var vertexShader;
-        var side;
-
-        if (this.settings.renderMode === RenderMode.LocalSpace) {
-          vertexShader = local_particle_vert;
-          side = DoubleSide;
-        } else {
-          vertexShader = particle_vert;
-          side = FrontSide;
-        }
-
-        this.material = new ShaderMaterial({
-          uniforms: uniforms,
-          defines: defines,
-          vertexShader: vertexShader,
-          fragmentShader: particle_frag,
-          transparent: true,
-          depthWrite: false,
-          blending: this.settings.blending || AdditiveBlending,
-          side: side
-        });
-      } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
-        this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 3), 3);
-        this.velocityBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('velocity', this.velocityBuffer);
-        uniforms['speedFactor'] = new Uniform(1.0);
-        this.material = new ShaderMaterial({
-          uniforms: uniforms,
-          defines: defines,
-          vertexShader: stretched_bb_particle_vert,
-          fragmentShader: particle_frag,
-          transparent: true,
-          depthWrite: false,
-          blending: this.settings.blending || AdditiveBlending
-        });
-      } else {
-        throw new Error("render mode unavailable");
-      }
-    }
-    /*
-    clone() {
-        let system = this.system.clone();
-        return system.emitter as any;
-    }*/
-
-  }, {
-    key: "update",
-    value: function update() {
-      var _this2 = this;
-
-      var index = 0;
-      this.systems.forEach(function (system) {
-        var particles = system.particles;
-        var particleNum = system.particleNum;
-
-        _this2.quaternion2_.setFromRotationMatrix(system.emitter.matrixWorld);
-
-        _this2.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
-
-        for (var j = 0; j < particleNum; j++, index++) {
-          var particle = particles[j];
-
-          if (_this2.settings.renderMode === RenderMode.LocalSpace) {
-            particle.rotationQuat.setFromAxisAngle(UP$1, particle.rotation);
-
-            if (system.worldSpace) {
-              _this2.rotationBuffer.setXYZW(index, particle.rotationQuat.x, particle.rotationQuat.y, particle.rotationQuat.z, particle.rotationQuat.w);
-            } else {
-              _this2.quaternion_.copy(particle.rotationQuat).multiply(_this2.quaternion2_);
-
-              _this2.rotationBuffer.setXYZW(index, _this2.quaternion_.x, _this2.quaternion_.y, _this2.quaternion_.z, _this2.quaternion_.w);
-            }
-          } else {
-            _this2.rotationBuffer.setX(index, particle.rotation);
-          }
-
-          if (system.worldSpace) {
-            _this2.offsetBuffer.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
-          } else {
-            _this2.vector_.copy(particle.position).applyMatrix4(system.emitter.matrixWorld);
-
-            _this2.offsetBuffer.setXYZ(index, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
-          }
-
-          _this2.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
-
-          _this2.sizeBuffer.setX(index, particle.size);
-
-          _this2.uvTileBuffer.setX(index, particle.uvTile);
-
-          if (_this2.settings.renderMode === RenderMode.StretchedBillBoard) {
-            if (system.worldSpace) {
-              _this2.velocityBuffer.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
-            } else {
-              _this2.vector_.copy(particle.velocity).applyMatrix3(_this2.rotationMat_);
-
-              _this2.velocityBuffer.setXYZ(index, _this2.vector_.x * system.speedFactor, _this2.vector_.y * system.speedFactor, _this2.vector_.z * system.speedFactor);
-            }
-          }
-        }
-      });
-      this.geometry.instanceCount = index;
-
-      if (index > 0) {
-        this.offsetBuffer.updateRange.count = index * 3;
-        this.offsetBuffer.needsUpdate = true;
-        this.sizeBuffer.updateRange.count = index;
-        this.sizeBuffer.needsUpdate = true;
-        this.colorBuffer.updateRange.count = index * 4;
-        this.colorBuffer.needsUpdate = true;
-        this.uvTileBuffer.updateRange.count = index;
-        this.uvTileBuffer.needsUpdate = true;
-
-        if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
-          this.velocityBuffer.updateRange.count = index * 3;
-          this.velocityBuffer.needsUpdate = true;
-        }
-
-        if (this.settings.renderMode === RenderMode.LocalSpace) {
-          this.rotationBuffer.updateRange.count = index * 4;
-        } else {
-          this.rotationBuffer.updateRange.count = index;
-        }
-
-        this.rotationBuffer.needsUpdate = true;
-      }
-    }
-  }, {
-    key: "dispose",
-    value: function dispose() {
-      this.geometry.dispose();
-    }
   }]);
 
   return ParticleSystemBatch;
 }(Mesh);
 
-var UP = new Vector3(0, 0, 1);
+var UP$1 = new Vector3(0, 0, 1);
 var DEFAULT_GEOMETRY = new PlaneBufferGeometry(1, 1, 1, 1);
 var ParticleSystem = /*#__PURE__*/function () {
   function ParticleSystem(renderer, parameters) {
-    var _parameters$duration, _parameters$maxPartic, _parameters$startLife, _parameters$startSpee, _parameters$startRota, _parameters$startSize, _parameters$startColo, _parameters$emissionO, _parameters$emissionO2, _parameters$emissionB, _parameters$shape, _parameters$behaviors, _parameters$worldSpac, _parameters$speedFact, _parameters$blending, _parameters$instancin, _parameters$renderMod, _parameters$renderOrd, _parameters$uTileCoun, _parameters$vTileCoun;
+    var _parameters$duration, _parameters$maxPartic, _parameters$startLife, _parameters$startSpee, _parameters$startRota, _parameters$startSize, _parameters$startColo, _parameters$startLeng, _parameters$emissionO, _parameters$emissionO2, _parameters$emissionB, _parameters$shape, _parameters$behaviors, _parameters$worldSpac, _parameters$speedFact, _parameters$blending, _parameters$transpare, _parameters$instancin, _parameters$renderMod, _parameters$renderOrd, _parameters$uTileCoun, _parameters$vTileCoun;
 
     _classCallCheck(this, ParticleSystem);
 
@@ -1744,6 +1618,8 @@ var ParticleSystem = /*#__PURE__*/function () {
     _defineProperty(this, "startRotation", void 0);
 
     _defineProperty(this, "startSize", void 0);
+
+    _defineProperty(this, "startLength", void 0);
 
     _defineProperty(this, "startColor", void 0);
 
@@ -1805,6 +1681,7 @@ var ParticleSystem = /*#__PURE__*/function () {
     this.startRotation = (_parameters$startRota = parameters.startRotation) !== null && _parameters$startRota !== void 0 ? _parameters$startRota : new ConstantValue(0);
     this.startSize = (_parameters$startSize = parameters.startSize) !== null && _parameters$startSize !== void 0 ? _parameters$startSize : new ConstantValue(1);
     this.startColor = (_parameters$startColo = parameters.startColor) !== null && _parameters$startColo !== void 0 ? _parameters$startColo : new ConstantColor(new Vector4(1, 1, 1, 1));
+    this.startLength = (_parameters$startLeng = parameters.startLength) !== null && _parameters$startLeng !== void 0 ? _parameters$startLeng : new ConstantValue(30);
     this.emissionOverTime = (_parameters$emissionO = parameters.emissionOverTime) !== null && _parameters$emissionO !== void 0 ? _parameters$emissionO : new ConstantValue(10);
     this.emissionOverDistance = (_parameters$emissionO2 = parameters.emissionOverDistance) !== null && _parameters$emissionO2 !== void 0 ? _parameters$emissionO2 : new ConstantValue(0);
     this.emissionBursts = (_parameters$emissionB = parameters.emissionBursts) !== null && _parameters$emissionB !== void 0 ? _parameters$emissionB : [];
@@ -1814,8 +1691,9 @@ var ParticleSystem = /*#__PURE__*/function () {
     this.speedFactor = (_parameters$speedFact = parameters.speedFactor) !== null && _parameters$speedFact !== void 0 ? _parameters$speedFact : 0;
     this.rendererSettings = {
       blending: (_parameters$blending = parameters.blending) !== null && _parameters$blending !== void 0 ? _parameters$blending : NormalBlending,
+      transparent: (_parameters$transpare = parameters.transparent) !== null && _parameters$transpare !== void 0 ? _parameters$transpare : true,
       instancingGeometry: (_parameters$instancin = parameters.instancingGeometry) !== null && _parameters$instancin !== void 0 ? _parameters$instancin : DEFAULT_GEOMETRY,
-      renderMode: (_parameters$renderMod = parameters.renderMode) !== null && _parameters$renderMod !== void 0 ? _parameters$renderMod : RenderMode.BillBoard,
+      renderMode: (_parameters$renderMod = parameters.renderMode) !== null && _parameters$renderMod !== void 0 ? _parameters$renderMod : RenderMode$2.BillBoard,
       renderOrder: (_parameters$renderOrd = parameters.renderOrder) !== null && _parameters$renderOrd !== void 0 ? _parameters$renderOrd : 0,
       texture: parameters.texture,
       uTileCount: (_parameters$uTileCoun = parameters.uTileCount) !== null && _parameters$uTileCoun !== void 0 ? _parameters$uTileCoun : 1,
@@ -1870,6 +1748,11 @@ var ParticleSystem = /*#__PURE__*/function () {
       return this.rendererSettings.renderMode;
     },
     set: function set(renderMode) {
+      if (this.rendererSettings.renderMode != RenderMode$2.Trail && renderMode === RenderMode$2.Trail || this.rendererSettings.renderMode == RenderMode$2.Trail && renderMode !== RenderMode$2.Trail) {
+        this.restart();
+        this.particles.length = 0;
+      }
+
       this.rendererSettings.renderMode = renderMode;
       this.neededToUpdateRender = true; //this.emitter.rebuildMaterial();
     }
@@ -1908,7 +1791,11 @@ var ParticleSystem = /*#__PURE__*/function () {
         this.particleNum++;
 
         while (this.particles.length < this.particleNum) {
-          this.particles.push(new Particle());
+          if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+            this.particles.push(new TrailParticle());
+          } else {
+            this.particles.push(new SpriteParticle());
+          }
         }
 
         var particle = this.particles[this.particleNum - 1];
@@ -1917,10 +1804,23 @@ var ParticleSystem = /*#__PURE__*/function () {
         particle.startSpeed = this.startSpeed.genValue(this.time);
         particle.life = this.startLife.genValue(this.time);
         particle.age = 0;
-        particle.rotation = this.startRotation.genValue(this.time);
-        if (this.rendererSettings.renderMode === RenderMode.LocalSpace) particle.rotationQuat = new Quaternion().setFromAxisAngle(UP, particle.rotation);
-        particle.startSize = particle.size = this.startSize.genValue(this.time);
+        particle.startSize = this.startSize.genValue(this.time);
         particle.uvTile = this.startTileIndex;
+        particle.size = particle.startSize;
+
+        if (this.rendererSettings.renderMode === RenderMode$2.LocalSpace || this.rendererSettings.renderMode === RenderMode$2.BillBoard || this.rendererSettings.renderMode === RenderMode$2.StretchedBillBoard) {
+          var sprite = particle;
+          sprite.rotation = this.startRotation.genValue(this.time);
+
+          if (this.rendererSettings.renderMode === RenderMode$2.LocalSpace) {
+            sprite.rotationQuat = new Quaternion().setFromAxisAngle(UP$1, sprite.rotation);
+          }
+        } else if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+          var trail = particle;
+          trail.length = this.startLength.genValue(this.time);
+          trail.reset();
+        }
+
         this.emitterShape.initialize(particle);
 
         if (this.worldSpace) {
@@ -2032,6 +1932,14 @@ var ParticleSystem = /*#__PURE__*/function () {
         _particle.position.addScaledVector(_particle.velocity, delta);
 
         _particle.age += delta;
+      }
+
+      if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+        for (var _i2 = 0; _i2 < this.particleNum; _i2++) {
+          var _particle2 = this.particles[_i2];
+
+          _particle2.recordCurrentState();
+        }
       } //this.emitter.update();
 
 
@@ -2046,15 +1954,15 @@ var ParticleSystem = /*#__PURE__*/function () {
   }, {
     key: "toJSON",
     value: function toJSON(meta) {
-      this.texture.toJSON(meta);
+      this.texture.toJSON(meta); // TODO: support URL
 
-      if (this.texture.image !== undefined) {
-        var image = this.texture.image;
-        meta.images[image.uuid] = {
-          uuid: image.uuid,
-          url: this.texture.name
-        };
-      }
+      /*if ( this.texture.source !== undefined ) {
+          const image = this.texture.source;
+          meta.images[ image.uuid ] = {
+              uuid: image.uuid,
+              url: this.texture.image.url,
+          };
+      }*/
 
       return {
         autoDestroy: this.autoDestroy,
@@ -2066,6 +1974,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         startSpeed: this.startSpeed.toJSON(),
         startRotation: this.startRotation.toJSON(),
         startSize: this.startSize.toJSON(),
+        startLength: this.startLength.toJSON(),
         startColor: this.startColor.toJSON(),
         emissionOverTime: this.emissionOverTime.toJSON(),
         emissionOverDistance: this.emissionOverDistance.toJSON(),
@@ -2074,7 +1983,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         //Array.from(this.emitter.interleavedBuffer.array as Float32Array),
         renderOrder: this.renderOrder,
         renderMode: this.renderMode,
-        speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
+        speedFactor: this.renderMode === RenderMode$2.StretchedBillBoard ? this.speedFactor : 0,
         texture: this.texture.uuid,
         startTileIndex: this.startTileIndex,
         uTileCount: this.uTileCount,
@@ -2196,6 +2105,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         startLife: ValueGeneratorFromJSON(json.startLife),
         startSpeed: ValueGeneratorFromJSON(json.startSpeed),
         startRotation: ValueGeneratorFromJSON(json.startRotation),
+        startLength: ValueGeneratorFromJSON(json.startLength),
         startSize: ValueGeneratorFromJSON(json.startSize),
         startColor: ColorGeneratorFromJSON(json.startColor),
         emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
@@ -2221,6 +2131,624 @@ var ParticleSystem = /*#__PURE__*/function () {
   return ParticleSystem;
 }();
 
+var particle_frag = /* glsl */
+"\n\n#include <common>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nvarying vec4 vColor;\n\nvoid main() {\n\n    #include <clipping_planes_fragment>\n    \n    vec3 outgoingLight = vec3( 0.0 );\n    vec4 diffuseColor = vColor;\n    \n    #include <logdepthbuf_fragment>\n    \n    #ifdef USE_MAP\n    vec4 texelColor = texture2D( map, vUv);\n    diffuseColor *= texelColor;\n    #endif\n\n    outgoingLight = diffuseColor.rgb;\n\n    gl_FragColor = vec4( outgoingLight, diffuseColor.a );\n    \n    #include <tonemapping_fragment>\n\n}\n";
+/*
+    gl_FragColor = vec4(vUv.x, vUv.y, 1.0, 1.0);
+
+    #ifdef USE_MAP
+    vec4 texelColor = texture2D( map, vUv);
+    diffuseColor *= texelColor;
+    #endif
+
+    outgoingLight = diffuseColor.rgb;
+
+    gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+*/
+
+var particle_vert = /* glsl */
+"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n\t\n    vec2 alignedPosition = ( position.xy ) * size;\n    \n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    \n    mvPosition.xy += rotatedPosition;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+/*
+	#ifndef USE_SIZEATTENUATION
+		bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
+		if ( isPerspective ) computedSize *= - mvPosition.z;
+	#endif
+ */
+
+var local_particle_vert = /* glsl */
+"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute vec4 rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n    \n    float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;\n    float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;\n    float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;\n    float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;\n    float sx = size, sy = size, sz = size;\n    \n    mat4 matrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column\n                      ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column\n                      ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column\n                      offset.x, offset.y, offset.z, 1.0);\n    \n    vec4 mvPosition = modelViewMatrix * (matrix * vec4( position, 1.0 ));\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+
+var stretched_bb_particle_vert = /* glsl */
+"\n\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute vec3 velocity;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nuniform float speedFactor;\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.y) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.y) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n    vec3 viewVelocity = normalMatrix * velocity;\n\n    vec3 scaledPos = vec3(position.xy * size, position.z);\n    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+/*
+
+    vec3 instancePos = vec3(position.xy * size, position.z);
+    instancePos += dot(instancePos, viewVelocity) * viewVelocity * speedFactor;
+    mvPosition.xyz += instancePos;
+
+	vColor = color; //vec4(1, 1, 1, 1); //color; //length(viewVelocity) * 0.1
+
+	#ifndef USE_SIZEATTENUATION
+		bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
+		if ( isPerspective ) computedSize *= - mvPosition.z;
+	#endif
+ */
+
+var RenderMode$1;
+
+(function (RenderMode) {
+  RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
+  RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
+  RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
+  RenderMode[RenderMode["Trail"] = 3] = "Trail";
+})(RenderMode$1 || (RenderMode$1 = {}));
+
+var DEFAULT_MAX_PARTICLE$1 = 1000;
+var UP = new Vector3(0, 0, 1);
+var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
+  _inherits(SpriteBatch, _ParticleSystemBatch);
+
+  var _super = _createSuper(SpriteBatch);
+
+  function SpriteBatch(settings) {
+    var _this;
+
+    _classCallCheck(this, SpriteBatch);
+
+    _this = _super.call(this, settings);
+
+    _defineProperty(_assertThisInitialized(_this), "geometry", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "offsetBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "rotationBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "sizeBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "colorBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "uvTileBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "velocityBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "vector_", new Vector3());
+
+    _defineProperty(_assertThisInitialized(_this), "quaternion_", new Quaternion());
+
+    _defineProperty(_assertThisInitialized(_this), "quaternion2_", new Quaternion());
+
+    _defineProperty(_assertThisInitialized(_this), "rotationMat_", new Matrix3());
+
+    _this.setupBuffers();
+
+    _this.rebuildMaterial(); // TODO: implement boundingVolume
+
+
+    return _this;
+  }
+
+  _createClass(SpriteBatch, [{
+    key: "setupBuffers",
+    value: function setupBuffers() {
+      this.geometry = new InstancedBufferGeometry();
+      this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
+      this.geometry.setAttribute('position', this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
+
+      this.geometry.setAttribute('uv', this.settings.instancingGeometry.getAttribute('uv')); //new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
+
+      this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 3), 3);
+      this.offsetBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('offset', this.offsetBuffer);
+      this.colorBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 4), 4);
+      this.colorBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('color', this.colorBuffer);
+
+      if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+        this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 4), 4);
+        this.rotationBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('rotation', this.rotationBuffer);
+      } else if (this.settings.renderMode === RenderMode$1.BillBoard || this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+        this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1), 1);
+        this.rotationBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('rotation', this.rotationBuffer);
+      }
+
+      this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1), 1);
+      this.sizeBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('size', this.sizeBuffer);
+      this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1), 1);
+      this.uvTileBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('uvTile', this.uvTileBuffer);
+
+      if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+        this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 3), 3);
+        this.velocityBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('velocity', this.velocityBuffer);
+      }
+    }
+  }, {
+    key: "rebuildMaterial",
+    value: function rebuildMaterial() {
+      var uniforms = {};
+      var defines = {};
+      defines['USE_MAP'] = '';
+      defines['USE_UV'] = '';
+      uniforms['map'] = new Uniform(this.settings.texture); //@ts-ignore
+
+      uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
+      var uTileCount = this.settings.uTileCount;
+      var vTileCount = this.settings.vTileCount;
+      defines['UV_TILE'] = '';
+      uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+
+      if (this.settings.renderMode === RenderMode$1.BillBoard || this.settings.renderMode === RenderMode$1.LocalSpace) {
+        var vertexShader;
+        var side;
+
+        if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+          vertexShader = local_particle_vert;
+          side = DoubleSide;
+        } else {
+          vertexShader = particle_vert;
+          side = FrontSide;
+        }
+
+        this.material = new ShaderMaterial({
+          uniforms: uniforms,
+          defines: defines,
+          vertexShader: vertexShader,
+          fragmentShader: particle_frag,
+          transparent: this.settings.transparent,
+          depthWrite: !this.settings.transparent,
+          blending: this.settings.blending || AdditiveBlending,
+          side: side
+        });
+      } else if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+        uniforms['speedFactor'] = new Uniform(1.0);
+        this.material = new ShaderMaterial({
+          uniforms: uniforms,
+          defines: defines,
+          vertexShader: stretched_bb_particle_vert,
+          fragmentShader: particle_frag,
+          transparent: this.settings.transparent,
+          depthWrite: !this.settings.transparent,
+          blending: this.settings.blending || AdditiveBlending
+        });
+      } else {
+        throw new Error("render mode unavailable");
+      }
+    }
+    /*
+    clone() {
+        let system = this.system.clone();
+        return system.emitter as any;
+    }*/
+
+  }, {
+    key: "update",
+    value: function update() {
+      var _this2 = this;
+
+      var index = 0;
+      this.systems.forEach(function (system) {
+        var particles = system.particles;
+        var particleNum = system.particleNum;
+
+        _this2.quaternion2_.setFromRotationMatrix(system.emitter.matrixWorld);
+
+        _this2.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
+
+        for (var j = 0; j < particleNum; j++, index++) {
+          var particle = particles[j];
+
+          if (_this2.settings.renderMode === RenderMode$1.LocalSpace) {
+            particle.rotationQuat.setFromAxisAngle(UP, particle.rotation);
+
+            if (system.worldSpace) {
+              _this2.rotationBuffer.setXYZW(index, particle.rotationQuat.x, particle.rotationQuat.y, particle.rotationQuat.z, particle.rotationQuat.w);
+            } else {
+              _this2.quaternion_.copy(particle.rotationQuat).multiply(_this2.quaternion2_);
+
+              _this2.rotationBuffer.setXYZW(index, _this2.quaternion_.x, _this2.quaternion_.y, _this2.quaternion_.z, _this2.quaternion_.w);
+            }
+          } else if (_this2.settings.renderMode === RenderMode$1.StretchedBillBoard || _this2.settings.renderMode === RenderMode$1.BillBoard) {
+            _this2.rotationBuffer.setX(index, particle.rotation);
+          }
+
+          if (system.worldSpace) {
+            _this2.offsetBuffer.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
+          } else {
+            _this2.vector_.copy(particle.position).applyMatrix4(system.emitter.matrixWorld);
+
+            _this2.offsetBuffer.setXYZ(index, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+          }
+
+          _this2.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
+
+          _this2.sizeBuffer.setX(index, particle.size);
+
+          _this2.uvTileBuffer.setX(index, particle.uvTile);
+
+          if (_this2.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+            if (system.worldSpace) {
+              _this2.velocityBuffer.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
+            } else {
+              _this2.vector_.copy(particle.velocity).applyMatrix3(_this2.rotationMat_);
+
+              _this2.velocityBuffer.setXYZ(index, _this2.vector_.x * system.speedFactor, _this2.vector_.y * system.speedFactor, _this2.vector_.z * system.speedFactor);
+            }
+          }
+        }
+      });
+      this.geometry.instanceCount = index;
+
+      if (index > 0) {
+        this.offsetBuffer.updateRange.count = index * 3;
+        this.offsetBuffer.needsUpdate = true;
+        this.sizeBuffer.updateRange.count = index;
+        this.sizeBuffer.needsUpdate = true;
+        this.colorBuffer.updateRange.count = index * 4;
+        this.colorBuffer.needsUpdate = true;
+        this.uvTileBuffer.updateRange.count = index;
+        this.uvTileBuffer.needsUpdate = true;
+
+        if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+          this.velocityBuffer.updateRange.count = index * 3;
+          this.velocityBuffer.needsUpdate = true;
+        }
+
+        if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+          this.rotationBuffer.updateRange.count = index * 4;
+          this.rotationBuffer.needsUpdate = true;
+        } else if (this.settings.renderMode === RenderMode$1.StretchedBillBoard || this.settings.renderMode === RenderMode$1.BillBoard) {
+          this.rotationBuffer.updateRange.count = index;
+          this.rotationBuffer.needsUpdate = true;
+        }
+      }
+    }
+  }, {
+    key: "dispose",
+    value: function dispose() {
+      this.geometry.dispose();
+    }
+  }]);
+
+  return SpriteBatch;
+}(ParticleSystemBatch);
+
+var trail_frag = /* glsl */
+"\n#include <fog_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n    \nuniform sampler2D map;\nuniform sampler2D alphaMap;\nuniform float useMap;\nuniform float useAlphaMap;\nuniform float visibility;\nuniform float alphaTest;\nuniform vec2 repeat;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvoid main() {\n\n    #include <logdepthbuf_fragment>\n\n    vec4 c = vColor;\n    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );\n    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUV * repeat ).a;\n    if( c.a < alphaTest ) discard;\n    gl_FragColor = c;\n\n    #include <fog_fragment>\n}";
+
+var trail_vert = /* glsl */
+"\n\n#include <uv_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute vec4 color;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n    vUV = uv;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
+
+var RenderMode;
+
+(function (RenderMode) {
+  RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
+  RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
+  RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
+  RenderMode[RenderMode["Trail"] = 3] = "Trail";
+})(RenderMode || (RenderMode = {}));
+
+var DEFAULT_MAX_PARTICLE = 10000;
+new Vector3(0, 0, 1);
+var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
+  _inherits(TrailBatch, _ParticleSystemBatch);
+
+  var _super = _createSuper(TrailBatch);
+
+  function TrailBatch(settings) {
+    var _this;
+
+    _classCallCheck(this, TrailBatch);
+
+    _this = _super.call(this, settings);
+
+    _defineProperty(_assertThisInitialized(_this), "geometry", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "positionBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "previousBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "nextBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "uvBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "sideBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "widthBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "colorBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "indexBuffer", void 0);
+
+    _this.setupBuffers();
+
+    _this.rebuildMaterial(); // TODO: implement boundingVolume
+
+
+    return _this;
+  }
+
+  _createClass(TrailBatch, [{
+    key: "setupBuffers",
+    value: function setupBuffers() {
+      this.geometry = new BufferGeometry();
+      this.indexBuffer = new BufferAttribute(new Uint32Array(DEFAULT_MAX_PARTICLE * 6), 1);
+      this.indexBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setIndex(this.indexBuffer);
+      this.positionBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 6), 3);
+      this.positionBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('position', this.positionBuffer);
+      this.previousBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 6), 3);
+      this.previousBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('previous', this.previousBuffer);
+      this.nextBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 6), 3);
+      this.nextBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('next', this.nextBuffer);
+      this.widthBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 2), 1);
+      this.widthBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('width', this.widthBuffer);
+      this.sideBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 2), 1);
+      this.sideBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('side', this.sideBuffer);
+      this.uvBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 2);
+      this.uvBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('uv', this.uvBuffer);
+      this.colorBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 8), 4);
+      this.colorBuffer.setUsage(DynamicDrawUsage);
+      this.geometry.setAttribute('color', this.colorBuffer);
+    }
+  }, {
+    key: "rebuildMaterial",
+    value: function rebuildMaterial() {
+      var uniforms = {
+        lineWidth: {
+          value: 1
+        },
+        map: {
+          value: null
+        },
+        useMap: {
+          value: 0
+        },
+        alphaMap: {
+          value: null
+        },
+        useAlphaMap: {
+          value: 0
+        },
+        resolution: {
+          value: new Vector2(1, 1)
+        },
+        sizeAttenuation: {
+          value: 1
+        },
+        visibility: {
+          value: 1
+        },
+        alphaTest: {
+          value: 0
+        },
+        repeat: {
+          value: new Vector2(1, 1)
+        }
+      };
+      var defines = {};
+      defines['USE_MAP'] = '';
+      defines['USE_UV'] = '';
+      uniforms['map'] = new Uniform(this.settings.texture); //@ts-ignore
+
+      uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
+      var uTileCount = this.settings.uTileCount;
+      var vTileCount = this.settings.vTileCount;
+      defines['UV_TILE'] = '';
+      uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+
+      if (this.settings.renderMode === RenderMode.Trail) {
+        this.material = new ShaderMaterial({
+          uniforms: uniforms,
+          defines: defines,
+          vertexShader: trail_vert,
+          fragmentShader: trail_frag,
+          transparent: this.settings.transparent,
+          depthWrite: !this.settings.transparent,
+          side: DoubleSide,
+          blending: this.settings.blending || AdditiveBlending
+        });
+      } else {
+        throw new Error("render mode unavailable");
+      }
+    }
+    /*
+    clone() {
+        let system = this.system.clone();
+        return system.emitter as any;
+    }*/
+
+  }, {
+    key: "update2",
+    value: function update2() {
+      /*this.colorBuffer.setXYZW(0, 1, 1, 1, 1);
+      this.colorBuffer.setXYZW(1, 1, 1, 1, 1);
+      this.colorBuffer.setXYZW(2, 1, 1, 1, 1);
+      this.colorBuffer.setXYZW(3, 1, 1, 1, 1);
+       this.colorBuffer.updateRange.count = 4;
+      this.colorBuffer.needsUpdate = true;*/
+      this.positionBuffer.setXYZ(0, 0, 0, 0);
+      this.positionBuffer.setXYZ(1, 1, 0, 0);
+      this.positionBuffer.setXYZ(2, 0, 1, 0);
+      this.positionBuffer.setXYZ(3, 1, 1, 0);
+      this.positionBuffer.setXYZ(4, 0, 2, 0);
+      this.positionBuffer.setXYZ(5, 1, 2, 0);
+      this.positionBuffer.updateRange.count = 6;
+      this.positionBuffer.needsUpdate = true;
+      this.previousBuffer.setXYZ(0, 0, 0, 0);
+      this.previousBuffer.setXYZ(1, 1, 0, 0);
+      this.previousBuffer.setXYZ(2, 0, 0, 0);
+      this.previousBuffer.setXYZ(3, 1, 0, 0);
+      this.previousBuffer.setXYZ(4, 0, 1, 0);
+      this.previousBuffer.setXYZ(5, 1, 1, 0);
+      this.previousBuffer.updateRange.count = 6;
+      this.previousBuffer.needsUpdate = true;
+      this.nextBuffer.setXYZ(0, 0, 1, 0);
+      this.nextBuffer.setXYZ(1, 1, 1, 0);
+      this.nextBuffer.setXYZ(2, 0, 2, 0);
+      this.nextBuffer.setXYZ(3, 1, 2, 0);
+      this.nextBuffer.setXYZ(4, 0, 2, 0);
+      this.nextBuffer.setXYZ(5, 1, 2, 0);
+      this.nextBuffer.updateRange.count = 6;
+      this.nextBuffer.needsUpdate = true;
+      this.sideBuffer.setX(0, -1);
+      this.sideBuffer.setX(1, 1);
+      this.sideBuffer.setX(2, -1);
+      this.sideBuffer.setX(3, 1);
+      this.sideBuffer.setX(4, -1);
+      this.sideBuffer.setX(5, 1);
+      this.sideBuffer.updateRange.count = 6;
+      this.sideBuffer.needsUpdate = true;
+      this.widthBuffer.setX(0, 1);
+      this.widthBuffer.setX(1, 1);
+      this.widthBuffer.setX(2, 1);
+      this.widthBuffer.setX(3, 1);
+      this.widthBuffer.setX(4, 1);
+      this.widthBuffer.setX(5, 1);
+      this.widthBuffer.updateRange.count = 6;
+      this.widthBuffer.needsUpdate = true;
+      this.indexBuffer.setX(0, 0);
+      this.indexBuffer.setX(1, 1);
+      this.indexBuffer.setX(2, 2);
+      this.indexBuffer.setX(3, 2);
+      this.indexBuffer.setX(4, 1);
+      this.indexBuffer.setX(5, 3);
+      this.indexBuffer.setX(6, 2);
+      this.indexBuffer.setX(7, 3);
+      this.indexBuffer.setX(8, 4);
+      this.indexBuffer.setX(9, 4);
+      this.indexBuffer.setX(10, 3);
+      this.indexBuffer.setX(11, 5);
+      this.indexBuffer.updateRange.count = 12;
+      this.indexBuffer.needsUpdate = true;
+      this.geometry.setDrawRange(0, 12);
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      var _this2 = this;
+
+      var index = 0;
+      var triangles = 0;
+      this.systems.forEach(function (system) {
+        var particles = system.particles;
+        var particleNum = system.particleNum;
+
+        for (var j = 0; j < particleNum; j++) {
+          var particle = particles[j]; //TODO: remove
+
+          /*particle.previous = [
+              new RecordState(new Vector3(0, 0, 0), 0.1, new Vector4(1,1,1,1)),
+              new RecordState(new Vector3(1, 1, 0), 0.1, new Vector4(1,1,1,1)),
+              new RecordState(new Vector3(2, 2, 1), 0.1, new Vector4(1,1,1,1)),
+              new RecordState(new Vector3(3, 3, 1), 0.1, new Vector4(1,1,1,1)),
+              new RecordState(new Vector3(4, 4, 2), 0.1, new Vector4(1,1,1,1)),
+          ];*/
+
+          for (var i = 0; i < particle.previous.length; i++, index += 2) {
+            var recordState = particle.previous[i];
+
+            _this2.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
+
+            _this2.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
+
+            var previous = void 0;
+
+            if (i - 1 >= 0) {
+              previous = particle.previous[i - 1];
+            } else {
+              previous = particle.previous[0];
+            }
+
+            _this2.previousBuffer.setXYZ(index, previous.position.x, previous.position.y, previous.position.z);
+
+            _this2.previousBuffer.setXYZ(index + 1, previous.position.x, previous.position.y, previous.position.z);
+
+            var next = void 0;
+
+            if (i + 1 < particle.previous.length) {
+              next = particle.previous[i + 1];
+            } else {
+              next = particle.previous[particle.previous.length - 1];
+            }
+
+            _this2.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
+
+            _this2.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
+
+            _this2.sideBuffer.setX(index, -1);
+
+            _this2.sideBuffer.setX(index + 1, 1);
+
+            _this2.widthBuffer.setX(index, recordState.size);
+
+            _this2.widthBuffer.setX(index + 1, recordState.size);
+
+            _this2.uvBuffer.setXY(index, i / particle.previous.length, 0);
+
+            _this2.uvBuffer.setXY(index + 1, i / particle.previous.length, 1);
+
+            _this2.colorBuffer.setXYZW(index, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
+
+            _this2.colorBuffer.setXYZW(index + 1, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
+
+            if (i + 1 < particle.previous.length) {
+              _this2.indexBuffer.setX(triangles * 3, index);
+
+              _this2.indexBuffer.setX(triangles * 3 + 1, index + 1);
+
+              _this2.indexBuffer.setX(triangles * 3 + 2, index + 2);
+
+              triangles++;
+
+              _this2.indexBuffer.setX(triangles * 3, index + 2);
+
+              _this2.indexBuffer.setX(triangles * 3 + 1, index + 1);
+
+              _this2.indexBuffer.setX(triangles * 3 + 2, index + 3);
+
+              triangles++;
+            }
+          }
+        }
+      });
+      this.positionBuffer.updateRange.count = index * 3;
+      this.positionBuffer.needsUpdate = true;
+      this.previousBuffer.updateRange.count = index * 3;
+      this.previousBuffer.needsUpdate = true;
+      this.nextBuffer.updateRange.count = index * 3;
+      this.nextBuffer.needsUpdate = true;
+      this.sideBuffer.updateRange.count = index;
+      this.sideBuffer.needsUpdate = true;
+      this.widthBuffer.updateRange.count = index;
+      this.widthBuffer.needsUpdate = true;
+      this.uvBuffer.updateRange.count = index * 2;
+      this.uvBuffer.needsUpdate = true;
+      this.colorBuffer.updateRange.count = index * 4;
+      this.colorBuffer.needsUpdate = true;
+      this.indexBuffer.updateRange.count = triangles * 3;
+      this.indexBuffer.needsUpdate = true;
+      this.geometry.setDrawRange(0, triangles * 3);
+    }
+  }, {
+    key: "dispose",
+    value: function dispose() {
+      this.geometry.dispose();
+    }
+  }]);
+
+  return TrailBatch;
+}(ParticleSystemBatch);
+
 var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
   _inherits(BatchedParticleRenderer, _Object3D);
 
@@ -2235,6 +2763,8 @@ var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
 
     _defineProperty(_assertThisInitialized(_this), "batches", []);
 
+    _defineProperty(_assertThisInitialized(_this), "systemToBatchIndex", new Map());
+
     _defineProperty(_assertThisInitialized(_this), "type", "BatchedParticleRenderer");
 
     return _this;
@@ -2248,30 +2778,54 @@ var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
       for (var i = 0; i < this.batches.length; i++) {
         if (BatchedParticleRenderer.equals(this.batches[i].settings, settings)) {
           this.batches[i].addSystem(system);
+          this.systemToBatchIndex.set(system, i);
           return;
         }
       }
 
-      var batch = new ParticleSystemBatch(settings);
+      var batch;
+
+      switch (settings.renderMode) {
+        case RenderMode$2.Trail:
+          batch = new TrailBatch(settings);
+          break;
+
+        case RenderMode$2.LocalSpace:
+        case RenderMode$2.BillBoard:
+        case RenderMode$2.StretchedBillBoard:
+          batch = new SpriteBatch(settings);
+          break;
+      }
+
       batch.addSystem(system);
       this.batches.push(batch);
+      this.systemToBatchIndex.set(system, this.batches.length - 1);
       this.add(batch);
     }
   }, {
     key: "deleteSystem",
     value: function deleteSystem(system) {
-      var settings = system.getRendererSettings();
+      var batchIndex = this.systemToBatchIndex.get(system);
 
-      for (var i = 0; i < this.batches.length; i++) {
-        if (BatchedParticleRenderer.equals(this.batches[i].settings, settings)) {
-          this.batches[i].removeSystem(system);
-          return;
-        }
+      if (batchIndex != undefined) {
+        this.batches[batchIndex].removeSystem(system);
+        this.systemToBatchIndex["delete"](system);
       }
+      /*const settings = system.getRendererSettings();
+      for (let i = 0; i < this.batches.length; i++) {
+          if (BatchedParticleRenderer.equals(this.batches[i].settings, settings)) {
+              this.batches[i].removeSystem(system);
+              return;
+          }
+      }*/
+
     }
   }, {
     key: "updateSystem",
-    value: function updateSystem(system) {}
+    value: function updateSystem(system) {
+      this.deleteSystem(system);
+      this.addSystem(system);
+    }
   }, {
     key: "update",
     value: function update() {
@@ -2282,36 +2836,29 @@ var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
   }], [{
     key: "equals",
     value: function equals(a, b) {
-      return a.texture === b.texture && a.blending === b.blending && a.renderMode === b.renderMode && a.uTileCount === b.uTileCount && a.vTileCount === b.vTileCount && a.instancingGeometry === b.instancingGeometry && a.renderOrder === b.renderOrder;
+      return a.texture === b.texture && a.blending === b.blending && a.renderMode === b.renderMode && a.uTileCount === b.uTileCount && a.vTileCount === b.vTileCount && a.instancingGeometry === b.instancingGeometry && a.transparent === b.transparent && a.renderOrder === b.renderOrder;
     }
   }]);
 
   return BatchedParticleRenderer;
 }(Object3D);
 
-var TEXTURE_MAPPING = {
-  UVMapping: UVMapping,
-  CubeReflectionMapping: CubeReflectionMapping,
-  CubeRefractionMapping: CubeRefractionMapping,
-  EquirectangularReflectionMapping: EquirectangularReflectionMapping,
-  EquirectangularRefractionMapping: EquirectangularRefractionMapping,
-  //SphericalReflectionMapping: SphericalReflectionMapping,
-  CubeUVReflectionMapping: CubeUVReflectionMapping,
-  CubeUVRefractionMapping: CubeUVRefractionMapping
+var TYPED_ARRAYS = {
+  Int8Array: Int8Array,
+  Uint8Array: Uint8Array,
+  Uint8ClampedArray: Uint8ClampedArray,
+  Int16Array: Int16Array,
+  Uint16Array: Uint16Array,
+  Int32Array: Int32Array,
+  Uint32Array: Uint32Array,
+  Float32Array: Float32Array,
+  Float64Array: Float64Array
 };
-var TEXTURE_WRAPPING = {
-  RepeatWrapping: RepeatWrapping,
-  ClampToEdgeWrapping: ClampToEdgeWrapping,
-  MirroredRepeatWrapping: MirroredRepeatWrapping
-};
-var TEXTURE_FILTER = {
-  NearestFilter: NearestFilter,
-  NearestMipmapNearestFilter: NearestMipMapNearestFilter,
-  NearestMipmapLinearFilter: NearestMipMapLinearFilter,
-  LinearFilter: LinearFilter,
-  LinearMipmapNearestFilter: LinearMipMapNearestFilter,
-  LinearMipmapLinearFilter: LinearMipMapLinearFilter
-};
+
+function getTypedArray(type, buffer) {
+  return new TYPED_ARRAYS[type](buffer);
+}
+
 var QuarksLoader = /*#__PURE__*/function () {
   function QuarksLoader(manager) {
     _classCallCheck(this, QuarksLoader);
@@ -2388,14 +2935,34 @@ var QuarksLoader = /*#__PURE__*/function () {
       });
     }
   }, {
+    key: "deserializeImage",
+    value: function deserializeImage(loader, image) {
+      if (typeof image === 'string') {
+        var url = image;
+        var path = /^(\/\/)|([a-z]+:(\/\/)?)/i.test(url) ? url : this.resourcePath + url;
+        return this.loadImage(loader, path);
+      } else {
+        if (image.data) {
+          return {
+            data: getTypedArray(image.type, image.data),
+            width: image.width,
+            height: image.height
+          };
+        } else {
+          return null;
+        }
+      }
+    }
+  }, {
     key: "parseImages",
     value: function parseImages(json, onLoad) {
       var scope = this;
       var images = {};
+      var loader;
 
       if (json !== undefined && json.length > 0) {
         var manager = new LoadingManager(onLoad);
-        var loader = new ImageLoader(manager);
+        loader = new ImageLoader(manager);
         loader.setCrossOrigin(this.crossOrigin);
 
         for (var i = 0, il = json.length; i < il; i++) {
@@ -2404,17 +2971,28 @@ var QuarksLoader = /*#__PURE__*/function () {
 
           if (Array.isArray(url)) {
             // load array of images e.g CubeTexture
-            images[image.uuid] = [];
+            var imageArray = [];
 
             for (var j = 0, jl = url.length; j < jl; j++) {
               var currentUrl = url[j];
-              var path = /^(\/\/)|([a-z]+:(\/\/)?)/i.test(currentUrl) ? currentUrl : scope.resourcePath + currentUrl;
-              images[image.uuid].push(this.loadImage(loader, path));
+              var deserializedImage = scope.deserializeImage(loader, currentUrl);
+
+              if (deserializedImage !== null) {
+                if (deserializedImage instanceof HTMLImageElement) {
+                  imageArray.push(deserializedImage);
+                } else {
+                  // special case: handle array of data textures for cube textures
+                  imageArray.push(new DataTexture(deserializedImage.data, deserializedImage.width, deserializedImage.height));
+                }
+              }
             }
+
+            images[image.uuid] = new Source(imageArray);
           } else {
             // load single image
-            var path = /^(\/\/)|([a-z]+:(\/\/)?)/i.test(image.url) ? image.url : scope.resourcePath + image.url;
-            images[image.uuid] = this.loadImage(loader, path);
+            var _deserializedImage = scope.deserializeImage(loader, image.url);
+
+            images[image.uuid] = new Source(_deserializedImage);
           }
         }
       }
@@ -2444,15 +3022,24 @@ var QuarksLoader = /*#__PURE__*/function () {
             console.warn('THREE.ObjectLoader: Undefined image', data.image);
           }
 
-          var texture;
+          var source = images[data.image];
+          var image = source.data;
+          var texture = void 0;
 
-          if (Array.isArray(images[data.image])) {
-            texture = new CubeTexture(images[data.image]);
+          if (Array.isArray(image)) {
+            texture = new CubeTexture();
+            if (image.length === 6) texture.needsUpdate = true;
           } else {
-            texture = new Texture(images[data.image]);
+            if (image && image.data) {
+              texture = new DataTexture();
+            } else {
+              texture = new Texture();
+            }
+
+            if (image) texture.needsUpdate = true; // textures can have undefined image data
           }
 
-          texture.needsUpdate = true;
+          texture.source = source;
           texture.uuid = data.uuid;
           if (data.name !== undefined) texture.name = data.name;
           if (data.mapping !== undefined) texture.mapping = parseConstant(data.mapping, TEXTURE_MAPPING);
@@ -2475,6 +3062,7 @@ var QuarksLoader = /*#__PURE__*/function () {
           if (data.flipY !== undefined) texture.flipY = data.flipY;
           if (data.premultiplyAlpha !== undefined) texture.premultiplyAlpha = data.premultiplyAlpha;
           if (data.unpackAlignment !== undefined) texture.unpackAlignment = data.unpackAlignment;
+          if (data.userData !== undefined) texture.userData = data.userData;
           textures[data.uuid] = texture;
         }
       }
@@ -2550,6 +3138,27 @@ var QuarksLoader = /*#__PURE__*/function () {
 
   return QuarksLoader;
 }();
+var TEXTURE_MAPPING = {
+  UVMapping: UVMapping,
+  CubeReflectionMapping: CubeReflectionMapping,
+  CubeRefractionMapping: CubeRefractionMapping,
+  EquirectangularReflectionMapping: EquirectangularReflectionMapping,
+  EquirectangularRefractionMapping: EquirectangularRefractionMapping,
+  CubeUVReflectionMapping: CubeUVReflectionMapping
+};
+var TEXTURE_WRAPPING = {
+  RepeatWrapping: RepeatWrapping,
+  ClampToEdgeWrapping: ClampToEdgeWrapping,
+  MirroredRepeatWrapping: MirroredRepeatWrapping
+};
+var TEXTURE_FILTER = {
+  NearestFilter: NearestFilter,
+  NearestMipmapNearestFilter: NearestMipmapNearestFilter,
+  NearestMipmapLinearFilter: NearestMipmapLinearFilter,
+  LinearFilter: LinearFilter,
+  LinearMipmapNearestFilter: LinearMipmapNearestFilter,
+  LinearMipmapLinearFilter: LinearMipmapLinearFilter
+};
 
 var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   _inherits(Gradient, _PiecewiseFunction);
@@ -2625,4 +3234,4 @@ var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   return Gradient;
 }(PiecewiseFunction);
 
-export { BatchedParticleRenderer, BehaviorFromJSON, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, Particle, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, ValueGeneratorFromJSON };
+export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode$2 as RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteParticle, TrailParticle, ValueGeneratorFromJSON };
