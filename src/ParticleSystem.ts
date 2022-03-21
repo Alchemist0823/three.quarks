@@ -1,6 +1,6 @@
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./functions/ValueGenerator";
 import {Behavior, BehaviorFromJSON} from "./behaviors/Behavior";
-import {Particle} from "./Particle";
+import {Particle, SpriteParticle, TrailParticle} from "./Particle";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
@@ -12,7 +12,8 @@ import {
     NormalBlending,
     PlaneBufferGeometry,
     Quaternion,
-    Texture, Vector3,
+    Texture,
+    Vector3,
     Vector4
 } from "three";
 import {SphereEmitter} from "./shape/SphereEmitter";
@@ -52,6 +53,7 @@ export interface ParticleSystemParameters {
     startSpeed?: ValueGenerator | FunctionValueGenerator;
     startRotation?: ValueGenerator | FunctionValueGenerator;
     startSize?: ValueGenerator | FunctionValueGenerator;
+    startLength?: ValueGenerator | FunctionValueGenerator;
     startColor?: ColorGenerator | FunctionColorGenerator;
     emissionOverTime?: ValueGenerator | FunctionValueGenerator;
     emissionOverDistance?: ValueGenerator | FunctionValueGenerator;
@@ -68,6 +70,7 @@ export interface ParticleSystemParameters {
     vTileCount?: number;
     renderOrder?: number;
     blending?: Blending;
+    transparent?: boolean;
 
     worldSpace?: boolean;
 
@@ -118,6 +121,7 @@ export class ParticleSystem {
     startSpeed: ValueGenerator | FunctionValueGenerator;
     startRotation: ValueGenerator | FunctionValueGenerator;
     startSize: ValueGenerator | FunctionValueGenerator;
+    startLength: ValueGenerator | FunctionValueGenerator;
     startColor: ColorGenerator | FunctionColorGenerator;
     startTileIndex: number;
 
@@ -182,6 +186,11 @@ export class ParticleSystem {
     }
 
     set renderMode(renderMode: RenderMode) {
+        if ((this.rendererSettings.renderMode != RenderMode.Trail && renderMode === RenderMode.Trail)
+            || (this.rendererSettings.renderMode == RenderMode.Trail && renderMode !== RenderMode.Trail)) {
+            this.restart();
+            this.particles.length = 0;
+        }
         this.rendererSettings.renderMode = renderMode;
         this.neededToUpdateRender = true;
         //this.emitter.rebuildMaterial();
@@ -217,6 +226,7 @@ export class ParticleSystem {
         this.startRotation = parameters.startRotation ?? new ConstantValue(0);
         this.startSize = parameters.startSize ?? new ConstantValue(1);
         this.startColor = parameters.startColor ?? new ConstantColor(new Vector4(1, 1, 1, 1));
+        this.startLength = parameters.startLength ?? new ConstantValue(30);
         this.emissionOverTime = parameters.emissionOverTime ?? new ConstantValue(10);
         this.emissionOverDistance = parameters.emissionOverDistance ?? new ConstantValue(0);
         this.emissionBursts = parameters.emissionBursts ?? [];
@@ -226,6 +236,7 @@ export class ParticleSystem {
         this.speedFactor = parameters.speedFactor ?? 0;
         this.rendererSettings = {
             blending: parameters.blending ?? NormalBlending,
+            transparent: parameters.transparent ?? true,
             instancingGeometry: parameters.instancingGeometry ?? DEFAULT_GEOMETRY,
             renderMode: parameters.renderMode ?? RenderMode.BillBoard,
             renderOrder: parameters.renderOrder ?? 0,
@@ -263,23 +274,37 @@ export class ParticleSystem {
 
             this.particleNum++;
             while (this.particles.length < this.particleNum) {
-                this.particles.push(new Particle());
+                if (this.rendererSettings.renderMode === RenderMode.Trail) {
+                    this.particles.push(new TrailParticle());
+                } else {
+                    this.particles.push(new SpriteParticle());
+                }
             }
             const particle = this.particles[this.particleNum - 1];
-
             this.startColor.genColor(particle.startColor, this.time);
             particle.color.copy(particle.startColor);
             particle.startSpeed = this.startSpeed.genValue(this.time);
             particle.life = this.startLife.genValue(this.time);
             particle.age = 0;
-            particle.rotation = this.startRotation.genValue(this.time);
-            if (this.rendererSettings.renderMode === RenderMode.LocalSpace)
-                particle.rotationQuat = new Quaternion().setFromAxisAngle(UP, particle.rotation);
-            particle.startSize = particle.size = this.startSize.genValue(this.time);
+            particle.startSize = this.startSize.genValue(this.time);
             particle.uvTile = this.startTileIndex;
+            particle.size = particle.startSize;
+            if (this.rendererSettings.renderMode === RenderMode.LocalSpace
+                || this.rendererSettings.renderMode === RenderMode.BillBoard
+                || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
+            ) {
+                const sprite = particle as SpriteParticle;
+                sprite.rotation = this.startRotation.genValue(this.time);
+                if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                    sprite.rotationQuat = new Quaternion().setFromAxisAngle(UP, sprite.rotation);
+                }
+            } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
+                const trail = particle as TrailParticle;
+                trail.length = this.startLength.genValue(this.time);
+                trail.reset();
+            }
 
             this.emitterShape.initialize(particle);
-
             if (this.worldSpace) {
                 particle.position.applyMatrix4(this.emitter.matrixWorld);
                 particle.velocity.applyMatrix3(this.normalMatrix);
@@ -289,7 +314,6 @@ export class ParticleSystem {
                 this.behaviors[j].initialize(particle);
             }
         }
-
     }
 
     oldWorldMatrix: Matrix4 = new Matrix4();
@@ -383,6 +407,7 @@ export class ParticleSystem {
             this.burstIndex ++;
         }
 
+
         for (let i = 0; i < this.particleNum; i++) {
             let particle = this.particles[i];
 
@@ -391,6 +416,13 @@ export class ParticleSystem {
             }
             particle.position.addScaledVector(particle.velocity, delta);
             particle.age += delta;
+        }
+
+        if (this.rendererSettings.renderMode === RenderMode.Trail) {
+            for (let i = 0; i < this.particleNum; i++) {
+                let particle = this.particles[i] as TrailParticle;
+                particle.recordCurrentState();
+            }
         }
         //this.emitter.update();
 

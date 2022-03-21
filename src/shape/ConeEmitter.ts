@@ -18,10 +18,10 @@ export class ConeEmitter implements EmitterShape {
     angle: number; // [0, Math.PI / 2]
 
     constructor(parameters: ConeEmitterParameters = {}) {
-        this.radius = parameters.radius || 10;
-        this.arc = parameters.arc || 2.0 * Math.PI;
-        this.thickness = parameters.thickness || 1;
-        this.angle = parameters.angle || Math.PI / 6;
+        this.radius = parameters.radius ?? 10;
+        this.arc = parameters.arc ?? 2.0 * Math.PI;
+        this.thickness = parameters.thickness ?? 1;
+        this.angle = parameters.angle ?? Math.PI / 6;
     }
 
     initialize(p: Particle) {

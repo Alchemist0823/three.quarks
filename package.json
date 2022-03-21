@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "description": "A General-Purpose Particle System for three.js",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/three.quarks.js",
@@ -14,7 +14,7 @@
     "type-check:watch": "yarn run type-check -- --watch",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build:production": "yarn run build:types && cross-env NODE_ENV=production yarn run build:js ",
+    "build:production": "yarn run build:types && cross-env NODE_ENV=production yarn run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/",
     "build": "yarn run build:production",
     "prepublishOnly": "yarn run build:production",
     "deploy": "gh-pages -d examples",

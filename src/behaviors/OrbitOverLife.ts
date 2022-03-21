@@ -1,5 +1,5 @@
 import {Behavior} from "./Behavior";
-import {Particle} from "../Particle";
+import {Particle, SpriteParticle} from "../Particle";
 import {FunctionValueGenerator, ValueGenerator} from "../functions/ValueGenerator";
 import {Vector2, Vector3} from "three";
 
@@ -13,10 +13,12 @@ export class OrbitOverLife implements Behavior {
     }
 
     initialize(particle: Particle): void {
-        if (this.angularVelocityFunc.type === 'value') {
-            particle.angularVelocity = this.angularVelocityFunc.genValue();
-        } else {
-            particle.angularVelocity = 0;
+        if (particle instanceof SpriteParticle) {
+            if (this.angularVelocityFunc.type === 'value') {
+                particle.angularVelocity = this.angularVelocityFunc.genValue();
+            } else {
+                particle.angularVelocity = 0;
+            }
         }
     }
 

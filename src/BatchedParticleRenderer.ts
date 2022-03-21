@@ -1,6 +1,8 @@
-import {ParticleSystemBatch, ParticleSystemBatchSettings} from "./ParticleSystemBatch";
+import {ParticleSystemBatch, ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
 import {ParticleSystem} from "./ParticleSystem";
-import {Group, Object3D} from "three";
+import {Object3D} from "three";
+import { SpriteBatch } from "./SpriteBatch";
+import {TrailBatch} from "./TrailBatch";
 
 
 export class BatchedParticleRenderer extends Object3D {
@@ -19,6 +21,7 @@ export class BatchedParticleRenderer extends Object3D {
             a.uTileCount === b.uTileCount &&
             a.vTileCount === b.vTileCount &&
             a.instancingGeometry === b.instancingGeometry &&
+            a.transparent === b.transparent &&
             a.renderOrder === b.renderOrder;
     }
 
@@ -31,7 +34,17 @@ export class BatchedParticleRenderer extends Object3D {
                 return;
             }
         }
-        let batch = new ParticleSystemBatch(settings);
+        let batch;
+        switch (settings.renderMode) {
+            case RenderMode.Trail:
+                batch = new TrailBatch(settings);
+                break;
+            case RenderMode.LocalSpace:
+            case RenderMode.BillBoard:
+            case RenderMode.StretchedBillBoard:
+                batch = new SpriteBatch(settings);
+                break;
+        }
         batch.addSystem(system);
         this.batches.push(batch);
         this.systemToBatchIndex.set(system, this.batches.length - 1);

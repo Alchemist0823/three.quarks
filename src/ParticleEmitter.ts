@@ -7,11 +7,6 @@ import {
     BufferGeometry
 } from 'three';
 
-import particle_frag from './shaders/particle_frag.glsl';
-import particle_vert from './shaders/particle_vert.glsl';
-import local_particle_vert from './shaders/local_particle_vert.glsl';
-import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
-
 export class ParticleEmitter extends Object3D {
 
     type: string = "ParticleEmitter";
@@ -50,7 +45,7 @@ export class ParticleEmitter extends Object3D {
         return values;
     }
 
-    toJSON(meta?: { geometries: any; materials: any; textures: any; images: any, shapes: any }): any {
+    toJSON(meta?: { geometries: any; materials: any; textures: any; images: any, shapes: any, skeletons: any, animations: any , nodes: any }): any {
 		// meta is a string when called from JSON.stringify
 		var isRootObject = ( meta === undefined || typeof meta === 'string' );
 		var output: any = {};
@@ -65,7 +60,10 @@ export class ParticleEmitter extends Object3D {
                 materials: {},
                 textures: {},
                 images: {},
-                shapes: {}
+                shapes: {},
+                skeletons: {},
+                animations: {},
+                nodes: {}
             };
 
             output.metadata = {

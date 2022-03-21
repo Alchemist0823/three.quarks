@@ -281,7 +281,6 @@ export class MuzzleFlashDemo {
         this.scene.add(light);
 
         this.texture = new TextureLoader().load("textures/texture1.png", (texture) => {
-            console.log("loaded");
             this.texture.name = "textures/texture1.png";
             this.batchRenderer = new BatchedParticleRenderer();
             this.scene.add(this.batchRenderer);
@@ -289,7 +288,6 @@ export class MuzzleFlashDemo {
             for (let i = 0; i < 100; i++) {
                 this.initMuzzleEffect(i);
             }
-            console.log("created");
         });
         return this.scene;
     }

@@ -15,9 +15,9 @@ export class SphereEmitter implements EmitterShape {
     thickness: number; //[0, 1]
 
     constructor(parameters: SphereEmitterParameters = {}) {
-        this.radius = parameters.radius || 10;
-        this.arc = parameters.arc || 2.0 * Math.PI;
-        this.thickness = parameters.thickness || 1;
+        this.radius = parameters.radius ?? 10;
+        this.arc = parameters.arc ?? 2.0 * Math.PI;
+        this.thickness = parameters.thickness ?? 1;
     }
 
     initialize(p: Particle) {
