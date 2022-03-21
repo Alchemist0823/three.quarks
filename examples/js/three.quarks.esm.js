@@ -1223,8 +1223,49 @@ var OrbitOverLife = /*#__PURE__*/function () {
   return OrbitOverLife;
 }();
 
+var ApplyForce = /*#__PURE__*/function () {
+  function ApplyForce(direction, func) {
+    _classCallCheck(this, ApplyForce);
+
+    this.direction = direction;
+    this.func = func;
+
+    _defineProperty(this, "type", 'ApplyForce');
+  }
+
+  _createClass(ApplyForce, [{
+    key: "initialize",
+    value: function initialize(particle) {}
+  }, {
+    key: "update",
+    value: function update(particle, delta) {
+      var force = this.func.genValue(particle.age / particle.life);
+      particle.velocity.addScaledVector(this.direction, force * delta);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        direction: [this.direction.x, this.direction.y, this.direction.z],
+        func: this.func.toJSON()
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new ApplyForce(this.direction.clone(), this.func.clone());
+    }
+  }]);
+
+  return ApplyForce;
+}();
+
 function BehaviorFromJSON(json) {
   switch (json.type) {
+    case 'ApplyForce':
+      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.func));
+
     case 'ColorOverLife':
       return new ColorOverLife(ColorGeneratorFromJSON(json.func));
 
@@ -1933,6 +1974,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         startSpeed: this.startSpeed.toJSON(),
         startRotation: this.startRotation.toJSON(),
         startSize: this.startSize.toJSON(),
+        startLength: this.startLength.toJSON(),
         startColor: this.startColor.toJSON(),
         emissionOverTime: this.emissionOverTime.toJSON(),
         emissionOverDistance: this.emissionOverDistance.toJSON(),
@@ -2063,6 +2105,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         startLife: ValueGeneratorFromJSON(json.startLife),
         startSpeed: ValueGeneratorFromJSON(json.startSpeed),
         startRotation: ValueGeneratorFromJSON(json.startRotation),
+        startLength: ValueGeneratorFromJSON(json.startLength),
         startSize: ValueGeneratorFromJSON(json.startSize),
         startColor: ColorGeneratorFromJSON(json.startColor),
         emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
@@ -3190,43 +3233,5 @@ var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
 
   return Gradient;
 }(PiecewiseFunction);
-
-var ApplyForce = /*#__PURE__*/function () {
-  function ApplyForce(direction, func) {
-    _classCallCheck(this, ApplyForce);
-
-    this.direction = direction;
-    this.func = func;
-
-    _defineProperty(this, "type", 'ApplyForce');
-  }
-
-  _createClass(ApplyForce, [{
-    key: "initialize",
-    value: function initialize(particle) {}
-  }, {
-    key: "update",
-    value: function update(particle, delta) {
-      var force = this.func.genValue(particle.age / particle.life);
-      particle.velocity.addScaledVector(this.direction, force * delta);
-    }
-  }, {
-    key: "toJSON",
-    value: function toJSON() {
-      return {
-        type: this.type,
-        direction: [this.direction.x, this.direction.y, this.direction.z],
-        func: this.func.toJSON()
-      };
-    }
-  }, {
-    key: "clone",
-    value: function clone() {
-      return new ApplyForce(this.direction.clone(), this.func.clone());
-    }
-  }]);
-
-  return ApplyForce;
-}();
 
 export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode$2 as RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteParticle, TrailParticle, ValueGeneratorFromJSON };

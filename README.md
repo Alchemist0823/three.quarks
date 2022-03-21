@@ -24,6 +24,7 @@ three.quarks Particle Engine provides following features:
 - Group Particle System
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
+- Trail Particle Renderer [TrailBatch](https://github.com/Alchemist0823/three.quarks/tree/master/src/TrailBatch.ts)
 - Customizable Behaviors
 - Customizable RenderMode and BlendMode
 - 1D Bézier curve function for adjusting
@@ -33,9 +34,10 @@ three.quarks Particle Engine provides following features:
 - VFX json load and save 
 
 three.quarks computes most particles information on CPU, and it uses customized shader
- and instancing technique to render those particles. three.quarks supports 1 dimension
- Bezier Curves for the best transform visual effect. Most importantly, developers can
- customize how the particle system works by adding their own Behavior.
+ , instancing, batch technique to render those particles with as less draw call as possible. 
+three.quarks supports 1 dimension piecewise Bézier curves for the customizable transform
+visual effect. Most importantly, developers can customize how the particle system works 
+by adding their own Behavior.
 
 ### Examples
 
