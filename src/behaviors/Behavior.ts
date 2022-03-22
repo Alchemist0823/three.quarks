@@ -11,6 +11,7 @@ import { ColorRange } from "../functions/ColorRange";
 import {FrameOverLife} from "./FrameOverLife";
 import {OrbitOverLife} from "./OrbitOverLife";
 import {ApplyForce} from "./ApplyForce";
+import {Constructable} from "../TypeUtil";
 
 export interface Behavior {
     type: string;
@@ -19,6 +20,16 @@ export interface Behavior {
     toJSON(): any;
     clone(): Behavior;
 }
+
+export const BehaviorTypes: Array<Array<(string | Constructable<Behavior> | string[][])>> = [
+    ["ApplyForce", ApplyForce, [["direction", "vec3"], ["func", "valueFunc"]]],
+    ["ColorOverLife", ColorOverLife, [["func", "colorFunc"]]],
+    ["RotationOverLife", RotationOverLife, [["func", "valueFunc"]]],
+    ["SizeOverLife", SizeOverLife, [["func", "valueFunc"]]],
+    ["SpeedOverLife", SpeedOverLife, [["func", "valueFunc"]]],
+    ["FrameOverLife", FrameOverLife, [["func", "valueFunc"]]],
+    ["OrbitOverLife", OrbitOverLife, [["func", "valueFunc"]]],
+];
 
 export function BehaviorFromJSON(json: {type: string, direction?: Array<number>, func: FunctionJSON}): Behavior {
     switch(json.type) {

@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.5.0 build Mon Mar 21 2022
+ * three.quarks v0.5.1 build Tue Mar 22 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -1261,6 +1261,7 @@ var ApplyForce = /*#__PURE__*/function () {
   return ApplyForce;
 }();
 
+var BehaviorTypes = [["ApplyForce", ApplyForce, [["direction", "vec3"], ["func", "valueFunc"]]], ["ColorOverLife", ColorOverLife, [["func", "colorFunc"]]], ["RotationOverLife", RotationOverLife, [["func", "valueFunc"]]], ["SizeOverLife", SizeOverLife, [["func", "valueFunc"]]], ["SpeedOverLife", SpeedOverLife, [["func", "valueFunc"]]], ["FrameOverLife", FrameOverLife, [["func", "valueFunc"]]], ["OrbitOverLife", OrbitOverLife, [["func", "valueFunc"]]]];
 function BehaviorFromJSON(json) {
   switch (json.type) {
     case 'ApplyForce':
@@ -1535,14 +1536,14 @@ var DonutEmitter = /*#__PURE__*/function () {
   return DonutEmitter;
 }();
 
-var RenderMode$2;
+var RenderMode;
 
 (function (RenderMode) {
   RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
   RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
   RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
   RenderMode[RenderMode["Trail"] = 3] = "Trail";
-})(RenderMode$2 || (RenderMode$2 = {}));
+})(RenderMode || (RenderMode = {}));
 
 var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
   _inherits(ParticleSystemBatch, _Mesh);
@@ -1693,7 +1694,7 @@ var ParticleSystem = /*#__PURE__*/function () {
       blending: (_parameters$blending = parameters.blending) !== null && _parameters$blending !== void 0 ? _parameters$blending : NormalBlending,
       transparent: (_parameters$transpare = parameters.transparent) !== null && _parameters$transpare !== void 0 ? _parameters$transpare : true,
       instancingGeometry: (_parameters$instancin = parameters.instancingGeometry) !== null && _parameters$instancin !== void 0 ? _parameters$instancin : DEFAULT_GEOMETRY,
-      renderMode: (_parameters$renderMod = parameters.renderMode) !== null && _parameters$renderMod !== void 0 ? _parameters$renderMod : RenderMode$2.BillBoard,
+      renderMode: (_parameters$renderMod = parameters.renderMode) !== null && _parameters$renderMod !== void 0 ? _parameters$renderMod : RenderMode.BillBoard,
       renderOrder: (_parameters$renderOrd = parameters.renderOrder) !== null && _parameters$renderOrd !== void 0 ? _parameters$renderOrd : 0,
       texture: parameters.texture,
       uTileCount: (_parameters$uTileCoun = parameters.uTileCount) !== null && _parameters$uTileCoun !== void 0 ? _parameters$uTileCoun : 1,
@@ -1748,7 +1749,7 @@ var ParticleSystem = /*#__PURE__*/function () {
       return this.rendererSettings.renderMode;
     },
     set: function set(renderMode) {
-      if (this.rendererSettings.renderMode != RenderMode$2.Trail && renderMode === RenderMode$2.Trail || this.rendererSettings.renderMode == RenderMode$2.Trail && renderMode !== RenderMode$2.Trail) {
+      if (this.rendererSettings.renderMode != RenderMode.Trail && renderMode === RenderMode.Trail || this.rendererSettings.renderMode == RenderMode.Trail && renderMode !== RenderMode.Trail) {
         this.restart();
         this.particles.length = 0;
       }
@@ -1791,7 +1792,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         this.particleNum++;
 
         while (this.particles.length < this.particleNum) {
-          if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+          if (this.rendererSettings.renderMode === RenderMode.Trail) {
             this.particles.push(new TrailParticle());
           } else {
             this.particles.push(new SpriteParticle());
@@ -1808,14 +1809,14 @@ var ParticleSystem = /*#__PURE__*/function () {
         particle.uvTile = this.startTileIndex;
         particle.size = particle.startSize;
 
-        if (this.rendererSettings.renderMode === RenderMode$2.LocalSpace || this.rendererSettings.renderMode === RenderMode$2.BillBoard || this.rendererSettings.renderMode === RenderMode$2.StretchedBillBoard) {
+        if (this.rendererSettings.renderMode === RenderMode.LocalSpace || this.rendererSettings.renderMode === RenderMode.BillBoard || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard) {
           var sprite = particle;
           sprite.rotation = this.startRotation.genValue(this.time);
 
-          if (this.rendererSettings.renderMode === RenderMode$2.LocalSpace) {
+          if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
             sprite.rotationQuat = new Quaternion().setFromAxisAngle(UP$1, sprite.rotation);
           }
-        } else if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+        } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
           var trail = particle;
           trail.length = this.startLength.genValue(this.time);
           trail.reset();
@@ -1934,7 +1935,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         _particle.age += delta;
       }
 
-      if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+      if (this.rendererSettings.renderMode === RenderMode.Trail) {
         for (var _i2 = 0; _i2 < this.particleNum; _i2++) {
           var _particle2 = this.particles[_i2];
 
@@ -1983,7 +1984,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         //Array.from(this.emitter.interleavedBuffer.array as Float32Array),
         renderOrder: this.renderOrder,
         renderMode: this.renderMode,
-        speedFactor: this.renderMode === RenderMode$2.StretchedBillBoard ? this.speedFactor : 0,
+        speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
         texture: this.texture.uuid,
         startTileIndex: this.startTileIndex,
         uTileCount: this.uTileCount,
@@ -2174,15 +2175,6 @@ var stretched_bb_particle_vert = /* glsl */
 	#endif
  */
 
-var RenderMode$1;
-
-(function (RenderMode) {
-  RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
-  RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
-  RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
-  RenderMode[RenderMode["Trail"] = 3] = "Trail";
-})(RenderMode$1 || (RenderMode$1 = {}));
-
 var DEFAULT_MAX_PARTICLE$1 = 1000;
 var UP = new Vector3(0, 0, 1);
 var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
@@ -2243,11 +2235,11 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       this.colorBuffer.setUsage(DynamicDrawUsage);
       this.geometry.setAttribute('color', this.colorBuffer);
 
-      if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+      if (this.settings.renderMode === RenderMode.LocalSpace) {
         this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 4), 4);
         this.rotationBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('rotation', this.rotationBuffer);
-      } else if (this.settings.renderMode === RenderMode$1.BillBoard || this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+      } else if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.StretchedBillBoard) {
         this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1), 1);
         this.rotationBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('rotation', this.rotationBuffer);
@@ -2260,7 +2252,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       this.uvTileBuffer.setUsage(DynamicDrawUsage);
       this.geometry.setAttribute('uvTile', this.uvTileBuffer);
 
-      if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+      if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
         this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 3), 3);
         this.velocityBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('velocity', this.velocityBuffer);
@@ -2281,11 +2273,11 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       defines['UV_TILE'] = '';
       uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
-      if (this.settings.renderMode === RenderMode$1.BillBoard || this.settings.renderMode === RenderMode$1.LocalSpace) {
+      if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpace) {
         var vertexShader;
         var side;
 
-        if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+        if (this.settings.renderMode === RenderMode.LocalSpace) {
           vertexShader = local_particle_vert;
           side = DoubleSide;
         } else {
@@ -2303,7 +2295,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
           blending: this.settings.blending || AdditiveBlending,
           side: side
         });
-      } else if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+      } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
         uniforms['speedFactor'] = new Uniform(1.0);
         this.material = new ShaderMaterial({
           uniforms: uniforms,
@@ -2341,7 +2333,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
         for (var j = 0; j < particleNum; j++, index++) {
           var particle = particles[j];
 
-          if (_this2.settings.renderMode === RenderMode$1.LocalSpace) {
+          if (_this2.settings.renderMode === RenderMode.LocalSpace) {
             particle.rotationQuat.setFromAxisAngle(UP, particle.rotation);
 
             if (system.worldSpace) {
@@ -2351,7 +2343,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
               _this2.rotationBuffer.setXYZW(index, _this2.quaternion_.x, _this2.quaternion_.y, _this2.quaternion_.z, _this2.quaternion_.w);
             }
-          } else if (_this2.settings.renderMode === RenderMode$1.StretchedBillBoard || _this2.settings.renderMode === RenderMode$1.BillBoard) {
+          } else if (_this2.settings.renderMode === RenderMode.StretchedBillBoard || _this2.settings.renderMode === RenderMode.BillBoard) {
             _this2.rotationBuffer.setX(index, particle.rotation);
           }
 
@@ -2369,7 +2361,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
           _this2.uvTileBuffer.setX(index, particle.uvTile);
 
-          if (_this2.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+          if (_this2.settings.renderMode === RenderMode.StretchedBillBoard) {
             if (system.worldSpace) {
               _this2.velocityBuffer.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
             } else {
@@ -2392,15 +2384,15 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
         this.uvTileBuffer.updateRange.count = index;
         this.uvTileBuffer.needsUpdate = true;
 
-        if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+        if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
           this.velocityBuffer.updateRange.count = index * 3;
           this.velocityBuffer.needsUpdate = true;
         }
 
-        if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+        if (this.settings.renderMode === RenderMode.LocalSpace) {
           this.rotationBuffer.updateRange.count = index * 4;
           this.rotationBuffer.needsUpdate = true;
-        } else if (this.settings.renderMode === RenderMode$1.StretchedBillBoard || this.settings.renderMode === RenderMode$1.BillBoard) {
+        } else if (this.settings.renderMode === RenderMode.StretchedBillBoard || this.settings.renderMode === RenderMode.BillBoard) {
           this.rotationBuffer.updateRange.count = index;
           this.rotationBuffer.needsUpdate = true;
         }
@@ -2421,15 +2413,6 @@ var trail_frag = /* glsl */
 
 var trail_vert = /* glsl */
 "\n\n#include <uv_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute vec4 color;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n    vUV = uv;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
-
-var RenderMode;
-
-(function (RenderMode) {
-  RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
-  RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
-  RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
-  RenderMode[RenderMode["Trail"] = 3] = "Trail";
-})(RenderMode || (RenderMode = {}));
 
 var DEFAULT_MAX_PARTICLE = 10000;
 new Vector3(0, 0, 1);
@@ -2568,71 +2551,6 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
     }*/
 
   }, {
-    key: "update2",
-    value: function update2() {
-      /*this.colorBuffer.setXYZW(0, 1, 1, 1, 1);
-      this.colorBuffer.setXYZW(1, 1, 1, 1, 1);
-      this.colorBuffer.setXYZW(2, 1, 1, 1, 1);
-      this.colorBuffer.setXYZW(3, 1, 1, 1, 1);
-       this.colorBuffer.updateRange.count = 4;
-      this.colorBuffer.needsUpdate = true;*/
-      this.positionBuffer.setXYZ(0, 0, 0, 0);
-      this.positionBuffer.setXYZ(1, 1, 0, 0);
-      this.positionBuffer.setXYZ(2, 0, 1, 0);
-      this.positionBuffer.setXYZ(3, 1, 1, 0);
-      this.positionBuffer.setXYZ(4, 0, 2, 0);
-      this.positionBuffer.setXYZ(5, 1, 2, 0);
-      this.positionBuffer.updateRange.count = 6;
-      this.positionBuffer.needsUpdate = true;
-      this.previousBuffer.setXYZ(0, 0, 0, 0);
-      this.previousBuffer.setXYZ(1, 1, 0, 0);
-      this.previousBuffer.setXYZ(2, 0, 0, 0);
-      this.previousBuffer.setXYZ(3, 1, 0, 0);
-      this.previousBuffer.setXYZ(4, 0, 1, 0);
-      this.previousBuffer.setXYZ(5, 1, 1, 0);
-      this.previousBuffer.updateRange.count = 6;
-      this.previousBuffer.needsUpdate = true;
-      this.nextBuffer.setXYZ(0, 0, 1, 0);
-      this.nextBuffer.setXYZ(1, 1, 1, 0);
-      this.nextBuffer.setXYZ(2, 0, 2, 0);
-      this.nextBuffer.setXYZ(3, 1, 2, 0);
-      this.nextBuffer.setXYZ(4, 0, 2, 0);
-      this.nextBuffer.setXYZ(5, 1, 2, 0);
-      this.nextBuffer.updateRange.count = 6;
-      this.nextBuffer.needsUpdate = true;
-      this.sideBuffer.setX(0, -1);
-      this.sideBuffer.setX(1, 1);
-      this.sideBuffer.setX(2, -1);
-      this.sideBuffer.setX(3, 1);
-      this.sideBuffer.setX(4, -1);
-      this.sideBuffer.setX(5, 1);
-      this.sideBuffer.updateRange.count = 6;
-      this.sideBuffer.needsUpdate = true;
-      this.widthBuffer.setX(0, 1);
-      this.widthBuffer.setX(1, 1);
-      this.widthBuffer.setX(2, 1);
-      this.widthBuffer.setX(3, 1);
-      this.widthBuffer.setX(4, 1);
-      this.widthBuffer.setX(5, 1);
-      this.widthBuffer.updateRange.count = 6;
-      this.widthBuffer.needsUpdate = true;
-      this.indexBuffer.setX(0, 0);
-      this.indexBuffer.setX(1, 1);
-      this.indexBuffer.setX(2, 2);
-      this.indexBuffer.setX(3, 2);
-      this.indexBuffer.setX(4, 1);
-      this.indexBuffer.setX(5, 3);
-      this.indexBuffer.setX(6, 2);
-      this.indexBuffer.setX(7, 3);
-      this.indexBuffer.setX(8, 4);
-      this.indexBuffer.setX(9, 4);
-      this.indexBuffer.setX(10, 3);
-      this.indexBuffer.setX(11, 5);
-      this.indexBuffer.updateRange.count = 12;
-      this.indexBuffer.needsUpdate = true;
-      this.geometry.setDrawRange(0, 12);
-    }
-  }, {
     key: "update",
     value: function update() {
       var _this2 = this;
@@ -2644,15 +2562,7 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
         var particleNum = system.particleNum;
 
         for (var j = 0; j < particleNum; j++) {
-          var particle = particles[j]; //TODO: remove
-
-          /*particle.previous = [
-              new RecordState(new Vector3(0, 0, 0), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(1, 1, 0), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(2, 2, 1), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(3, 3, 1), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(4, 4, 2), 0.1, new Vector4(1,1,1,1)),
-          ];*/
+          var particle = particles[j];
 
           for (var i = 0; i < particle.previous.length; i++, index += 2) {
             var recordState = particle.previous[i];
@@ -2786,13 +2696,13 @@ var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
       var batch;
 
       switch (settings.renderMode) {
-        case RenderMode$2.Trail:
+        case RenderMode.Trail:
           batch = new TrailBatch(settings);
           break;
 
-        case RenderMode$2.LocalSpace:
-        case RenderMode$2.BillBoard:
-        case RenderMode$2.StretchedBillBoard:
+        case RenderMode.LocalSpace:
+        case RenderMode.BillBoard:
+        case RenderMode.StretchedBillBoard:
           batch = new SpriteBatch(settings);
           break;
       }
@@ -3160,6 +3070,8 @@ var TEXTURE_FILTER = {
   LinearMipmapLinearFilter: LinearMipmapLinearFilter
 };
 
+var EmitterTypes = [[new ConeEmitter().type, ConeEmitter], [new PointEmitter().type, PointEmitter], [new SphereEmitter().type, SphereEmitter], [new DonutEmitter().type, DonutEmitter]];
+
 var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   _inherits(Gradient, _PiecewiseFunction);
 
@@ -3234,4 +3146,4 @@ var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   return Gradient;
 }(PiecewiseFunction);
 
-export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode$2 as RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteParticle, TrailParticle, ValueGeneratorFromJSON };
+export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitterTypes, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, ValueGeneratorFromJSON };

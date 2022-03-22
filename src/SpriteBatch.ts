@@ -25,29 +25,7 @@ import particle_frag from './shaders/particle_frag.glsl';
 import particle_vert from './shaders/particle_vert.glsl';
 import local_particle_vert from './shaders/local_particle_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
-import trail_frag from './shaders/trail_frag.glsl';
-import trail_vert from './shaders/trail_vert.glsl';
-import {ParticleSystemBatch} from "./ParticleSystemBatch";
-import {settings} from "cluster";
-
-export interface ParticleSystemBatchSettings {
-    // 5 component x,y,z,u,v
-    instancingGeometry: BufferGeometry;
-    texture: Texture;
-    uTileCount: number;
-    vTileCount: number;
-    blending: Blending;
-    renderMode : RenderMode;
-    renderOrder : number;
-    transparent: boolean;
-}
-
-export enum RenderMode {
-    BillBoard = 0,
-    StretchedBillBoard = 1,
-    LocalSpace = 2,
-    Trail = 3,
-}
+import {ParticleSystemBatch, ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
 
 const DEFAULT_MAX_PARTICLE = 1000;
 const UP = new Vector3(0, 0, 1);
