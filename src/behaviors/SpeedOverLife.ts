@@ -8,20 +8,20 @@ export class SpeedOverLife implements Behavior {
     initialize(particle: Particle): void {
     }
 
-    constructor(public func: FunctionValueGenerator) {
+    constructor(public speed: FunctionValueGenerator) {
     }
 
     update(particle: Particle): void {
-        particle.velocity.normalize().multiplyScalar(particle.startSpeed * this.func.genValue(particle.age / particle.life));
+        particle.velocity.normalize().multiplyScalar(particle.startSpeed * this.speed.genValue(particle.age / particle.life));
     }
     toJSON(): any {
         return {
             type: this.type,
-            func: this.func.toJSON(),
+            speed: this.speed.toJSON(),
         };
     }
 
     clone(): Behavior {
-        return new SpeedOverLife(this.func.clone());
+        return new SpeedOverLife(this.speed.clone());
     }
 }

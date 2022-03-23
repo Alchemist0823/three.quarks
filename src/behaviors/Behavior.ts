@@ -2,7 +2,7 @@ import {Particle} from "../Particle";
 import { FunctionJSON } from "../functions/FunctionJSON";
 import { ColorGeneratorFromJSON, FunctionColorGenerator } from "../functions/ColorGenerator";
 import {ColorOverLife} from "./ColorOverLife";
-import { ValueGeneratorFromJSON, FunctionValueGenerator } from "../functions/ValueGenerator";
+import { ValueGeneratorFromJSON, FunctionValueGenerator, ValueGenerator } from "../functions/ValueGenerator";
 import { RotationOverLife } from "./RotationOverLife";
 import { SizeOverLife } from "./SizeOverLife";
 import { SpeedOverLife } from "./SpeedOverLife";
@@ -21,32 +21,32 @@ export interface Behavior {
     clone(): Behavior;
 }
 
-export const BehaviorTypes: Array<Array<(string | Constructable<Behavior> | string[][])>> = [
-    ["ApplyForce", ApplyForce, [["direction", "vec3"], ["func", "valueFunc"]]],
-    ["ColorOverLife", ColorOverLife, [["func", "colorFunc"]]],
-    ["RotationOverLife", RotationOverLife, [["func", "valueFunc"]]],
-    ["SizeOverLife", SizeOverLife, [["func", "valueFunc"]]],
-    ["SpeedOverLife", SpeedOverLife, [["func", "valueFunc"]]],
-    ["FrameOverLife", FrameOverLife, [["func", "valueFunc"]]],
-    ["OrbitOverLife", OrbitOverLife, [["func", "valueFunc"]]],
-];
+export const BehaviorTypes: {[key: string]: {constructor: Constructable<Behavior>, params: string[][]}} = {
+    "ApplyForce": {constructor: ApplyForce, params: [["direction", "vec3"], ["force", "value"]]},
+    "ColorOverLife": {constructor: ColorOverLife, params: [["color", "colorFunc"]]},
+    "RotationOverLife": {constructor: RotationOverLife, params: [["angularVelocity", "valueFunc"]]},
+    "SizeOverLife": {constructor: SizeOverLife, params: [["size", "valueFunc"]]},
+    "SpeedOverLife": {constructor: SpeedOverLife, params: [["speed", "valueFunc"]]},
+    "FrameOverLife": {constructor: FrameOverLife, params: [["frame", "valueFunc"]]},
+    "OrbitOverLife": {constructor: OrbitOverLife, params: [["orbitSpeed", "valueFunc"]]},
+};
 
-export function BehaviorFromJSON(json: {type: string, direction?: Array<number>, func: FunctionJSON}): Behavior {
+export function BehaviorFromJSON(json: any): Behavior {
     switch(json.type) {
         case 'ApplyForce':
-            return new ApplyForce(new Vector3(json.direction![0], json.direction![1],json.direction![2]), ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+            return new ApplyForce(new Vector3(json.direction![0], json.direction![1],json.direction![2]), ValueGeneratorFromJSON(json.force) as ValueGenerator);
         case 'ColorOverLife':
-            return new ColorOverLife(ColorGeneratorFromJSON(json.func) as FunctionColorGenerator);
+            return new ColorOverLife(ColorGeneratorFromJSON(json.color) as FunctionColorGenerator);
         case 'RotationOverLife':
-            return new RotationOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+            return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity) as FunctionValueGenerator);
         case 'SizeOverLife':
-            return new SizeOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+            return new SizeOverLife(ValueGeneratorFromJSON(json.size) as FunctionValueGenerator);
         case 'SpeedOverLife':
-            return new SpeedOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+            return new SpeedOverLife(ValueGeneratorFromJSON(json.speed) as FunctionValueGenerator);
         case 'FrameOverLife':
-            return new FrameOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+            return new FrameOverLife(ValueGeneratorFromJSON(json.frame) as FunctionValueGenerator);
         case 'OrbitOverLife':
-            return new OrbitOverLife(ValueGeneratorFromJSON(json.func) as FunctionValueGenerator);
+            return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed) as FunctionValueGenerator);
         default:
             return new ColorOverLife(new ColorRange(new Vector4(1,1,1,1), new Vector4(1,1,1,1)));
     }

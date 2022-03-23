@@ -9,13 +9,13 @@ export class OrbitOverLife implements Behavior {
 
     type = 'OrbitOverLife';
 
-    constructor(public angularVelocityFunc: FunctionValueGenerator | ValueGenerator) {
+    constructor(public orbitSpeed: FunctionValueGenerator | ValueGenerator) {
     }
 
     initialize(particle: Particle): void {
         if (particle instanceof SpriteParticle) {
-            if (this.angularVelocityFunc.type === 'value') {
-                particle.angularVelocity = this.angularVelocityFunc.genValue();
+            if (this.orbitSpeed.type === 'value') {
+                particle.angularVelocity = this.orbitSpeed.genValue();
             } else {
                 particle.angularVelocity = 0;
             }
@@ -25,7 +25,7 @@ export class OrbitOverLife implements Behavior {
     update(particle: Particle, delta: number): void {
         let rotation = Math.atan2(particle.position.y, particle.position.x);
         let len = Math.sqrt(particle.position.x * particle.position.x + particle.position.y * particle.position.y)
-        rotation += this.angularVelocityFunc.genValue(particle.age / particle.life) * delta;
+        rotation += this.orbitSpeed.genValue(particle.age / particle.life) * delta;
         particle.position.x = Math.cos(rotation) * len;
         particle.position.y = Math.sin(rotation) * len;
         //let v1x = particle.position.x
@@ -39,11 +39,11 @@ export class OrbitOverLife implements Behavior {
     toJSON(): any {
         return {
             type: this.type,
-            func: this.angularVelocityFunc.toJSON(),
+            orbitSpeed: this.orbitSpeed.toJSON(),
         };
     }
 
     clone(): Behavior {
-        return new OrbitOverLife(this.angularVelocityFunc.clone());
+        return new OrbitOverLife(this.orbitSpeed.clone());
     }
 }

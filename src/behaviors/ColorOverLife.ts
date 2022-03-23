@@ -6,14 +6,14 @@ export class ColorOverLife implements Behavior {
 
     type = 'ColorOverLife';
 
-    constructor(public func: FunctionColorGenerator) {
+    constructor(public color: FunctionColorGenerator) {
     }
 
     initialize(particle: Particle): void {
     }
 
     update(particle: Particle, delta: number): void {
-        this.func.genColor(particle.color, particle.age / particle.life)
+        this.color.genColor(particle.color, particle.age / particle.life)
         particle.color.x *= particle.startColor.x;
         particle.color.y *= particle.startColor.y;
         particle.color.z *= particle.startColor.z;
@@ -23,11 +23,11 @@ export class ColorOverLife implements Behavior {
     toJSON(): any {
         return {
             type: this.type,
-            func: this.func.toJSON(),
+            color: this.color.toJSON(),
         };
     }
 
     clone(): Behavior {
-        return new ColorOverLife(this.func.clone());
+        return new ColorOverLife(this.color.clone());
     }
 }

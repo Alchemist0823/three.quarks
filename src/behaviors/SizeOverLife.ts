@@ -8,20 +8,20 @@ export class SizeOverLife implements Behavior {
     initialize(particle: Particle): void {
     }
 
-    constructor(public func: FunctionValueGenerator) {
+    constructor(public size: FunctionValueGenerator) {
     }
 
     update(particle: Particle): void {
-        particle.size = particle.startSize * this.func.genValue(particle.age / particle.life);
+        particle.size = particle.startSize * this.size.genValue(particle.age / particle.life);
     }
     toJSON(): any {
         return {
             type: this.type,
-            func: this.func.toJSON(),
+            size: this.size.toJSON(),
         };
     }
 
     clone(): Behavior {
-        return new SizeOverLife(this.func.clone());
+        return new SizeOverLife(this.size.clone());
     }
 }

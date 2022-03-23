@@ -5,24 +5,24 @@ import {FunctionValueGenerator} from "../functions";
 export class FrameOverLife implements Behavior {
 
     type = 'FrameOverLife';
-    constructor(public func: FunctionValueGenerator) {
+    constructor(public frame: FunctionValueGenerator) {
     }
 
     initialize(particle: Particle): void {
     }
 
     update(particle: Particle, delta: number): void {
-        particle.uvTile = Math.floor(this.func.genValue(particle.age / particle.life));
+        particle.uvTile = Math.floor(this.frame.genValue(particle.age / particle.life));
     }
 
     toJSON(): any {
         return {
             type: this.type,
-            func: this.func.toJSON(),
+            frame: this.frame.toJSON(),
         };
     }
 
     clone(): Behavior {
-        return new FrameOverLife(this.func.clone());
+        return new FrameOverLife(this.frame.clone());
     }
 }

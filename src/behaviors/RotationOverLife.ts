@@ -6,13 +6,13 @@ export class RotationOverLife implements Behavior {
 
     type = 'RotationOverLife';
 
-    constructor(public angularVelocityFunc: FunctionValueGenerator | ValueGenerator) {
+    constructor(public angularVelocity: FunctionValueGenerator | ValueGenerator) {
     }
 
     initialize(particle: Particle): void {
         if (particle instanceof SpriteParticle) {
-            if (this.angularVelocityFunc.type === 'value') {
-                particle.angularVelocity = this.angularVelocityFunc.genValue();
+            if (this.angularVelocity.type === 'value') {
+                particle.angularVelocity = this.angularVelocity.genValue();
             } else {
                 particle.angularVelocity = 0;
             }
@@ -21,21 +21,21 @@ export class RotationOverLife implements Behavior {
 
     update(particle: Particle, delta: number): void {
         if (particle instanceof SpriteParticle) {
-            if (this.angularVelocityFunc.type === 'value') {
+            if (this.angularVelocity.type === 'value') {
                 particle.rotation += delta * particle.angularVelocity!;
             } else {
-                particle.rotation += delta * this.angularVelocityFunc.genValue(particle.age / particle.life);
+                particle.rotation += delta * this.angularVelocity.genValue(particle.age / particle.life);
             }
         }
     }
     toJSON(): any {
         return {
             type: this.type,
-            func: this.angularVelocityFunc.toJSON(),
+            angularVelocity: this.angularVelocity.toJSON(),
         };
     }
 
     clone(): Behavior {
-        return new RotationOverLife(this.angularVelocityFunc);
+        return new RotationOverLife(this.angularVelocity);
     }
 }

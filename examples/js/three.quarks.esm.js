@@ -976,10 +976,10 @@ function ColorGeneratorFromJSON(json) {
 }
 
 var ColorOverLife = /*#__PURE__*/function () {
-  function ColorOverLife(func) {
+  function ColorOverLife(color) {
     _classCallCheck(this, ColorOverLife);
 
-    this.func = func;
+    this.color = color;
 
     _defineProperty(this, "type", 'ColorOverLife');
   }
@@ -990,7 +990,7 @@ var ColorOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle, delta) {
-      this.func.genColor(particle.color, particle.age / particle.life);
+      this.color.genColor(particle.color, particle.age / particle.life);
       particle.color.x *= particle.startColor.x;
       particle.color.y *= particle.startColor.y;
       particle.color.z *= particle.startColor.z;
@@ -1001,13 +1001,13 @@ var ColorOverLife = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        color: this.color.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new ColorOverLife(this.func.clone());
+      return new ColorOverLife(this.color.clone());
     }
   }]);
 
@@ -1015,10 +1015,10 @@ var ColorOverLife = /*#__PURE__*/function () {
 }();
 
 var RotationOverLife = /*#__PURE__*/function () {
-  function RotationOverLife(angularVelocityFunc) {
+  function RotationOverLife(angularVelocity) {
     _classCallCheck(this, RotationOverLife);
 
-    this.angularVelocityFunc = angularVelocityFunc;
+    this.angularVelocity = angularVelocity;
 
     _defineProperty(this, "type", 'RotationOverLife');
   }
@@ -1027,8 +1027,8 @@ var RotationOverLife = /*#__PURE__*/function () {
     key: "initialize",
     value: function initialize(particle) {
       if (particle instanceof SpriteParticle) {
-        if (this.angularVelocityFunc.type === 'value') {
-          particle.angularVelocity = this.angularVelocityFunc.genValue();
+        if (this.angularVelocity.type === 'value') {
+          particle.angularVelocity = this.angularVelocity.genValue();
         } else {
           particle.angularVelocity = 0;
         }
@@ -1038,10 +1038,10 @@ var RotationOverLife = /*#__PURE__*/function () {
     key: "update",
     value: function update(particle, delta) {
       if (particle instanceof SpriteParticle) {
-        if (this.angularVelocityFunc.type === 'value') {
+        if (this.angularVelocity.type === 'value') {
           particle.rotation += delta * particle.angularVelocity;
         } else {
-          particle.rotation += delta * this.angularVelocityFunc.genValue(particle.age / particle.life);
+          particle.rotation += delta * this.angularVelocity.genValue(particle.age / particle.life);
         }
       }
     }
@@ -1050,13 +1050,13 @@ var RotationOverLife = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.angularVelocityFunc.toJSON()
+        angularVelocity: this.angularVelocity.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new RotationOverLife(this.angularVelocityFunc);
+      return new RotationOverLife(this.angularVelocity);
     }
   }]);
 
@@ -1064,10 +1064,10 @@ var RotationOverLife = /*#__PURE__*/function () {
 }();
 
 var SizeOverLife = /*#__PURE__*/function () {
-  function SizeOverLife(func) {
+  function SizeOverLife(size) {
     _classCallCheck(this, SizeOverLife);
 
-    this.func = func;
+    this.size = size;
 
     _defineProperty(this, "type", 'SizeOverLife');
   }
@@ -1078,20 +1078,20 @@ var SizeOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle) {
-      particle.size = particle.startSize * this.func.genValue(particle.age / particle.life);
+      particle.size = particle.startSize * this.size.genValue(particle.age / particle.life);
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        size: this.size.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new SizeOverLife(this.func.clone());
+      return new SizeOverLife(this.size.clone());
     }
   }]);
 
@@ -1099,10 +1099,10 @@ var SizeOverLife = /*#__PURE__*/function () {
 }();
 
 var SpeedOverLife = /*#__PURE__*/function () {
-  function SpeedOverLife(func) {
+  function SpeedOverLife(speed) {
     _classCallCheck(this, SpeedOverLife);
 
-    this.func = func;
+    this.speed = speed;
 
     _defineProperty(this, "type", 'SpeedOverLife');
   }
@@ -1113,20 +1113,20 @@ var SpeedOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle) {
-      particle.velocity.normalize().multiplyScalar(particle.startSpeed * this.func.genValue(particle.age / particle.life));
+      particle.velocity.normalize().multiplyScalar(particle.startSpeed * this.speed.genValue(particle.age / particle.life));
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        speed: this.speed.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new SpeedOverLife(this.func.clone());
+      return new SpeedOverLife(this.speed.clone());
     }
   }]);
 
@@ -1134,10 +1134,10 @@ var SpeedOverLife = /*#__PURE__*/function () {
 }();
 
 var FrameOverLife = /*#__PURE__*/function () {
-  function FrameOverLife(func) {
+  function FrameOverLife(frame) {
     _classCallCheck(this, FrameOverLife);
 
-    this.func = func;
+    this.frame = frame;
 
     _defineProperty(this, "type", 'FrameOverLife');
   }
@@ -1148,20 +1148,20 @@ var FrameOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle, delta) {
-      particle.uvTile = Math.floor(this.func.genValue(particle.age / particle.life));
+      particle.uvTile = Math.floor(this.frame.genValue(particle.age / particle.life));
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        frame: this.frame.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new FrameOverLife(this.func.clone());
+      return new FrameOverLife(this.frame.clone());
     }
   }]);
 
@@ -1170,10 +1170,10 @@ var FrameOverLife = /*#__PURE__*/function () {
 
 new Vector3();
 var OrbitOverLife = /*#__PURE__*/function () {
-  function OrbitOverLife(angularVelocityFunc) {
+  function OrbitOverLife(orbitSpeed) {
     _classCallCheck(this, OrbitOverLife);
 
-    this.angularVelocityFunc = angularVelocityFunc;
+    this.orbitSpeed = orbitSpeed;
 
     _defineProperty(this, "type", 'OrbitOverLife');
   }
@@ -1182,8 +1182,8 @@ var OrbitOverLife = /*#__PURE__*/function () {
     key: "initialize",
     value: function initialize(particle) {
       if (particle instanceof SpriteParticle) {
-        if (this.angularVelocityFunc.type === 'value') {
-          particle.angularVelocity = this.angularVelocityFunc.genValue();
+        if (this.orbitSpeed.type === 'value') {
+          particle.angularVelocity = this.orbitSpeed.genValue();
         } else {
           particle.angularVelocity = 0;
         }
@@ -1194,7 +1194,7 @@ var OrbitOverLife = /*#__PURE__*/function () {
     value: function update(particle, delta) {
       var rotation = Math.atan2(particle.position.y, particle.position.x);
       var len = Math.sqrt(particle.position.x * particle.position.x + particle.position.y * particle.position.y);
-      rotation += this.angularVelocityFunc.genValue(particle.age / particle.life) * delta;
+      rotation += this.orbitSpeed.genValue(particle.age / particle.life) * delta;
       particle.position.x = Math.cos(rotation) * len;
       particle.position.y = Math.sin(rotation) * len; //let v1x = particle.position.x
       //let v1y = particle.position.y;
@@ -1210,13 +1210,13 @@ var OrbitOverLife = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.angularVelocityFunc.toJSON()
+        orbitSpeed: this.orbitSpeed.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new OrbitOverLife(this.angularVelocityFunc.clone());
+      return new OrbitOverLife(this.orbitSpeed.clone());
     }
   }]);
 
@@ -1224,23 +1224,24 @@ var OrbitOverLife = /*#__PURE__*/function () {
 }();
 
 var ApplyForce = /*#__PURE__*/function () {
-  function ApplyForce(direction, func) {
+  function ApplyForce(direction, force) {
     _classCallCheck(this, ApplyForce);
 
     this.direction = direction;
-    this.func = func;
+    this.force = force;
 
     _defineProperty(this, "type", 'ApplyForce');
   }
 
   _createClass(ApplyForce, [{
     key: "initialize",
-    value: function initialize(particle) {}
+    value: function initialize(particle) {
+      particle.force = this.force.genValue();
+    }
   }, {
     key: "update",
     value: function update(particle, delta) {
-      var force = this.func.genValue(particle.age / particle.life);
-      particle.velocity.addScaledVector(this.direction, force * delta);
+      particle.velocity.addScaledVector(this.direction, particle.force * delta);
     }
   }, {
     key: "toJSON",
@@ -1248,42 +1249,71 @@ var ApplyForce = /*#__PURE__*/function () {
       return {
         type: this.type,
         direction: [this.direction.x, this.direction.y, this.direction.z],
-        func: this.func.toJSON()
+        force: this.force.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new ApplyForce(this.direction.clone(), this.func.clone());
+      return new ApplyForce(this.direction.clone(), this.force.clone());
     }
   }]);
 
   return ApplyForce;
 }();
 
-var BehaviorTypes = [["ApplyForce", ApplyForce, [["direction", "vec3"], ["func", "valueFunc"]]], ["ColorOverLife", ColorOverLife, [["func", "colorFunc"]]], ["RotationOverLife", RotationOverLife, [["func", "valueFunc"]]], ["SizeOverLife", SizeOverLife, [["func", "valueFunc"]]], ["SpeedOverLife", SpeedOverLife, [["func", "valueFunc"]]], ["FrameOverLife", FrameOverLife, [["func", "valueFunc"]]], ["OrbitOverLife", OrbitOverLife, [["func", "valueFunc"]]]];
+var BehaviorTypes = {
+  "ApplyForce": {
+    constructor: ApplyForce,
+    params: [["direction", "vec3"], ["force", "value"]]
+  },
+  "ColorOverLife": {
+    constructor: ColorOverLife,
+    params: [["color", "colorFunc"]]
+  },
+  "RotationOverLife": {
+    constructor: RotationOverLife,
+    params: [["angularVelocity", "valueFunc"]]
+  },
+  "SizeOverLife": {
+    constructor: SizeOverLife,
+    params: [["size", "valueFunc"]]
+  },
+  "SpeedOverLife": {
+    constructor: SpeedOverLife,
+    params: [["speed", "valueFunc"]]
+  },
+  "FrameOverLife": {
+    constructor: FrameOverLife,
+    params: [["frame", "valueFunc"]]
+  },
+  "OrbitOverLife": {
+    constructor: OrbitOverLife,
+    params: [["orbitSpeed", "valueFunc"]]
+  }
+};
 function BehaviorFromJSON(json) {
   switch (json.type) {
     case 'ApplyForce':
-      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.func));
+      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.force));
 
     case 'ColorOverLife':
-      return new ColorOverLife(ColorGeneratorFromJSON(json.func));
+      return new ColorOverLife(ColorGeneratorFromJSON(json.color));
 
     case 'RotationOverLife':
-      return new RotationOverLife(ValueGeneratorFromJSON(json.func));
+      return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity));
 
     case 'SizeOverLife':
-      return new SizeOverLife(ValueGeneratorFromJSON(json.func));
+      return new SizeOverLife(ValueGeneratorFromJSON(json.size));
 
     case 'SpeedOverLife':
-      return new SpeedOverLife(ValueGeneratorFromJSON(json.func));
+      return new SpeedOverLife(ValueGeneratorFromJSON(json.speed));
 
     case 'FrameOverLife':
-      return new FrameOverLife(ValueGeneratorFromJSON(json.func));
+      return new FrameOverLife(ValueGeneratorFromJSON(json.frame));
 
     case 'OrbitOverLife':
-      return new OrbitOverLife(ValueGeneratorFromJSON(json.func));
+      return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed));
 
     default:
       return new ColorOverLife(new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1)));

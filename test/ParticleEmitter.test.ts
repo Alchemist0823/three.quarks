@@ -48,7 +48,7 @@ describe("ParticleEmitter", () => {
         renderOrder: 2,
     });
     glowBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
-    glowBeam.addBehavior(new ApplyForce(new Vector3(0, 1, 0), new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
+    glowBeam.addBehavior(new ApplyForce(new Vector3(0, 1, 0), new ConstantValue(10)));
     glowBeam.emitter.name = 'glowBeam';
 
     test(".toJSON", () => {
@@ -80,10 +80,10 @@ describe("ParticleEmitter", () => {
 
         expect(json.object.ps.behaviors.length).toBe(2);
         expect(json.object.ps.behaviors[0].type).toBe("SizeOverLife");
-        expect(json.object.ps.behaviors[0].func.type).toBe("PiecewiseBezier");
+        expect(json.object.ps.behaviors[0].size.type).toBe("PiecewiseBezier");
         expect(json.object.ps.behaviors[1].type).toBe("ApplyForce");
         expect(json.object.ps.behaviors[1].direction[1]).toBe(1);
-        expect(json.object.ps.behaviors[1].func.type).toBe("PiecewiseBezier");
+        expect(json.object.ps.behaviors[1].force.type).toBe("ConstantValue");
     });
 
     test(".fromJSON", ()=> {
