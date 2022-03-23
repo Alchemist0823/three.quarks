@@ -26,10 +26,11 @@ vec2 fix(vec4 i, float aspect) {
     
 void main() {
 
+    #include <uv_vertex>
+    
     float aspect = resolution.x / resolution.y;
 
     vColor = color;
-    vUV = uv;
 
     mat4 m = projectionMatrix * modelViewMatrix;
     vec4 finalPosition = m * vec4( position, 1.0 );

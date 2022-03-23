@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.5.1 build Tue Mar 22 2022
+ * three.quarks v0.5.1 build Wed Mar 23 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -2439,10 +2439,10 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 }(ParticleSystemBatch);
 
 var trail_frag = /* glsl */
-"\n#include <fog_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n    \nuniform sampler2D map;\nuniform sampler2D alphaMap;\nuniform float useMap;\nuniform float useAlphaMap;\nuniform float visibility;\nuniform float alphaTest;\nuniform vec2 repeat;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvoid main() {\n\n    #include <logdepthbuf_fragment>\n\n    vec4 c = vColor;\n    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );\n    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUV * repeat ).a;\n    if( c.a < alphaTest ) discard;\n    gl_FragColor = c;\n\n    #include <fog_fragment>\n}";
+"\n\n#include <common>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <fog_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nuniform sampler2D alphaMap;\nuniform float useAlphaMap;\nuniform float visibility;\nuniform float alphaTest;\nuniform vec2 repeat;\n\nvarying vec4 vColor;\n    \nvoid main() {\n    #include <clipping_planes_fragment>\n    #include <logdepthbuf_fragment>\n\n    vec4 c = vColor;\n    \n    #ifdef USE_MAP\n    c *= texture2D( map, vUv * repeat );\n    #endif\n    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUv * repeat ).a;\n    if( c.a < alphaTest ) discard;\n    gl_FragColor = c;\n\n    #include <fog_fragment>\n    #include <tonemapping_fragment>\n}";
 
 var trail_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute vec4 color;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n    vUV = uv;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
+"\n\n#include <uv_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute vec4 color;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    #include <uv_vertex>\n    \n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
 
 var DEFAULT_MAX_PARTICLE = 10000;
 new Vector3(0, 0, 1);
@@ -2554,10 +2554,6 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       uniforms['map'] = new Uniform(this.settings.texture); //@ts-ignore
 
       uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
-      var uTileCount = this.settings.uTileCount;
-      var vTileCount = this.settings.vTileCount;
-      defines['UV_TILE'] = '';
-      uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
       if (this.settings.renderMode === RenderMode.Trail) {
         this.material = new ShaderMaterial({
@@ -2590,9 +2586,15 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       this.systems.forEach(function (system) {
         var particles = system.particles;
         var particleNum = system.particleNum;
+        var uTileCount = _this2.settings.uTileCount;
+        var vTileCount = _this2.settings.vTileCount;
+        var tileWidth = 1 / uTileCount;
+        var tileHeight = 1 / vTileCount;
 
         for (var j = 0; j < particleNum; j++) {
           var particle = particles[j];
+          var col = particle.uvTile % vTileCount;
+          var row = Math.floor(particle.uvTile / vTileCount);
 
           for (var i = 0; i < particle.previous.length; i++, index += 2) {
             var recordState = particle.previous[i];
@@ -2633,9 +2635,9 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
             _this2.widthBuffer.setX(index + 1, recordState.size);
 
-            _this2.uvBuffer.setXY(index, i / particle.previous.length, 0);
+            _this2.uvBuffer.setXY(index, (i / particle.previous.length + col) * tileWidth, (vTileCount - row - 1) * tileHeight);
 
-            _this2.uvBuffer.setXY(index + 1, i / particle.previous.length, 1);
+            _this2.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
 
             _this2.colorBuffer.setXYZW(index, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
 

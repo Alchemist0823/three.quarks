@@ -100,11 +100,6 @@ export class TrailBatch extends ParticleSystemBatch {
         uniforms['map'] = new Uniform(this.settings.texture);
         //@ts-ignore
         uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
-        let uTileCount = this.settings.uTileCount;
-        let vTileCount = this.settings.vTileCount;
-
-        defines['UV_TILE'] = '';
-        uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
         if (this.settings.renderMode === RenderMode.Trail) {
             this.material = new ShaderMaterial({
@@ -136,9 +131,16 @@ export class TrailBatch extends ParticleSystemBatch {
             const particles = system.particles;
             let particleNum = system.particleNum;
 
+            let uTileCount = this.settings.uTileCount;
+            let vTileCount = this.settings.vTileCount;
+
+            const tileWidth = 1 / uTileCount;
+            const tileHeight = 1 / vTileCount;
 
             for (let j = 0; j < particleNum; j++) {
                 let particle = particles[j] as TrailParticle;
+                const col = particle.uvTile % vTileCount;
+                const row = Math.floor(particle.uvTile / vTileCount);
 
                 for (let i = 0; i < particle.previous.length; i++, index += 2) {
                     const recordState = particle.previous[i];
@@ -169,8 +171,8 @@ export class TrailBatch extends ParticleSystemBatch {
                     this.widthBuffer.setX(index, recordState.size);
                     this.widthBuffer.setX(index + 1, recordState.size);
 
-                    this.uvBuffer.setXY(index,  i / particle.previous.length, 0);
-                    this.uvBuffer.setXY(index + 1, i / particle.previous.length, 1);
+                    this.uvBuffer.setXY(index,  (i / particle.previous.length + col) * tileWidth,  (vTileCount - row - 1) * tileHeight);
+                    this.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
 
                     this.colorBuffer.setXYZW(index, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
                     this.colorBuffer.setXYZW(index + 1, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
