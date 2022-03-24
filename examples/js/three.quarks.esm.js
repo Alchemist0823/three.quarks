@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.5.1 build Wed Mar 23 2022
+ * three.quarks v0.5.2 build Wed Mar 23 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -1262,10 +1262,54 @@ var ApplyForce = /*#__PURE__*/function () {
   return ApplyForce;
 }();
 
+var GravityForce = /*#__PURE__*/function () {
+  function GravityForce(center, magnitude) {
+    _classCallCheck(this, GravityForce);
+
+    this.center = center;
+    this.magnitude = magnitude;
+
+    _defineProperty(this, "type", 'GravityForce');
+
+    _defineProperty(this, "temp", new Vector3());
+  }
+
+  _createClass(GravityForce, [{
+    key: "initialize",
+    value: function initialize(particle) {}
+  }, {
+    key: "update",
+    value: function update(particle, delta) {
+      this.temp.copy(this.center).sub(particle.position).normalize();
+      particle.velocity.addScaledVector(this.temp, this.magnitude / particle.position.distanceToSquared(this.center) * delta);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        center: [this.center.x, this.center.y, this.center.z],
+        magnitude: this.magnitude
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new GravityForce(this.center.clone(), this.magnitude);
+    }
+  }]);
+
+  return GravityForce;
+}();
+
 var BehaviorTypes = {
   "ApplyForce": {
     constructor: ApplyForce,
     params: [["direction", "vec3"], ["force", "value"]]
+  },
+  "GravityForce": {
+    constructor: GravityForce,
+    params: [["center", "vec3"], ["magnitude", "number"]]
   },
   "ColorOverLife": {
     constructor: ColorOverLife,
@@ -1296,6 +1340,9 @@ function BehaviorFromJSON(json) {
   switch (json.type) {
     case 'ApplyForce':
       return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.force));
+
+    case 'GravityForce':
+      return new GravityForce(new Vector3(json.center[0], json.center[1], json.center[2]), json.magnitude);
 
     case 'ColorOverLife':
       return new ColorOverLife(ColorGeneratorFromJSON(json.color));
