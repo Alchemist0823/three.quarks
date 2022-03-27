@@ -73,7 +73,7 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.shape.arc).toBe(Math.PI * 2);
         //expect(json.object.ps.texture).toBe(1);
         expect(json.object.ps.blending).toBe(AdditiveBlending);
-        expect(json.object.ps.startTileIndex).toBe(1);
+        expect(json.object.ps.startTileIndex.value).toBe(1);
         expect(json.object.ps.uTileCount).toBe(10);
         expect(json.object.ps.vTileCount).toBe(10);
         expect(json.object.ps.renderOrder).toBe(2);
