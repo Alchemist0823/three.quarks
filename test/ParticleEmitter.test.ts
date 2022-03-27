@@ -93,7 +93,7 @@ describe("ParticleEmitter", () => {
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {}, renderer) as ParticleEmitter;
 
-        expect(emitter.system.startTileIndex.type).toBe("ConstantValue");
+        expect(emitter.system.startTileIndex.type).toBe("value");
         expect(emitter.system.behaviors.length).toBe(2);
     });
 });
