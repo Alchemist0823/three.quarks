@@ -288,7 +288,7 @@ export class ParticleSystem {
             particle.life = this.startLife.genValue(this.time);
             particle.age = 0;
             particle.startSize = this.startSize.genValue(this.time);
-            particle.uvTile = this.startTileIndex.genValue();
+            particle.uvTile = Math.floor(this.startTileIndex.genValue());
             particle.size = particle.startSize;
             if (this.rendererSettings.renderMode === RenderMode.LocalSpace
                 || this.rendererSettings.renderMode === RenderMode.BillBoard
