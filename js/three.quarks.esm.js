@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.5.0 build Mon Mar 21 2022
+ * three.quarks v0.5.2 build Sun Mar 27 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -976,10 +976,10 @@ function ColorGeneratorFromJSON(json) {
 }
 
 var ColorOverLife = /*#__PURE__*/function () {
-  function ColorOverLife(func) {
+  function ColorOverLife(color) {
     _classCallCheck(this, ColorOverLife);
 
-    this.func = func;
+    this.color = color;
 
     _defineProperty(this, "type", 'ColorOverLife');
   }
@@ -990,7 +990,7 @@ var ColorOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle, delta) {
-      this.func.genColor(particle.color, particle.age / particle.life);
+      this.color.genColor(particle.color, particle.age / particle.life);
       particle.color.x *= particle.startColor.x;
       particle.color.y *= particle.startColor.y;
       particle.color.z *= particle.startColor.z;
@@ -1001,13 +1001,13 @@ var ColorOverLife = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        color: this.color.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new ColorOverLife(this.func.clone());
+      return new ColorOverLife(this.color.clone());
     }
   }]);
 
@@ -1015,10 +1015,10 @@ var ColorOverLife = /*#__PURE__*/function () {
 }();
 
 var RotationOverLife = /*#__PURE__*/function () {
-  function RotationOverLife(angularVelocityFunc) {
+  function RotationOverLife(angularVelocity) {
     _classCallCheck(this, RotationOverLife);
 
-    this.angularVelocityFunc = angularVelocityFunc;
+    this.angularVelocity = angularVelocity;
 
     _defineProperty(this, "type", 'RotationOverLife');
   }
@@ -1027,8 +1027,8 @@ var RotationOverLife = /*#__PURE__*/function () {
     key: "initialize",
     value: function initialize(particle) {
       if (particle instanceof SpriteParticle) {
-        if (this.angularVelocityFunc.type === 'value') {
-          particle.angularVelocity = this.angularVelocityFunc.genValue();
+        if (this.angularVelocity.type === 'value') {
+          particle.angularVelocity = this.angularVelocity.genValue();
         } else {
           particle.angularVelocity = 0;
         }
@@ -1038,10 +1038,10 @@ var RotationOverLife = /*#__PURE__*/function () {
     key: "update",
     value: function update(particle, delta) {
       if (particle instanceof SpriteParticle) {
-        if (this.angularVelocityFunc.type === 'value') {
+        if (this.angularVelocity.type === 'value') {
           particle.rotation += delta * particle.angularVelocity;
         } else {
-          particle.rotation += delta * this.angularVelocityFunc.genValue(particle.age / particle.life);
+          particle.rotation += delta * this.angularVelocity.genValue(particle.age / particle.life);
         }
       }
     }
@@ -1050,13 +1050,13 @@ var RotationOverLife = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.angularVelocityFunc.toJSON()
+        angularVelocity: this.angularVelocity.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new RotationOverLife(this.angularVelocityFunc);
+      return new RotationOverLife(this.angularVelocity);
     }
   }]);
 
@@ -1064,10 +1064,10 @@ var RotationOverLife = /*#__PURE__*/function () {
 }();
 
 var SizeOverLife = /*#__PURE__*/function () {
-  function SizeOverLife(func) {
+  function SizeOverLife(size) {
     _classCallCheck(this, SizeOverLife);
 
-    this.func = func;
+    this.size = size;
 
     _defineProperty(this, "type", 'SizeOverLife');
   }
@@ -1078,20 +1078,20 @@ var SizeOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle) {
-      particle.size = particle.startSize * this.func.genValue(particle.age / particle.life);
+      particle.size = particle.startSize * this.size.genValue(particle.age / particle.life);
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        size: this.size.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new SizeOverLife(this.func.clone());
+      return new SizeOverLife(this.size.clone());
     }
   }]);
 
@@ -1099,10 +1099,10 @@ var SizeOverLife = /*#__PURE__*/function () {
 }();
 
 var SpeedOverLife = /*#__PURE__*/function () {
-  function SpeedOverLife(func) {
+  function SpeedOverLife(speed) {
     _classCallCheck(this, SpeedOverLife);
 
-    this.func = func;
+    this.speed = speed;
 
     _defineProperty(this, "type", 'SpeedOverLife');
   }
@@ -1113,20 +1113,20 @@ var SpeedOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle) {
-      particle.velocity.normalize().multiplyScalar(particle.startSpeed * this.func.genValue(particle.age / particle.life));
+      particle.velocity.normalize().multiplyScalar(particle.startSpeed * this.speed.genValue(particle.age / particle.life));
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        speed: this.speed.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new SpeedOverLife(this.func.clone());
+      return new SpeedOverLife(this.speed.clone());
     }
   }]);
 
@@ -1134,10 +1134,10 @@ var SpeedOverLife = /*#__PURE__*/function () {
 }();
 
 var FrameOverLife = /*#__PURE__*/function () {
-  function FrameOverLife(func) {
+  function FrameOverLife(frame) {
     _classCallCheck(this, FrameOverLife);
 
-    this.func = func;
+    this.frame = frame;
 
     _defineProperty(this, "type", 'FrameOverLife');
   }
@@ -1148,20 +1148,20 @@ var FrameOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle, delta) {
-      particle.uvTile = Math.floor(this.func.genValue(particle.age / particle.life));
+      particle.uvTile = Math.floor(this.frame.genValue(particle.age / particle.life));
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.func.toJSON()
+        frame: this.frame.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new FrameOverLife(this.func.clone());
+      return new FrameOverLife(this.frame.clone());
     }
   }]);
 
@@ -1170,10 +1170,10 @@ var FrameOverLife = /*#__PURE__*/function () {
 
 new Vector3();
 var OrbitOverLife = /*#__PURE__*/function () {
-  function OrbitOverLife(angularVelocityFunc) {
+  function OrbitOverLife(orbitSpeed) {
     _classCallCheck(this, OrbitOverLife);
 
-    this.angularVelocityFunc = angularVelocityFunc;
+    this.orbitSpeed = orbitSpeed;
 
     _defineProperty(this, "type", 'OrbitOverLife');
   }
@@ -1182,8 +1182,8 @@ var OrbitOverLife = /*#__PURE__*/function () {
     key: "initialize",
     value: function initialize(particle) {
       if (particle instanceof SpriteParticle) {
-        if (this.angularVelocityFunc.type === 'value') {
-          particle.angularVelocity = this.angularVelocityFunc.genValue();
+        if (this.orbitSpeed.type === 'value') {
+          particle.angularVelocity = this.orbitSpeed.genValue();
         } else {
           particle.angularVelocity = 0;
         }
@@ -1194,7 +1194,7 @@ var OrbitOverLife = /*#__PURE__*/function () {
     value: function update(particle, delta) {
       var rotation = Math.atan2(particle.position.y, particle.position.x);
       var len = Math.sqrt(particle.position.x * particle.position.x + particle.position.y * particle.position.y);
-      rotation += this.angularVelocityFunc.genValue(particle.age / particle.life) * delta;
+      rotation += this.orbitSpeed.genValue(particle.age / particle.life) * delta;
       particle.position.x = Math.cos(rotation) * len;
       particle.position.y = Math.sin(rotation) * len; //let v1x = particle.position.x
       //let v1y = particle.position.y;
@@ -1210,13 +1210,13 @@ var OrbitOverLife = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         type: this.type,
-        func: this.angularVelocityFunc.toJSON()
+        orbitSpeed: this.orbitSpeed.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new OrbitOverLife(this.angularVelocityFunc.clone());
+      return new OrbitOverLife(this.orbitSpeed.clone());
     }
   }]);
 
@@ -1224,23 +1224,24 @@ var OrbitOverLife = /*#__PURE__*/function () {
 }();
 
 var ApplyForce = /*#__PURE__*/function () {
-  function ApplyForce(direction, func) {
+  function ApplyForce(direction, force) {
     _classCallCheck(this, ApplyForce);
 
     this.direction = direction;
-    this.func = func;
+    this.force = force;
 
     _defineProperty(this, "type", 'ApplyForce');
   }
 
   _createClass(ApplyForce, [{
     key: "initialize",
-    value: function initialize(particle) {}
+    value: function initialize(particle) {
+      particle.force = this.force.genValue();
+    }
   }, {
     key: "update",
     value: function update(particle, delta) {
-      var force = this.func.genValue(particle.age / particle.life);
-      particle.velocity.addScaledVector(this.direction, force * delta);
+      particle.velocity.addScaledVector(this.direction, particle.force * delta);
     }
   }, {
     key: "toJSON",
@@ -1248,41 +1249,118 @@ var ApplyForce = /*#__PURE__*/function () {
       return {
         type: this.type,
         direction: [this.direction.x, this.direction.y, this.direction.z],
-        func: this.func.toJSON()
+        force: this.force.toJSON()
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new ApplyForce(this.direction.clone(), this.func.clone());
+      return new ApplyForce(this.direction.clone(), this.force.clone());
     }
   }]);
 
   return ApplyForce;
 }();
 
+var GravityForce = /*#__PURE__*/function () {
+  function GravityForce(center, magnitude) {
+    _classCallCheck(this, GravityForce);
+
+    this.center = center;
+    this.magnitude = magnitude;
+
+    _defineProperty(this, "type", 'GravityForce');
+
+    _defineProperty(this, "temp", new Vector3());
+  }
+
+  _createClass(GravityForce, [{
+    key: "initialize",
+    value: function initialize(particle) {}
+  }, {
+    key: "update",
+    value: function update(particle, delta) {
+      this.temp.copy(this.center).sub(particle.position).normalize();
+      particle.velocity.addScaledVector(this.temp, this.magnitude / particle.position.distanceToSquared(this.center) * delta);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        center: [this.center.x, this.center.y, this.center.z],
+        magnitude: this.magnitude
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new GravityForce(this.center.clone(), this.magnitude);
+    }
+  }]);
+
+  return GravityForce;
+}();
+
+var BehaviorTypes = {
+  "ApplyForce": {
+    constructor: ApplyForce,
+    params: [["direction", "vec3"], ["force", "value"]]
+  },
+  "GravityForce": {
+    constructor: GravityForce,
+    params: [["center", "vec3"], ["magnitude", "number"]]
+  },
+  "ColorOverLife": {
+    constructor: ColorOverLife,
+    params: [["color", "colorFunc"]]
+  },
+  "RotationOverLife": {
+    constructor: RotationOverLife,
+    params: [["angularVelocity", "valueFunc"]]
+  },
+  "SizeOverLife": {
+    constructor: SizeOverLife,
+    params: [["size", "valueFunc"]]
+  },
+  "SpeedOverLife": {
+    constructor: SpeedOverLife,
+    params: [["speed", "valueFunc"]]
+  },
+  "FrameOverLife": {
+    constructor: FrameOverLife,
+    params: [["frame", "valueFunc"]]
+  },
+  "OrbitOverLife": {
+    constructor: OrbitOverLife,
+    params: [["orbitSpeed", "valueFunc"]]
+  }
+};
 function BehaviorFromJSON(json) {
   switch (json.type) {
     case 'ApplyForce':
-      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.func));
+      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.force));
+
+    case 'GravityForce':
+      return new GravityForce(new Vector3(json.center[0], json.center[1], json.center[2]), json.magnitude);
 
     case 'ColorOverLife':
-      return new ColorOverLife(ColorGeneratorFromJSON(json.func));
+      return new ColorOverLife(ColorGeneratorFromJSON(json.color));
 
     case 'RotationOverLife':
-      return new RotationOverLife(ValueGeneratorFromJSON(json.func));
+      return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity));
 
     case 'SizeOverLife':
-      return new SizeOverLife(ValueGeneratorFromJSON(json.func));
+      return new SizeOverLife(ValueGeneratorFromJSON(json.size));
 
     case 'SpeedOverLife':
-      return new SpeedOverLife(ValueGeneratorFromJSON(json.func));
+      return new SpeedOverLife(ValueGeneratorFromJSON(json.speed));
 
     case 'FrameOverLife':
-      return new FrameOverLife(ValueGeneratorFromJSON(json.func));
+      return new FrameOverLife(ValueGeneratorFromJSON(json.frame));
 
     case 'OrbitOverLife':
-      return new OrbitOverLife(ValueGeneratorFromJSON(json.func));
+      return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed));
 
     default:
       return new ColorOverLife(new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1)));
@@ -1535,14 +1613,14 @@ var DonutEmitter = /*#__PURE__*/function () {
   return DonutEmitter;
 }();
 
-var RenderMode$2;
+var RenderMode;
 
 (function (RenderMode) {
   RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
   RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
   RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
   RenderMode[RenderMode["Trail"] = 3] = "Trail";
-})(RenderMode$2 || (RenderMode$2 = {}));
+})(RenderMode || (RenderMode = {}));
 
 var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
   _inherits(ParticleSystemBatch, _Mesh);
@@ -1693,7 +1771,7 @@ var ParticleSystem = /*#__PURE__*/function () {
       blending: (_parameters$blending = parameters.blending) !== null && _parameters$blending !== void 0 ? _parameters$blending : NormalBlending,
       transparent: (_parameters$transpare = parameters.transparent) !== null && _parameters$transpare !== void 0 ? _parameters$transpare : true,
       instancingGeometry: (_parameters$instancin = parameters.instancingGeometry) !== null && _parameters$instancin !== void 0 ? _parameters$instancin : DEFAULT_GEOMETRY,
-      renderMode: (_parameters$renderMod = parameters.renderMode) !== null && _parameters$renderMod !== void 0 ? _parameters$renderMod : RenderMode$2.BillBoard,
+      renderMode: (_parameters$renderMod = parameters.renderMode) !== null && _parameters$renderMod !== void 0 ? _parameters$renderMod : RenderMode.BillBoard,
       renderOrder: (_parameters$renderOrd = parameters.renderOrder) !== null && _parameters$renderOrd !== void 0 ? _parameters$renderOrd : 0,
       texture: parameters.texture,
       uTileCount: (_parameters$uTileCoun = parameters.uTileCount) !== null && _parameters$uTileCoun !== void 0 ? _parameters$uTileCoun : 1,
@@ -1701,7 +1779,7 @@ var ParticleSystem = /*#__PURE__*/function () {
     };
     this.neededToUpdateRender = true;
     this.particles = new Array();
-    this.startTileIndex = parameters.startTileIndex || 0;
+    this.startTileIndex = parameters.startTileIndex || new ConstantValue(0);
     this.emitter = new ParticleEmitter(this);
     this.particleNum = 0;
     this.burstIndex = 0;
@@ -1748,7 +1826,7 @@ var ParticleSystem = /*#__PURE__*/function () {
       return this.rendererSettings.renderMode;
     },
     set: function set(renderMode) {
-      if (this.rendererSettings.renderMode != RenderMode$2.Trail && renderMode === RenderMode$2.Trail || this.rendererSettings.renderMode == RenderMode$2.Trail && renderMode !== RenderMode$2.Trail) {
+      if (this.rendererSettings.renderMode != RenderMode.Trail && renderMode === RenderMode.Trail || this.rendererSettings.renderMode == RenderMode.Trail && renderMode !== RenderMode.Trail) {
         this.restart();
         this.particles.length = 0;
       }
@@ -1791,7 +1869,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         this.particleNum++;
 
         while (this.particles.length < this.particleNum) {
-          if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+          if (this.rendererSettings.renderMode === RenderMode.Trail) {
             this.particles.push(new TrailParticle());
           } else {
             this.particles.push(new SpriteParticle());
@@ -1805,17 +1883,17 @@ var ParticleSystem = /*#__PURE__*/function () {
         particle.life = this.startLife.genValue(this.time);
         particle.age = 0;
         particle.startSize = this.startSize.genValue(this.time);
-        particle.uvTile = this.startTileIndex;
+        particle.uvTile = Math.floor(this.startTileIndex.genValue());
         particle.size = particle.startSize;
 
-        if (this.rendererSettings.renderMode === RenderMode$2.LocalSpace || this.rendererSettings.renderMode === RenderMode$2.BillBoard || this.rendererSettings.renderMode === RenderMode$2.StretchedBillBoard) {
+        if (this.rendererSettings.renderMode === RenderMode.LocalSpace || this.rendererSettings.renderMode === RenderMode.BillBoard || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard) {
           var sprite = particle;
           sprite.rotation = this.startRotation.genValue(this.time);
 
-          if (this.rendererSettings.renderMode === RenderMode$2.LocalSpace) {
+          if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
             sprite.rotationQuat = new Quaternion().setFromAxisAngle(UP$1, sprite.rotation);
           }
-        } else if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+        } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
           var trail = particle;
           trail.length = this.startLength.genValue(this.time);
           trail.reset();
@@ -1934,7 +2012,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         _particle.age += delta;
       }
 
-      if (this.rendererSettings.renderMode === RenderMode$2.Trail) {
+      if (this.rendererSettings.renderMode === RenderMode.Trail) {
         for (var _i2 = 0; _i2 < this.particleNum; _i2++) {
           var _particle2 = this.particles[_i2];
 
@@ -1983,9 +2061,9 @@ var ParticleSystem = /*#__PURE__*/function () {
         //Array.from(this.emitter.interleavedBuffer.array as Float32Array),
         renderOrder: this.renderOrder,
         renderMode: this.renderMode,
-        speedFactor: this.renderMode === RenderMode$2.StretchedBillBoard ? this.speedFactor : 0,
+        speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
         texture: this.texture.uuid,
-        startTileIndex: this.startTileIndex,
+        startTileIndex: this.startTileIndex.toJSON(),
         uTileCount: this.uTileCount,
         vTileCount: this.vTileCount,
         blending: this.blending,
@@ -2116,7 +2194,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         renderOrder: json.renderOrder,
         speedFactor: json.speedFactor,
         texture: textures[json.texture],
-        startTileIndex: json.startTileIndex,
+        startTileIndex: typeof json.startTileIndex === 'number' ? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex),
         uTileCount: json.uTileCount,
         vTileCount: json.vTileCount,
         blending: json.blending,
@@ -2173,15 +2251,6 @@ var stretched_bb_particle_vert = /* glsl */
 		if ( isPerspective ) computedSize *= - mvPosition.z;
 	#endif
  */
-
-var RenderMode$1;
-
-(function (RenderMode) {
-  RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
-  RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
-  RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
-  RenderMode[RenderMode["Trail"] = 3] = "Trail";
-})(RenderMode$1 || (RenderMode$1 = {}));
 
 var DEFAULT_MAX_PARTICLE$1 = 1000;
 var UP = new Vector3(0, 0, 1);
@@ -2243,11 +2312,11 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       this.colorBuffer.setUsage(DynamicDrawUsage);
       this.geometry.setAttribute('color', this.colorBuffer);
 
-      if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+      if (this.settings.renderMode === RenderMode.LocalSpace) {
         this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 4), 4);
         this.rotationBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('rotation', this.rotationBuffer);
-      } else if (this.settings.renderMode === RenderMode$1.BillBoard || this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+      } else if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.StretchedBillBoard) {
         this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1), 1);
         this.rotationBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('rotation', this.rotationBuffer);
@@ -2260,7 +2329,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       this.uvTileBuffer.setUsage(DynamicDrawUsage);
       this.geometry.setAttribute('uvTile', this.uvTileBuffer);
 
-      if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+      if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
         this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE$1 * 3), 3);
         this.velocityBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('velocity', this.velocityBuffer);
@@ -2281,11 +2350,11 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       defines['UV_TILE'] = '';
       uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
-      if (this.settings.renderMode === RenderMode$1.BillBoard || this.settings.renderMode === RenderMode$1.LocalSpace) {
+      if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpace) {
         var vertexShader;
         var side;
 
-        if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+        if (this.settings.renderMode === RenderMode.LocalSpace) {
           vertexShader = local_particle_vert;
           side = DoubleSide;
         } else {
@@ -2303,7 +2372,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
           blending: this.settings.blending || AdditiveBlending,
           side: side
         });
-      } else if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+      } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
         uniforms['speedFactor'] = new Uniform(1.0);
         this.material = new ShaderMaterial({
           uniforms: uniforms,
@@ -2341,7 +2410,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
         for (var j = 0; j < particleNum; j++, index++) {
           var particle = particles[j];
 
-          if (_this2.settings.renderMode === RenderMode$1.LocalSpace) {
+          if (_this2.settings.renderMode === RenderMode.LocalSpace) {
             particle.rotationQuat.setFromAxisAngle(UP, particle.rotation);
 
             if (system.worldSpace) {
@@ -2351,7 +2420,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
               _this2.rotationBuffer.setXYZW(index, _this2.quaternion_.x, _this2.quaternion_.y, _this2.quaternion_.z, _this2.quaternion_.w);
             }
-          } else if (_this2.settings.renderMode === RenderMode$1.StretchedBillBoard || _this2.settings.renderMode === RenderMode$1.BillBoard) {
+          } else if (_this2.settings.renderMode === RenderMode.StretchedBillBoard || _this2.settings.renderMode === RenderMode.BillBoard) {
             _this2.rotationBuffer.setX(index, particle.rotation);
           }
 
@@ -2369,7 +2438,7 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
           _this2.uvTileBuffer.setX(index, particle.uvTile);
 
-          if (_this2.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+          if (_this2.settings.renderMode === RenderMode.StretchedBillBoard) {
             if (system.worldSpace) {
               _this2.velocityBuffer.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
             } else {
@@ -2392,15 +2461,15 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
         this.uvTileBuffer.updateRange.count = index;
         this.uvTileBuffer.needsUpdate = true;
 
-        if (this.settings.renderMode === RenderMode$1.StretchedBillBoard) {
+        if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
           this.velocityBuffer.updateRange.count = index * 3;
           this.velocityBuffer.needsUpdate = true;
         }
 
-        if (this.settings.renderMode === RenderMode$1.LocalSpace) {
+        if (this.settings.renderMode === RenderMode.LocalSpace) {
           this.rotationBuffer.updateRange.count = index * 4;
           this.rotationBuffer.needsUpdate = true;
-        } else if (this.settings.renderMode === RenderMode$1.StretchedBillBoard || this.settings.renderMode === RenderMode$1.BillBoard) {
+        } else if (this.settings.renderMode === RenderMode.StretchedBillBoard || this.settings.renderMode === RenderMode.BillBoard) {
           this.rotationBuffer.updateRange.count = index;
           this.rotationBuffer.needsUpdate = true;
         }
@@ -2417,19 +2486,10 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 }(ParticleSystemBatch);
 
 var trail_frag = /* glsl */
-"\n#include <fog_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n    \nuniform sampler2D map;\nuniform sampler2D alphaMap;\nuniform float useMap;\nuniform float useAlphaMap;\nuniform float visibility;\nuniform float alphaTest;\nuniform vec2 repeat;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvoid main() {\n\n    #include <logdepthbuf_fragment>\n\n    vec4 c = vColor;\n    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );\n    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUV * repeat ).a;\n    if( c.a < alphaTest ) discard;\n    gl_FragColor = c;\n\n    #include <fog_fragment>\n}";
+"\n\n#include <common>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <fog_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nuniform sampler2D alphaMap;\nuniform float useAlphaMap;\nuniform float visibility;\nuniform float alphaTest;\nuniform vec2 repeat;\n\nvarying vec4 vColor;\n    \nvoid main() {\n    #include <clipping_planes_fragment>\n    #include <logdepthbuf_fragment>\n\n    vec4 c = vColor;\n    \n    #ifdef USE_MAP\n    c *= texture2D( map, vUv * repeat );\n    #endif\n    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUv * repeat ).a;\n    if( c.a < alphaTest ) discard;\n    gl_FragColor = c;\n\n    #include <fog_fragment>\n    #include <tonemapping_fragment>\n}";
 
 var trail_vert = /* glsl */
-"\n\n#include <uv_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute vec4 color;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n    vUV = uv;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
-
-var RenderMode;
-
-(function (RenderMode) {
-  RenderMode[RenderMode["BillBoard"] = 0] = "BillBoard";
-  RenderMode[RenderMode["StretchedBillBoard"] = 1] = "StretchedBillBoard";
-  RenderMode[RenderMode["LocalSpace"] = 2] = "LocalSpace";
-  RenderMode[RenderMode["Trail"] = 3] = "Trail";
-})(RenderMode || (RenderMode = {}));
+"\n\n#include <uv_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute vec4 color;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    #include <uv_vertex>\n    \n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
 
 var DEFAULT_MAX_PARTICLE = 10000;
 new Vector3(0, 0, 1);
@@ -2541,10 +2601,6 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       uniforms['map'] = new Uniform(this.settings.texture); //@ts-ignore
 
       uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
-      var uTileCount = this.settings.uTileCount;
-      var vTileCount = this.settings.vTileCount;
-      defines['UV_TILE'] = '';
-      uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
       if (this.settings.renderMode === RenderMode.Trail) {
         this.material = new ShaderMaterial({
@@ -2568,71 +2624,6 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
     }*/
 
   }, {
-    key: "update2",
-    value: function update2() {
-      /*this.colorBuffer.setXYZW(0, 1, 1, 1, 1);
-      this.colorBuffer.setXYZW(1, 1, 1, 1, 1);
-      this.colorBuffer.setXYZW(2, 1, 1, 1, 1);
-      this.colorBuffer.setXYZW(3, 1, 1, 1, 1);
-       this.colorBuffer.updateRange.count = 4;
-      this.colorBuffer.needsUpdate = true;*/
-      this.positionBuffer.setXYZ(0, 0, 0, 0);
-      this.positionBuffer.setXYZ(1, 1, 0, 0);
-      this.positionBuffer.setXYZ(2, 0, 1, 0);
-      this.positionBuffer.setXYZ(3, 1, 1, 0);
-      this.positionBuffer.setXYZ(4, 0, 2, 0);
-      this.positionBuffer.setXYZ(5, 1, 2, 0);
-      this.positionBuffer.updateRange.count = 6;
-      this.positionBuffer.needsUpdate = true;
-      this.previousBuffer.setXYZ(0, 0, 0, 0);
-      this.previousBuffer.setXYZ(1, 1, 0, 0);
-      this.previousBuffer.setXYZ(2, 0, 0, 0);
-      this.previousBuffer.setXYZ(3, 1, 0, 0);
-      this.previousBuffer.setXYZ(4, 0, 1, 0);
-      this.previousBuffer.setXYZ(5, 1, 1, 0);
-      this.previousBuffer.updateRange.count = 6;
-      this.previousBuffer.needsUpdate = true;
-      this.nextBuffer.setXYZ(0, 0, 1, 0);
-      this.nextBuffer.setXYZ(1, 1, 1, 0);
-      this.nextBuffer.setXYZ(2, 0, 2, 0);
-      this.nextBuffer.setXYZ(3, 1, 2, 0);
-      this.nextBuffer.setXYZ(4, 0, 2, 0);
-      this.nextBuffer.setXYZ(5, 1, 2, 0);
-      this.nextBuffer.updateRange.count = 6;
-      this.nextBuffer.needsUpdate = true;
-      this.sideBuffer.setX(0, -1);
-      this.sideBuffer.setX(1, 1);
-      this.sideBuffer.setX(2, -1);
-      this.sideBuffer.setX(3, 1);
-      this.sideBuffer.setX(4, -1);
-      this.sideBuffer.setX(5, 1);
-      this.sideBuffer.updateRange.count = 6;
-      this.sideBuffer.needsUpdate = true;
-      this.widthBuffer.setX(0, 1);
-      this.widthBuffer.setX(1, 1);
-      this.widthBuffer.setX(2, 1);
-      this.widthBuffer.setX(3, 1);
-      this.widthBuffer.setX(4, 1);
-      this.widthBuffer.setX(5, 1);
-      this.widthBuffer.updateRange.count = 6;
-      this.widthBuffer.needsUpdate = true;
-      this.indexBuffer.setX(0, 0);
-      this.indexBuffer.setX(1, 1);
-      this.indexBuffer.setX(2, 2);
-      this.indexBuffer.setX(3, 2);
-      this.indexBuffer.setX(4, 1);
-      this.indexBuffer.setX(5, 3);
-      this.indexBuffer.setX(6, 2);
-      this.indexBuffer.setX(7, 3);
-      this.indexBuffer.setX(8, 4);
-      this.indexBuffer.setX(9, 4);
-      this.indexBuffer.setX(10, 3);
-      this.indexBuffer.setX(11, 5);
-      this.indexBuffer.updateRange.count = 12;
-      this.indexBuffer.needsUpdate = true;
-      this.geometry.setDrawRange(0, 12);
-    }
-  }, {
     key: "update",
     value: function update() {
       var _this2 = this;
@@ -2642,17 +2633,15 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
       this.systems.forEach(function (system) {
         var particles = system.particles;
         var particleNum = system.particleNum;
+        var uTileCount = _this2.settings.uTileCount;
+        var vTileCount = _this2.settings.vTileCount;
+        var tileWidth = 1 / uTileCount;
+        var tileHeight = 1 / vTileCount;
 
         for (var j = 0; j < particleNum; j++) {
-          var particle = particles[j]; //TODO: remove
-
-          /*particle.previous = [
-              new RecordState(new Vector3(0, 0, 0), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(1, 1, 0), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(2, 2, 1), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(3, 3, 1), 0.1, new Vector4(1,1,1,1)),
-              new RecordState(new Vector3(4, 4, 2), 0.1, new Vector4(1,1,1,1)),
-          ];*/
+          var particle = particles[j];
+          var col = particle.uvTile % vTileCount;
+          var row = Math.floor(particle.uvTile / vTileCount);
 
           for (var i = 0; i < particle.previous.length; i++, index += 2) {
             var recordState = particle.previous[i];
@@ -2693,9 +2682,9 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
             _this2.widthBuffer.setX(index + 1, recordState.size);
 
-            _this2.uvBuffer.setXY(index, i / particle.previous.length, 0);
+            _this2.uvBuffer.setXY(index, (i / particle.previous.length + col) * tileWidth, (vTileCount - row - 1) * tileHeight);
 
-            _this2.uvBuffer.setXY(index + 1, i / particle.previous.length, 1);
+            _this2.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
 
             _this2.colorBuffer.setXYZW(index, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
 
@@ -2786,13 +2775,13 @@ var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
       var batch;
 
       switch (settings.renderMode) {
-        case RenderMode$2.Trail:
+        case RenderMode.Trail:
           batch = new TrailBatch(settings);
           break;
 
-        case RenderMode$2.LocalSpace:
-        case RenderMode$2.BillBoard:
-        case RenderMode$2.StretchedBillBoard:
+        case RenderMode.LocalSpace:
+        case RenderMode.BillBoard:
+        case RenderMode.StretchedBillBoard:
           batch = new SpriteBatch(settings);
           break;
       }
@@ -3160,6 +3149,8 @@ var TEXTURE_FILTER = {
   LinearMipmapLinearFilter: LinearMipmapLinearFilter
 };
 
+var EmitterTypes = [[new ConeEmitter().type, ConeEmitter], [new PointEmitter().type, PointEmitter], [new SphereEmitter().type, SphereEmitter], [new DonutEmitter().type, DonutEmitter]];
+
 var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   _inherits(Gradient, _PiecewiseFunction);
 
@@ -3234,4 +3225,4 @@ var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   return Gradient;
 }(PiecewiseFunction);
 
-export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode$2 as RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteParticle, TrailParticle, ValueGeneratorFromJSON };
+export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitterTypes, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, ValueGeneratorFromJSON };
