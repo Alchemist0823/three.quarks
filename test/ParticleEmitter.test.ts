@@ -42,7 +42,7 @@ describe("ParticleEmitter", () => {
         }),
         texture: texture,
         blending: AdditiveBlending,
-        startTileIndex: 1,
+        startTileIndex: new ConstantValue(1),
         uTileCount: 10,
         vTileCount: 10,
         renderOrder: 2,
@@ -93,7 +93,7 @@ describe("ParticleEmitter", () => {
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {}, renderer) as ParticleEmitter;
 
-        expect(emitter.system.startTileIndex).toBe(1);
+        expect(emitter.system.startTileIndex.type).toBe("ConstantValue");
         expect(emitter.system.behaviors.length).toBe(2);
     });
 });

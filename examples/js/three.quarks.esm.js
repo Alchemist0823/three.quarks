@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.5.2 build Wed Mar 23 2022
+ * three.quarks v0.5.2 build Sun Mar 27 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -1779,7 +1779,7 @@ var ParticleSystem = /*#__PURE__*/function () {
     };
     this.neededToUpdateRender = true;
     this.particles = new Array();
-    this.startTileIndex = parameters.startTileIndex || 0;
+    this.startTileIndex = parameters.startTileIndex || new ConstantValue(0);
     this.emitter = new ParticleEmitter(this);
     this.particleNum = 0;
     this.burstIndex = 0;
@@ -1883,7 +1883,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         particle.life = this.startLife.genValue(this.time);
         particle.age = 0;
         particle.startSize = this.startSize.genValue(this.time);
-        particle.uvTile = this.startTileIndex;
+        particle.uvTile = this.startTileIndex.genValue();
         particle.size = particle.startSize;
 
         if (this.rendererSettings.renderMode === RenderMode.LocalSpace || this.rendererSettings.renderMode === RenderMode.BillBoard || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard) {
@@ -2063,7 +2063,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         renderMode: this.renderMode,
         speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
         texture: this.texture.uuid,
-        startTileIndex: this.startTileIndex,
+        startTileIndex: this.startTileIndex.toJSON(),
         uTileCount: this.uTileCount,
         vTileCount: this.vTileCount,
         blending: this.blending,
@@ -2194,7 +2194,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         renderOrder: json.renderOrder,
         speedFactor: json.speedFactor,
         texture: textures[json.texture],
-        startTileIndex: json.startTileIndex,
+        startTileIndex: typeof json.startTileIndex === 'number' ? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex),
         uTileCount: json.uTileCount,
         vTileCount: json.vTileCount,
         blending: json.blending,

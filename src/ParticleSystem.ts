@@ -65,7 +65,7 @@ export interface ParticleSystemParameters {
     renderMode?: RenderMode;
     speedFactor?: number;
     texture: Texture;
-    startTileIndex?: number;
+    startTileIndex?: ValueGenerator;
     uTileCount?: number;
     vTileCount?: number;
     renderOrder?: number;
@@ -100,7 +100,7 @@ export interface ParticleSystemJSONParameters {
     renderOrder?: number;
     speedFactor?: number;
     texture: string;
-    startTileIndex: number;
+    startTileIndex: FunctionJSON | number;
     uTileCount: number;
     vTileCount: number;
     blending: number;
@@ -124,7 +124,7 @@ export class ParticleSystem {
     startSize: ValueGenerator | FunctionValueGenerator;
     startLength: ValueGenerator | FunctionValueGenerator;
     startColor: ColorGenerator | FunctionColorGenerator;
-    startTileIndex: number;
+    startTileIndex: ValueGenerator;
 
     emissionOverTime: ValueGenerator | FunctionValueGenerator;
     emissionOverDistance: ValueGenerator | FunctionValueGenerator;
@@ -249,7 +249,7 @@ export class ParticleSystem {
 
         this.particles = new Array<Particle>();
 
-        this.startTileIndex = parameters.startTileIndex || 0;
+        this.startTileIndex = parameters.startTileIndex || new ConstantValue(0);
         this.emitter = new ParticleEmitter(this);
 
         this.particleNum = 0;
@@ -288,7 +288,7 @@ export class ParticleSystem {
             particle.life = this.startLife.genValue(this.time);
             particle.age = 0;
             particle.startSize = this.startSize.genValue(this.time);
-            particle.uvTile = this.startTileIndex;
+            particle.uvTile = this.startTileIndex.genValue();
             particle.size = particle.startSize;
             if (this.rendererSettings.renderMode === RenderMode.LocalSpace
                 || this.rendererSettings.renderMode === RenderMode.BillBoard
@@ -471,7 +471,7 @@ export class ParticleSystem {
             renderMode: this.renderMode,
             speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor: 0,
             texture: this.texture.uuid,
-            startTileIndex: this.startTileIndex,
+            startTileIndex: this.startTileIndex.toJSON(),
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
             blending: this.blending,
@@ -524,7 +524,7 @@ export class ParticleSystem {
             renderOrder: json.renderOrder,
             speedFactor: json.speedFactor,
             texture: textures[json.texture],
-            startTileIndex: json.startTileIndex,
+            startTileIndex: typeof json.startTileIndex === 'number'? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator,
             uTileCount: json.uTileCount,
             vTileCount: json.vTileCount,
             blending: json.blending,
