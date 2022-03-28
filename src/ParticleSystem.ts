@@ -2,7 +2,7 @@ import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./
 import {Behavior, BehaviorFromJSON} from "./behaviors/Behavior";
 import {Particle, SpriteParticle, TrailParticle} from "./Particle";
 import {ParticleEmitter} from "./ParticleEmitter";
-import {EmitterShape, ShapeJSON} from "./EmitterShape";
+import {EmitterFromJSON, EmitterShape, ShapeJSON} from "./shape/EmitterShape";
 import {ConeEmitter} from "./shape/ConeEmitter";
 import {
     Blending,
@@ -29,6 +29,7 @@ import {PointEmitter} from "./shape/PointEmitter";
 import {DonutEmitter} from "./shape/DonutEmitter";
 import {ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
 import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
+import {MeshSurfaceEmitter} from "./shape";
 
 
 export interface BurstParameters {
@@ -483,24 +484,7 @@ export class ParticleSystem {
     }
 
     static fromJSON(json: ParticleSystemJSONParameters, textures: {[a:string]:Texture}, renderer: BatchedParticleRenderer): ParticleSystem {
-        let shape;
-        switch(json.shape.type) {
-            case 'cone':
-                shape = new ConeEmitter(json.shape);
-                break;
-            case 'donut':
-                shape = new DonutEmitter(json.shape);
-                break;
-            case 'point':
-                shape = new PointEmitter();
-                break;
-            case 'sphere':
-                shape = new SphereEmitter(json.shape);
-                break;
-            default:
-                shape = new PointEmitter();
-                break;
-        }
+        let shape = EmitterFromJSON(json.shape);
 
         return new ParticleSystem(renderer,{
             autoDestroy: json.autoDestroy,

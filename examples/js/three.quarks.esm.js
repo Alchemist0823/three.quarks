@@ -3,7 +3,7 @@
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
-import { Object3D, Vector4, Vector3, MathUtils, Mesh, PlaneBufferGeometry, Matrix4, Matrix3, NormalBlending, Quaternion, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, DataTexture, Source, CubeTexture, Texture, Group, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter } from './three.module.js';
+import { Object3D, Vector4, Vector3, MathUtils, Triangle, Mesh, PlaneBufferGeometry, Matrix4, Matrix3, NormalBlending, Quaternion, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, DataTexture, Source, CubeTexture, Texture, Group, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter } from './three.module.js';
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -1437,113 +1437,6 @@ var ConeEmitter = /*#__PURE__*/function () {
   return ConeEmitter;
 }();
 
-var SphereEmitter = /*#__PURE__*/function () {
-  //[0, 1]
-  function SphereEmitter() {
-    var _parameters$radius, _parameters$arc, _parameters$thickness;
-
-    var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-    _classCallCheck(this, SphereEmitter);
-
-    _defineProperty(this, "type", "sphere");
-
-    _defineProperty(this, "radius", void 0);
-
-    _defineProperty(this, "arc", void 0);
-
-    _defineProperty(this, "thickness", void 0);
-
-    this.radius = (_parameters$radius = parameters.radius) !== null && _parameters$radius !== void 0 ? _parameters$radius : 10;
-    this.arc = (_parameters$arc = parameters.arc) !== null && _parameters$arc !== void 0 ? _parameters$arc : 2.0 * Math.PI;
-    this.thickness = (_parameters$thickness = parameters.thickness) !== null && _parameters$thickness !== void 0 ? _parameters$thickness : 1;
-  }
-
-  _createClass(SphereEmitter, [{
-    key: "initialize",
-    value: function initialize(p) {
-      var u = Math.random();
-      var v = Math.random();
-      var rand = MathUtils.lerp(1 - this.thickness, 1, Math.random());
-      var theta = u * this.arc;
-      var phi = Math.acos(2.0 * v - 1.0);
-      var r = Math.cbrt(rand);
-      var sinTheta = Math.sin(theta);
-      var cosTheta = Math.cos(theta);
-      var sinPhi = Math.sin(phi);
-      var cosPhi = Math.cos(phi);
-      p.position.x = r * sinPhi * cosTheta;
-      p.position.y = r * sinPhi * sinTheta;
-      p.position.z = r * cosPhi;
-      p.velocity.setScalar(0).addScaledVector(p.position, p.startSpeed);
-      p.position.multiplyScalar(this.radius);
-    }
-  }, {
-    key: "toJSON",
-    value: function toJSON() {
-      return {
-        type: "sphere",
-        radius: this.radius,
-        arc: this.arc,
-        thickness: this.thickness
-      };
-    }
-  }, {
-    key: "clone",
-    value: function clone() {
-      return new SphereEmitter({
-        radius: this.radius,
-        arc: this.arc,
-        thickness: this.thickness
-      });
-    }
-  }]);
-
-  return SphereEmitter;
-}();
-
-var PointEmitter = /*#__PURE__*/function () {
-  function PointEmitter() {
-    _classCallCheck(this, PointEmitter);
-
-    _defineProperty(this, "type", "point");
-  }
-
-  _createClass(PointEmitter, [{
-    key: "initialize",
-    value: function initialize(p) {
-      var u = Math.random();
-      var v = Math.random();
-      var theta = u * Math.PI * 2;
-      var phi = Math.acos(2.0 * v - 1.0);
-      var r = Math.cbrt(Math.random());
-      var sinTheta = Math.sin(theta);
-      var cosTheta = Math.cos(theta);
-      var sinPhi = Math.sin(phi);
-      var cosPhi = Math.cos(phi);
-      p.velocity.x = r * sinPhi * cosTheta;
-      p.velocity.y = r * sinPhi * sinTheta;
-      p.velocity.z = r * cosPhi;
-      p.velocity.multiplyScalar(p.startSpeed);
-      p.position.setScalar(0);
-    }
-  }, {
-    key: "toJSON",
-    value: function toJSON() {
-      return {
-        type: 'point'
-      };
-    }
-  }, {
-    key: "clone",
-    value: function clone() {
-      return new PointEmitter();
-    }
-  }]);
-
-  return PointEmitter;
-}();
-
 var DonutEmitter = /*#__PURE__*/function () {
   // [0, Math.PI * 2]
   // [0, Math.PI / 2]
@@ -1612,6 +1505,269 @@ var DonutEmitter = /*#__PURE__*/function () {
 
   return DonutEmitter;
 }();
+
+var PointEmitter = /*#__PURE__*/function () {
+  function PointEmitter() {
+    _classCallCheck(this, PointEmitter);
+
+    _defineProperty(this, "type", "point");
+  }
+
+  _createClass(PointEmitter, [{
+    key: "initialize",
+    value: function initialize(p) {
+      var u = Math.random();
+      var v = Math.random();
+      var theta = u * Math.PI * 2;
+      var phi = Math.acos(2.0 * v - 1.0);
+      var r = Math.cbrt(Math.random());
+      var sinTheta = Math.sin(theta);
+      var cosTheta = Math.cos(theta);
+      var sinPhi = Math.sin(phi);
+      var cosPhi = Math.cos(phi);
+      p.velocity.x = r * sinPhi * cosTheta;
+      p.velocity.y = r * sinPhi * sinTheta;
+      p.velocity.z = r * cosPhi;
+      p.velocity.multiplyScalar(p.startSpeed);
+      p.position.setScalar(0);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: 'point'
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new PointEmitter();
+    }
+  }]);
+
+  return PointEmitter;
+}();
+
+var SphereEmitter = /*#__PURE__*/function () {
+  //[0, 1]
+  function SphereEmitter() {
+    var _parameters$radius, _parameters$arc, _parameters$thickness;
+
+    var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, SphereEmitter);
+
+    _defineProperty(this, "type", "sphere");
+
+    _defineProperty(this, "radius", void 0);
+
+    _defineProperty(this, "arc", void 0);
+
+    _defineProperty(this, "thickness", void 0);
+
+    this.radius = (_parameters$radius = parameters.radius) !== null && _parameters$radius !== void 0 ? _parameters$radius : 10;
+    this.arc = (_parameters$arc = parameters.arc) !== null && _parameters$arc !== void 0 ? _parameters$arc : 2.0 * Math.PI;
+    this.thickness = (_parameters$thickness = parameters.thickness) !== null && _parameters$thickness !== void 0 ? _parameters$thickness : 1;
+  }
+
+  _createClass(SphereEmitter, [{
+    key: "initialize",
+    value: function initialize(p) {
+      var u = Math.random();
+      var v = Math.random();
+      var rand = MathUtils.lerp(1 - this.thickness, 1, Math.random());
+      var theta = u * this.arc;
+      var phi = Math.acos(2.0 * v - 1.0);
+      var r = Math.cbrt(rand);
+      var sinTheta = Math.sin(theta);
+      var cosTheta = Math.cos(theta);
+      var sinPhi = Math.sin(phi);
+      var cosPhi = Math.cos(phi);
+      p.position.x = r * sinPhi * cosTheta;
+      p.position.y = r * sinPhi * sinTheta;
+      p.position.z = r * cosPhi;
+      p.velocity.setScalar(0).addScaledVector(p.position, p.startSpeed);
+      p.position.multiplyScalar(this.radius);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: "sphere",
+        radius: this.radius,
+        arc: this.arc,
+        thickness: this.thickness
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new SphereEmitter({
+        radius: this.radius,
+        arc: this.arc,
+        thickness: this.thickness
+      });
+    }
+  }]);
+
+  return SphereEmitter;
+}();
+
+var MeshSurfaceEmitter = /*#__PURE__*/function () {
+  function MeshSurfaceEmitter(mesh) {
+    _classCallCheck(this, MeshSurfaceEmitter);
+
+    _defineProperty(this, "type", "mesh_surface");
+
+    _defineProperty(this, "_triangleIndexToArea", []);
+
+    _defineProperty(this, "_mesh", void 0);
+
+    _defineProperty(this, "_tempA", new Vector3());
+
+    _defineProperty(this, "_tempB", new Vector3());
+
+    _defineProperty(this, "_tempC", new Vector3());
+
+    if (!mesh) {
+      return;
+    }
+
+    this.mesh = mesh;
+  }
+
+  _createClass(MeshSurfaceEmitter, [{
+    key: "mesh",
+    get: function get() {
+      return this._mesh;
+    },
+    set: function set(mesh) {
+      this._mesh = mesh;
+
+      if (mesh.userData.triangleIndexToArea) {
+        this._triangleIndexToArea = mesh.userData.triangleIndexToArea;
+        return;
+      }
+
+      var tri = new Triangle();
+      var area = 0;
+      var geometry = mesh.geometry;
+
+      if (!geometry.getIndex()) {
+        return;
+      }
+
+      var array = geometry.getIndex().array;
+      var triCount = array.length / 3;
+
+      this._triangleIndexToArea.push(0);
+
+      for (var i = 0; i < triCount; i++) {
+        tri.setFromAttributeAndIndices(geometry.getAttribute("position"), array[i * 3], array[i * 3 + 1], array[i * 3 + 2]);
+        area += tri.getArea();
+
+        this._triangleIndexToArea.push(area);
+      }
+
+      mesh.userData.triangleIndexToArea = this._triangleIndexToArea;
+    }
+  }, {
+    key: "initialize",
+    value: function initialize(p) {
+      if (!this._mesh) {
+        p.position.set(0, 0, 0);
+        p.velocity.set(0, 0, 1).multiplyScalar(p.startSpeed);
+        return;
+      }
+
+      var triCount = this._triangleIndexToArea.length - 1;
+      var left = 0,
+          right = triCount;
+
+      var target = Math.random() * this._triangleIndexToArea[triCount];
+
+      while (left + 1 < right) {
+        var mid = Math.floor((left + right) / 2);
+
+        if (target < this._triangleIndexToArea[mid]) {
+          right = mid;
+        } else {
+          left = mid;
+        }
+      } //const area = this._triangleIndexToArea[left + 1] - this._triangleIndexToArea[left];
+      //const percent = (target - this._triangleIndexToArea[left]) / area;
+
+
+      var u1 = Math.random();
+      var u2 = Math.random();
+
+      if (u1 + u2 > 1) {
+        u1 = 1 - u1;
+        u2 = 1 - u2;
+      }
+
+      var geometry = this._mesh.geometry;
+      var index1 = geometry.getIndex().array[(left + 1) * 3];
+      var index2 = geometry.getIndex().array[(left + 1) * 3 + 1];
+      var index3 = geometry.getIndex().array[(left + 1) * 3 + 2];
+      var positionBuffer = geometry.getAttribute("position");
+
+      this._tempA.fromBufferAttribute(positionBuffer, index1);
+
+      this._tempB.fromBufferAttribute(positionBuffer, index2);
+
+      this._tempC.fromBufferAttribute(positionBuffer, index3);
+
+      this._tempB.sub(this._tempA);
+
+      this._tempC.sub(this._tempA);
+
+      this._tempA.addScaledVector(this._tempB, u1).addScaledVector(this._tempC, u2);
+
+      p.position.copy(this._tempA);
+      p.velocity.copy(this._tempA).normalize().multiplyScalar(p.startSpeed);
+      p.position.applyMatrix4(this._mesh.matrixWorld);
+      p.velocity.applyMatrix3(this._mesh.normalMatrix);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: 'mesh_surface',
+        mesh: this._mesh ? this._mesh.uuid : ""
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new MeshSurfaceEmitter(this._mesh);
+    }
+  }]);
+
+  return MeshSurfaceEmitter;
+}();
+
+function EmitterFromJSON(json) {
+  switch (json.type) {
+    case 'cone':
+      return new ConeEmitter(json);
+
+    case 'donut':
+      return new DonutEmitter(json);
+
+    case 'point':
+      return new PointEmitter();
+
+    case 'sphere':
+      return new SphereEmitter(json);
+
+    case 'mesh_surface':
+      return new MeshSurfaceEmitter();
+
+    default:
+      return new PointEmitter();
+  }
+}
 
 var RenderMode;
 
@@ -2150,30 +2306,7 @@ var ParticleSystem = /*#__PURE__*/function () {
   }], [{
     key: "fromJSON",
     value: function fromJSON(json, textures, renderer) {
-      var shape;
-
-      switch (json.shape.type) {
-        case 'cone':
-          shape = new ConeEmitter(json.shape);
-          break;
-
-        case 'donut':
-          shape = new DonutEmitter(json.shape);
-          break;
-
-        case 'point':
-          shape = new PointEmitter();
-          break;
-
-        case 'sphere':
-          shape = new SphereEmitter(json.shape);
-          break;
-
-        default:
-          shape = new PointEmitter();
-          break;
-      }
-
+      var shape = EmitterFromJSON(json.shape);
       return new ParticleSystem(renderer, {
         autoDestroy: json.autoDestroy,
         looping: json.looping,
@@ -3149,7 +3282,7 @@ var TEXTURE_FILTER = {
   LinearMipmapLinearFilter: LinearMipmapLinearFilter
 };
 
-var EmitterTypes = [[new ConeEmitter().type, ConeEmitter], [new PointEmitter().type, PointEmitter], [new SphereEmitter().type, SphereEmitter], [new DonutEmitter().type, DonutEmitter]];
+var EmitterTypes = [[new ConeEmitter().type, ConeEmitter], [new PointEmitter().type, PointEmitter], [new SphereEmitter().type, SphereEmitter], [new DonutEmitter().type, DonutEmitter], ["mesh_surface", MeshSurfaceEmitter]];
 
 var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   _inherits(Gradient, _PiecewiseFunction);
@@ -3225,4 +3358,4 @@ var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   return Gradient;
 }(PiecewiseFunction);
 
-export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitterTypes, FrameOverLife, Gradient, IntervalValue, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, ValueGeneratorFromJSON };
+export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitterFromJSON, EmitterTypes, FrameOverLife, Gradient, IntervalValue, MeshSurfaceEmitter, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, ValueGeneratorFromJSON };

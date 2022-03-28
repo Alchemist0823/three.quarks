@@ -1,4 +1,4 @@
-import {EmitterShape, ShapeJSON} from "../EmitterShape";
+import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, MathUtils} from "three";
 

@@ -44,7 +44,7 @@
   "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
   "dependencies": {},
   "peerDependencies": {
-    "three": ">= 0.120.0 < 0.138.3"
+    "three": ">= 0.138.0 <= 0.138.3"
   },
   "devDependencies": {
     "@babel/core": "^7.17.5",
