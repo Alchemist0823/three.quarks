@@ -89,8 +89,8 @@ export class MeshSurfaceEmitter implements EmitterShape {
         this._tempA.addScaledVector(this._tempB, u1).addScaledVector(this._tempC,  u2);
         p.position.copy(this._tempA);
         p.velocity.copy(this._tempA).normalize().multiplyScalar(p.startSpeed);
-        p.position.applyMatrix4(this._mesh.matrixWorld);
-        p.velocity.applyMatrix3(this._mesh.normalMatrix);
+        /*p.position.applyMatrix4(this._mesh.matrixWorld);
+        p.velocity.applyMatrix3(this._mesh.normalMatrix);*/
     }
 
     toJSON(): ShapeJSON {

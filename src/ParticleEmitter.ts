@@ -7,6 +7,17 @@ import {
     BufferGeometry
 } from 'three';
 
+export interface MetaData {
+    geometries: any;
+    materials: any;
+    textures: any;
+    images: any;
+    shapes: any;
+    skeletons: any;
+    animations: any;
+    nodes: any;
+}
+
 export class ParticleEmitter extends Object3D {
 
     type: string = "ParticleEmitter";
@@ -45,7 +56,7 @@ export class ParticleEmitter extends Object3D {
         return values;
     }
 
-    toJSON(meta?: { geometries: any; materials: any; textures: any; images: any, shapes: any, skeletons: any, animations: any , nodes: any }): any {
+    toJSON(meta?: MetaData): any {
 		// meta is a string when called from JSON.stringify
 		var isRootObject = ( meta === undefined || typeof meta === 'string' );
 		var output: any = {};
@@ -95,7 +106,7 @@ export class ParticleEmitter extends Object3D {
 
 		// object specific properties
 
-        if ( this.system !== null ) object.ps = this.system.toJSON(meta);
+        if ( this.system !== null ) object.ps = this.system.toJSON(meta!);
 
 		if ( this.children.length > 0 ) {
 			object.children = [];

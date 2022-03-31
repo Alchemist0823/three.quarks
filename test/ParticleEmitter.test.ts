@@ -2,17 +2,19 @@
  * @jest-environment jsdom
  */
 import {
-    ParticleSystem,
-    IntervalValue,
-    ConstantValue,
-    ConstantColor,
-    SphereEmitter,
-    SizeOverLife,
-    PiecewiseBezier,
+    ApplyForce,
     Bezier,
-    ParticleEmitter, ApplyForce
+    ConstantColor,
+    ConstantValue,
+    IntervalValue,
+    ParticleEmitter,
+    ParticleSystem,
+    PiecewiseBezier,
+    RenderMode,
+    SizeOverLife,
+    SphereEmitter, TrailSettings
 } from "../src";
-import {Vector4, Texture, AdditiveBlending, Vector3} from "three";
+import {AdditiveBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedParticleRenderer} from "../src/BatchedParticleRenderer";
 
@@ -29,7 +31,7 @@ describe("ParticleEmitter", () => {
         startSpeed: new ConstantValue(0),
         startSize: new ConstantValue(3.5),
         startColor: new ConstantColor(new Vector4(1, 0.1509503, 0.07352942, .5)),
-        startLength: new ConstantValue(40),
+        rendererEmitterSettings: {startLength: new ConstantValue(40)},
         worldSpace: true,
 
         maxParticle: 100,
@@ -46,6 +48,7 @@ describe("ParticleEmitter", () => {
         uTileCount: 10,
         vTileCount: 10,
         renderOrder: 2,
+        renderMode: RenderMode.Trail
     });
     glowBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
     glowBeam.addBehavior(new ApplyForce(new Vector3(0, 1, 0), new ConstantValue(10)));
@@ -63,7 +66,7 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.startSpeed.type).toBe("ConstantValue");
         expect(json.object.ps.startSize.type).toBe("ConstantValue");
         expect(json.object.ps.startColor.type).toBe("ConstantColor");
-        expect(json.object.ps.startLength.type).toBe("ConstantValue");
+        expect(json.object.ps.rendererEmitterSettings.startLength.type).toBe("ConstantValue");
         expect(json.object.ps.worldSpace).toBe(true);
         expect(json.object.ps.maxParticle).toBe(100);
         expect(json.object.ps.emissionOverTime.type).toBe("ConstantValue");
@@ -94,6 +97,7 @@ describe("ParticleEmitter", () => {
         const emitter = loader.parse(json, () => {}, renderer) as ParticleEmitter;
 
         expect(emitter.system.startTileIndex.type).toBe("value");
+        expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
         expect(emitter.system.behaviors.length).toBe(2);
     });
 });

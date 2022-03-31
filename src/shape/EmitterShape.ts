@@ -4,6 +4,7 @@ import {DonutEmitter} from "./DonutEmitter";
 import {PointEmitter} from "./PointEmitter";
 import {SphereEmitter} from "./SphereEmitter";
 import {MeshSurfaceEmitter} from "./MeshSurfaceEmitter";
+import {ParticleSystemEmitter} from "./ParticleSystemEmitter";
 
 export interface ShapeJSON {
     type: string;
@@ -12,6 +13,7 @@ export interface ShapeJSON {
     thickness?: number;
     angle?: number;
     mesh?: string;
+    particleSystem?: string;
 }
 
 export interface EmitterShape {
@@ -35,6 +37,8 @@ export function EmitterFromJSON(json: ShapeJSON): EmitterShape {
             return new SphereEmitter(json);
         case 'mesh_surface':
             return new MeshSurfaceEmitter();
+        case 'particle_system':
+            return new ParticleSystemEmitter();
         default:
             return new PointEmitter();
     }

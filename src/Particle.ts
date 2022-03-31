@@ -45,6 +45,7 @@ export class TrailParticle implements Particle {
     startColor: Vector4 = new Vector4();
     startSize: number = 1;
     position: Vector3 = new Vector3();
+    localPosition?: Vector3;
     velocity: Vector3 = new Vector3();
     age: number = 0;
     life: number = 1;

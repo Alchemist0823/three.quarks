@@ -14,7 +14,25 @@ import {
 	LinearMipmapLinearFilter,
 	LinearMipmapNearestFilter,
 	NearestMipmapLinearFilter,
-	NearestMipmapNearestFilter
+	NearestMipmapNearestFilter,
+	Shape,
+	BufferGeometryLoader,
+	BufferGeometry,
+	WireframeGeometry,
+	TubeGeometry,
+	TorusKnotGeometry,
+	TorusGeometry,
+	TetrahedronGeometry,
+	SphereGeometry,
+	ShapeGeometry,
+	RingGeometry,
+	PolyhedronGeometry,
+	PlaneGeometry,
+	OctahedronGeometry,
+	LatheGeometry,
+	IcosahedronGeometry,
+	ExtrudeGeometry,
+	EdgesGeometry, DodecahedronGeometry, CylinderGeometry, ConeGeometry, CircleGeometry, BoxGeometry
 } from "three";
 import {ParticleSystem} from "./ParticleSystem";
 import {
@@ -45,6 +63,30 @@ const TYPED_ARRAYS: {[index: string]: any} = {
 	Float32Array: Float32Array,
 	Float64Array: Float64Array
 };
+
+const Geometries: {[index: string]: typeof BufferGeometry} = {
+	BoxGeometry: BoxGeometry,
+	//CapsuleGeometry: CapsuleGeometry,
+	CircleGeometry: CircleGeometry,
+	ConeGeometry: ConeGeometry,
+	CylinderGeometry: CylinderGeometry,
+	DodecahedronGeometry: DodecahedronGeometry,
+	EdgesGeometry: EdgesGeometry,
+	ExtrudeGeometry: ExtrudeGeometry,
+	IcosahedronGeometry: IcosahedronGeometry,
+	LatheGeometry: LatheGeometry,
+	OctahedronGeometry: OctahedronGeometry,
+	PlaneGeometry: PlaneGeometry,
+	PolyhedronGeometry: PolyhedronGeometry,
+	RingGeometry: RingGeometry,
+	ShapeGeometry: ShapeGeometry,
+	SphereGeometry: SphereGeometry,
+	TetrahedronGeometry: TetrahedronGeometry,
+	TorusGeometry: TorusGeometry,
+	TorusKnotGeometry: TorusKnotGeometry,
+	TubeGeometry: TubeGeometry,
+	WireframeGeometry: WireframeGeometry,
+}
 
 function getTypedArray( type: string, buffer: any ) {
 	return new TYPED_ARRAYS[ type ]( buffer );
@@ -176,6 +218,53 @@ export class QuarksLoader {
 		return images;
 	}
 
+
+	parseShapes( json: any ) {
+		const shapes: {[a:string]:Shape} = {};
+		if ( json !== undefined ) {
+			for ( let i = 0, l = json.length; i < l; i ++ ) {
+				const shape = new Shape().fromJSON( json[ i ] );
+				shapes[ shape.uuid ] = shape;
+			}
+		}
+		return shapes;
+	}
+
+	parseGeometries( json: any, shapes: {[a:string]:Shape} ) {
+		const geometries: {[a:string]:BufferGeometry} = {};
+		if ( json !== undefined ) {
+			const bufferGeometryLoader = new BufferGeometryLoader();
+			for ( let i = 0, l = json.length; i < l; i ++ ) {
+				let geometry;
+				const data = json[ i ];
+				switch ( data.type ) {
+					case 'BufferGeometry':
+					case 'InstancedBufferGeometry':
+						geometry = bufferGeometryLoader.parse( data );
+						break;
+					case 'Geometry':
+						console.error( 'THREE.ObjectLoader: The legacy Geometry type is no longer supported.' );
+						break;
+					default:
+						if ( data.type in Geometries ) {
+							geometry = (Geometries[ data.type ] as any).fromJSON( data, shapes );
+						} else {
+							console.warn( `THREE.ObjectLoader: Unsupported geometry type "${ data.type }"` );
+						}
+
+				}
+
+				geometry.uuid = data.uuid;
+
+				if ( data.name !== undefined ) geometry.name = data.name;
+				if ( geometry.isBufferGeometry && data.userData !== undefined ) geometry.userData = data.userData;
+
+				geometries[ data.uuid ] = geometry;
+			}
+		}
+		return geometries;
+	}
+
 	parseTextures( json: any, images : any) {
 
 		function parseConstant( value: any, type : any) {
@@ -280,11 +369,11 @@ export class QuarksLoader {
 
 	}
 
-	parseObject(data: any, textures: {[uuid:string]:Texture}, renderer: BatchedParticleRenderer) {
+	parseObject(data: any, meta: {textures: {[uuid:string]:Texture}, geometries: {[uuid:string]:BufferGeometry}}, renderer: BatchedParticleRenderer) {
 		let object;
 		switch ( data.type ) {
 			case 'ParticleEmitter':
-				object = ParticleSystem.fromJSON(data.ps, textures, renderer).emitter;
+				object = ParticleSystem.fromJSON(data.ps, meta, renderer).emitter;
 				break;
 			case 'Group':
 				object = new Group();
@@ -320,18 +409,26 @@ export class QuarksLoader {
 		if ( data.children !== undefined ) {
 			var children = data.children;
 			for ( var i = 0; i < children.length; i ++ ) {
-				object.add( this.parseObject( children[ i ], textures, renderer ) );
+				object.add( this.parseObject( children[ i ], meta, renderer ) );
 			}
 		}
 		return object;
 	}
 
 	parse ( json: any, onLoad: (object: any) => void, renderer: BatchedParticleRenderer) {
-		var images = this.parseImages( json.images,  () => {
+		const images = this.parseImages( json.images,  () => {
 			if ( onLoad !== undefined ) onLoad( object );
 		} );
-		var textures = this.parseTextures( json.textures, images );
-		var object = this.parseObject( json.object, textures, renderer);
+		const textures = this.parseTextures( json.textures, images );
+		const shapes = this.parseShapes( json.shapes );
+		const geometries = this.parseGeometries( json.geometries, shapes );
+		const meta = {
+			images: images,
+			textures: textures,
+			shapes: shapes,
+			geometries: geometries,
+		};
+		const object = this.parseObject( json.object, meta, renderer);
 
 		if ( json.images === undefined || json.images.length === 0 ) {
 			if ( onLoad !== undefined ) onLoad( object );
