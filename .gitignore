@@ -1,5 +1,6 @@
 # Builds
 dist/
+examples/three.quarks.*
 
 # Logs
 logs
