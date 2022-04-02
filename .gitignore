@@ -1,6 +1,6 @@
 # Builds
 dist/
-examples/three.quarks.*
+examples/js/three.quarks.*
 
 # Logs
 logs
