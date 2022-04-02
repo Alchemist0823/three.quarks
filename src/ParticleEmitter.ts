@@ -110,8 +110,10 @@ export class ParticleEmitter extends Object3D {
 
 		if ( this.children.length > 0 ) {
 			object.children = [];
-			for ( var i = 0; i < this.children.length; i ++ ) {
-				object.children.push( this.children[ i ].toJSON( meta ).object );
+			for ( let i = 0; i < this.children.length; i ++ ) {
+                if (this.children[i].type !== "ParticleSystemPreview") {
+                    object.children.push(this.children[i].toJSON(meta).object);
+                }
             }
 		}
 

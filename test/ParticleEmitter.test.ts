@@ -94,10 +94,11 @@ describe("ParticleEmitter", () => {
         const renderer = new BatchedParticleRenderer();
         const json = glowBeam.emitter.toJSON();
         const loader = new QuarksLoader();
-        const emitter = loader.parse(json, () => {}, renderer) as ParticleEmitter;
+        const emitter = loader.parse(json, () => {
+            expect(emitter.system.startTileIndex.type).toBe("value");
+            expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
+            expect(emitter.system.behaviors.length).toBe(2);
+        }, renderer) as ParticleEmitter;
 
-        expect(emitter.system.startTileIndex.type).toBe("value");
-        expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
-        expect(emitter.system.behaviors.length).toBe(2);
     });
 });

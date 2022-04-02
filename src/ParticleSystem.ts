@@ -351,7 +351,7 @@ export class ParticleSystem {
                 const trail = particle as TrailParticle;
                 trail.localPosition = new Vector3().copy(trail.position);
             }
-            if (!this.worldSpace) {
+            if (this.worldSpace) {
                 particle.position.applyMatrix4(this.emitter.matrixWorld);
                 particle.velocity.applyMatrix3(this.normalMatrix);
             }

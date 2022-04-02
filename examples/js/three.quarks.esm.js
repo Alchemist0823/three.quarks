@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.5.2 build Wed Mar 30 2022
+ * three.quarks v0.5.3 build Sat Apr 02 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -343,7 +343,9 @@ var ParticleEmitter = /*#__PURE__*/function (_Object3D) {
         object.children = [];
 
         for (var i = 0; i < this.children.length; i++) {
-          object.children.push(this.children[i].toJSON(meta).object);
+          if (this.children[i].type !== "ParticleSystemPreview") {
+            object.children.push(this.children[i].toJSON(meta).object);
+          }
         }
       }
 
@@ -1728,8 +1730,8 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
 
       p.position.copy(this._tempA);
       p.velocity.copy(this._tempA).normalize().multiplyScalar(p.startSpeed);
-      p.position.applyMatrix4(this._mesh.matrixWorld);
-      p.velocity.applyMatrix3(this._mesh.normalMatrix);
+      /*p.position.applyMatrix4(this._mesh.matrixWorld);
+      p.velocity.applyMatrix3(this._mesh.normalMatrix);*/
     }
   }, {
     key: "toJSON",
@@ -2221,7 +2223,7 @@ var ParticleSystem = /*#__PURE__*/function () {
           _trail.localPosition = new Vector3().copy(_trail.position);
         }
 
-        if (!this.worldSpace) {
+        if (this.worldSpace) {
           particle.position.applyMatrix4(this.emitter.matrixWorld);
           particle.velocity.applyMatrix3(this.normalMatrix);
         }
@@ -3385,10 +3387,11 @@ var QuarksLoader = /*#__PURE__*/function () {
               break;
 
             default:
-              if (data.type in Geometries) {
+              if (data.type in Geometries && Geometries[data.type].fromJSON) {
                 geometry = Geometries[data.type].fromJSON(data, shapes);
               } else {
                 console.warn("THREE.ObjectLoader: Unsupported geometry type \"".concat(data.type, "\""));
+                continue;
               }
 
           }

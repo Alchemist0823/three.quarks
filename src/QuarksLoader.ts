@@ -246,10 +246,11 @@ export class QuarksLoader {
 						console.error( 'THREE.ObjectLoader: The legacy Geometry type is no longer supported.' );
 						break;
 					default:
-						if ( data.type in Geometries ) {
+						if ( data.type in Geometries && (Geometries[ data.type ] as any).fromJSON) {
 							geometry = (Geometries[ data.type ] as any).fromJSON( data, shapes );
 						} else {
 							console.warn( `THREE.ObjectLoader: Unsupported geometry type "${ data.type }"` );
+							continue;
 						}
 
 				}
