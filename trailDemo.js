@@ -70,8 +70,7 @@ export class TrailDemo {
             looping: false,
             startLife: new IntervalValue(0.8, 1.4),
             startSpeed: new IntervalValue(10, 15),
-            startSize: new ConstantValue(0.1),
-            startLength: new ConstantValue(20),
+            startSize: new ConstantValue(0.2),
             startColor: new ColorRange(new Vector4(1, 0.585716, 0.1691176, 1), new Vector4(1, 1, 1, 1)),
             worldSpace: true,
 
@@ -89,7 +88,10 @@ export class TrailDemo {
             texture: this.texture,
             blending: AdditiveBlending,
             renderMode: RenderMode.Trail,
-            startTileIndex: 1,
+            rendererEmitterSettings: {
+                startLength: new ConstantValue(20),
+            },
+            startTileIndex: new ConstantValue(0),
             uTileCount: 10,
             vTileCount: 10,
             renderOrder: 0,
