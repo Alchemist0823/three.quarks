@@ -1,45 +1,38 @@
 import {Behavior} from "./Behavior";
 import {Particle, SpriteParticle} from "../Particle";
 import {FunctionValueGenerator, ValueGenerator} from "../functions/ValueGenerator";
-import {Vector2, Vector3} from "three";
+import {Line, Line3, Plane, Quaternion, Vector2, Vector3} from "three";
 
-const V3_ZERO = new Vector3();
+const V3_Z = new Vector3(0, 0, 1);
 
 export class OrbitOverLife implements Behavior {
 
     type = 'OrbitOverLife';
+    rotation: Quaternion;
+    line: Line3;
+    temp = new Vector3();
 
-    constructor(public orbitSpeed: FunctionValueGenerator | ValueGenerator) {
+    constructor(public orbitSpeed: FunctionValueGenerator | ValueGenerator, public axis: Vector3 = new Vector3(0, 1, 0)) {
+        this.rotation = new Quaternion();
+        this.line = new Line3();
     }
 
     initialize(particle: Particle): void {
-        if (particle instanceof SpriteParticle) {
-            if (this.orbitSpeed.type === 'value') {
-                particle.angularVelocity = this.orbitSpeed.genValue();
-            } else {
-                particle.angularVelocity = 0;
-            }
-        }
     }
 
     update(particle: Particle, delta: number): void {
-        let rotation = Math.atan2(particle.position.y, particle.position.x);
-        let len = Math.sqrt(particle.position.x * particle.position.x + particle.position.y * particle.position.y)
-        rotation += this.orbitSpeed.genValue(particle.age / particle.life) * delta;
-        particle.position.x = Math.cos(rotation) * len;
-        particle.position.y = Math.sin(rotation) * len;
-        //let v1x = particle.position.x
-        //let v1y = particle.position.y;
-        /*let v2x = particle.position.y;
-        let v2y = -particle.position.x;
-        v2x /= len;
-        v2y /= len;
-        particle.position.distanceTo(V3_ZERO) * this.angularVelocityFunc.genValue(particle.age / particle.life);*/
+        this.line.set(new Vector3(0,0,0), this.axis);
+        this.line.closestPointToPoint(particle.position, false, this.temp);
+        this.rotation.setFromAxisAngle(this.axis, this.orbitSpeed.genValue(particle.age / particle.life) * delta);
+        particle.position.sub(this.temp);
+        particle.position.applyQuaternion(this.rotation);
+        particle.position.add(this.temp);
     }
     toJSON(): any {
         return {
             type: this.type,
             orbitSpeed: this.orbitSpeed.toJSON(),
+            axis: [this.axis.x, this.axis.y, this.axis.z],
         };
     }
 

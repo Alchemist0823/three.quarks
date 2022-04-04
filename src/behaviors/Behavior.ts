@@ -30,7 +30,7 @@ export const BehaviorTypes: {[key: string]: {constructor: Constructable<Behavior
     "SizeOverLife": {constructor: SizeOverLife, params: [["size", "valueFunc"]]},
     "SpeedOverLife": {constructor: SpeedOverLife, params: [["speed", "valueFunc"]]},
     "FrameOverLife": {constructor: FrameOverLife, params: [["frame", "valueFunc"]]},
-    "OrbitOverLife": {constructor: OrbitOverLife, params: [["orbitSpeed", "valueFunc"]]},
+    "OrbitOverLife": {constructor: OrbitOverLife, params: [["orbitSpeed", "valueFunc"], ["axis", "vec3"],]},
 };
 
 export function BehaviorFromJSON(json: any): Behavior {
@@ -50,7 +50,7 @@ export function BehaviorFromJSON(json: any): Behavior {
         case 'FrameOverLife':
             return new FrameOverLife(ValueGeneratorFromJSON(json.frame) as FunctionValueGenerator);
         case 'OrbitOverLife':
-            return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed) as FunctionValueGenerator);
+            return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed) as FunctionValueGenerator, json.axis ? new Vector3(json.axis![0], json.axis![1],json.axis![2]) : undefined);
         default:
             return new ColorOverLife(new ColorRange(new Vector4(1,1,1,1), new Vector4(1,1,1,1)));
     }
