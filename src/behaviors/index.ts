@@ -4,5 +4,7 @@ export * from "./SizeOverLife";
 export * from "./SpeedOverLife";
 export * from "./FrameOverLife";
 export * from "./OrbitOverLife";
+export * from "./WidthOverLength";
 export * from "./ApplyForce";
+export * from "./GravityForce";
 export * from "./Behavior";

@@ -13,6 +13,7 @@ import {OrbitOverLife} from "./OrbitOverLife";
 import {ApplyForce} from "./ApplyForce";
 import {Constructable} from "../TypeUtil";
 import { GravityForce } from "./GravityForce";
+import {WidthOverLength} from "./WidthOverLength";
 
 export interface Behavior {
     type: string;
@@ -31,6 +32,7 @@ export const BehaviorTypes: {[key: string]: {constructor: Constructable<Behavior
     "SpeedOverLife": {constructor: SpeedOverLife, params: [["speed", "valueFunc"]]},
     "FrameOverLife": {constructor: FrameOverLife, params: [["frame", "valueFunc"]]},
     "OrbitOverLife": {constructor: OrbitOverLife, params: [["orbitSpeed", "valueFunc"], ["axis", "vec3"],]},
+    "WidthOverLength": {constructor: WidthOverLength, params: [["width", "valueFunc"]]},
 };
 
 export function BehaviorFromJSON(json: any): Behavior {
@@ -51,6 +53,8 @@ export function BehaviorFromJSON(json: any): Behavior {
             return new FrameOverLife(ValueGeneratorFromJSON(json.frame) as FunctionValueGenerator);
         case 'OrbitOverLife':
             return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed) as FunctionValueGenerator, json.axis ? new Vector3(json.axis![0], json.axis![1],json.axis![2]) : undefined);
+        case 'WidthOverLength':
+            return new WidthOverLength(ValueGeneratorFromJSON(json.width) as FunctionValueGenerator);
         default:
             return new ColorOverLife(new ColorRange(new Vector4(1,1,1,1), new Vector4(1,1,1,1)));
     }
