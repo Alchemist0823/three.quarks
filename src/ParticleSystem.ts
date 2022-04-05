@@ -10,7 +10,7 @@ import {
     Matrix4,
     NormalBlending,
     PlaneBufferGeometry,
-    Quaternion, SphereBufferGeometry,
+    Quaternion,
     Texture,
     Vector3,
     Vector4
@@ -94,7 +94,6 @@ export interface ParticleSystemJSONParameters {
 
     rendererEmitterSettings: {
         startLength?: FunctionJSON;
-        geometry?: any;
         followLocalOrigin?: boolean;
     }
 
@@ -126,7 +125,6 @@ export interface MeshSettings {
     startRotationX: ValueGenerator | FunctionValueGenerator;
     startRotationY: ValueGenerator | FunctionValueGenerator;
     startRotationZ: ValueGenerator | FunctionValueGenerator;
-    geometry: BufferGeometry;
 }
 
 const DEFAULT_GEOMETRY = new PlaneBufferGeometry(1, 1, 1, 1)
@@ -507,15 +505,14 @@ export class ParticleSystem {
                 followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
             };
         } else if (this.renderMode === RenderMode.LocalSpace) {
-            let geometry = (this.rendererEmitterSettings as MeshSettings).geometry;
-            if (!meta.geometries[geometry.uuid]) {
-                meta.geometries[geometry.uuid] = geometry.toJSON();
-            }
-            rendererSettingsJSON = {
-                geometry: geometry.uuid,
-            };
+            rendererSettingsJSON = {};
+            /*;*/
         } else {
             rendererSettingsJSON = {};
+        }
+        let geometry = this.rendererSettings.instancingGeometry;
+        if (!meta.geometries[geometry.uuid]) {
+            meta.geometries[geometry.uuid] = geometry.toJSON();
         }
         return {
             autoDestroy: this.autoDestroy,
@@ -533,7 +530,7 @@ export class ParticleSystem {
             emissionOverDistance: this.emissionOverDistance.toJSON(),
             emissionBursts: this.emissionBursts,
 
-            instancingGeometry: this.rendererSettings.instancingGeometry.toJSON(),//Array.from(this.emitter.interleavedBuffer.array as Float32Array),
+            instancingGeometry: this.rendererSettings.instancingGeometry.uuid,//Array.from(this.emitter.interleavedBuffer.array as Float32Array),
             renderOrder: this.renderOrder,
             renderMode: this.renderMode,
             rendererEmitterSettings: rendererSettingsJSON,
@@ -559,9 +556,7 @@ export class ParticleSystem {
                 followLocalOrigin: json.rendererEmitterSettings.followLocalOrigin!,
             }
         } else if (json.renderMode === RenderMode.LocalSpace) {
-            rendererEmitterSettings = {
-                geometry: meta.geometries[json.rendererEmitterSettings.geometry],
-            }
+            rendererEmitterSettings = {};
         } else {
             rendererEmitterSettings = {};
         }
@@ -582,7 +577,7 @@ export class ParticleSystem {
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
             emissionBursts: json.emissionBursts,
 
-            //instancingGeometry: json.instancingGeometry, //TODO: Support instancing Geometry in deserialization
+            instancingGeometry: meta.geometries[json.instancingGeometry],
             renderMode: json.renderMode,
             rendererEmitterSettings: rendererEmitterSettings,
             renderOrder: json.renderOrder,
@@ -620,6 +615,16 @@ export class ParticleSystem {
             newBehaviors.push(behavior.clone());
         }
 
+        let rendererEmitterSettings;
+        if (this.renderMode === RenderMode.Trail) {
+            rendererEmitterSettings = {
+                startLength: (this.rendererEmitterSettings as TrailSettings).startLength.clone(),
+                followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
+            };
+        } else {
+            rendererEmitterSettings = {};
+        }
+
         return new ParticleSystem(this.renderer,{
             autoDestroy: this.autoDestroy,
             looping: this.looping,
@@ -638,6 +643,7 @@ export class ParticleSystem {
 
             instancingGeometry: this.rendererSettings.instancingGeometry,//.interleavedBuffer.array,
             renderMode: this.renderMode,
+            rendererEmitterSettings: rendererEmitterSettings,
             speedFactor: this.speedFactor,
             texture: this.texture,
             startTileIndex: this.startTileIndex,

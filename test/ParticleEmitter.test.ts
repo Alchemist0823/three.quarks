@@ -14,7 +14,7 @@ import {
     SizeOverLife,
     SphereEmitter, TrailSettings
 } from "../src";
-import {AdditiveBlending, Texture, Vector3, Vector4} from "three";
+import {AdditiveBlending, NormalBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedParticleRenderer} from "../src/BatchedParticleRenderer";
 
@@ -43,7 +43,7 @@ describe("ParticleEmitter", () => {
             arc: Math.PI * 2,
         }),
         texture: texture,
-        blending: AdditiveBlending,
+        blending: NormalBlending,
         startTileIndex: new ConstantValue(1),
         uTileCount: 10,
         vTileCount: 10,
@@ -75,11 +75,12 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.shape.thickness).toBe(1);
         expect(json.object.ps.shape.arc).toBe(Math.PI * 2);
         //expect(json.object.ps.texture).toBe(1);
-        expect(json.object.ps.blending).toBe(AdditiveBlending);
+        expect(json.object.ps.blending).toBe(NormalBlending);
         expect(json.object.ps.startTileIndex.value).toBe(1);
         expect(json.object.ps.uTileCount).toBe(10);
         expect(json.object.ps.vTileCount).toBe(10);
         expect(json.object.ps.renderOrder).toBe(2);
+        expect(json.object.ps.instancingGeometry).toBeDefined();
 
         expect(json.object.ps.behaviors.length).toBe(2);
         expect(json.object.ps.behaviors[0].type).toBe("SizeOverLife");
@@ -87,7 +88,16 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.behaviors[1].type).toBe("ApplyForce");
         expect(json.object.ps.behaviors[1].direction[1]).toBe(1);
         expect(json.object.ps.behaviors[1].force.type).toBe("ConstantValue");
+
+        expect(Object.keys(meta.geometries).length).toBe(1);
     });
+
+    test(".clone", ()=> {
+        const newPS = glowBeam.clone();
+        expect(newPS.behaviors.length).toBe(glowBeam.behaviors.length);
+        expect(newPS.blending).toBe(glowBeam.blending);
+        expect((newPS.rendererEmitterSettings as TrailSettings).startLength.type).toBe((newPS.rendererEmitterSettings as TrailSettings).startLength.type);
+    })
 
     test(".fromJSON", ()=> {
         //const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
@@ -96,6 +106,7 @@ describe("ParticleEmitter", () => {
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {
             expect(emitter.system.startTileIndex.type).toBe("value");
+            expect(emitter.system.rendererSettings.instancingGeometry).toBeDefined();
             expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
             expect(emitter.system.behaviors.length).toBe(2);
         }, renderer) as ParticleEmitter;
