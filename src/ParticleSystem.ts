@@ -412,6 +412,7 @@ export class ParticleSystem {
         if (this.time > this.duration) {
             if (this.looping) {
                 this.time -= this.duration;
+                this.burstIndex = 0;
             } else {
                 if (!this.emitEnded) {
                     this.endEmit();
