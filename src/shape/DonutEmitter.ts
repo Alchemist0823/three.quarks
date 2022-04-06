@@ -51,6 +51,10 @@ export class DonutEmitter implements EmitterShape {
         };
     }
 
+    static fromJSON(json: any): DonutEmitter {
+        return new DonutEmitter(json);
+    }
+
     clone(): EmitterShape {
         return  new DonutEmitter({
             radius: this.radius,

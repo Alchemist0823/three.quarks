@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionColorGenerator} from "../functions/ColorGenerator";
+import {ColorGeneratorFromJSON, FunctionColorGenerator} from "../functions";
 
 export class ColorOverLife implements Behavior {
 
@@ -25,6 +25,10 @@ export class ColorOverLife implements Behavior {
             type: this.type,
             color: this.color.toJSON(),
         };
+    }
+
+    static fromJSON(json: any): Behavior {
+        return new ColorOverLife(ColorGeneratorFromJSON(json.color) as FunctionColorGenerator);
     }
 
     clone(): Behavior {

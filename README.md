@@ -24,9 +24,16 @@ three.quarks Particle Engine provides following features:
 - Group Particle System
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
-- Trail Particle Renderer [TrailBatch](https://github.com/Alchemist0823/three.quarks/tree/master/src/TrailBatch.ts)
-- Customizable Behaviors
-- Customizable RenderMode and BlendMode
+- Plugin System - [Plugin](https://github.com/Alchemist0823/three.quarks/tree/master/src/Plugin.ts)
+  - Customizable Behaviors
+  - Customizable Emitter Shape
+- 4 Type of renderer
+  - BillBoard
+  - Stretched BillBoard
+  - Mesh Renderer
+  - Trail Renderer [TrailBatch](https://github.com/Alchemist0823/three.quarks/tree/master/src/TrailBatch.ts)
+- Spawn Particle on Mesh Surface
+- Configuable RenderMode and BlendMode
 - 1D Bézier curve function for adjusting
 - Texture Atlas Animation
 - User Extension and Customization
@@ -114,7 +121,7 @@ batchSystem.update();
 ```javascript
 let loader = new QuarksLoader();
 loader.setCrossOrigin("");
-loader.load(jsonURL, (object3D: Object3D)=>{
+loader.load(jsonURL, batchSystem, (object3D: Object3D)=>{
     this.state.scene.add(object3D);
 }, ()=>{}, ()=>{});
 ```

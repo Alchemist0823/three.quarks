@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionValueGenerator, ValueGenerator} from "../functions";
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "../functions";
 import {Vector3} from "three";
 
 export class ApplyForce implements Behavior {
@@ -24,6 +24,10 @@ export class ApplyForce implements Behavior {
             direction: [this.direction.x, this.direction.y, this.direction.z],
             force: this.force.toJSON(),
         };
+    }
+
+    static fromJSON(json: any): Behavior {
+        return new ApplyForce(new Vector3(json.direction![0], json.direction![1],json.direction![2]), ValueGeneratorFromJSON(json.force) as ValueGenerator);
     }
 
     clone(): Behavior {

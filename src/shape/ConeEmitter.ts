@@ -1,6 +1,8 @@
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
 import {Vector3, MathUtils} from "three";
+import {Behavior} from "../behaviors";
+import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions";
 
 export interface ConeEmitterParameters {
     radius?: number;
@@ -49,6 +51,10 @@ export class ConeEmitter implements EmitterShape {
             thickness: this.thickness,
             angle: this.angle,
         };
+    }
+
+    static fromJSON(json: any): ConeEmitter {
+        return new ConeEmitter(json);
     }
 
     clone(): EmitterShape {

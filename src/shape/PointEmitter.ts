@@ -32,6 +32,10 @@ export class PointEmitter implements EmitterShape {
         };
     }
 
+    static fromJSON(json: any): PointEmitter {
+        return new PointEmitter();
+    }
+
     clone(): EmitterShape {
         return  new PointEmitter();
     }

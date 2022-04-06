@@ -100,6 +100,10 @@ export class MeshSurfaceEmitter implements EmitterShape {
         };
     }
 
+    static fromJSON(json: any): MeshSurfaceEmitter {
+        return new MeshSurfaceEmitter();
+    }
+
     clone(): EmitterShape {
         return new MeshSurfaceEmitter(this._mesh);
     }

@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionValueGenerator} from "../functions/ValueGenerator";
+import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
 
 export class SizeOverLife implements Behavior {
     type = 'SizeOverLife';
@@ -21,6 +21,9 @@ export class SizeOverLife implements Behavior {
         };
     }
 
+    static fromJSON(json: any): Behavior {
+        return new SizeOverLife(ValueGeneratorFromJSON(json.size) as FunctionValueGenerator);
+    }
     clone(): Behavior {
         return new SizeOverLife(this.size.clone());
     }

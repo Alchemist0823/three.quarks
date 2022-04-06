@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionValueGenerator} from "../functions";
+import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions";
 
 export class FrameOverLife implements Behavior {
 
@@ -20,6 +20,10 @@ export class FrameOverLife implements Behavior {
             type: this.type,
             frame: this.frame.toJSON(),
         };
+    }
+
+    static fromJSON(json: any): Behavior {
+        return new FrameOverLife(ValueGeneratorFromJSON(json.frame) as FunctionValueGenerator);
     }
 
     clone(): Behavior {

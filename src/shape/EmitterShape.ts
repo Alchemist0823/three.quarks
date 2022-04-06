@@ -5,6 +5,8 @@ import {PointEmitter} from "./PointEmitter";
 import {SphereEmitter} from "./SphereEmitter";
 import {MeshSurfaceEmitter} from "./MeshSurfaceEmitter";
 import {ParticleSystemEmitter} from "./ParticleSystemEmitter";
+import {Constructable} from "../TypeUtil";
+import {ApplyForce, BehaviorPlugin, BehaviorTypes} from "../behaviors";
 
 export interface ShapeJSON {
     type: string;
@@ -25,21 +27,20 @@ export interface EmitterShape {
     clone(): EmitterShape;
 }
 
+export interface EmitterShapePlugin {
+    type: string;
+    constructor: Constructable<EmitterShape>;
+    loadJSON: (json: any) => EmitterShape;
+}
+
+export const EmitterShapes: {[key: string]: EmitterShapePlugin} = {
+    "cone": {type: "cone", constructor: ConeEmitter, loadJSON: ConeEmitter.fromJSON},
+    "donut": {type: "donut", constructor: DonutEmitter, loadJSON: DonutEmitter.fromJSON},
+    "point": {type: "point", constructor: PointEmitter, loadJSON: PointEmitter.fromJSON},
+    "sphere": {type: "sphere", constructor: SphereEmitter, loadJSON: SphereEmitter.fromJSON},
+    "mesh_surface": {type: "mesh_surface", constructor: MeshSurfaceEmitter, loadJSON: MeshSurfaceEmitter.fromJSON},
+};
+
 export function EmitterFromJSON(json: ShapeJSON): EmitterShape {
-    switch(json.type) {
-        case 'cone':
-            return new ConeEmitter(json);
-        case 'donut':
-            return new DonutEmitter(json);
-        case 'point':
-            return new PointEmitter();
-        case 'sphere':
-            return new SphereEmitter(json);
-        case 'mesh_surface':
-            return new MeshSurfaceEmitter();
-        case 'particle_system':
-            return new ParticleSystemEmitter();
-        default:
-            return new PointEmitter();
-    }
+    return EmitterShapes[json.type].loadJSON(json);
 }

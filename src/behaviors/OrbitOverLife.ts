@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle, SpriteParticle} from "../Particle";
-import {FunctionValueGenerator, ValueGenerator} from "../functions/ValueGenerator";
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
 import {Line, Line3, Plane, Quaternion, Vector2, Vector3} from "three";
 
 const V3_Z = new Vector3(0, 0, 1);
@@ -34,6 +34,10 @@ export class OrbitOverLife implements Behavior {
             orbitSpeed: this.orbitSpeed.toJSON(),
             axis: [this.axis.x, this.axis.y, this.axis.z],
         };
+    }
+
+    static fromJSON(json: any): Behavior {
+        return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed) as FunctionValueGenerator, json.axis ? new Vector3(json.axis![0], json.axis![1],json.axis![2]) : undefined);
     }
 
     clone(): Behavior {

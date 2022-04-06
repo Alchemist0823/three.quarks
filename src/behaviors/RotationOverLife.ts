@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle, SpriteParticle} from "../Particle";
-import {FunctionValueGenerator, ValueGenerator} from "../functions/ValueGenerator";
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
 
 export class RotationOverLife implements Behavior {
 
@@ -33,6 +33,10 @@ export class RotationOverLife implements Behavior {
             type: this.type,
             angularVelocity: this.angularVelocity.toJSON(),
         };
+    }
+
+    static fromJSON(json: any): Behavior {
+        return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity) as FunctionValueGenerator);
     }
 
     clone(): Behavior {

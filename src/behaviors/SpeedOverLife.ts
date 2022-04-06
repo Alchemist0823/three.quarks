@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionValueGenerator} from "../functions/ValueGenerator";
+import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
 
 export class SpeedOverLife implements Behavior {
     type = 'SpeedOverLife';
@@ -19,6 +19,10 @@ export class SpeedOverLife implements Behavior {
             type: this.type,
             speed: this.speed.toJSON(),
         };
+    }
+
+    static fromJSON(json: any): Behavior {
+        return new SpeedOverLife(ValueGeneratorFromJSON(json.speed) as FunctionValueGenerator);
     }
 
     clone(): Behavior {

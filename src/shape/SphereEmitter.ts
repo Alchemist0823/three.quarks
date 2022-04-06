@@ -48,6 +48,10 @@ export class SphereEmitter implements EmitterShape {
         };
     }
 
+    static fromJSON(json: any): SphereEmitter {
+        return new SphereEmitter(json);
+    }
+
     clone(): EmitterShape {
         return  new SphereEmitter({
             radius: this.radius,

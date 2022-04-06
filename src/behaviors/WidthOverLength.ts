@@ -1,6 +1,7 @@
 import {Behavior} from "./Behavior";
 import {Particle, TrailParticle} from "../Particle";
-import {FunctionValueGenerator} from "../functions/ValueGenerator";
+import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
+import {Vector3} from "three";
 
 export class WidthOverLength implements Behavior {
     type = 'WidthOverLength';
@@ -24,6 +25,10 @@ export class WidthOverLength implements Behavior {
             type: this.type,
             width: this.width.toJSON(),
         };
+    }
+
+    static fromJSON(json: any): Behavior {
+        return new WidthOverLength(ValueGeneratorFromJSON(json.width) as FunctionValueGenerator);
     }
 
     clone(): Behavior {
