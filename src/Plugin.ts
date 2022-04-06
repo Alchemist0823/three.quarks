@@ -1,4 +1,4 @@
-import {Behavior, BehaviorPlugin, BehaviorTypes, ParameterPair} from "./behaviors";
+import {Behavior, BehaviorPlugin, BehaviorTypes} from "./behaviors";
 import {Constructable} from "./TypeUtil";
 import {EmitterShape, EmitterShapePlugin, EmitterShapes} from "./shape";
 import THREE from "three";

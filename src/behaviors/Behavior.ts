@@ -11,7 +11,7 @@ import { ColorRange } from "../functions/ColorRange";
 import {FrameOverLife} from "./FrameOverLife";
 import {OrbitOverLife} from "./OrbitOverLife";
 import {ApplyForce} from "./ApplyForce";
-import {Constructable} from "../TypeUtil";
+import {Constructable, ParameterPair} from "../TypeUtil";
 import { GravityForce } from "./GravityForce";
 import {WidthOverLength} from "./WidthOverLength";
 import {EmitterShape} from "../shape";
@@ -31,8 +31,6 @@ export interface BehaviorPlugin {
     params: ParameterPair[];
     loadJSON: (json: any) => Behavior;
 }
-
-export type ParameterPair = [string, "vec3" | "value" | "number" | "colorFunc" | "valueFunc"];
 
 export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
     "ApplyForce": {type: "ApplyForce", constructor: ApplyForce, params: [["direction", "vec3"], ["force", "value"]], loadJSON: ApplyForce.fromJSON},
