@@ -15,6 +15,7 @@ import {Constructable} from "../TypeUtil";
 import { GravityForce } from "./GravityForce";
 import {WidthOverLength} from "./WidthOverLength";
 import {EmitterShape} from "../shape";
+import {ChangeEmitDirection} from "./ChangeEmitDirection";
 
 export interface Behavior {
     type: string;
@@ -43,6 +44,7 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
     "FrameOverLife": {type: "FrameOverLife", constructor: FrameOverLife, params: [["frame", "valueFunc"]], loadJSON: FrameOverLife.fromJSON},
     "OrbitOverLife": {type: "OrbitOverLife", constructor: OrbitOverLife, params: [["orbitSpeed", "valueFunc"], ["axis", "vec3"],], loadJSON: OrbitOverLife.fromJSON},
     "WidthOverLength": {type: "WidthOverLength", constructor: WidthOverLength, params: [["width", "valueFunc"]], loadJSON: WidthOverLength.fromJSON},
+    "ChangeEmitDirection": {type: "ChangeEmitDirection", constructor: ChangeEmitDirection, params: [["angle", "value"]], loadJSON: ChangeEmitDirection.fromJSON},
 };
 
 export function BehaviorFromJSON(json: any): Behavior {
