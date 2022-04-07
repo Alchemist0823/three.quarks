@@ -1,4 +1,3 @@
-
 import {Particle, RecordState, TrailParticle} from './Particle';
 import {
     AdditiveBlending,
@@ -82,16 +81,16 @@ export class TrailBatch extends ParticleSystemBatch {
 
     rebuildMaterial() {
         let uniforms: { [a: string]: { value: any } } = {
-            lineWidth: { value: 1 },
-            map: { value: null },
-            useMap: { value: 0 },
-            alphaMap: { value: null },
-            useAlphaMap: { value: 0 },
-            resolution: { value: new Vector2(1, 1) },
-            sizeAttenuation: { value: 1 },
-            visibility: { value: 1 },
-            alphaTest: { value: 0 },
-            repeat: { value: new Vector2(1, 1) },
+            lineWidth: {value: 1},
+            map: {value: null},
+            useMap: {value: 0},
+            alphaMap: {value: null},
+            useAlphaMap: {value: 0},
+            resolution: {value: new Vector2(1, 1)},
+            sizeAttenuation: {value: 1},
+            visibility: {value: 1},
+            alphaTest: {value: 0},
+            repeat: {value: new Vector2(1, 1)},
         };
         let defines: { [b: string]: string } = {};
 
@@ -122,6 +121,7 @@ export class TrailBatch extends ParticleSystemBatch {
         let system = this.system.clone();
         return system.emitter as any;
     }*/
+    vector_: Vector3 = new Vector3();
 
     update() {
         let index = 0;
@@ -147,14 +147,30 @@ export class TrailBatch extends ParticleSystemBatch {
                     this.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
                     this.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
 
+                    if (system.worldSpace) {
+                        this.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
+                        this.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
+                    } else {
+                        this.vector_.copy(recordState.position).applyMatrix4(system.emitter.matrixWorld);
+                        this.positionBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
+                        this.positionBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
+                    }
+
                     let previous;
                     if (i - 1 >= 0) {
                         previous = particle.previous[i - 1];
                     } else {
                         previous = particle.previous[0];
                     }
-                    this.previousBuffer.setXYZ(index, previous.position.x, previous.position.y, previous.position.z);
-                    this.previousBuffer.setXYZ(index + 1, previous.position.x, previous.position.y, previous.position.z);
+
+                    if (system.worldSpace) {
+                        this.previousBuffer.setXYZ(index, previous.position.x, previous.position.y, previous.position.z);
+                        this.previousBuffer.setXYZ(index + 1, previous.position.x, previous.position.y, previous.position.z);
+                    } else {
+                        this.vector_.copy(previous.position).applyMatrix4(system.emitter.matrixWorld);
+                        this.previousBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
+                        this.previousBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
+                    }
 
                     let next;
                     if (i + 1 < particle.previous.length) {
@@ -162,8 +178,14 @@ export class TrailBatch extends ParticleSystemBatch {
                     } else {
                         next = particle.previous[particle.previous.length - 1];
                     }
-                    this.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
-                    this.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
+                    if (system.worldSpace) {
+                        this.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
+                        this.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
+                    } else {
+                        this.vector_.copy(next.position).applyMatrix4(system.emitter.matrixWorld);
+                        this.nextBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
+                        this.nextBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
+                    }
 
                     this.sideBuffer.setX(index, -1);
                     this.sideBuffer.setX(index + 1, 1);
@@ -171,7 +193,7 @@ export class TrailBatch extends ParticleSystemBatch {
                     this.widthBuffer.setX(index, recordState.size);
                     this.widthBuffer.setX(index + 1, recordState.size);
 
-                    this.uvBuffer.setXY(index,  (i / particle.previous.length + col) * tileWidth,  (vTileCount - row - 1) * tileHeight);
+                    this.uvBuffer.setXY(index, (i / particle.previous.length + col) * tileWidth, (vTileCount - row - 1) * tileHeight);
                     this.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
 
                     this.colorBuffer.setXYZW(index, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
