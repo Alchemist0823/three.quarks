@@ -1,9 +1,9 @@
 /**
- * three.quarks v0.5.4 build Sat Apr 02 2022
+ * three.quarks v0.7.0 build Sun Apr 10 2022
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
-import { Object3D, Vector4, Vector3, MathUtils, Triangle, Mesh, PlaneBufferGeometry, Matrix4, Matrix3, NormalBlending, Quaternion, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, DataTexture, Source, Shape, BufferGeometryLoader, CubeTexture, Texture, Group, BoxGeometry, CircleGeometry, ConeGeometry, CylinderGeometry, DodecahedronGeometry, EdgesGeometry, ExtrudeGeometry, IcosahedronGeometry, LatheGeometry, OctahedronGeometry, PlaneGeometry, PolyhedronGeometry, RingGeometry, ShapeGeometry, SphereGeometry, TetrahedronGeometry, TorusGeometry, TorusKnotGeometry, TubeGeometry, WireframeGeometry, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter } from './three.module.js';
+import { Object3D, Vector4, Vector3, MathUtils, Quaternion, Line3, Matrix4, Triangle, Mesh, PlaneBufferGeometry, Matrix3, NormalBlending, InstancedBufferGeometry, InstancedBufferAttribute, DynamicDrawUsage, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, DefaultLoadingManager, LoaderUtils, FileLoader, LoadingManager, ImageLoader, DataTexture, Source, Shape, BufferGeometryLoader, CubeTexture, Texture, Group, BoxGeometry, CircleGeometry, ConeGeometry, CylinderGeometry, DodecahedronGeometry, EdgesGeometry, ExtrudeGeometry, IcosahedronGeometry, LatheGeometry, OctahedronGeometry, PlaneGeometry, PolyhedronGeometry, RingGeometry, ShapeGeometry, SphereGeometry, TetrahedronGeometry, TorusGeometry, TorusKnotGeometry, TubeGeometry, WireframeGeometry, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter } from './three.module.js';
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -368,35 +368,46 @@ var ParticleEmitter = /*#__PURE__*/function (_Object3D) {
   return ParticleEmitter;
 }(Object3D);
 
-var SpriteParticle = /*#__PURE__*/_createClass(function SpriteParticle() {
-  _classCallCheck(this, SpriteParticle);
+var SpriteParticle = /*#__PURE__*/function () {
+  function SpriteParticle() {
+    _classCallCheck(this, SpriteParticle);
 
-  _defineProperty(this, "startSpeed", 0);
+    _defineProperty(this, "parentMatrix", void 0);
 
-  _defineProperty(this, "startColor", new Vector4());
+    _defineProperty(this, "startSpeed", 0);
 
-  _defineProperty(this, "startSize", 1);
+    _defineProperty(this, "startColor", new Vector4());
 
-  _defineProperty(this, "position", new Vector3());
+    _defineProperty(this, "startSize", 1);
 
-  _defineProperty(this, "velocity", new Vector3());
+    _defineProperty(this, "position", new Vector3());
 
-  _defineProperty(this, "age", 0);
+    _defineProperty(this, "velocity", new Vector3());
 
-  _defineProperty(this, "life", 1);
+    _defineProperty(this, "age", 0);
 
-  _defineProperty(this, "size", 1);
+    _defineProperty(this, "life", 1);
 
-  _defineProperty(this, "angularVelocity", void 0);
+    _defineProperty(this, "size", 1);
 
-  _defineProperty(this, "rotation", 0);
+    _defineProperty(this, "angularVelocity", void 0);
 
-  _defineProperty(this, "rotationQuat", void 0);
+    _defineProperty(this, "rotation", 0);
 
-  _defineProperty(this, "color", new Vector4());
+    _defineProperty(this, "color", new Vector4());
 
-  _defineProperty(this, "uvTile", 0);
-});
+    _defineProperty(this, "uvTile", 0);
+  }
+
+  _createClass(SpriteParticle, [{
+    key: "died",
+    get: function get() {
+      return this.age >= this.life;
+    }
+  }]);
+
+  return SpriteParticle;
+}();
 var RecordState = /*#__PURE__*/_createClass(function RecordState(position, size, color) {
   _classCallCheck(this, RecordState);
 
@@ -407,6 +418,8 @@ var RecordState = /*#__PURE__*/_createClass(function RecordState(position, size,
 var TrailParticle = /*#__PURE__*/function () {
   function TrailParticle() {
     _classCallCheck(this, TrailParticle);
+
+    _defineProperty(this, "parentMatrix", void 0);
 
     _defineProperty(this, "startSpeed", 0);
 
@@ -443,6 +456,11 @@ var TrailParticle = /*#__PURE__*/function () {
       while (this.previous.length > this.length) {
         this.previous.shift();
       }
+    }
+  }, {
+    key: "died",
+    get: function get() {
+      return this.age >= this.life;
     }
   }, {
     key: "reset",
@@ -979,6 +997,80 @@ function ColorGeneratorFromJSON(json) {
   }
 }
 
+var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
+  _inherits(Gradient, _PiecewiseFunction);
+
+  var _super = _createSuper(Gradient);
+
+  // default linear bezier
+  function Gradient() {
+    var _this;
+
+    var functions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [[new ColorRange(new Vector4(0, 0, 0, 1), new Vector4(1, 1, 1, 1)), 0]];
+
+    _classCallCheck(this, Gradient);
+
+    _this = _super.call(this);
+
+    _defineProperty(_assertThisInitialized(_this), "type", void 0);
+
+    _this.type = "function";
+    _this.functions = functions;
+    return _this;
+  }
+
+  _createClass(Gradient, [{
+    key: "genColor",
+    value: function genColor(color, t) {
+      var index = this.findFunction(t);
+
+      if (index === -1) {
+        console.error(t);
+        return color.copy(this.functions[0][0].a);
+      }
+
+      return this.getFunction(index).genColor(color, (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index)));
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: "Gradient",
+        functions: this.functions.map(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2),
+              range = _ref2[0],
+              start = _ref2[1];
+
+          return {
+            "function": range.toJSON(),
+            start: start
+          };
+        })
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new Gradient(this.functions.map(function (_ref3) {
+        var _ref4 = _slicedToArray(_ref3, 2),
+            range = _ref4[0],
+            start = _ref4[1];
+
+        return [range.clone(), start];
+      }));
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new Gradient(json.functions.map(function (piecewiseFunction) {
+        return [ColorRange.fromJSON(piecewiseFunction["function"]), piecewiseFunction.start];
+      }));
+    }
+  }]);
+
+  return Gradient;
+}(PiecewiseFunction);
+
 var ColorOverLife = /*#__PURE__*/function () {
   function ColorOverLife(color) {
     _classCallCheck(this, ColorOverLife);
@@ -1013,6 +1105,11 @@ var ColorOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new ColorOverLife(this.color.clone());
     }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new ColorOverLife(ColorGeneratorFromJSON(json.color));
+    }
   }]);
 
   return ColorOverLife;
@@ -1041,7 +1138,7 @@ var RotationOverLife = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update(particle, delta) {
-      if (particle instanceof SpriteParticle) {
+      if (particle instanceof SpriteParticle && typeof particle.rotation === "number") {
         if (this.angularVelocity.type === 'value') {
           particle.rotation += delta * particle.angularVelocity;
         } else {
@@ -1061,6 +1158,11 @@ var RotationOverLife = /*#__PURE__*/function () {
     key: "clone",
     value: function clone() {
       return new RotationOverLife(this.angularVelocity);
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity));
     }
   }]);
 
@@ -1097,6 +1199,11 @@ var SizeOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new SizeOverLife(this.size.clone());
     }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new SizeOverLife(ValueGeneratorFromJSON(json.size));
+    }
   }]);
 
   return SizeOverLife;
@@ -1131,6 +1238,11 @@ var SpeedOverLife = /*#__PURE__*/function () {
     key: "clone",
     value: function clone() {
       return new SpeedOverLife(this.speed.clone());
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new SpeedOverLife(ValueGeneratorFromJSON(json.speed));
     }
   }]);
 
@@ -1167,60 +1279,69 @@ var FrameOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new FrameOverLife(this.frame.clone());
     }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new FrameOverLife(ValueGeneratorFromJSON(json.frame));
+    }
   }]);
 
   return FrameOverLife;
 }();
 
-new Vector3();
+new Vector3(0, 0, 1);
 var OrbitOverLife = /*#__PURE__*/function () {
   function OrbitOverLife(orbitSpeed) {
+    var axis = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Vector3(0, 1, 0);
+
     _classCallCheck(this, OrbitOverLife);
 
     this.orbitSpeed = orbitSpeed;
+    this.axis = axis;
 
     _defineProperty(this, "type", 'OrbitOverLife');
+
+    _defineProperty(this, "rotation", void 0);
+
+    _defineProperty(this, "line", void 0);
+
+    _defineProperty(this, "temp", new Vector3());
+
+    this.rotation = new Quaternion();
+    this.line = new Line3();
   }
 
   _createClass(OrbitOverLife, [{
     key: "initialize",
-    value: function initialize(particle) {
-      if (particle instanceof SpriteParticle) {
-        if (this.orbitSpeed.type === 'value') {
-          particle.angularVelocity = this.orbitSpeed.genValue();
-        } else {
-          particle.angularVelocity = 0;
-        }
-      }
-    }
+    value: function initialize(particle) {}
   }, {
     key: "update",
     value: function update(particle, delta) {
-      var rotation = Math.atan2(particle.position.y, particle.position.x);
-      var len = Math.sqrt(particle.position.x * particle.position.x + particle.position.y * particle.position.y);
-      rotation += this.orbitSpeed.genValue(particle.age / particle.life) * delta;
-      particle.position.x = Math.cos(rotation) * len;
-      particle.position.y = Math.sin(rotation) * len; //let v1x = particle.position.x
-      //let v1y = particle.position.y;
-
-      /*let v2x = particle.position.y;
-      let v2y = -particle.position.x;
-      v2x /= len;
-      v2y /= len;
-      particle.position.distanceTo(V3_ZERO) * this.angularVelocityFunc.genValue(particle.age / particle.life);*/
+      this.line.set(new Vector3(0, 0, 0), this.axis);
+      this.line.closestPointToPoint(particle.position, false, this.temp);
+      this.rotation.setFromAxisAngle(this.axis, this.orbitSpeed.genValue(particle.age / particle.life) * delta);
+      particle.position.sub(this.temp);
+      particle.position.applyQuaternion(this.rotation);
+      particle.position.add(this.temp);
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         type: this.type,
-        orbitSpeed: this.orbitSpeed.toJSON()
+        orbitSpeed: this.orbitSpeed.toJSON(),
+        axis: [this.axis.x, this.axis.y, this.axis.z]
       };
     }
   }, {
     key: "clone",
     value: function clone() {
       return new OrbitOverLife(this.orbitSpeed.clone());
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed), json.axis ? new Vector3(json.axis[0], json.axis[1], json.axis[2]) : undefined);
     }
   }]);
 
@@ -1260,6 +1381,11 @@ var ApplyForce = /*#__PURE__*/function () {
     key: "clone",
     value: function clone() {
       return new ApplyForce(this.direction.clone(), this.force.clone());
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.force));
     }
   }]);
 
@@ -1301,74 +1427,287 @@ var GravityForce = /*#__PURE__*/function () {
     value: function clone() {
       return new GravityForce(this.center.clone(), this.magnitude);
     }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new GravityForce(new Vector3(json.center[0], json.center[1], json.center[2]), json.magnitude);
+    }
   }]);
 
   return GravityForce;
 }();
 
+var WidthOverLength = /*#__PURE__*/function () {
+  function WidthOverLength(width) {
+    _classCallCheck(this, WidthOverLength);
+
+    this.width = width;
+
+    _defineProperty(this, "type", 'WidthOverLength');
+  }
+
+  _createClass(WidthOverLength, [{
+    key: "initialize",
+    value: function initialize(particle) {}
+  }, {
+    key: "update",
+    value: function update(particle) {
+      if (particle instanceof TrailParticle) {
+        for (var i = 0; i < particle.previous.length; i++) {
+          particle.previous[i].size = this.width.genValue((particle.previous.length - i) / particle.length);
+        }
+      }
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        width: this.width.toJSON()
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new WidthOverLength(this.width.clone());
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new WidthOverLength(ValueGeneratorFromJSON(json.width));
+    }
+  }]);
+
+  return WidthOverLength;
+}();
+
+new Vector3(0, 0, 1);
+var ChangeEmitDirection = /*#__PURE__*/function () {
+  function ChangeEmitDirection(angle) {
+    _classCallCheck(this, ChangeEmitDirection);
+
+    this.angle = angle;
+
+    _defineProperty(this, "type", 'ChangeEmitDirection');
+
+    _defineProperty(this, "_temp", new Vector3());
+
+    _defineProperty(this, "_q", new Quaternion());
+  }
+
+  _createClass(ChangeEmitDirection, [{
+    key: "initialize",
+    value: function initialize(particle) {
+      var len = particle.velocity.length();
+      if (len == 0) return;
+      particle.velocity.normalize();
+
+      if (particle.velocity.x === 0 && particle.velocity.y === 0) {
+        this._temp.set(0, particle.velocity.z, 0);
+      } else {
+        this._temp.set(-particle.velocity.y, particle.velocity.x, 0);
+      }
+
+      this._q.setFromAxisAngle(this._temp.normalize(), this.angle.genValue());
+
+      this._temp.copy(particle.velocity);
+
+      particle.velocity.applyQuaternion(this._q);
+
+      this._q.setFromAxisAngle(this._temp, Math.random() * Math.PI * 2);
+
+      particle.velocity.applyQuaternion(this._q);
+      particle.velocity.setLength(len);
+    }
+  }, {
+    key: "update",
+    value: function update(particle, delta) {}
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        angle: this.angle.toJSON()
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new ChangeEmitDirection(this.angle);
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new ChangeEmitDirection(ValueGeneratorFromJSON(json.angle));
+    }
+  }]);
+
+  return ChangeEmitDirection;
+}();
+
+var VECTOR_ONE = new Vector3(1, 1, 1);
+var VECTOR_Z = new Vector3(0, 0, 1);
+var EmitSubParticleSystem = /*#__PURE__*/function () {
+  //private matrix_ = new Matrix4();
+  function EmitSubParticleSystem(particleSystem, useVelocityAsBasis, subParticleSystem) {
+    _classCallCheck(this, EmitSubParticleSystem);
+
+    this.particleSystem = particleSystem;
+    this.useVelocityAsBasis = useVelocityAsBasis;
+    this.subParticleSystem = subParticleSystem;
+
+    _defineProperty(this, "type", "EmitSubParticleSystem");
+
+    _defineProperty(this, "q_", new Quaternion());
+
+    _defineProperty(this, "v_", new Vector3());
+
+    _defineProperty(this, "v2_", new Vector3());
+
+    if (this.subParticleSystem) {
+      this.subParticleSystem.system.onlyUsedByOther = true;
+    }
+  }
+
+  _createClass(EmitSubParticleSystem, [{
+    key: "initialize",
+    value: function initialize(particle) {
+      particle.emissionState = {
+        burstIndex: 0,
+        burstWaveIndex: 0,
+        time: 0,
+        waitEmiting: 0,
+        matrix: new Matrix4()
+      };
+    }
+  }, {
+    key: "update",
+    value: function update(particle, delta) {
+      if (!this.subParticleSystem || !particle.emissionState) return;
+      var m = particle.emissionState.matrix;
+      var rotation;
+
+      if (particle.rotation === undefined || this.useVelocityAsBasis) {
+        if (particle.velocity.x === 0 && particle.velocity.y === 0 && (particle.velocity.z === 1 || particle.velocity.z === 0)) {
+          m.set(1, 0, 0, particle.position.x, 0, 1, 0, particle.position.y, 0, 0, 1, particle.position.z, 0, 0, 0, 1);
+        } else {
+          this.v_.copy(VECTOR_Z).cross(particle.velocity);
+          this.v2_.copy(particle.velocity).cross(this.v_);
+          var len = this.v_.length();
+          var len2 = this.v2_.length();
+          m.set(this.v_.x / len, this.v2_.x / len2, particle.velocity.x, particle.position.x, this.v_.y / len, this.v2_.y / len2, particle.velocity.y, particle.position.y, this.v_.z / len, this.v2_.z / len2, particle.velocity.z, particle.position.z, 0, 0, 0, 1);
+        }
+      } else {
+        if (particle.rotation instanceof Quaternion) {
+          rotation = particle.rotation;
+        } else {
+          this.q_.setFromAxisAngle(VECTOR_Z, particle.rotation);
+          rotation = this.q_;
+        }
+
+        m.compose(VECTOR_ONE, rotation, particle.position);
+      }
+
+      if (!this.particleSystem.worldSpace) {
+        m.multiplyMatrices(this.particleSystem.emitter.matrixWorld, m);
+      }
+
+      this.subParticleSystem.system.emit(delta, particle.emissionState, m);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        subParticleSystem: this.subParticleSystem ? this.subParticleSystem.uuid : "",
+        useVelocityAsBasis: this.useVelocityAsBasis
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new EmitSubParticleSystem(this.particleSystem, this.useVelocityAsBasis, this.subParticleSystem);
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json, particleSystem) {
+      return new EmitSubParticleSystem(particleSystem, json.useVelocityAsBasis, undefined);
+    }
+  }]);
+
+  return EmitSubParticleSystem;
+}();
+
 var BehaviorTypes = {
   "ApplyForce": {
+    type: "ApplyForce",
     constructor: ApplyForce,
-    params: [["direction", "vec3"], ["force", "value"]]
+    params: [["direction", "vec3"], ["force", "value"]],
+    loadJSON: ApplyForce.fromJSON
   },
   "GravityForce": {
+    type: "GravityForce",
     constructor: GravityForce,
-    params: [["center", "vec3"], ["magnitude", "number"]]
+    params: [["center", "vec3"], ["magnitude", "number"]],
+    loadJSON: GravityForce.fromJSON
   },
   "ColorOverLife": {
+    type: "ColorOverLife",
     constructor: ColorOverLife,
-    params: [["color", "colorFunc"]]
+    params: [["color", "colorFunc"]],
+    loadJSON: ColorOverLife.fromJSON
   },
   "RotationOverLife": {
+    type: "RotationOverLife",
     constructor: RotationOverLife,
-    params: [["angularVelocity", "valueFunc"]]
+    params: [["angularVelocity", "valueFunc"]],
+    loadJSON: RotationOverLife.fromJSON
   },
   "SizeOverLife": {
+    type: "SizeOverLife",
     constructor: SizeOverLife,
-    params: [["size", "valueFunc"]]
+    params: [["size", "valueFunc"]],
+    loadJSON: SizeOverLife.fromJSON
   },
   "SpeedOverLife": {
+    type: "SpeedOverLife",
     constructor: SpeedOverLife,
-    params: [["speed", "valueFunc"]]
+    params: [["speed", "valueFunc"]],
+    loadJSON: SpeedOverLife.fromJSON
   },
   "FrameOverLife": {
+    type: "FrameOverLife",
     constructor: FrameOverLife,
-    params: [["frame", "valueFunc"]]
+    params: [["frame", "valueFunc"]],
+    loadJSON: FrameOverLife.fromJSON
   },
   "OrbitOverLife": {
+    type: "OrbitOverLife",
     constructor: OrbitOverLife,
-    params: [["orbitSpeed", "valueFunc"]]
+    params: [["orbitSpeed", "valueFunc"], ["axis", "vec3"]],
+    loadJSON: OrbitOverLife.fromJSON
+  },
+  "WidthOverLength": {
+    type: "WidthOverLength",
+    constructor: WidthOverLength,
+    params: [["width", "valueFunc"]],
+    loadJSON: WidthOverLength.fromJSON
+  },
+  "ChangeEmitDirection": {
+    type: "ChangeEmitDirection",
+    constructor: ChangeEmitDirection,
+    params: [["angle", "value"]],
+    loadJSON: ChangeEmitDirection.fromJSON
+  },
+  "EmitSubParticleSystem": {
+    type: "EmitSubParticleSystem",
+    constructor: EmitSubParticleSystem,
+    params: [["particleSystem", "self"], ['useVelocityAsBasis', 'boolean'], ["subParticleSystem", "particleSystem"]],
+    loadJSON: EmitSubParticleSystem.fromJSON
   }
 };
-function BehaviorFromJSON(json) {
-  switch (json.type) {
-    case 'ApplyForce':
-      return new ApplyForce(new Vector3(json.direction[0], json.direction[1], json.direction[2]), ValueGeneratorFromJSON(json.force));
-
-    case 'GravityForce':
-      return new GravityForce(new Vector3(json.center[0], json.center[1], json.center[2]), json.magnitude);
-
-    case 'ColorOverLife':
-      return new ColorOverLife(ColorGeneratorFromJSON(json.color));
-
-    case 'RotationOverLife':
-      return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity));
-
-    case 'SizeOverLife':
-      return new SizeOverLife(ValueGeneratorFromJSON(json.size));
-
-    case 'SpeedOverLife':
-      return new SpeedOverLife(ValueGeneratorFromJSON(json.speed));
-
-    case 'FrameOverLife':
-      return new FrameOverLife(ValueGeneratorFromJSON(json.frame));
-
-    case 'OrbitOverLife':
-      return new OrbitOverLife(ValueGeneratorFromJSON(json.orbitSpeed));
-
-    default:
-      return new ColorOverLife(new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1)));
-  }
+function BehaviorFromJSON(json, particleSystem) {
+  return BehaviorTypes[json.type].loadJSON(json, particleSystem);
 }
 
 var ConeEmitter = /*#__PURE__*/function () {
@@ -1435,6 +1774,11 @@ var ConeEmitter = /*#__PURE__*/function () {
         thickness: this.thickness,
         angle: this.angle
       });
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new ConeEmitter(json);
     }
   }]);
 
@@ -1505,6 +1849,11 @@ var DonutEmitter = /*#__PURE__*/function () {
         angle: this.angle
       });
     }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new DonutEmitter(json);
+    }
   }]);
 
   return DonutEmitter;
@@ -1545,6 +1894,11 @@ var PointEmitter = /*#__PURE__*/function () {
   }, {
     key: "clone",
     value: function clone() {
+      return new PointEmitter();
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
       return new PointEmitter();
     }
   }]);
@@ -1611,6 +1965,11 @@ var SphereEmitter = /*#__PURE__*/function () {
         arc: this.arc,
         thickness: this.thickness
       });
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new SphereEmitter(json);
     }
   }]);
 
@@ -1711,9 +2070,9 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
       }
 
       var geometry = this._mesh.geometry;
-      var index1 = geometry.getIndex().array[(left + 1) * 3];
-      var index2 = geometry.getIndex().array[(left + 1) * 3 + 1];
-      var index3 = geometry.getIndex().array[(left + 1) * 3 + 2];
+      var index1 = geometry.getIndex().array[left * 3];
+      var index2 = geometry.getIndex().array[left * 3 + 1];
+      var index3 = geometry.getIndex().array[left * 3 + 2];
       var positionBuffer = geometry.getAttribute("position");
 
       this._tempA.fromBufferAttribute(positionBuffer, index1);
@@ -1746,166 +2105,51 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
     value: function clone() {
       return new MeshSurfaceEmitter(this._mesh);
     }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new MeshSurfaceEmitter();
+    }
   }]);
 
   return MeshSurfaceEmitter;
 }();
 
-var ParticleSystemEmitter = /*#__PURE__*/function () {
-  function ParticleSystemEmitter(particleSystem) {
-    _classCallCheck(this, ParticleSystemEmitter);
-
-    _defineProperty(this, "type", "particle_system");
-
-    _defineProperty(this, "_particleSystem", void 0);
-
-    if (!particleSystem) {
-      return;
-    }
-
-    this.particleSystem = particleSystem;
+var EmitterShapes = {
+  "cone": {
+    type: "cone",
+    params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]],
+    constructor: ConeEmitter,
+    loadJSON: ConeEmitter.fromJSON
+  },
+  "donut": {
+    type: "donut",
+    params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]],
+    constructor: DonutEmitter,
+    loadJSON: DonutEmitter.fromJSON
+  },
+  "point": {
+    type: "point",
+    params: [],
+    constructor: PointEmitter,
+    loadJSON: PointEmitter.fromJSON
+  },
+  "sphere": {
+    type: "sphere",
+    params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]],
+    constructor: SphereEmitter,
+    loadJSON: SphereEmitter.fromJSON
+  },
+  "mesh_surface": {
+    type: "mesh_surface",
+    params: [["mesh", "mesh"]],
+    constructor: MeshSurfaceEmitter,
+    loadJSON: MeshSurfaceEmitter.fromJSON
   }
-
-  _createClass(ParticleSystemEmitter, [{
-    key: "particleSystem",
-    get: function get() {
-      return this._particleSystem;
-    },
-    set: function set(particleSystem) {
-      this._particleSystem = particleSystem;
-    }
-  }, {
-    key: "initialize",
-    value: function initialize(p) {
-      if (!this._particleSystem) {
-        p.position.set(0, 0, 0);
-        p.velocity.set(0, 0, 1).multiplyScalar(p.startSpeed);
-        return;
-      }
-      /*p.position.copy(this._tempA);
-      p.velocity.copy(this._tempA).normalize().multiplyScalar(p.startSpeed);
-      p.position.applyMatrix4(this._mesh.matrixWorld);
-      p.velocity.applyMatrix3(this._mesh.normalMatrix);*/
-
-    }
-  }, {
-    key: "toJSON",
-    value: function toJSON() {
-      return {
-        type: 'particle_system',
-        particleSystem: this._particleSystem ? this._particleSystem.emitter.uuid : ""
-      };
-    }
-  }, {
-    key: "clone",
-    value: function clone() {
-      return new ParticleSystemEmitter(this._particleSystem);
-    }
-  }]);
-
-  return ParticleSystemEmitter;
-}();
-
+};
 function EmitterFromJSON(json) {
-  switch (json.type) {
-    case 'cone':
-      return new ConeEmitter(json);
-
-    case 'donut':
-      return new DonutEmitter(json);
-
-    case 'point':
-      return new PointEmitter();
-
-    case 'sphere':
-      return new SphereEmitter(json);
-
-    case 'mesh_surface':
-      return new MeshSurfaceEmitter();
-
-    case 'particle_system':
-      return new ParticleSystemEmitter();
-
-    default:
-      return new PointEmitter();
-  }
+  return EmitterShapes[json.type].loadJSON(json);
 }
-
-var EmitterTypes = [[new ConeEmitter().type, ConeEmitter], [new PointEmitter().type, PointEmitter], [new SphereEmitter().type, SphereEmitter], [new DonutEmitter().type, DonutEmitter], ["mesh_surface", MeshSurfaceEmitter]];
-
-var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
-  _inherits(Gradient, _PiecewiseFunction);
-
-  var _super = _createSuper(Gradient);
-
-  // default linear bezier
-  function Gradient() {
-    var _this;
-
-    var functions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [[new ColorRange(new Vector4(0, 0, 0, 1), new Vector4(1, 1, 1, 1)), 0]];
-
-    _classCallCheck(this, Gradient);
-
-    _this = _super.call(this);
-
-    _defineProperty(_assertThisInitialized(_this), "type", void 0);
-
-    _this.type = "function";
-    _this.functions = functions;
-    return _this;
-  }
-
-  _createClass(Gradient, [{
-    key: "genColor",
-    value: function genColor(color, t) {
-      var index = this.findFunction(t);
-
-      if (index === -1) {
-        console.error(t);
-        return color.copy(this.functions[0][0].a);
-      }
-
-      return this.getFunction(index).genColor(color, (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index)));
-    }
-  }, {
-    key: "toJSON",
-    value: function toJSON() {
-      return {
-        type: "Gradient",
-        functions: this.functions.map(function (_ref) {
-          var _ref2 = _slicedToArray(_ref, 2),
-              range = _ref2[0],
-              start = _ref2[1];
-
-          return {
-            "function": range.toJSON(),
-            start: start
-          };
-        })
-      };
-    }
-  }, {
-    key: "clone",
-    value: function clone() {
-      return new Gradient(this.functions.map(function (_ref3) {
-        var _ref4 = _slicedToArray(_ref3, 2),
-            range = _ref4[0],
-            start = _ref4[1];
-
-        return [range.clone(), start];
-      }));
-    }
-  }], [{
-    key: "fromJSON",
-    value: function fromJSON(json) {
-      return new Gradient(json.functions.map(function (piecewiseFunction) {
-        return [ColorRange.fromJSON(piecewiseFunction["function"]), piecewiseFunction.start];
-      }));
-    }
-  }]);
-
-  return Gradient;
-}(PiecewiseFunction);
 
 var RenderMode;
 
@@ -1967,11 +2211,11 @@ var ParticleSystemBatch = /*#__PURE__*/function (_Mesh) {
   return ParticleSystemBatch;
 }(Mesh);
 
-var UP$1 = new Vector3(0, 0, 1);
+var UP = new Vector3(0, 0, 1);
 var DEFAULT_GEOMETRY = new PlaneBufferGeometry(1, 1, 1, 1);
 var ParticleSystem = /*#__PURE__*/function () {
   function ParticleSystem(renderer, parameters) {
-    var _parameters$duration, _parameters$maxPartic, _parameters$startLife, _parameters$startSpee, _parameters$startRota, _parameters$startSize, _parameters$startColo, _parameters$emissionO, _parameters$emissionO2, _parameters$emissionB, _parameters$shape, _parameters$behaviors, _parameters$worldSpac, _parameters$speedFact, _parameters$rendererE, _parameters$blending, _parameters$transpare, _parameters$instancin, _parameters$renderMod, _parameters$renderOrd, _parameters$uTileCoun, _parameters$vTileCoun;
+    var _parameters$duration, _parameters$maxPartic, _parameters$startLife, _parameters$startSpee, _parameters$startRota, _parameters$startSize, _parameters$startColo, _parameters$emissionO, _parameters$emissionO2, _parameters$emissionB, _parameters$onlyUsedB, _parameters$shape, _parameters$behaviors, _parameters$worldSpac, _parameters$speedFact, _parameters$rendererE, _parameters$blending, _parameters$transpare, _parameters$instancin, _parameters$renderMod, _parameters$renderOrd, _parameters$uTileCoun, _parameters$vTileCoun;
 
     _classCallCheck(this, ParticleSystem);
 
@@ -2003,25 +2247,23 @@ var ParticleSystem = /*#__PURE__*/function () {
 
     _defineProperty(this, "emissionBursts", void 0);
 
+    _defineProperty(this, "onlyUsedByOther", void 0);
+
     _defineProperty(this, "worldSpace", void 0);
 
     _defineProperty(this, "speedFactor", void 0);
 
     _defineProperty(this, "particleNum", void 0);
 
-    _defineProperty(this, "burstIndex", void 0);
-
-    _defineProperty(this, "burstWaveIndex", void 0);
-
-    _defineProperty(this, "time", void 0);
-
     _defineProperty(this, "paused", void 0);
 
-    _defineProperty(this, "waitEmiting", void 0);
+    _defineProperty(this, "emissionState", void 0);
 
     _defineProperty(this, "emitEnded", void 0);
 
     _defineProperty(this, "markForDestroy", void 0);
+
+    _defineProperty(this, "normalMatrix", new Matrix3());
 
     _defineProperty(this, "behaviors", void 0);
 
@@ -2037,12 +2279,6 @@ var ParticleSystem = /*#__PURE__*/function () {
 
     _defineProperty(this, "neededToUpdateRender", void 0);
 
-    _defineProperty(this, "oldWorldMatrix", new Matrix4());
-
-    _defineProperty(this, "normalMatrix", new Matrix3());
-
-    _defineProperty(this, "firstTimeUpdate", true);
-
     this.renderer = renderer;
     this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
     this.duration = (_parameters$duration = parameters.duration) !== null && _parameters$duration !== void 0 ? _parameters$duration : 1;
@@ -2057,6 +2293,7 @@ var ParticleSystem = /*#__PURE__*/function () {
     this.emissionOverTime = (_parameters$emissionO = parameters.emissionOverTime) !== null && _parameters$emissionO !== void 0 ? _parameters$emissionO : new ConstantValue(10);
     this.emissionOverDistance = (_parameters$emissionO2 = parameters.emissionOverDistance) !== null && _parameters$emissionO2 !== void 0 ? _parameters$emissionO2 : new ConstantValue(0);
     this.emissionBursts = (_parameters$emissionB = parameters.emissionBursts) !== null && _parameters$emissionB !== void 0 ? _parameters$emissionB : [];
+    this.onlyUsedByOther = (_parameters$onlyUsedB = parameters.onlyUsedByOther) !== null && _parameters$onlyUsedB !== void 0 ? _parameters$onlyUsedB : false;
     this.emitterShape = (_parameters$shape = parameters.shape) !== null && _parameters$shape !== void 0 ? _parameters$shape : new SphereEmitter();
     this.behaviors = (_parameters$behaviors = parameters.behaviors) !== null && _parameters$behaviors !== void 0 ? _parameters$behaviors : new Array();
     this.worldSpace = (_parameters$worldSpac = parameters.worldSpace) !== null && _parameters$worldSpac !== void 0 ? _parameters$worldSpac : false;
@@ -2076,14 +2313,17 @@ var ParticleSystem = /*#__PURE__*/function () {
     this.particles = new Array();
     this.startTileIndex = parameters.startTileIndex || new ConstantValue(0);
     this.emitter = new ParticleEmitter(this);
-    this.particleNum = 0;
-    this.burstIndex = 0;
-    this.burstWaveIndex = 0;
-    this.time = 0;
     this.paused = false;
-    this.waitEmiting = 0;
+    this.particleNum = 0;
+    this.emissionState = {
+      burstIndex: 0,
+      burstWaveIndex: 0,
+      time: 0,
+      waitEmiting: 0
+    };
     this.emitEnded = false;
     this.markForDestroy = false;
+    this.renderer.addSystem(this);
   }
 
   _createClass(ParticleSystem, [{
@@ -2181,7 +2421,7 @@ var ParticleSystem = /*#__PURE__*/function () {
     }
   }, {
     key: "spawn",
-    value: function spawn(count) {
+    value: function spawn(count, emissionState, matrix) {
       for (var i = 0; i < count && this.particleNum < this.maxParticle; i++) {
         this.particleNum++;
 
@@ -2194,25 +2434,25 @@ var ParticleSystem = /*#__PURE__*/function () {
         }
 
         var particle = this.particles[this.particleNum - 1];
-        this.startColor.genColor(particle.startColor, this.time);
+        this.startColor.genColor(particle.startColor, emissionState.time);
         particle.color.copy(particle.startColor);
-        particle.startSpeed = this.startSpeed.genValue(this.time);
-        particle.life = this.startLife.genValue(this.time);
+        particle.startSpeed = this.startSpeed.genValue(emissionState.time);
+        particle.life = this.startLife.genValue(emissionState.time);
         particle.age = 0;
-        particle.startSize = this.startSize.genValue(this.time);
+        particle.startSize = this.startSize.genValue(emissionState.time);
         particle.uvTile = Math.floor(this.startTileIndex.genValue());
         particle.size = particle.startSize;
 
         if (this.rendererSettings.renderMode === RenderMode.LocalSpace || this.rendererSettings.renderMode === RenderMode.BillBoard || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard) {
           var sprite = particle;
-          sprite.rotation = this.startRotation.genValue(this.time);
+          sprite.rotation = this.startRotation.genValue(emissionState.time);
 
           if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
-            sprite.rotationQuat = new Quaternion().setFromAxisAngle(UP$1, sprite.rotation);
+            sprite.rotation = new Quaternion().setFromAxisAngle(UP, sprite.rotation);
           }
         } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
           var trail = particle;
-          trail.length = this.rendererEmitterSettings.startLength.genValue(this.time);
+          trail.length = this.rendererEmitterSettings.startLength.genValue(emissionState.time);
           trail.reset();
         }
 
@@ -2224,8 +2464,12 @@ var ParticleSystem = /*#__PURE__*/function () {
         }
 
         if (this.worldSpace) {
-          particle.position.applyMatrix4(this.emitter.matrixWorld);
+          particle.position.applyMatrix4(matrix);
           particle.velocity.applyMatrix3(this.normalMatrix);
+        } else {
+          if (this.onlyUsedByOther) {
+            particle.parentMatrix = matrix;
+          }
         }
 
         for (var j = 0; j < this.behaviors.length; j++) {
@@ -2254,21 +2498,21 @@ var ParticleSystem = /*#__PURE__*/function () {
     value: function restart() {
       this.paused = false;
       this.particleNum = 0;
-      this.burstIndex = 0;
-      this.burstWaveIndex = 0;
-      this.time = 0;
-      this.waitEmiting = 0;
+      this.emissionState.burstIndex = 0;
+      this.emissionState.burstWaveIndex = 0;
+      this.emissionState.time = 0;
+      this.emissionState.waitEmiting = 0;
       this.emitEnded = false;
       this.markForDestroy = false;
-    }
+    } //firstTimeUpdate = true;
+
   }, {
     key: "update",
     value: function update(delta) {
-      if (this.firstTimeUpdate) {
-        this.renderer.addSystem(this);
-        this.firstTimeUpdate = false;
-      }
-
+      /*if (this.firstTimeUpdate) {
+          this.renderer.addSystem(this);
+          this.firstTimeUpdate = false;
+      }*/
       if (delta > 0.1) delta = 0.1;
       if (this.paused) return;
 
@@ -2277,87 +2521,114 @@ var ParticleSystem = /*#__PURE__*/function () {
         return;
       }
 
-      if (this.time > this.duration) {
-        if (this.looping) {
-          this.time -= this.duration;
-        } else {
-          if (!this.emitEnded) {
-            this.endEmit();
-          }
-        }
-      }
-
       if (this.neededToUpdateRender) {
         this.renderer.updateSystem(this);
         this.neededToUpdateRender = false;
       }
 
-      this.normalMatrix.getNormalMatrix(this.emitter.matrixWorld); // particle die
+      if (!this.onlyUsedByOther) {
+        this.emit(delta, this.emissionState, this.emitter.matrixWorld);
+      } // simulate
 
-      for (var i = 0; i < this.particleNum; i++) {
-        var particle = this.particles[i];
-
-        if (particle.age >= particle.life) {
-          this.particles[i] = this.particles[this.particleNum - 1];
-          this.particles[this.particleNum - 1] = particle;
-          this.particleNum--;
-          i--;
-        }
-      } // spawn
-
-
-      if (!this.emitEnded) {
-        var totalSpawn = Math.ceil(this.waitEmiting);
-        this.spawn(totalSpawn);
-        this.waitEmiting -= totalSpawn;
-      } // spawn burst
-
-
-      while (this.burstIndex < this.emissionBursts.length && this.emissionBursts[this.burstIndex].time <= this.time) {
-        if (Math.random() < this.emissionBursts[this.burstIndex].probability) {
-          var count = this.emissionBursts[this.burstIndex].count;
-          this.spawn(count);
-        }
-
-        this.burstIndex++;
-      }
 
       for (var j = 0; j < this.behaviors.length; j++) {
-        for (var _i = 0; _i < this.particleNum; _i++) {
-          this.behaviors[j].update(this.particles[_i], delta);
+        for (var i = 0; i < this.particleNum; i++) {
+          this.behaviors[j].update(this.particles[i], delta);
         }
       }
 
-      for (var _i2 = 0; _i2 < this.particleNum; _i2++) {
-        if (this.rendererEmitterSettings.followLocalOrigin && this.particles[_i2].localPosition) {
-          this.particles[_i2].position.copy(this.particles[_i2].localPosition).applyMatrix4(this.emitter.matrixWorld);
+      for (var _i = 0; _i < this.particleNum; _i++) {
+        if (this.rendererEmitterSettings.followLocalOrigin && this.particles[_i].localPosition) {
+          this.particles[_i].position.copy(this.particles[_i].localPosition);
+
+          if (this.particles[_i].parentMatrix) {
+            this.particles[_i].position.applyMatrix4(this.particles[_i].parentMatrix);
+          } else {
+            this.particles[_i].position.applyMatrix4(this.emitter.matrixWorld);
+          }
         } else {
-          this.particles[_i2].position.addScaledVector(this.particles[_i2].velocity, delta);
+          this.particles[_i].position.addScaledVector(this.particles[_i].velocity, delta);
         }
 
-        this.particles[_i2].age += delta;
+        this.particles[_i].age += delta;
       }
 
       if (this.rendererSettings.renderMode === RenderMode.Trail) {
-        for (var _i3 = 0; _i3 < this.particleNum; _i3++) {
-          var _particle = this.particles[_i3];
-
-          _particle.recordCurrentState();
+        for (var _i2 = 0; _i2 < this.particleNum; _i2++) {
+          var particle = this.particles[_i2];
+          particle.recordCurrentState();
         }
-      } //this.emitter.update();
+      } // particle die
 
 
-      this.oldWorldMatrix.copy(this.emitter.matrixWorld);
+      for (var _i3 = 0; _i3 < this.particleNum; _i3++) {
+        var _particle = this.particles[_i3];
 
-      if (!this.emitEnded) {
-        this.waitEmiting += delta * this.emissionOverTime.genValue(this.time / this.duration);
+        if (_particle.age >= _particle.life) {
+          this.particles[_i3] = this.particles[this.particleNum - 1];
+          this.particles[this.particleNum - 1] = _particle;
+          this.particleNum--;
+          _i3--;
+        }
+      }
+    }
+  }, {
+    key: "emit",
+    value: function emit(delta, emissionState, emitterMatrix) {
+      if (emissionState.time > this.duration) {
+        if (this.looping) {
+          emissionState.time -= this.duration;
+          emissionState.burstIndex = 0;
+        } else {
+          if (!this.emitEnded && !this.onlyUsedByOther) {
+            this.endEmit();
+          }
+        }
       }
 
-      this.time += delta;
+      this.normalMatrix.getNormalMatrix(emitterMatrix); // spawn
+
+      if (!this.emitEnded) {
+        var totalSpawn = Math.ceil(emissionState.waitEmiting);
+        this.spawn(totalSpawn, emissionState, emitterMatrix);
+        emissionState.waitEmiting -= totalSpawn;
+      } // spawn burst
+
+
+      while (emissionState.burstIndex < this.emissionBursts.length && this.emissionBursts[emissionState.burstIndex].time <= emissionState.time) {
+        if (Math.random() < this.emissionBursts[emissionState.burstIndex].probability) {
+          var count = this.emissionBursts[emissionState.burstIndex].count;
+          this.spawn(count, emissionState, emitterMatrix);
+        }
+
+        emissionState.burstIndex++;
+      }
+
+      if (!this.emitEnded) {
+        emissionState.waitEmiting += delta * this.emissionOverTime.genValue(emissionState.time / this.duration);
+      }
+
+      emissionState.time += delta;
     }
   }, {
     key: "toJSON",
     value: function toJSON(meta) {
+      var isRootObject = meta === undefined || typeof meta === 'string';
+
+      if (isRootObject) {
+        // initialize meta obj
+        meta = {
+          geometries: {},
+          materials: {},
+          textures: {},
+          images: {},
+          shapes: {},
+          skeletons: {},
+          animations: {},
+          nodes: {}
+        };
+      }
+
       this.texture.toJSON(meta); // TODO: support URL
 
       /*if ( this.texture.source !== undefined ) {
@@ -2376,17 +2647,16 @@ var ParticleSystem = /*#__PURE__*/function () {
           followLocalOrigin: this.rendererEmitterSettings.followLocalOrigin
         };
       } else if (this.renderMode === RenderMode.LocalSpace) {
-        var geometry = this.rendererEmitterSettings.geometry;
-
-        if (!meta.geometries[geometry.uuid]) {
-          meta.geometries[geometry.uuid] = geometry.toJSON();
-        }
-
-        rendererSettingsJSON = {
-          geometry: geometry.uuid
-        };
+        rendererSettingsJSON = {};
+        /*;*/
       } else {
         rendererSettingsJSON = {};
+      }
+
+      var geometry = this.rendererSettings.instancingGeometry;
+
+      if (meta.geometries && !meta.geometries[geometry.uuid]) {
+        meta.geometries[geometry.uuid] = geometry.toJSON();
       }
 
       return {
@@ -2403,7 +2673,8 @@ var ParticleSystem = /*#__PURE__*/function () {
         emissionOverTime: this.emissionOverTime.toJSON(),
         emissionOverDistance: this.emissionOverDistance.toJSON(),
         emissionBursts: this.emissionBursts,
-        instancingGeometry: this.rendererSettings.instancingGeometry.toJSON(),
+        onlyUsedByOther: this.onlyUsedByOther,
+        instancingGeometry: this.rendererSettings.instancingGeometry.uuid,
         //Array.from(this.emitter.interleavedBuffer.array as Float32Array),
         renderOrder: this.renderOrder,
         renderMode: this.renderMode,
@@ -2467,6 +2738,17 @@ var ParticleSystem = /*#__PURE__*/function () {
         _iterator2.f();
       }
 
+      var rendererEmitterSettings;
+
+      if (this.renderMode === RenderMode.Trail) {
+        rendererEmitterSettings = {
+          startLength: this.rendererEmitterSettings.startLength.clone(),
+          followLocalOrigin: this.rendererEmitterSettings.followLocalOrigin
+        };
+      } else {
+        rendererEmitterSettings = {};
+      }
+
       return new ParticleSystem(this.renderer, {
         autoDestroy: this.autoDestroy,
         looping: this.looping,
@@ -2481,9 +2763,11 @@ var ParticleSystem = /*#__PURE__*/function () {
         emissionOverTime: this.emissionOverTime.clone(),
         emissionOverDistance: this.emissionOverDistance.clone(),
         emissionBursts: newEmissionBursts,
+        onlyUsedByOther: this.onlyUsedByOther,
         instancingGeometry: this.rendererSettings.instancingGeometry,
         //.interleavedBuffer.array,
         renderMode: this.renderMode,
+        rendererEmitterSettings: rendererEmitterSettings,
         speedFactor: this.speedFactor,
         texture: this.texture,
         startTileIndex: this.startTileIndex,
@@ -2496,7 +2780,7 @@ var ParticleSystem = /*#__PURE__*/function () {
     }
   }], [{
     key: "fromJSON",
-    value: function fromJSON(json, meta, renderer) {
+    value: function fromJSON(json, meta, dependencies, renderer) {
       var shape = EmitterFromJSON(json.shape);
       var rendererEmitterSettings;
 
@@ -2506,14 +2790,12 @@ var ParticleSystem = /*#__PURE__*/function () {
           followLocalOrigin: json.rendererEmitterSettings.followLocalOrigin
         };
       } else if (json.renderMode === RenderMode.LocalSpace) {
-        rendererEmitterSettings = {
-          geometry: meta.geometries[json.rendererEmitterSettings.geometry]
-        };
+        rendererEmitterSettings = {};
       } else {
         rendererEmitterSettings = {};
       }
 
-      return new ParticleSystem(renderer, {
+      var ps = new ParticleSystem(renderer, {
         autoDestroy: json.autoDestroy,
         looping: json.looping,
         duration: json.duration,
@@ -2527,7 +2809,8 @@ var ParticleSystem = /*#__PURE__*/function () {
         emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
         emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
         emissionBursts: json.emissionBursts,
-        //instancingGeometry: json.instancingGeometry, //TODO: Support instancing Geometry in deserialization
+        onlyUsedByOther: json.onlyUsedByOther,
+        instancingGeometry: meta.geometries[json.instancingGeometry],
         renderMode: json.renderMode,
         rendererEmitterSettings: rendererEmitterSettings,
         renderOrder: json.renderOrder,
@@ -2537,11 +2820,19 @@ var ParticleSystem = /*#__PURE__*/function () {
         uTileCount: json.uTileCount,
         vTileCount: json.vTileCount,
         blending: json.blending,
-        behaviors: json.behaviors.map(function (behavior) {
-          return BehaviorFromJSON(behavior);
-        }),
+        behaviors: [],
         worldSpace: json.worldSpace
       });
+      ps.behaviors = json.behaviors.map(function (behaviorJson) {
+        var behavior = BehaviorFromJSON(behaviorJson, ps);
+
+        if (behavior.type === "EmitSubParticleSystem") {
+          dependencies[behaviorJson.subParticleSystem] = behavior;
+        }
+
+        return behavior;
+      });
+      return ps;
     }
   }]);
 
@@ -2592,7 +2883,7 @@ var stretched_bb_particle_vert = /* glsl */
  */
 
 var DEFAULT_MAX_PARTICLE$1 = 1000;
-var UP = new Vector3(0, 0, 1);
+new Vector3(0, 0, 1);
 var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
   _inherits(SpriteBatch, _ParticleSystemBatch);
 
@@ -2625,7 +2916,11 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
     _defineProperty(_assertThisInitialized(_this), "quaternion2_", new Quaternion());
 
+    _defineProperty(_assertThisInitialized(_this), "quaternion3_", new Quaternion());
+
     _defineProperty(_assertThisInitialized(_this), "rotationMat_", new Matrix3());
+
+    _defineProperty(_assertThisInitialized(_this), "rotationMat2_", new Matrix3());
 
     _this.setupBuffers();
 
@@ -2750,26 +3045,44 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
           var particle = particles[j];
 
           if (_this2.settings.renderMode === RenderMode.LocalSpace) {
-            particle.rotationQuat.setFromAxisAngle(UP, particle.rotation);
+            //this.quaternion_.setFromAxisAngle(UP, particle.rotation as number);
+            var q = void 0;
 
             if (system.worldSpace) {
-              _this2.rotationBuffer.setXYZW(index, particle.rotationQuat.x, particle.rotationQuat.y, particle.rotationQuat.z, particle.rotationQuat.w);
+              q = particle.rotation;
             } else {
-              _this2.quaternion_.copy(particle.rotationQuat).multiply(_this2.quaternion2_);
+              var parentQ = void 0;
 
-              _this2.rotationBuffer.setXYZW(index, _this2.quaternion_.x, _this2.quaternion_.y, _this2.quaternion_.z, _this2.quaternion_.w);
+              if (particle.parentMatrix) {
+                parentQ = _this2.quaternion3_.setFromRotationMatrix(particle.parentMatrix);
+              } else {
+                parentQ = _this2.quaternion2_;
+              }
+
+              q = _this2.quaternion_;
+              q.copy(particle.rotation).multiply(parentQ);
             }
+
+            _this2.rotationBuffer.setXYZW(index, q.x, q.y, q.z, q.w);
           } else if (_this2.settings.renderMode === RenderMode.StretchedBillBoard || _this2.settings.renderMode === RenderMode.BillBoard) {
             _this2.rotationBuffer.setX(index, particle.rotation);
           }
 
-          if (system.worldSpace) {
-            _this2.offsetBuffer.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
-          } else {
-            _this2.vector_.copy(particle.position).applyMatrix4(system.emitter.matrixWorld);
+          var vec = void 0;
 
-            _this2.offsetBuffer.setXYZ(index, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+          if (system.worldSpace) {
+            vec = particle.position;
+          } else {
+            vec = _this2.vector_;
+
+            if (particle.parentMatrix) {
+              vec.copy(particle.position).applyMatrix4(particle.parentMatrix);
+            } else {
+              vec.copy(particle.position).applyMatrix4(system.emitter.matrixWorld);
+            }
           }
+
+          _this2.offsetBuffer.setXYZ(index, vec.x, vec.y, vec.z);
 
           _this2.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
 
@@ -2778,13 +3091,25 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
           _this2.uvTileBuffer.setX(index, particle.uvTile);
 
           if (_this2.settings.renderMode === RenderMode.StretchedBillBoard) {
-            if (system.worldSpace) {
-              _this2.velocityBuffer.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
-            } else {
-              _this2.vector_.copy(particle.velocity).applyMatrix3(_this2.rotationMat_);
+            var speedFactor = system.speedFactor;
 
-              _this2.velocityBuffer.setXYZ(index, _this2.vector_.x * system.speedFactor, _this2.vector_.y * system.speedFactor, _this2.vector_.z * system.speedFactor);
+            var _vec = void 0;
+
+            if (system.worldSpace) {
+              _vec = particle.velocity;
+            } else {
+              _vec = _this2.vector_;
+
+              if (particle.parentMatrix) {
+                _this2.rotationMat2_.setFromMatrix4(particle.parentMatrix);
+
+                _vec.copy(particle.velocity).applyMatrix3(_this2.rotationMat2_);
+              } else {
+                _vec.copy(particle.velocity).applyMatrix3(_this2.rotationMat_);
+              }
             }
+
+            _this2.velocityBuffer.setXYZ(index, _vec.x * speedFactor, _vec.y * speedFactor, _vec.z * speedFactor);
           }
         }
       });
@@ -2861,6 +3186,8 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
     _defineProperty(_assertThisInitialized(_this), "colorBuffer", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "indexBuffer", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "vector_", new Vector3());
 
     _this.setupBuffers();
 
@@ -2989,6 +3316,22 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
 
             _this2.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
 
+            if (system.worldSpace) {
+              _this2.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
+
+              _this2.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
+            } else {
+              if (particle.parentMatrix) {
+                _this2.vector_.copy(recordState.position).applyMatrix4(particle.parentMatrix);
+              } else {
+                _this2.vector_.copy(recordState.position).applyMatrix4(system.emitter.matrixWorld);
+              }
+
+              _this2.positionBuffer.setXYZ(index, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+
+              _this2.positionBuffer.setXYZ(index + 1, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+            }
+
             var previous = void 0;
 
             if (i - 1 >= 0) {
@@ -2997,9 +3340,21 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
               previous = particle.previous[0];
             }
 
-            _this2.previousBuffer.setXYZ(index, previous.position.x, previous.position.y, previous.position.z);
+            if (system.worldSpace) {
+              _this2.previousBuffer.setXYZ(index, previous.position.x, previous.position.y, previous.position.z);
 
-            _this2.previousBuffer.setXYZ(index + 1, previous.position.x, previous.position.y, previous.position.z);
+              _this2.previousBuffer.setXYZ(index + 1, previous.position.x, previous.position.y, previous.position.z);
+            } else {
+              if (particle.parentMatrix) {
+                _this2.vector_.copy(previous.position).applyMatrix4(particle.parentMatrix);
+              } else {
+                _this2.vector_.copy(previous.position).applyMatrix4(system.emitter.matrixWorld);
+              }
+
+              _this2.previousBuffer.setXYZ(index, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+
+              _this2.previousBuffer.setXYZ(index + 1, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+            }
 
             var next = void 0;
 
@@ -3009,9 +3364,21 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
               next = particle.previous[particle.previous.length - 1];
             }
 
-            _this2.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
+            if (system.worldSpace) {
+              _this2.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
 
-            _this2.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
+              _this2.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
+            } else {
+              if (particle.parentMatrix) {
+                _this2.vector_.copy(next.position).applyMatrix4(particle.parentMatrix);
+              } else {
+                _this2.vector_.copy(next.position).applyMatrix4(system.emitter.matrixWorld);
+              }
+
+              _this2.nextBuffer.setXYZ(index, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+
+              _this2.nextBuffer.setXYZ(index + 1, _this2.vector_.x, _this2.vector_.y, _this2.vector_.z);
+            }
 
             _this2.sideBuffer.setX(index, -1);
 
@@ -3156,7 +3523,11 @@ var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
     }
   }, {
     key: "update",
-    value: function update() {
+    value: function update(delta) {
+      this.systemToBatchIndex.forEach(function (value, ps) {
+        ps.update(delta);
+      });
+
       for (var i = 0; i < this.batches.length; i++) {
         this.batches[i].update();
       }
@@ -3477,12 +3848,12 @@ var QuarksLoader = /*#__PURE__*/function () {
     }
   }, {
     key: "parseObject",
-    value: function parseObject(data, meta, renderer) {
+    value: function parseObject(data, meta, dependencies, renderer) {
       var object;
 
       switch (data.type) {
         case 'ParticleEmitter':
-          object = ParticleSystem.fromJSON(data.ps, meta, renderer).emitter;
+          object = ParticleSystem.fromJSON(data.ps, meta, dependencies, renderer).emitter;
           break;
 
         case 'Group':
@@ -3519,7 +3890,7 @@ var QuarksLoader = /*#__PURE__*/function () {
         var children = data.children;
 
         for (var i = 0; i < children.length; i++) {
-          object.add(this.parseObject(children[i], meta, renderer));
+          object.add(this.parseObject(children[i], meta, dependencies, renderer));
         }
       }
 
@@ -3540,7 +3911,13 @@ var QuarksLoader = /*#__PURE__*/function () {
         shapes: shapes,
         geometries: geometries
       };
-      var object = this.parseObject(json.object, meta, renderer);
+      var dependencies = {};
+      var object = this.parseObject(json.object, meta, dependencies, renderer);
+      object.traverse(function (obj) {
+        if (dependencies[obj.uuid]) {
+          dependencies[obj.uuid].subParticleSystem = obj;
+        }
+      });
 
       if (json.images === undefined || json.images.length === 0) {
         if (onLoad !== undefined) onLoad(object);
@@ -3574,4 +3951,4 @@ var TEXTURE_FILTER = {
   LinearMipmapLinearFilter: LinearMipmapLinearFilter
 };
 
-export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitterFromJSON, EmitterTypes, FrameOverLife, Gradient, IntervalValue, MeshSurfaceEmitter, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, ValueGeneratorFromJSON };
+export { ApplyForce, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, FrameOverLife, Gradient, GravityForce, IntervalValue, MeshSurfaceEmitter, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RecordState, RenderMode, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, ValueGeneratorFromJSON, WidthOverLength };
