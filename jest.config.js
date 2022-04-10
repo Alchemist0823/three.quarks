@@ -3,7 +3,6 @@ module.exports = {
         "^.+\\.tsx?$": "ts-jest"
     },
     "testEnvironment": "node",
-    "setupFiles": ["jest-canvas-mock"],
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
     "moduleFileExtensions": [
         "ts",
