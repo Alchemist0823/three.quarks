@@ -151,7 +151,11 @@ export class TrailBatch extends ParticleSystemBatch {
                         this.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
                         this.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
                     } else {
-                        this.vector_.copy(recordState.position).applyMatrix4(system.emitter.matrixWorld);
+                        if (particle.parentMatrix) {
+                            this.vector_.copy(recordState.position).applyMatrix4(particle.parentMatrix);
+                        } else {
+                            this.vector_.copy(recordState.position).applyMatrix4(system.emitter.matrixWorld);
+                        }
                         this.positionBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
                         this.positionBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
                     }
@@ -167,7 +171,11 @@ export class TrailBatch extends ParticleSystemBatch {
                         this.previousBuffer.setXYZ(index, previous.position.x, previous.position.y, previous.position.z);
                         this.previousBuffer.setXYZ(index + 1, previous.position.x, previous.position.y, previous.position.z);
                     } else {
-                        this.vector_.copy(previous.position).applyMatrix4(system.emitter.matrixWorld);
+                        if (particle.parentMatrix) {
+                            this.vector_.copy(previous.position).applyMatrix4(particle.parentMatrix);
+                        } else {
+                            this.vector_.copy(previous.position).applyMatrix4(system.emitter.matrixWorld);
+                        }
                         this.previousBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
                         this.previousBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
                     }
@@ -182,7 +190,11 @@ export class TrailBatch extends ParticleSystemBatch {
                         this.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
                         this.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
                     } else {
-                        this.vector_.copy(next.position).applyMatrix4(system.emitter.matrixWorld);
+                        if (particle.parentMatrix) {
+                            this.vector_.copy(next.position).applyMatrix4(particle.parentMatrix);
+                        } else {
+                            this.vector_.copy(next.position).applyMatrix4(system.emitter.matrixWorld);
+                        }
                         this.nextBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
                         this.nextBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
                     }

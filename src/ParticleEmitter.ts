@@ -58,8 +58,8 @@ export class ParticleEmitter extends Object3D {
 
     toJSON(meta?: MetaData): any {
 		// meta is a string when called from JSON.stringify
-		var isRootObject = ( meta === undefined || typeof meta === 'string' );
-		var output: any = {};
+		const isRootObject = ( meta === undefined || typeof meta === 'string' );
+        const output: any = {};
 		// meta is a hash used to collect geometries, materials.
 		// not providing it implies that this is the root object
 		// being serialized.
@@ -86,7 +86,7 @@ export class ParticleEmitter extends Object3D {
         }
 
 		// standard Object3D serialization
-		var object: any = {};
+		const object: any = {};
 
         object.uuid = this.uuid;
         object.type = this.type;

@@ -1,6 +1,10 @@
-import {Color, Quaternion, Vector3, Vector4} from "three";
+import {Color, Matrix4, Quaternion, Vector3, Vector4} from "three";
+import { EmissionState } from "./ParticleSystem";
 
 export interface Particle {
+    emissionState?: EmissionState;
+    parentMatrix?: Matrix4;
+    rotation?: number | Quaternion;
     startSpeed: number;
     startColor: Vector4;
     startSize: number;
@@ -12,9 +16,12 @@ export interface Particle {
 
     uvTile: number;
     color: Vector4;
+
+    get died(): boolean;
 }
 
 export class SpriteParticle implements Particle {
+    parentMatrix?: Matrix4;
     // CPU
     startSpeed: number = 0;
     startColor: Vector4 = new Vector4();
@@ -29,10 +36,13 @@ export class SpriteParticle implements Particle {
     angularVelocity?: number;
 
     // GPU
-    rotation: number = 0;
-    rotationQuat?: Quaternion;
+    rotation: number | Quaternion = 0;
     color: Vector4 = new Vector4();
     uvTile: number = 0;
+
+    get died() {
+        return this.age >= this.life;
+    }
 }
 
 export class RecordState {
@@ -41,6 +51,8 @@ export class RecordState {
 }
 
 export class TrailParticle implements Particle {
+    parentMatrix?: Matrix4;
+
     startSpeed: number = 0;
     startColor: Vector4 = new Vector4();
     startSize: number = 1;
@@ -62,6 +74,10 @@ export class TrailParticle implements Particle {
         while (this.previous.length > this.length) {
             this.previous.shift();
         }
+    }
+
+    get died() {
+        return this.age >= this.life;
     }
 
     reset() {

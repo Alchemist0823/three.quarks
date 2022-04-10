@@ -71,7 +71,10 @@ export class BatchedParticleRenderer extends Object3D {
         this.addSystem(system);
     }
 
-    update() {
+    update(delta: number) {
+        this.systemToBatchIndex.forEach((value, ps) => {
+            (ps as any).update(delta);
+        });
         for (let i = 0; i < this.batches.length; i++) {
             this.batches[i].update();
         }

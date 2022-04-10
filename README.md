@@ -8,18 +8,18 @@
 
 ![landing image](./landing.png)
 
-## [Demo](https://alchemist0823.github.io/three.quarks/)
+## Links
 
-If you ever developed 3D applications on browsers, you must know the well-known
- WebGL library called [three.js](https://threejs.org). Now you have 
- [three.quarks](https://github.com/Alchemist0823/three.quarks) a high-performance particle
+- [Demo](https://alchemist0823.github.io/three.quarks/)
+- [Change Log](./CHANGELOG.md)
+
+## Background
+ [three.quarks](https://github.com/Alchemist0823/three.quarks) is a high-performance general-purpose particle
   system library with a WYSIWYG visual editor 
-  [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor) for it.
+  [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor) for it. It runs on 
+top of the well-known WebGL library called [three.js](https://threejs.org).
 
-If you want the best performance please consider `yarn link` [https://github.com/Alchemist0823/three.js](https://github.com/Alchemist0823/three.js).
-This version of three.js performs much better than official release, because it avoids unnecessary `getProgramCachedKey()` calls and material updates.
-
-three.quarks Particle Engine provides following features:
+## Features
 
 - Group Particle System
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
@@ -46,7 +46,7 @@ three.quarks supports 1 dimension piecewise Bézier curves for the customizable 
 visual effect. Most importantly, developers can customize how the particle system works 
 by adding their own Behavior.
 
-### Examples
+## Examples
 
 Launch Examples
 
@@ -54,12 +54,12 @@ Launch Examples
 yarn example
 ```
 
-#### Check [examples](examples) folder
-
+### Check [examples](examples) folder
 
 Add particle system to the scene
 
 ```javascript
+const clock = new THREE.Clock();
 const batchSystem = new BatchedParticleRenderer();
 const texture = new TextureLoader().load("atlas.png");
 // Particle system configuration
@@ -69,7 +69,7 @@ const muzzle = {
  startLife: new IntervalValue(0.1, 0.2),
  startSpeed: new ConstantValue(0),
  startSize: new IntervalValue(1, 5),
- startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
+ startColor: new ConstantColor(new THREE.Vector4(1, 1, 1, 1)),
  worldSpace: false,
 
  maxParticle: 5,
@@ -96,7 +96,7 @@ const muzzle = {
 muzzle1 = new ParticleSystem(batchSystem, {muzzle});
 // developers can customize how the particle system works by 
 // using existing behavior or adding their own Behavior.
-muzzle1.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
+muzzle1.addBehavior(new ColorOverLife(new ColorRange(new THREE.Vector4(1, 0.3882312, 0.125, 1), new THREE.Vector4(1, 0.826827, 0.3014706, 1))));
 muzzle1.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
 // texture atlas animation
 muzzle1.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
@@ -107,13 +107,11 @@ muzzle1.emitter.position.x = 1;
 scene.add(muzzle1.emitter);
 ```
 
-Add particle system update in your main loop
+Add batch renderer update in your main loop
 
 ```javascript
-// update particle system
-muzzle1.update(delta);
 // update batched renderer
-batchSystem.update();
+batchSystem.update(clock.getDelta());
 ```
 
 #### Import VFX JSON
@@ -156,3 +154,11 @@ yarn install three.quarks
 Check [test](test) folder
 
 More examples will come up later.
+
+### Notes
+
+<s>
+If you want the best performance please consider `yarn link` [https://github.com/Alchemist0823/three.js](https://github.com/Alchemist0823/three.js).
+This version of three.js performs much better than official release, because it avoids unnecessary `getProgramCachedKey()` calls and material updates.
+</s>
+

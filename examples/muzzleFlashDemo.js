@@ -39,9 +39,6 @@ export class MuzzleFlashDemo {
                 if (object.userData && object.userData.func) {
                     object.userData.func.call(object, delta);
                 }
-                if (object instanceof ParticleEmitter) {
-                    object.system.update(delta);
-                }
             })
         );
 
@@ -62,7 +59,7 @@ export class MuzzleFlashDemo {
         }
 
         if (this.batchRenderer)
-            this.batchRenderer.update();
+            this.batchRenderer.update(delta);
     }
 
     initMuzzleEffect(index) {

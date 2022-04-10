@@ -99,17 +99,17 @@ describe("ParticleEmitter", () => {
         expect((newPS.rendererEmitterSettings as TrailSettings).startLength.type).toBe((newPS.rendererEmitterSettings as TrailSettings).startLength.type);
     })
 
-    test(".fromJSON", ()=> {
+    test(".fromJSON", () => {
         //const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
         const renderer = new BatchedParticleRenderer();
         const json = glowBeam.emitter.toJSON();
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {
-            expect(emitter.system.startTileIndex.type).toBe("value");
-            expect(emitter.system.rendererSettings.instancingGeometry).toBeDefined();
-            expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
-            expect(emitter.system.behaviors.length).toBe(2);
         }, renderer) as ParticleEmitter;
+        expect(emitter.system.startTileIndex.type).toBe("value");
+        expect(emitter.system.rendererSettings.instancingGeometry).toBeDefined();
+        expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
+        expect(emitter.system.behaviors.length).toBe(2);
 
     });
 });

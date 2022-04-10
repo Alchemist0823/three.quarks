@@ -8,4 +8,5 @@ export * from "./WidthOverLength";
 export * from "./ApplyForce";
 export * from "./GravityForce";
 export * from "./ChangeEmitDirection";
+export * from "./EmitSubParticleSystem";
 export * from "./Behavior";

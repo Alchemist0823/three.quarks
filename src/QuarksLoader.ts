@@ -51,6 +51,9 @@ import {
 	LinearFilter,
 } from 'three';
 import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
+import {Behavior} from "./behaviors";
+import {EmitSubParticleSystem} from "./behaviors/EmitSubParticleSystem";
+import {ParticleEmitter} from "./ParticleEmitter";
 
 const TYPED_ARRAYS: {[index: string]: any} = {
 	Int8Array: Int8Array,
@@ -119,17 +122,17 @@ export class QuarksLoader {
     }
 
 	load ( url:string, renderer: BatchedParticleRenderer, onLoad:(object3d: Object3D)=>void, onProgress:()=>void, onError:(error:any)=>void ) {
-		var scope = this;
+		const scope = this;
 
-		var path = ( this.path === undefined ) ? LoaderUtils.extractUrlBase( url ) : this.path;
+		const path = ( this.path === undefined ) ? LoaderUtils.extractUrlBase( url ) : this.path;
 		this.resourcePath = this.resourcePath || path;
 
-		var loader = new FileLoader( scope.manager );
+		const loader = new FileLoader( scope.manager );
         if (this.path)
 		      loader.setPath( this.path );
 		loader.load( url, function ( text ) {
 
-			var json = null;
+			let json = null;
 
 			try {
 				json = JSON.parse( text as string );
@@ -139,7 +142,7 @@ export class QuarksLoader {
 				return;
 			}
 
-			var metadata = json.metadata;
+			const metadata = json.metadata;
 
 			if ( metadata === undefined || metadata.type === undefined || metadata.type.toLowerCase() === 'geometry' ) {
 				console.error( 'THREE.ObjectLoader: Can\'t load ' + url );
@@ -370,11 +373,17 @@ export class QuarksLoader {
 
 	}
 
-	parseObject(data: any, meta: {textures: {[uuid:string]:Texture}, geometries: {[uuid:string]:BufferGeometry}}, renderer: BatchedParticleRenderer) {
+	parseObject(
+		data: any,
+		meta: {textures: {[uuid:string]:Texture},
+		geometries: {[uuid:string]:BufferGeometry}},
+		dependencies: {[uuid: string]: Behavior},
+		renderer: BatchedParticleRenderer) {
+
 		let object;
 		switch ( data.type ) {
 			case 'ParticleEmitter':
-				object = ParticleSystem.fromJSON(data.ps, meta, renderer).emitter;
+				object = ParticleSystem.fromJSON(data.ps, meta, dependencies, renderer).emitter;
 				break;
 			case 'Group':
 				object = new Group();
@@ -408,9 +417,9 @@ export class QuarksLoader {
 		if ( data.layers !== undefined ) object.layers.mask = data.layers;
 
 		if ( data.children !== undefined ) {
-			var children = data.children;
-			for ( var i = 0; i < children.length; i ++ ) {
-				object.add( this.parseObject( children[ i ], meta, renderer ) );
+			const children = data.children;
+			for ( let i = 0; i < children.length; i ++ ) {
+				object.add( this.parseObject( children[ i ], meta, dependencies, renderer ) );
 			}
 		}
 		return object;
@@ -429,7 +438,14 @@ export class QuarksLoader {
 			shapes: shapes,
 			geometries: geometries,
 		};
-		const object = this.parseObject( json.object, meta, renderer);
+		const dependencies: {[uuid: string]: Behavior} = {};
+		const object = this.parseObject( json.object, meta, dependencies, renderer);
+
+		object.traverse((obj) => {
+			if (dependencies[obj.uuid]) {
+				(dependencies[obj.uuid] as EmitSubParticleSystem).subParticleSystem = obj as ParticleEmitter;
+			}
+		});
 
 		if ( json.images === undefined || json.images.length === 0 ) {
 			if ( onLoad !== undefined ) onLoad( object );

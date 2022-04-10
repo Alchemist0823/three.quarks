@@ -16,6 +16,8 @@ import { GravityForce } from "./GravityForce";
 import {WidthOverLength} from "./WidthOverLength";
 import {EmitterShape} from "../shape";
 import {ChangeEmitDirection} from "./ChangeEmitDirection";
+import {EmitSubParticleSystem} from "./EmitSubParticleSystem";
+import {ParticleSystem} from "../ParticleSystem";
 
 export interface Behavior {
     type: string;
@@ -29,7 +31,7 @@ export interface BehaviorPlugin {
     type: string;
     constructor: Constructable<Behavior>;
     params: ParameterPair[];
-    loadJSON: (json: any) => Behavior;
+    loadJSON: (json: any, particleSystem: ParticleSystem) => Behavior;
 }
 
 export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
@@ -43,8 +45,9 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
     "OrbitOverLife": {type: "OrbitOverLife", constructor: OrbitOverLife, params: [["orbitSpeed", "valueFunc"], ["axis", "vec3"],], loadJSON: OrbitOverLife.fromJSON},
     "WidthOverLength": {type: "WidthOverLength", constructor: WidthOverLength, params: [["width", "valueFunc"]], loadJSON: WidthOverLength.fromJSON},
     "ChangeEmitDirection": {type: "ChangeEmitDirection", constructor: ChangeEmitDirection, params: [["angle", "value"]], loadJSON: ChangeEmitDirection.fromJSON},
+    "EmitSubParticleSystem": {type: "EmitSubParticleSystem", constructor: EmitSubParticleSystem, params: [["particleSystem", "self"], ['useVelocityAsBasis', 'boolean'], ["subParticleSystem", "particleSystem"]], loadJSON: EmitSubParticleSystem.fromJSON},
 };
 
-export function BehaviorFromJSON(json: any): Behavior {
-    return BehaviorTypes[json.type].loadJSON(json);
+export function BehaviorFromJSON(json: any, particleSystem: ParticleSystem): Behavior {
+    return BehaviorTypes[json.type].loadJSON(json, particleSystem);
 }

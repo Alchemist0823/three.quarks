@@ -53,7 +53,10 @@ export const lib = {
         input: pkg.main,
         external: Object.keys(globals),
         plugins: [
-            terser(),
+            terser({
+                keep_classnames: true,
+                keep_fnames: true
+            }),
         ],
         output: {
             file: pkg.main.replace(".js", ".min.js"),

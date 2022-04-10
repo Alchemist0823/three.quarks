@@ -20,7 +20,7 @@ export class RotationOverLife implements Behavior {
     }
 
     update(particle: Particle, delta: number): void {
-        if (particle instanceof SpriteParticle) {
+        if (particle instanceof SpriteParticle && typeof particle.rotation === "number") {
             if (this.angularVelocity.type === 'value') {
                 particle.rotation += delta * particle.angularVelocity!;
             } else {

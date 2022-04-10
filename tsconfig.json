@@ -6,6 +6,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
     "declarationDir": "dist/types",

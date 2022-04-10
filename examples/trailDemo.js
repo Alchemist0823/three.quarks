@@ -36,9 +36,6 @@ export class TrailDemo {
                 if (object.userData && object.userData.func) {
                     object.userData.func.call(object, delta);
                 }
-                if (object instanceof ParticleEmitter) {
-                    object.system.update(delta);
-                }
             })
         );
 
@@ -59,7 +56,7 @@ export class TrailDemo {
         }
 
         if (this.batchRenderer)
-            this.batchRenderer.update();
+            this.batchRenderer.update(delta);
     }
 
     initTrailEffect(index) {

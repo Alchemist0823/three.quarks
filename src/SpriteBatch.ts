@@ -141,7 +141,9 @@ export class SpriteBatch extends ParticleSystemBatch {
     vector_: Vector3 = new Vector3();
     quaternion_: Quaternion = new Quaternion();
     quaternion2_: Quaternion = new Quaternion();
+    quaternion3_: Quaternion = new Quaternion();
     rotationMat_: Matrix3 = new Matrix3();
+    rotationMat2_: Matrix3 = new Matrix3();
 
     update() {
         let index = 0;
@@ -156,34 +158,56 @@ export class SpriteBatch extends ParticleSystemBatch {
                 let particle = particles[j] as SpriteParticle;
 
                 if (this.settings.renderMode === RenderMode.LocalSpace) {
-                    particle.rotationQuat!.setFromAxisAngle(UP, particle.rotation)
+                    //this.quaternion_.setFromAxisAngle(UP, particle.rotation as number);
+                    let q;
                     if (system.worldSpace) {
-                        this.rotationBuffer!.setXYZW(index, particle.rotationQuat!.x, particle.rotationQuat!.y, particle.rotationQuat!.z, particle.rotationQuat!.w);
+                        q = particle.rotation as Quaternion;
                     } else {
-                        this.quaternion_.copy(particle.rotationQuat!).multiply(this.quaternion2_);
-                        this.rotationBuffer!.setXYZW(index, this.quaternion_.x, this.quaternion_.y, this.quaternion_.z, this.quaternion_.w);
+                        let parentQ;
+                        if (particle.parentMatrix) {
+                            parentQ = this.quaternion3_.setFromRotationMatrix(particle.parentMatrix);
+                        } else {
+                            parentQ = this.quaternion2_;
+                        }
+                        q = this.quaternion_;
+                        q.copy(particle.rotation as Quaternion).multiply(parentQ);
                     }
+                    this.rotationBuffer!.setXYZW(index, q.x, q.y, q.z, q.w);
                 } else if (this.settings.renderMode === RenderMode.StretchedBillBoard || this.settings.renderMode === RenderMode.BillBoard) {
-                    this.rotationBuffer!.setX(index, particle.rotation);
+                    this.rotationBuffer!.setX(index, particle.rotation as number);
                 }
 
+                let vec;
                 if (system.worldSpace) {
-                    this.offsetBuffer.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
+                    vec = particle.position;
                 } else {
-                    this.vector_.copy(particle.position).applyMatrix4(system.emitter.matrixWorld);
-                    this.offsetBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
+                    vec = this.vector_;
+                    if (particle.parentMatrix) {
+                        vec.copy(particle.position).applyMatrix4(particle.parentMatrix);
+                    } else {
+                        vec.copy(particle.position).applyMatrix4(system.emitter.matrixWorld);
+                    }
                 }
+                this.offsetBuffer.setXYZ(index, vec.x, vec.y, vec.z);
                 this.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
                 this.sizeBuffer.setX(index, particle.size);
                 this.uvTileBuffer.setX(index, particle.uvTile);
 
                 if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
+                    let speedFactor = system.speedFactor;
+                    let vec;
                     if (system.worldSpace) {
-                        this.velocityBuffer!.setXYZ(index, particle.velocity.x * system.speedFactor, particle.velocity.y * system.speedFactor, particle.velocity.z * system.speedFactor);
+                        vec = particle.velocity;
                     } else {
-                        this.vector_.copy(particle.velocity).applyMatrix3(this.rotationMat_);
-                        this.velocityBuffer!.setXYZ(index, this.vector_.x * system.speedFactor, this.vector_.y * system.speedFactor, this.vector_.z * system.speedFactor);
+                        vec = this.vector_;
+                        if (particle.parentMatrix) {
+                            this.rotationMat2_.setFromMatrix4(particle.parentMatrix)
+                            vec.copy(particle.velocity).applyMatrix3(this.rotationMat2_);
+                        } else {
+                            vec.copy(particle.velocity).applyMatrix3(this.rotationMat_);
+                        }
                     }
+                    this.velocityBuffer!.setXYZ(index, vec.x * speedFactor, vec.y * speedFactor, vec.z * speedFactor);
                 }
             }
         });
