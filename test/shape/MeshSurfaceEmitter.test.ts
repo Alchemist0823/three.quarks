@@ -6,7 +6,7 @@ describe("MeshSurfaceEmitter", () => {
         const mesh = new Mesh(new BoxBufferGeometry(2, 2, 2, 2, 2, 2));
         const emitter = new MeshSurfaceEmitter(mesh);
         let p = new SpriteParticle();
-        for (let i = 0; i < 5; i ++) {
+        for (let i = 0; i < 50; i ++) {
             emitter.initialize(p);
             expect(p.position.x).toBeLessThanOrEqual(1);
             expect(p.position.y).toBeLessThanOrEqual(1);

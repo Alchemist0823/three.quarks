@@ -77,9 +77,9 @@ export class MeshSurfaceEmitter implements EmitterShape {
             u2 = 1 - u2;
         }
         const geometry = this._mesh.geometry;
-        const index1 = geometry.getIndex()!.array[(left + 1) * 3];
-        const index2 = geometry.getIndex()!.array[(left + 1) * 3 + 1];
-        const index3 = geometry.getIndex()!.array[(left + 1) * 3 + 2];
+        const index1 = geometry.getIndex()!.array[left * 3];
+        const index2 = geometry.getIndex()!.array[left * 3 + 1];
+        const index3 = geometry.getIndex()!.array[left * 3 + 2];
         const positionBuffer = geometry.getAttribute("position");
         this._tempA.fromBufferAttribute(positionBuffer, index1);
         this._tempB.fromBufferAttribute(positionBuffer, index2);
