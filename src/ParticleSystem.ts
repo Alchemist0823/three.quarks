@@ -38,6 +38,7 @@ export interface BurstParameters {
 }
 
 const UP = new Vector3(0,0,1);
+const tempQ = new Quaternion();
 
 export interface ParticleSystemParameters {
     // parameters
@@ -325,6 +326,7 @@ export class ParticleSystem {
     }
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
+        tempQ.setFromRotationMatrix(matrix);
         for (let i = 0; i < count && this.particleNum < this.maxParticle; i ++) {
 
             this.particleNum++;
@@ -368,6 +370,9 @@ export class ParticleSystem {
             if (this.worldSpace) {
                 particle.position.applyMatrix4(matrix);
                 particle.velocity.applyMatrix3(this.normalMatrix);
+                if (particle.rotation && particle.rotation instanceof Quaternion) {
+                    particle.rotation.multiplyQuaternions(tempQ, particle.rotation);
+                }
             } else {
                 if (this.onlyUsedByOther) {
                     particle.parentMatrix = matrix;

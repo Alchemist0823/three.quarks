@@ -65,7 +65,7 @@ export class EmitSubParticleSystem implements Behavior {
                 this.q_.setFromAxisAngle(VECTOR_Z, particle.rotation);
                 rotation = this.q_;
             }
-            m.compose(VECTOR_ONE, rotation, particle.position);
+            m.compose(particle.position, rotation, VECTOR_ONE);
         }
         if (!this.particleSystem.worldSpace) {
             m.multiplyMatrices(this.particleSystem.emitter.matrixWorld, m);
