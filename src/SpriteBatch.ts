@@ -27,7 +27,6 @@ import local_particle_vert from './shaders/local_particle_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 import {ParticleSystemBatch, ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
 
-const DEFAULT_MAX_PARTICLE = 1000;
 const UP = new Vector3(0, 0, 1);
 
 export class SpriteBatch extends ParticleSystemBatch {
@@ -43,43 +42,57 @@ export class SpriteBatch extends ParticleSystemBatch {
     constructor(settings: ParticleSystemBatchSettings) {
         super(settings);
 
+        this.maxParticles = 1000;
         this.setupBuffers();
         this.rebuildMaterial();
         // TODO: implement boundingVolume
     }
 
+    buildExpandableBuffers(): void {
+        this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 3), 3);
+        this.offsetBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('offset', this.offsetBuffer);
+        this.colorBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 4), 4);
+        this.colorBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('color', this.colorBuffer);
+        if (this.settings.renderMode === RenderMode.LocalSpace) {
+            this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 4), 4);
+            this.rotationBuffer.setUsage(DynamicDrawUsage);
+            this.geometry.setAttribute('rotation', this.rotationBuffer);
+        } else if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.StretchedBillBoard) {
+            this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles), 1);
+            this.rotationBuffer.setUsage(DynamicDrawUsage);
+            this.geometry.setAttribute('rotation', this.rotationBuffer);
+        }
+        this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles), 1);
+        this.sizeBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('size', this.sizeBuffer);
+        this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles), 1);
+        this.uvTileBuffer.setUsage(DynamicDrawUsage);
+        this.geometry.setAttribute('uvTile', this.uvTileBuffer);
+        if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
+            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 3), 3);
+            this.velocityBuffer.setUsage(DynamicDrawUsage);
+            this.geometry.setAttribute('velocity', this.velocityBuffer);
+        }
+    }
+
     setupBuffers(): void {
+        if (this.geometry)
+            this.geometry.dispose();
         this.geometry = new InstancedBufferGeometry();
         this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
         this.geometry.setAttribute('position', this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
         this.geometry.setAttribute('uv', this.settings.instancingGeometry.getAttribute('uv')); //new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
 
-        this.offsetBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 3), 3);
-        this.offsetBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('offset', this.offsetBuffer);
-        this.colorBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 4);
-        this.colorBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('color', this.colorBuffer);
-        if (this.settings.renderMode === RenderMode.LocalSpace) {
-            this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 4);
-            this.rotationBuffer.setUsage(DynamicDrawUsage);
-            this.geometry.setAttribute('rotation', this.rotationBuffer);
-        } else if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.StretchedBillBoard) {
-            this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
-            this.rotationBuffer.setUsage(DynamicDrawUsage);
-            this.geometry.setAttribute('rotation', this.rotationBuffer);
+        this.buildExpandableBuffers();
+    }
+
+    expandBuffers(target: number): void {
+        while (target >= this.maxParticles) {
+            this.maxParticles *= 2;
         }
-        this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
-        this.sizeBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('size', this.sizeBuffer);
-        this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE), 1);
-        this.uvTileBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('uvTile', this.uvTileBuffer);
-        if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
-            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 3), 3);
-            this.velocityBuffer.setUsage(DynamicDrawUsage);
-            this.geometry.setAttribute('velocity', this.velocityBuffer);
-        }
+        this.setupBuffers();
     }
 
     rebuildMaterial() {
@@ -147,6 +160,14 @@ export class SpriteBatch extends ParticleSystemBatch {
 
     update() {
         let index = 0;
+
+        let particleCount = 0;
+        this.systems.forEach(system => {
+            particleCount += system.particleNum;
+        });
+        if (particleCount > this.maxParticles) {
+            this.expandBuffers(particleCount);
+        }
 
         this.systems.forEach(system => {
             const particles = system.particles;

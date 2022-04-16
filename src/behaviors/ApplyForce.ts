@@ -18,6 +18,9 @@ export class ApplyForce implements Behavior {
         particle.velocity.addScaledVector(this.direction, (particle as any).force * delta);
     }
 
+    frameUpdate(delta: number): void {
+    }
+
     toJSON(): any {
         return {
             type: this.type,

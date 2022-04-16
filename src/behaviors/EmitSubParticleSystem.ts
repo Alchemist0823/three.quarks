@@ -73,6 +73,10 @@ export class EmitSubParticleSystem implements Behavior {
         this.subParticleSystem!.system.emit(delta, particle.emissionState!, m);
     }
 
+    frameUpdate(delta: number): void {
+    }
+
+
     toJSON(): any {
         return {
             type: this.type,

@@ -18,11 +18,13 @@ import {EmitterShape} from "../shape";
 import {ChangeEmitDirection} from "./ChangeEmitDirection";
 import {EmitSubParticleSystem} from "./EmitSubParticleSystem";
 import {ParticleSystem} from "../ParticleSystem";
+import {TurbulenceField} from "./TurbulenceField";
 
 export interface Behavior {
     type: string;
     initialize(particle: Particle): void;
     update(particle: Particle, delta: number): void;
+    frameUpdate(delta: number): void;
     toJSON(): any;
     clone(): Behavior;
 }
@@ -36,6 +38,7 @@ export interface BehaviorPlugin {
 
 export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
     "ApplyForce": {type: "ApplyForce", constructor: ApplyForce, params: [["direction", "vec3"], ["force", "value"]], loadJSON: ApplyForce.fromJSON},
+    "TurbulenceField": {type: "TurbulenceField", constructor: TurbulenceField, params: [["scale", "vec3"], ["power", "vec3"], ["fieldShift", "vec3"]], loadJSON: TurbulenceField.fromJSON},
     "GravityForce": {type: "GravityForce", constructor: GravityForce, params: [["center", "vec3"], ["magnitude", "number"]], loadJSON: GravityForce.fromJSON},
     "ColorOverLife": {type: "ColorOverLife", constructor: ColorOverLife, params: [["color", "colorFunc"]], loadJSON: ColorOverLife.fromJSON},
     "RotationOverLife": {type: "RotationOverLife", constructor: RotationOverLife, params: [["angularVelocity", "valueFunc"]], loadJSON: RotationOverLife.fromJSON},

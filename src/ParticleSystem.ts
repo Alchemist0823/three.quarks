@@ -45,7 +45,6 @@ export interface ParticleSystemParameters {
     autoDestroy?: boolean;
     looping?: boolean;
     duration?: number;
-    maxParticle?: number;
 
     shape?: EmitterShape;
     startLife?: ValueGenerator | FunctionValueGenerator;
@@ -83,7 +82,6 @@ export interface ParticleSystemJSONParameters {
     autoDestroy: boolean;
     looping: boolean;
     duration: number;
-    maxParticle: number;
 
     shape: ShapeJSON;
     startLife: FunctionJSON;
@@ -145,7 +143,6 @@ export class ParticleSystem {
     autoDestroy: boolean;
     looping: boolean;
     duration: number;
-    maxParticle: number;
     startLife: ValueGenerator | FunctionValueGenerator;
     startSpeed: ValueGenerator | FunctionValueGenerator;
     startRotation: ValueGenerator | FunctionValueGenerator;
@@ -268,7 +265,6 @@ export class ParticleSystem {
         this.renderer = renderer;
         this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
         this.duration = parameters.duration ?? 1;
-        this.maxParticle = parameters.maxParticle ?? 100;
         this.looping = parameters.looping === undefined ? true : parameters.looping;
         this.startLife = parameters.startLife ?? new ConstantValue(5);
         this.startSpeed = parameters.startSpeed ?? new ConstantValue(0);
@@ -327,7 +323,7 @@ export class ParticleSystem {
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
         tempQ.setFromRotationMatrix(matrix);
-        for (let i = 0; i < count && this.particleNum < this.maxParticle; i ++) {
+        for (let i = 0; i < count; i ++) {
 
             this.particleNum++;
             while (this.particles.length < this.particleNum) {
@@ -443,6 +439,7 @@ export class ParticleSystem {
             for (let i = 0; i < this.particleNum; i++) {
                 this.behaviors[j].update(this.particles[i], delta);
             }
+            this.behaviors[j].frameUpdate(delta);
         }
         for (let i = 0; i < this.particleNum; i++) {
             if ((this.rendererEmitterSettings as TrailSettings).followLocalOrigin
@@ -560,7 +557,6 @@ export class ParticleSystem {
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,
-            maxParticle: this.maxParticle,
 
             shape: this.emitterShape.toJSON(),
             startLife: this.startLife.toJSON(),
@@ -608,7 +604,6 @@ export class ParticleSystem {
             autoDestroy: json.autoDestroy,
             looping: json.looping,
             duration: json.duration,
-            maxParticle: json.maxParticle,
 
             shape: shape,
             startLife: ValueGeneratorFromJSON(json.startLife),
@@ -681,7 +676,6 @@ export class ParticleSystem {
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,
-            maxParticle: this.maxParticle,
 
             shape: this.emitterShape.clone(),
             startLife:this.startLife.clone(),

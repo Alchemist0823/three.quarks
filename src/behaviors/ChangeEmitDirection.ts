@@ -35,6 +35,10 @@ export class ChangeEmitDirection implements Behavior {
     update(particle: Particle, delta: number): void {
     }
 
+    frameUpdate(delta: number): void {
+    }
+
+
     toJSON(): any {
         return {
             type: this.type,

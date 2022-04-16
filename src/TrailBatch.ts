@@ -27,7 +27,6 @@ import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
 import {ParticleSystemBatch, ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
 
-const DEFAULT_MAX_PARTICLE = 10000;
 const UP = new Vector3(0, 0, 1);
 
 export class TrailBatch extends ParticleSystemBatch {
@@ -45,38 +44,48 @@ export class TrailBatch extends ParticleSystemBatch {
     constructor(settings: ParticleSystemBatchSettings) {
         super(settings);
 
+        this.maxParticles = 10000;
         this.setupBuffers();
         this.rebuildMaterial();
         // TODO: implement boundingVolume
     }
 
     setupBuffers(): void {
+        if (this.geometry)
+            this.geometry.dispose();
         this.geometry = new BufferGeometry();
-        this.indexBuffer = new BufferAttribute(new Uint32Array(DEFAULT_MAX_PARTICLE * 6), 1);
+        this.indexBuffer = new BufferAttribute(new Uint32Array(this.maxParticles * 6), 1);
         this.indexBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setIndex(this.indexBuffer);
 
-        this.positionBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 6), 3);
+        this.positionBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 6), 3);
         this.positionBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('position', this.positionBuffer);
-        this.previousBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 6), 3);
+        this.previousBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 6), 3);
         this.previousBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('previous', this.previousBuffer);
-        this.nextBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 6), 3);
+        this.nextBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 6), 3);
         this.nextBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('next', this.nextBuffer);
-        this.widthBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 2), 1);
+        this.widthBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 2), 1);
         this.widthBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('width', this.widthBuffer);
-        this.sideBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 2), 1);
+        this.sideBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 2), 1);
         this.sideBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('side', this.sideBuffer);
-        this.uvBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 4), 2);
+        this.uvBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 4), 2);
         this.uvBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('uv', this.uvBuffer);
-        this.colorBuffer = new BufferAttribute(new Float32Array(DEFAULT_MAX_PARTICLE * 8), 4);
+        this.colorBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 8), 4);
         this.colorBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('color', this.colorBuffer);
+    }
+
+    expandBuffers(target: number): void {
+        while (target >= this.maxParticles) {
+            this.maxParticles *= 2;
+        }
+        this.setupBuffers();
     }
 
     rebuildMaterial() {
@@ -127,6 +136,16 @@ export class TrailBatch extends ParticleSystemBatch {
         let index = 0;
         let triangles = 0;
 
+        let particleCount = 0;
+        this.systems.forEach(system => {
+            for (let j = 0; j < system.particleNum; j++) {
+                particleCount += (system.particles[j] as TrailParticle).previous.length * 2;
+            }
+        });
+        if (particleCount > this.maxParticles) {
+            this.expandBuffers(particleCount);
+        }
+
         this.systems.forEach(system => {
             const particles = system.particles;
             let particleNum = system.particleNum;
@@ -143,6 +162,7 @@ export class TrailBatch extends ParticleSystemBatch {
                 const row = Math.floor(particle.uvTile / vTileCount);
 
                 for (let i = 0; i < particle.previous.length; i++, index += 2) {
+
                     const recordState = particle.previous[i];
                     this.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
                     this.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);

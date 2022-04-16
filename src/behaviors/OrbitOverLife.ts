@@ -28,6 +28,11 @@ export class OrbitOverLife implements Behavior {
         particle.position.applyQuaternion(this.rotation);
         particle.position.add(this.temp);
     }
+
+
+    frameUpdate(delta: number): void {
+    }
+
     toJSON(): any {
         return {
             type: this.type,

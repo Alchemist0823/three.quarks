@@ -20,6 +20,9 @@ export class WidthOverLength implements Behavior {
         }
     }
 
+    frameUpdate(delta: number): void {
+    }
+
     toJSON(): any {
         return {
             type: this.type,
@@ -34,4 +37,5 @@ export class WidthOverLength implements Behavior {
     clone(): Behavior {
         return new WidthOverLength(this.width.clone());
     }
+
 }

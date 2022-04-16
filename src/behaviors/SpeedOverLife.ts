@@ -25,6 +25,10 @@ export class SpeedOverLife implements Behavior {
         return new SpeedOverLife(ValueGeneratorFromJSON(json.speed) as FunctionValueGenerator);
     }
 
+    frameUpdate(delta: number): void {
+    }
+
+
     clone(): Behavior {
         return new SpeedOverLife(this.speed.clone());
     }

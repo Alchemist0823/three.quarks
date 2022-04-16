@@ -19,6 +19,10 @@ export class GravityForce implements Behavior {
         particle.velocity.addScaledVector(this.temp, this.magnitude / particle.position.distanceToSquared(this.center) * delta);
     }
 
+    frameUpdate(delta: number): void {
+    }
+
+
     toJSON(): any {
         return {
             type: this.type,

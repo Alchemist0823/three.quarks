@@ -9,4 +9,5 @@ export * from "./ApplyForce";
 export * from "./GravityForce";
 export * from "./ChangeEmitDirection";
 export * from "./EmitSubParticleSystem";
+export * from "./TurbulenceField";
 export * from "./Behavior";

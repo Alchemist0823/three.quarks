@@ -53,9 +53,11 @@ export abstract class ParticleSystemBatch extends Mesh {
     material!: ShaderMaterial;
 
     settings: ParticleSystemBatchSettings;
+    protected maxParticles;
 
     protected constructor(settings: ParticleSystemBatchSettings) {
         super();
+        this.maxParticles = 1000;
         this.systems = new Set<ParticleSystem>();
         this.settings = {
             blending: settings.blending,
@@ -80,6 +82,7 @@ export abstract class ParticleSystemBatch extends Mesh {
     }
 
     abstract setupBuffers(): void;
+    abstract expandBuffers(target: number): void;
     abstract rebuildMaterial(): void;
     abstract update(): void;
     abstract dispose(): void;

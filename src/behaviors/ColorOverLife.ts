@@ -20,6 +20,10 @@ export class ColorOverLife implements Behavior {
         particle.color.w *= particle.startColor.w;
     }
 
+    frameUpdate(delta: number): void {
+    }
+
+
     toJSON(): any {
         return {
             type: this.type,

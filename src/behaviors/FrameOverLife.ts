@@ -15,6 +15,9 @@ export class FrameOverLife implements Behavior {
         particle.uvTile = Math.floor(this.frame.genValue(particle.age / particle.life));
     }
 
+    frameUpdate(delta: number): void {
+    }
+
     toJSON(): any {
         return {
             type: this.type,

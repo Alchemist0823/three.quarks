@@ -24,6 +24,10 @@ export class SizeOverLife implements Behavior {
     static fromJSON(json: any): Behavior {
         return new SizeOverLife(ValueGeneratorFromJSON(json.size) as FunctionValueGenerator);
     }
+
+    frameUpdate(delta: number): void {
+    }
+
     clone(): Behavior {
         return new SizeOverLife(this.size.clone());
     }
