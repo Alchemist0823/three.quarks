@@ -42,6 +42,10 @@ export abstract class PiecewiseFunction<T> {
             this.functions[index + 1][1] = x;
     }
 
+    removeFunction(index: number): T {
+        return this.functions.splice(index, 1)[0][0];
+    }
+
     getFunction(index: number) {
         return this.functions[index][0];
     }
