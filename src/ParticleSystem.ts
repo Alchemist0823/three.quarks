@@ -336,10 +336,10 @@ export class ParticleSystem {
             const particle = this.particles[this.particleNum - 1];
             this.startColor.genColor(particle.startColor, emissionState.time);
             particle.color.copy(particle.startColor);
-            particle.startSpeed = this.startSpeed.genValue(emissionState.time);
-            particle.life = this.startLife.genValue(emissionState.time);
+            particle.startSpeed = this.startSpeed.genValue(emissionState.time / this.duration);
+            particle.life = this.startLife.genValue(emissionState.time / this.duration);
             particle.age = 0;
-            particle.startSize = this.startSize.genValue(emissionState.time);
+            particle.startSize = this.startSize.genValue(emissionState.time / this.duration);
             particle.uvTile = Math.floor(this.startTileIndex.genValue());
             particle.size = particle.startSize;
             if (this.rendererSettings.renderMode === RenderMode.LocalSpace
@@ -347,13 +347,13 @@ export class ParticleSystem {
                 || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
             ) {
                 const sprite = particle as SpriteParticle;
-                sprite.rotation = this.startRotation.genValue(emissionState.time);
+                sprite.rotation = this.startRotation.genValue(emissionState.time / this.duration);
                 if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
                     sprite.rotation = new Quaternion().setFromAxisAngle(UP, sprite.rotation);
                 }
             } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
                 const trail = particle as TrailParticle;
-                trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(emissionState.time);
+                trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(emissionState.time / this.duration);
                 trail.reset();
             }
 

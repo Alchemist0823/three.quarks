@@ -6,7 +6,7 @@ export abstract class PiecewiseFunction<T> {
         this.functions = new Array<[T, number]>();
     }
 
-    protected findFunction(t: number): number {
+    findFunction(t: number): number {
         let mid = 0;
         let left = 0, right = this.functions.length - 1;
         while (left + 1 < right) {
@@ -40,6 +40,11 @@ export abstract class PiecewiseFunction<T> {
     setEndX(index: number, x: number) {
         if (index + 1 < this.functions.length)
             this.functions[index + 1][1] = x;
+    }
+
+    insertFunction(t: number, func: T): void {
+        const index = this.findFunction(t);
+        this.functions.splice(index + 1, 0, [func, t]);
     }
 
     removeFunction(index: number): T {
