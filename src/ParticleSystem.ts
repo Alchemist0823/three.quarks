@@ -208,6 +208,17 @@ export class ParticleSystem {
         this.neededToUpdateRender = true;
     }
 
+    get instancingGeometry(): BufferGeometry {
+        return this.rendererSettings.instancingGeometry;
+    }
+
+    set instancingGeometry(geometry: BufferGeometry) {
+        this.restart();
+        this.particles.length = 0;
+        this.rendererSettings.instancingGeometry = geometry;
+        this.neededToUpdateRender = true;
+    }
+
     get renderMode(): RenderMode {
         return this.rendererSettings.renderMode;
     }
