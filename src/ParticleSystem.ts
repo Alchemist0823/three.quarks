@@ -1,4 +1,9 @@
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./functions/ValueGenerator";
+import {
+    FunctionValueGenerator,
+    GeneratorFromJSON,
+    ValueGenerator,
+    ValueGeneratorFromJSON
+} from "./functions/ValueGenerator";
 import {Behavior, BehaviorFromJSON} from "./behaviors/Behavior";
 import {Particle, SpriteParticle, TrailParticle} from "./Particle";
 import {MetaData, ParticleEmitter} from "./ParticleEmitter";
@@ -17,16 +22,18 @@ import {
 } from "three";
 import {SphereEmitter} from "./shape";
 import {
+    AxisAngleGenerator,
     ColorGenerator,
     ColorGeneratorFromJSON,
     ConstantColor,
     ConstantValue,
     FunctionColorGenerator,
-    FunctionJSON
+    FunctionJSON, RandomQuatGenerator
 } from "./functions";
 import {ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
 import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
 import {EmitSubParticleSystem} from "./behaviors/EmitSubParticleSystem";
+import {RotationGenerator} from "./functions/RotationGenerator";
 
 
 export interface BurstParameters {
@@ -37,7 +44,7 @@ export interface BurstParameters {
     probability: number;
 }
 
-const UP = new Vector3(0,0,1);
+const UP = new Vector3(0, 0, 1);
 const tempQ = new Quaternion();
 
 export interface ParticleSystemParameters {
@@ -49,7 +56,7 @@ export interface ParticleSystemParameters {
     shape?: EmitterShape;
     startLife?: ValueGenerator | FunctionValueGenerator;
     startSpeed?: ValueGenerator | FunctionValueGenerator;
-    startRotation?: ValueGenerator | FunctionValueGenerator;
+    startRotation?: ValueGenerator | FunctionValueGenerator | RotationGenerator;
     startSize?: ValueGenerator | FunctionValueGenerator;
     startLength?: ValueGenerator | FunctionValueGenerator;
     startColor?: ColorGenerator | FunctionColorGenerator;
@@ -124,6 +131,7 @@ export interface TrailSettings {
 }
 
 export interface MeshSettings {
+    rotationAxis?: Vector3;
     startRotationX: ValueGenerator | FunctionValueGenerator;
     startRotationY: ValueGenerator | FunctionValueGenerator;
     startRotationZ: ValueGenerator | FunctionValueGenerator;
@@ -145,7 +153,7 @@ export class ParticleSystem {
     duration: number;
     startLife: ValueGenerator | FunctionValueGenerator;
     startSpeed: ValueGenerator | FunctionValueGenerator;
-    startRotation: ValueGenerator | FunctionValueGenerator;
+    startRotation: ValueGenerator | FunctionValueGenerator | RotationGenerator;
     startSize: ValueGenerator | FunctionValueGenerator;
     startColor: ColorGenerator | FunctionColorGenerator;
     startTileIndex: ValueGenerator;
@@ -241,10 +249,14 @@ export class ParticleSystem {
                     this.rendererEmitterSettings = {
                         geometry: new PlaneBufferGeometry(1, 1)
                     };
+                    this.startRotation = new AxisAngleGenerator(new Vector3(0, 1,0 ), new ConstantValue(0));
                     break;
                 case RenderMode.BillBoard:
                 case RenderMode.StretchedBillBoard:
                     this.rendererEmitterSettings = {};
+                    if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                        this.startRotation = new ConstantValue(0);
+                    }
                     break;
             }
         }
@@ -313,8 +325,8 @@ export class ParticleSystem {
         this.particleNum = 0;
         this.emissionState = {
             burstIndex: 0,
-            burstWaveIndex:0,
-            time:0,
+            burstWaveIndex: 0,
+            time: 0,
             waitEmiting: 0,
         }
 
@@ -334,7 +346,7 @@ export class ParticleSystem {
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
         tempQ.setFromRotationMatrix(matrix);
-        for (let i = 0; i < count; i ++) {
+        for (let i = 0; i < count; i++) {
 
             this.particleNum++;
             while (this.particles.length < this.particleNum) {
@@ -358,9 +370,17 @@ export class ParticleSystem {
                 || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
             ) {
                 const sprite = particle as SpriteParticle;
-                sprite.rotation = this.startRotation.genValue(emissionState.time / this.duration);
-                if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
-                    sprite.rotation = new Quaternion().setFromAxisAngle(UP, sprite.rotation);
+                if (this.startRotation.type === "rotation") {
+                    if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                        this.startRotation.genValue(sprite.rotation as Quaternion, emissionState.time / this.duration);
+                    } else {
+                        sprite.rotation = 0;
+                    }
+                } else {
+                    sprite.rotation = this.startRotation.genValue(emissionState.time / this.duration);
+                    if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                        sprite.rotation = new Quaternion().setFromAxisAngle(UP, sprite.rotation as number);
+                    }
                 }
             } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
                 const trail = particle as TrailParticle;
@@ -481,7 +501,7 @@ export class ParticleSystem {
                 this.particles[i] = this.particles[this.particleNum - 1];
                 this.particles[this.particleNum - 1] = particle;
                 this.particleNum--;
-                i --;
+                i--;
             }
         }
     }
@@ -523,8 +543,8 @@ export class ParticleSystem {
     }
 
     toJSON(meta: MetaData): ParticleSystemJSONParameters {
-        const isRootObject = ( meta === undefined || typeof meta === 'string' );
-        if ( isRootObject ) {
+        const isRootObject = (meta === undefined || typeof meta === 'string');
+        if (isRootObject) {
             // initialize meta obj
             meta = {
                 geometries: {},
@@ -584,7 +604,7 @@ export class ParticleSystem {
             renderOrder: this.renderOrder,
             renderMode: this.renderMode,
             rendererEmitterSettings: rendererSettingsJSON,
-            speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor: 0,
+            speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
             texture: this.texture.uuid,
             startTileIndex: this.startTileIndex.toJSON(),
             uTileCount: this.uTileCount,
@@ -597,7 +617,7 @@ export class ParticleSystem {
         };
     }
 
-    static fromJSON(json: ParticleSystemJSONParameters, meta: {textures: {[uuid:string]:Texture}, geometries: {[uuid:string]:BufferGeometry}}, dependencies: {[uuid: string]: Behavior}, renderer: BatchedParticleRenderer): ParticleSystem {
+    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }, renderer: BatchedParticleRenderer): ParticleSystem {
         let shape = EmitterFromJSON(json.shape);
         let rendererEmitterSettings;
         if (json.renderMode === RenderMode.Trail) {
@@ -611,7 +631,7 @@ export class ParticleSystem {
             rendererEmitterSettings = {};
         }
 
-        const ps = new ParticleSystem(renderer,{
+        const ps = new ParticleSystem(renderer, {
             autoDestroy: json.autoDestroy,
             looping: json.looping,
             duration: json.duration,
@@ -619,7 +639,7 @@ export class ParticleSystem {
             shape: shape,
             startLife: ValueGeneratorFromJSON(json.startLife),
             startSpeed: ValueGeneratorFromJSON(json.startSpeed),
-            startRotation: ValueGeneratorFromJSON(json.startRotation),
+            startRotation: GeneratorFromJSON(json.startRotation),
             startSize: ValueGeneratorFromJSON(json.startSize),
             startColor: ColorGeneratorFromJSON(json.startColor),
             emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
@@ -633,7 +653,7 @@ export class ParticleSystem {
             renderOrder: json.renderOrder,
             speedFactor: json.speedFactor,
             texture: meta.textures[json.texture],
-            startTileIndex: typeof json.startTileIndex === 'number'? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator,
+            startTileIndex: typeof json.startTileIndex === 'number' ? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator,
             uTileCount: json.uTileCount,
             vTileCount: json.vTileCount,
             blending: json.blending,
@@ -642,7 +662,7 @@ export class ParticleSystem {
 
             worldSpace: json.worldSpace,
         });
-        ps.behaviors = json.behaviors.map(behaviorJson =>  {
+        ps.behaviors = json.behaviors.map(behaviorJson => {
             const behavior = BehaviorFromJSON(behaviorJson, ps);
             if (behavior.type === "EmitSubParticleSystem") {
                 dependencies[behaviorJson.subParticleSystem] = behavior;
@@ -683,13 +703,13 @@ export class ParticleSystem {
             rendererEmitterSettings = {};
         }
 
-        return new ParticleSystem(this.renderer,{
+        return new ParticleSystem(this.renderer, {
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,
 
             shape: this.emitterShape.clone(),
-            startLife:this.startLife.clone(),
+            startLife: this.startLife.clone(),
             startSpeed: this.startSpeed.clone(),
             startRotation: this.startRotation.clone(),
             startSize: this.startSize.clone(),

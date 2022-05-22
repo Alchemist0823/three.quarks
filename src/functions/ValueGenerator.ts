@@ -2,6 +2,9 @@ import {FunctionJSON} from "./FunctionJSON";
 import { ConstantValue } from "./ConstantValue";
 import { IntervalValue } from "./IntervalValue";
 import { PiecewiseBezier } from "./PiecewiseBezier";
+import {AxisAngleGenerator} from "./AxisAngleGenerator";
+import {RandomQuatGenerator} from "./RandomQuatGenerator";
+import {RotationGenerator, RotationGeneratorFromJSON} from "./RotationGenerator";
 
 export interface ValueGenerator {
     type: 'value';
@@ -17,7 +20,7 @@ export interface FunctionValueGenerator {
     clone(): FunctionValueGenerator;
 }
 
-export function ValueGeneratorFromJSON(json: FunctionJSON) {
+export function ValueGeneratorFromJSON(json: FunctionJSON): FunctionValueGenerator | ValueGenerator {
     switch(json.type) {
         case 'ConstantValue':
             return ConstantValue.fromJSON(json);
@@ -28,4 +31,19 @@ export function ValueGeneratorFromJSON(json: FunctionJSON) {
         default:
             return new ConstantValue(0);
     }
+}
+
+export function GeneratorFromJSON(json: FunctionJSON): FunctionValueGenerator | ValueGenerator | RotationGenerator {
+    switch(json.type) {
+        case 'ConstantValue':
+        case 'IntervalValue':
+        case 'PiecewiseBezier':
+            return ValueGeneratorFromJSON(json);
+        case 'AxisAngleGenerator':
+        case 'RandomQuatGenerator':
+            return RotationGeneratorFromJSON(json);
+        default:
+            return new ConstantValue(0);
+    }
+
 }

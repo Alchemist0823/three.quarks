@@ -33,7 +33,7 @@ export class SpriteParticle implements Particle {
     size: number = 1;
 
     // extra
-    angularVelocity?: number;
+    angularVelocity?: number | Quaternion;
 
     // GPU
     rotation: number | Quaternion = 0;

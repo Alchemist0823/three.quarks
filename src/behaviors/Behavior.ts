@@ -19,6 +19,7 @@ import {ChangeEmitDirection} from "./ChangeEmitDirection";
 import {EmitSubParticleSystem} from "./EmitSubParticleSystem";
 import {ParticleSystem} from "../ParticleSystem";
 import {TurbulenceField} from "./TurbulenceField";
+import {Rotation3DOverLife} from "./Rotation3DOverLife";
 
 export interface Behavior {
     type: string;
@@ -41,7 +42,8 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
     "TurbulenceField": {type: "TurbulenceField", constructor: TurbulenceField, params: [["scale", "vec3"], ["power", "vec3"], ["fieldShift", "vec3"]], loadJSON: TurbulenceField.fromJSON},
     "GravityForce": {type: "GravityForce", constructor: GravityForce, params: [["center", "vec3"], ["magnitude", "number"]], loadJSON: GravityForce.fromJSON},
     "ColorOverLife": {type: "ColorOverLife", constructor: ColorOverLife, params: [["color", "colorFunc"]], loadJSON: ColorOverLife.fromJSON},
-    "RotationOverLife": {type: "RotationOverLife", constructor: RotationOverLife, params: [["angularVelocity", "valueFunc"]], loadJSON: RotationOverLife.fromJSON},
+    "RotationOverLife": {type: "RotationOverLife", constructor: RotationOverLife, params: [["angularVelocity", "valueFunc"], ["dynamic", "boolean"]], loadJSON: RotationOverLife.fromJSON},
+    "Rotation3DOverLife": {type: "Rotation3DOverLife", constructor: Rotation3DOverLife, params: [["angularVelocity", "rotationFunc"], ["dynamic", "boolean"]], loadJSON: Rotation3DOverLife.fromJSON},
     "SizeOverLife": {type: "SizeOverLife", constructor: SizeOverLife, params: [["size", "valueFunc"]], loadJSON: SizeOverLife.fromJSON},
     "SpeedOverLife": {type: "SpeedOverLife", constructor: SpeedOverLife, params: [["speed", "valueFunc"]], loadJSON: SpeedOverLife.fromJSON},
     "FrameOverLife": {type: "FrameOverLife", constructor: FrameOverLife, params: [["frame", "valueFunc"]], loadJSON: FrameOverLife.fromJSON},

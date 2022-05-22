@@ -9,3 +9,6 @@ export * from "./PiecewiseBezier";
 export * from "./PiecewiseFunction";
 export * from "./RandomColor";
 export * from "./ValueGenerator";
+export * from "./RandomQuatGenerator";
+export * from "./AxisAngleGenerator";
+export * from "./RotationGenerator";
