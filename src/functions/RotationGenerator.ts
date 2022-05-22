@@ -12,9 +12,9 @@ export interface RotationGenerator {
 
 export function RotationGeneratorFromJSON(json: FunctionJSON): RotationGenerator {
     switch(json.type) {
-        case 'AxisAngleGenerator':
+        case 'AxisAngle':
             return AxisAngleGenerator.fromJSON(json);
-        case 'RandomQuatGenerator':
+        case 'RandomQuat':
             return RandomQuatGenerator.fromJSON(json);
         default:
             return new RandomQuatGenerator();

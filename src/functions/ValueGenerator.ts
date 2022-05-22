@@ -39,8 +39,8 @@ export function GeneratorFromJSON(json: FunctionJSON): FunctionValueGenerator | 
         case 'IntervalValue':
         case 'PiecewiseBezier':
             return ValueGeneratorFromJSON(json);
-        case 'AxisAngleGenerator':
-        case 'RandomQuatGenerator':
+        case 'AxisAngle':
+        case 'RandomQuat':
             return RotationGeneratorFromJSON(json);
         default:
             return new ConstantValue(0);

@@ -370,16 +370,20 @@ export class ParticleSystem {
                 || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
             ) {
                 const sprite = particle as SpriteParticle;
-                if (this.startRotation.type === "rotation") {
-                    if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                    if (!(sprite.rotation instanceof Quaternion)) {
+                        sprite.rotation = new Quaternion();
+                    }
+                    if (this.startRotation.type === "rotation") {
                         this.startRotation.genValue(sprite.rotation as Quaternion, emissionState.time / this.duration);
                     } else {
-                        sprite.rotation = 0;
+                        (sprite.rotation as Quaternion).setFromAxisAngle(UP, this.startRotation.genValue((emissionState.time / this.duration) as number));
                     }
                 } else {
-                    sprite.rotation = this.startRotation.genValue(emissionState.time / this.duration);
-                    if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
-                        sprite.rotation = new Quaternion().setFromAxisAngle(UP, sprite.rotation as number);
+                    if (this.startRotation.type === "rotation") {
+                        sprite.rotation = 0;
+                    } else {
+                        sprite.rotation = this.startRotation.genValue(emissionState.time / this.duration);
                     }
                 }
             } else if (this.rendererSettings.renderMode === RenderMode.Trail) {

@@ -16,7 +16,7 @@ export class AxisAngleGenerator implements RotationGenerator {
 
     toJSON(): FunctionJSON {
         return {
-            type: "IntervalValue",
+            type: "AxisAngle",
             axis: {x: this.axis.x, y: this.axis.y, z: this.axis.z},
             angle: this.angle.toJSON(),
         };
