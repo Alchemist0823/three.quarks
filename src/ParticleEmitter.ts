@@ -1,5 +1,5 @@
 
-import {ParticleSystem} from './ParticleSystem';
+import {ParticleSystem, SerializationOptions} from './ParticleSystem';
 import {
     Blending,
     Texture,
@@ -56,7 +56,7 @@ export class ParticleEmitter extends Object3D {
         return values;
     }
 
-    toJSON(meta?: MetaData): any {
+    toJSON(meta?: MetaData, options: SerializationOptions = {}): any {
 		// meta is a string when called from JSON.stringify
 		const isRootObject = ( meta === undefined || typeof meta === 'string' );
         const output: any = {};
@@ -106,7 +106,7 @@ export class ParticleEmitter extends Object3D {
 
 		// object specific properties
 
-        if ( this.system !== null ) object.ps = this.system.toJSON(meta!);
+        if ( this.system !== null ) object.ps = this.system.toJSON(meta!, options);
 
 		if ( this.children.length > 0 ) {
 			object.children = [];

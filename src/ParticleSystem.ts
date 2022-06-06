@@ -146,6 +146,10 @@ export interface EmissionState {
     waitEmiting: number;
 }
 
+export interface SerializationOptions {
+    useUrlForImage?: boolean;
+}
+
 export class ParticleSystem {
     // parameters
     autoDestroy: boolean;
@@ -546,7 +550,7 @@ export class ParticleSystem {
         emissionState.time += delta;
     }
 
-    toJSON(meta: MetaData): ParticleSystemJSONParameters {
+    toJSON(meta: MetaData, options: SerializationOptions = {}): ParticleSystemJSONParameters {
         const isRootObject = (meta === undefined || typeof meta === 'string');
         if (isRootObject) {
             // initialize meta obj
@@ -564,14 +568,16 @@ export class ParticleSystem {
 
         this.texture.toJSON(meta);
 
+        if (options.useUrlForImage) {
+            if ( this.texture.source !== undefined ) {
+                const image = this.texture.source;
+                meta.images[ image.uuid ] = {
+                    uuid: image.uuid,
+                    url: this.texture.image.url,
+                };
+            }
+        }
         // TODO: support URL
-        /*if ( this.texture.source !== undefined ) {
-            const image = this.texture.source;
-            meta.images[ image.uuid ] = {
-                uuid: image.uuid,
-                url: this.texture.image.url,
-            };
-        }*/
         let rendererSettingsJSON;
         if (this.renderMode === RenderMode.Trail) {
             rendererSettingsJSON = {
