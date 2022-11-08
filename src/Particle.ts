@@ -66,11 +66,18 @@ export class TrailParticle implements Particle {
 
     // GPU
     color: Vector4 = new Vector4();
+    // use link list instead
     previous: Array<RecordState> = [];
     uvTile: number = 0;
 
-    recordCurrentState() {
-        this.previous.push(new RecordState(this.position.clone(), this.size, this.color.clone()));
+    update() {
+        if (this.age <= this.life) {
+            this.previous.push(new RecordState(this.position.clone(), this.size, this.color.clone()));
+        } else {
+            if (this.previous.length > 0) {
+                this.previous.shift();
+            }
+        }
         while (this.previous.length > this.length) {
             this.previous.shift();
         }

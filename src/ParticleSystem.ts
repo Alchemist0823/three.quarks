@@ -499,14 +499,14 @@ export class ParticleSystem {
         if (this.rendererSettings.renderMode === RenderMode.Trail) {
             for (let i = 0; i < this.particleNum; i++) {
                 let particle = this.particles[i] as TrailParticle;
-                particle.recordCurrentState();
+                particle.update();
             }
         }
 
         // particle die
         for (let i = 0; i < this.particleNum; i++) {
             let particle = this.particles[i];
-            if (particle.age >= particle.life) {
+            if (particle.died && (!(particle instanceof TrailParticle) || particle.previous.length === 0)) {
                 this.particles[i] = this.particles[this.particleNum - 1];
                 this.particles[this.particleNum - 1] = particle;
                 this.particleNum--;
