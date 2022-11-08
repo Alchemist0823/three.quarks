@@ -100,9 +100,9 @@ describe("ParticleEmitter", () => {
         //const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
         const renderer = new BatchedParticleRenderer();
         const json = glowBeam.emitter.toJSON();
-        const loader = new QuarksLoader();
+        const loader = new QuarksLoader(renderer);
         const emitter = loader.parse(json, () => {
-        }, renderer) as ParticleEmitter;
+        }) as ParticleEmitter<Event>;
         expect(emitter.system.startTileIndex.type).toBe("value");
         expect(emitter.system.rendererSettings.instancingGeometry).toBeDefined();
         expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");

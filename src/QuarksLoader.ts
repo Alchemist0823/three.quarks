@@ -27,8 +27,9 @@ import {
 } from "three";
 import {ParticleSystem} from "./ParticleSystem";
 import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
-import {Behavior} from "./behaviors";
+import {Behavior, EmitSubParticleSystem} from "./behaviors";
 import {ParticleEmitter} from "./ParticleEmitter";
+import {MeshSurfaceEmitter} from "./shape";
 
 export class QuarksLoader extends ObjectLoader {
     /*manager: LoadingManager;
@@ -45,7 +46,34 @@ export class QuarksLoader extends ObjectLoader {
         //this.resourcePath = '';
     }
 
-    // @ts-ignore
+    linkReference(object: Object3D) {
+        let objectsMap: { [uuid: string]: Object3D } = {};
+        object.traverse( function ( child ) {
+            objectsMap[child.uuid] = child;
+        } );
+        object.traverse( function ( child ) {
+            if ( child.type === "ParticleEmitter") {
+                let system = (child as ParticleEmitter<Event>).system;
+                let shape = system.emitterShape;
+                if (shape instanceof MeshSurfaceEmitter) {
+                    shape.mesh = objectsMap[shape.mesh as any] as Mesh;
+                }
+                for (let i = 0; i < system.behaviors.length; i ++) {
+                    if (system.behaviors[i] instanceof EmitSubParticleSystem) {
+                        (system.behaviors[i] as EmitSubParticleSystem).subParticleSystem = objectsMap[(system.behaviors[i] as EmitSubParticleSystem).subParticleSystem as any] as ParticleEmitter<Event>;
+                    }
+                }
+            }
+        } );
+    }
+
+    parse<T extends Object3D>(json: any, onLoad?: (object: Object3D) => void): T {
+        let object = super.parse(json, onLoad);
+        this.linkReference(object);
+        return object as T;
+    }
+
+// @ts-ignore
     parseObject<T extends Object3D<Event>>(data: any, geometries: any, materials: Material[], textures: Texture[], animations: AnimationClip[]): T {
 
         let object;
@@ -373,33 +401,4 @@ export class QuarksLoader extends ObjectLoader {
         // @ts-ignore
         return object;
     }
-
-
-    /*parse ( json: any, onLoad: (object: any) => void, renderer: BatchedParticleRenderer) {
-        const images = this.parseImages( json.images,  () => {
-            if ( onLoad !== undefined ) onLoad( object );
-        } );
-        const textures = this.parseTextures( json.textures, images );
-        const shapes = this.parseShapes( json.shapes );
-        const geometries = this.parseGeometries( json.geometries, shapes );
-        const meta = {
-            images: images,
-            textures: textures,
-            shapes: shapes,
-            geometries: geometries,
-        };
-        const dependencies: {[uuid: string]: Behavior} = {};
-        const object = this.parseObject( json.object, meta, dependencies, renderer);
-
-        object.traverse((obj) => {
-            if (dependencies[obj.uuid]) {
-                (dependencies[obj.uuid] as EmitSubParticleSystem).subParticleSystem = obj as ParticleEmitter<Event>;
-            }
-        });
-
-        if ( json.images === undefined || json.images.length === 0 ) {
-            if ( onLoad !== undefined ) onLoad( object );
-        }
-        return object;
-    }*/
 }

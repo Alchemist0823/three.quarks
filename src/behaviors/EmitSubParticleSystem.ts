@@ -2,7 +2,7 @@ import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
 import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions";
 import {EmissionState, ParticleSystem} from "../ParticleSystem";
-import { Matrix4, Quaternion, Vector3 } from "three";
+import {BaseEvent, Matrix4, Quaternion, Vector3} from "three";
 import {ParticleEmitter} from "../ParticleEmitter";
 
 const VECTOR_ONE = new Vector3(1, 1, 1);
@@ -17,8 +17,8 @@ export class EmitSubParticleSystem implements Behavior {
     private v_ = new Vector3();
     private v2_ = new Vector3();
 
-    constructor(private particleSystem: ParticleSystem, public useVelocityAsBasis: boolean, public subParticleSystem?: ParticleEmitter<Event>) {
-        if (this.subParticleSystem) {
+    constructor(private particleSystem: ParticleSystem, public useVelocityAsBasis: boolean, public subParticleSystem?: ParticleEmitter<BaseEvent>) {
+        if (this.subParticleSystem && this.subParticleSystem.system) {
             this.subParticleSystem.system.onlyUsedByOther = true;
         }
     }
@@ -86,7 +86,7 @@ export class EmitSubParticleSystem implements Behavior {
     }
 
     static fromJSON(json: any, particleSystem: ParticleSystem): Behavior {
-        return new EmitSubParticleSystem(particleSystem, json.useVelocityAsBasis, undefined);
+        return new EmitSubParticleSystem(particleSystem, json.useVelocityAsBasis, json.subParticleSystem);
     }
 
     clone(): Behavior {

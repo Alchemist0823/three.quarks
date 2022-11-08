@@ -13,6 +13,8 @@ export class MeshSurfaceEmitter implements EmitterShape {
     }
     set mesh(mesh: Mesh) {
         this._mesh = mesh;
+        if (typeof mesh === "string")
+            return;
         // optimization
         /*if (mesh.userData.triangleIndexToArea) {
             this._triangleIndexToArea = mesh.userData.triangleIndexToArea;
@@ -106,7 +108,7 @@ export class MeshSurfaceEmitter implements EmitterShape {
     }
 
     static fromJSON(json: any): MeshSurfaceEmitter {
-        return new MeshSurfaceEmitter();
+        return new MeshSurfaceEmitter(json.mesh);
     }
 
     clone(): EmitterShape {
