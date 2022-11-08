@@ -14,7 +14,7 @@ import {
     Matrix3,
     Matrix4,
     NormalBlending,
-    PlaneBufferGeometry,
+    PlaneGeometry,
     Quaternion,
     Texture,
     Vector3,
@@ -137,7 +137,7 @@ export interface MeshSettings {
     startRotationZ: ValueGenerator | FunctionValueGenerator;
 }
 
-const DEFAULT_GEOMETRY = new PlaneBufferGeometry(1, 1, 1, 1)
+const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1)
 
 export interface EmissionState {
     burstIndex: number;
@@ -251,7 +251,7 @@ export class ParticleSystem {
                     break;
                 case RenderMode.LocalSpace:
                     this.rendererEmitterSettings = {
-                        geometry: new PlaneBufferGeometry(1, 1)
+                        geometry: new PlaneGeometry(1, 1)
                     };
                     this.startRotation = new AxisAngleGenerator(new Vector3(0, 1,0 ), new ConstantValue(0));
                     break;

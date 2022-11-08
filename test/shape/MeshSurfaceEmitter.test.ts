@@ -1,9 +1,9 @@
-import {BoxBufferGeometry, Mesh, SphereBufferGeometry} from "three";
+import {BoxGeometry, Mesh, SphereGeometry} from "three";
 import {MeshSurfaceEmitter, SpriteParticle} from "../../src";
 
 describe("MeshSurfaceEmitter", () => {
     test("BoxGeometry", () => {
-        const mesh = new Mesh(new BoxBufferGeometry(2, 2, 2, 2, 2, 2));
+        const mesh = new Mesh(new BoxGeometry(2, 2, 2, 2, 2, 2));
         const emitter = new MeshSurfaceEmitter(mesh);
         let p = new SpriteParticle();
         for (let i = 0; i < 50; i ++) {
@@ -18,7 +18,7 @@ describe("MeshSurfaceEmitter", () => {
     });
 
     test("SphereGeometry", () => {
-        const mesh = new Mesh(new SphereBufferGeometry(5, 32, 16));
+        const mesh = new Mesh(new SphereGeometry(5, 32, 16));
         const emitter = new MeshSurfaceEmitter(mesh);
         let p = new SpriteParticle();
         for (let i = 0; i < 5; i ++) {

@@ -18,7 +18,7 @@ import {
     Vector4,
     Object3D,
     TrianglesDrawMode,
-    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, PlaneBufferGeometry, NormalBlending, Vector3, Quaternion, Sprite
+    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, NormalBlending, Vector3, Quaternion, Sprite
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';

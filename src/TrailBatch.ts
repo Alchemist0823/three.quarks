@@ -14,13 +14,11 @@ import {
     DoubleSide,
     FrontSide,
     BufferGeometry,
-    PlaneBufferGeometry,
     NormalBlending,
     Vector3,
     Quaternion,
     Sprite,
     BufferAttribute,
-    BoxBufferGeometry, Vector4
 } from 'three';
 
 import trail_frag from './shaders/trail_frag.glsl';
