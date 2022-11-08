@@ -1,6 +1,7 @@
 export * from "./ColorOverLife";
 export * from "./RotationOverLife";
 export * from "./Rotation3DOverLife";
+export * from "./ForceOverLife";
 export * from "./SizeOverLife";
 export * from "./SpeedOverLife";
 export * from "./FrameOverLife";
