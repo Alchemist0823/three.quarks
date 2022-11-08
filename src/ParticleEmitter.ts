@@ -4,7 +4,7 @@ import {
     Blending,
     Texture,
     Object3D,
-    BufferGeometry
+    BufferGeometry, BaseEvent
 } from 'three';
 
 export interface MetaData {
@@ -18,7 +18,7 @@ export interface MetaData {
     nodes: any;
 }
 
-export class ParticleEmitter extends Object3D {
+export class ParticleEmitter<E extends BaseEvent> extends Object3D<E> {
 
     type: string = "ParticleEmitter";
     system: ParticleSystem;

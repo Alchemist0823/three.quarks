@@ -9,6 +9,7 @@ import {Particle, SpriteParticle, TrailParticle} from "./Particle";
 import {MetaData, ParticleEmitter} from "./ParticleEmitter";
 import {EmitterFromJSON, EmitterShape, ShapeJSON} from "./shape/EmitterShape";
 import {
+    BaseEvent,
     Blending,
     BufferGeometry,
     Matrix3,
@@ -185,7 +186,7 @@ export class ParticleSystem {
 
     particles: Array<Particle>;
     emitterShape: EmitterShape;
-    emitter: ParticleEmitter;
+    emitter: ParticleEmitter<BaseEvent>;
 
     rendererSettings: ParticleSystemBatchSettings;
     renderer: BatchedParticleRenderer;

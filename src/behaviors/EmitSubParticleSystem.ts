@@ -17,7 +17,7 @@ export class EmitSubParticleSystem implements Behavior {
     private v_ = new Vector3();
     private v2_ = new Vector3();
 
-    constructor(private particleSystem: ParticleSystem, public useVelocityAsBasis: boolean, public subParticleSystem?: ParticleEmitter) {
+    constructor(private particleSystem: ParticleSystem, public useVelocityAsBasis: boolean, public subParticleSystem?: ParticleEmitter<Event>) {
         if (this.subParticleSystem) {
             this.subParticleSystem.system.onlyUsedByOther = true;
         }
