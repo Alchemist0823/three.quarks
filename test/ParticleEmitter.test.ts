@@ -33,8 +33,6 @@ describe("ParticleEmitter", () => {
         startColor: new ConstantColor(new Vector4(1, 0.1509503, 0.07352942, .5)),
         rendererEmitterSettings: {startLength: new ConstantValue(40)},
         worldSpace: true,
-
-        maxParticle: 100,
         emissionOverTime: new ConstantValue(40),
 
         shape: new SphereEmitter({
@@ -68,7 +66,6 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.startColor.type).toBe("ConstantColor");
         expect(json.object.ps.rendererEmitterSettings.startLength.type).toBe("ConstantValue");
         expect(json.object.ps.worldSpace).toBe(true);
-        expect(json.object.ps.maxParticle).toBe(100);
         expect(json.object.ps.emissionOverTime.type).toBe("ConstantValue");
         expect(json.object.ps.shape.type).toBe("sphere");
         expect(json.object.ps.shape.radius).toBe(0.0001);
