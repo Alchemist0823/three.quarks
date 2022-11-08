@@ -13,11 +13,13 @@ export class MeshSurfaceEmitter implements EmitterShape {
     }
     set mesh(mesh: Mesh) {
         this._mesh = mesh;
-        if (mesh.userData.triangleIndexToArea) {
+        // optimization
+        /*if (mesh.userData.triangleIndexToArea) {
             this._triangleIndexToArea = mesh.userData.triangleIndexToArea;
             return;
-        }
+        }*/
         const tri = new Triangle();
+        this._triangleIndexToArea.length = 0;
         let area = 0;
         const geometry = mesh.geometry;
         if (!geometry.getIndex()) {
@@ -88,6 +90,9 @@ export class MeshSurfaceEmitter implements EmitterShape {
         this._tempC.sub(this._tempA);
         this._tempA.addScaledVector(this._tempB, u1).addScaledVector(this._tempC,  u2);
         p.position.copy(this._tempA);
+
+        // velocity based on tri normal
+        this._tempA.copy(this._tempB).cross(this._tempC).normalize();
         p.velocity.copy(this._tempA).normalize().multiplyScalar(p.startSpeed);
         /*p.position.applyMatrix4(this._mesh.matrixWorld);
         p.velocity.applyMatrix3(this._mesh.normalMatrix);*/
