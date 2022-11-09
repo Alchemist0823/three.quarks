@@ -84,7 +84,7 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.behaviors[0].size.type).toBe("PiecewiseBezier");
         expect(json.object.ps.behaviors[1].type).toBe("ApplyForce");
         expect(json.object.ps.behaviors[1].direction[1]).toBe(1);
-        expect(json.object.ps.behaviors[1].force.type).toBe("ConstantValue");
+        expect(json.object.ps.behaviors[1].magnitude.type).toBe("ConstantValue");
 
         expect(Object.keys(meta.geometries).length).toBe(1);
     });

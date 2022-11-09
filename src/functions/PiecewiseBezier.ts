@@ -16,7 +16,6 @@ export class PiecewiseBezier extends PiecewiseFunction<Bezier> implements Functi
     genValue(t: number = 0): number {
         let index = this.findFunction(t);
         if (index === -1) {
-            console.error(t);
             return 0;
         }
         return this.functions[index][0].genValue( (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index)));

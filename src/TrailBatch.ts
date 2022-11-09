@@ -159,30 +159,32 @@ export class TrailBatch extends ParticleSystemBatch {
                 const col = particle.uvTile % vTileCount;
                 const row = Math.floor(particle.uvTile / vTileCount);
 
+                let iter = particle.previous.values();
+                let curIter = iter.next();
+                let previous: RecordState = curIter.value as RecordState;
+                let current: RecordState = previous;
+                if (!curIter.done) curIter = iter.next();
+                let next: RecordState;
+                if (curIter.value !== undefined) {
+                    next = curIter.value;
+                } else {
+                    next = current;
+                }
                 for (let i = 0; i < particle.previous.length; i++, index += 2) {
-
-                    const recordState = particle.previous[i];
-                    this.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
-                    this.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
+                    this.positionBuffer.setXYZ(index, current.position.x, current.position.y, current.position.z);
+                    this.positionBuffer.setXYZ(index + 1, current.position.x, current.position.y, current.position.z);
 
                     if (system.worldSpace) {
-                        this.positionBuffer.setXYZ(index, recordState.position.x, recordState.position.y, recordState.position.z);
-                        this.positionBuffer.setXYZ(index + 1, recordState.position.x, recordState.position.y, recordState.position.z);
+                        this.positionBuffer.setXYZ(index, current.position.x, current.position.y, current.position.z);
+                        this.positionBuffer.setXYZ(index + 1, current.position.x, current.position.y, current.position.z);
                     } else {
                         if (particle.parentMatrix) {
-                            this.vector_.copy(recordState.position).applyMatrix4(particle.parentMatrix);
+                            this.vector_.copy(current.position).applyMatrix4(particle.parentMatrix);
                         } else {
-                            this.vector_.copy(recordState.position).applyMatrix4(system.emitter.matrixWorld);
+                            this.vector_.copy(current.position).applyMatrix4(system.emitter.matrixWorld);
                         }
                         this.positionBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
                         this.positionBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
-                    }
-
-                    let previous;
-                    if (i - 1 >= 0) {
-                        previous = particle.previous[i - 1];
-                    } else {
-                        previous = particle.previous[0];
                     }
 
                     if (system.worldSpace) {
@@ -198,12 +200,6 @@ export class TrailBatch extends ParticleSystemBatch {
                         this.previousBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
                     }
 
-                    let next;
-                    if (i + 1 < particle.previous.length) {
-                        next = particle.previous[i + 1];
-                    } else {
-                        next = particle.previous[particle.previous.length - 1];
-                    }
                     if (system.worldSpace) {
                         this.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
                         this.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
@@ -220,14 +216,14 @@ export class TrailBatch extends ParticleSystemBatch {
                     this.sideBuffer.setX(index, -1);
                     this.sideBuffer.setX(index + 1, 1);
 
-                    this.widthBuffer.setX(index, recordState.size);
-                    this.widthBuffer.setX(index + 1, recordState.size);
+                    this.widthBuffer.setX(index, current.size);
+                    this.widthBuffer.setX(index + 1, current.size);
 
                     this.uvBuffer.setXY(index, (i / particle.previous.length + col) * tileWidth, (vTileCount - row - 1) * tileHeight);
                     this.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
 
-                    this.colorBuffer.setXYZW(index, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
-                    this.colorBuffer.setXYZW(index + 1, recordState.color.x, recordState.color.y, recordState.color.z, recordState.color.w);
+                    this.colorBuffer.setXYZW(index, current.color.x, current.color.y, current.color.z, current.color.w);
+                    this.colorBuffer.setXYZW(index + 1, current.color.x, current.color.y, current.color.z, current.color.w);
 
                     if (i + 1 < particle.previous.length) {
                         this.indexBuffer.setX(triangles * 3, index);
@@ -238,6 +234,14 @@ export class TrailBatch extends ParticleSystemBatch {
                         this.indexBuffer.setX(triangles * 3 + 1, index + 1);
                         this.indexBuffer.setX(triangles * 3 + 2, index + 3);
                         triangles++;
+                    }
+                    previous = current;
+                    current = next;
+                    if (!curIter.done) {
+                        curIter = iter.next();
+                        if (curIter.value !== undefined) {
+                            next = curIter.value;
+                        }
                     }
                 }
             }

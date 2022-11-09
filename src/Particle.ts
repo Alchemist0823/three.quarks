@@ -1,5 +1,6 @@
 import {Color, Matrix4, Quaternion, Vector3, Vector4} from "three";
 import { EmissionState } from "./ParticleSystem";
+import { LinkedList } from "./util/LinkedList";
 
 export interface Particle {
     emissionState?: EmissionState;
@@ -67,7 +68,7 @@ export class TrailParticle implements Particle {
     // GPU
     color: Vector4 = new Vector4();
     // use link list instead
-    previous: Array<RecordState> = [];
+    previous: LinkedList<RecordState> = new LinkedList<RecordState>();
     uvTile: number = 0;
 
     update() {
@@ -75,11 +76,11 @@ export class TrailParticle implements Particle {
             this.previous.push(new RecordState(this.position.clone(), this.size, this.color.clone()));
         } else {
             if (this.previous.length > 0) {
-                this.previous.shift();
+                this.previous.dequeue();
             }
         }
         while (this.previous.length > this.length) {
-            this.previous.shift();
+            this.previous.dequeue();
         }
     }
 
@@ -88,6 +89,6 @@ export class TrailParticle implements Particle {
     }
 
     reset() {
-        this.previous.length = 0;
+        this.previous.clear();
     }
 }

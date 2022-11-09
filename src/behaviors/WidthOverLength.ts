@@ -1,5 +1,5 @@
 import {Behavior} from "./Behavior";
-import {Particle, TrailParticle} from "../Particle";
+import {Particle, RecordState, TrailParticle} from "../Particle";
 import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
 import {Vector3} from "three";
 
@@ -14,8 +14,10 @@ export class WidthOverLength implements Behavior {
 
     update(particle: Particle): void {
         if (particle instanceof TrailParticle) {
+            let iter = particle.previous.values();
             for (let i = 0; i < particle.previous.length; i ++) {
-                particle.previous[i].size = this.width.genValue((particle.previous.length - i) / particle.length);
+                let cur = iter.next();
+                (cur.value as RecordState).size = this.width.genValue((particle.previous.length - i) / particle.length);
             }
         }
     }

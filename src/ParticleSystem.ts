@@ -477,7 +477,9 @@ export class ParticleSystem {
         // simulate
         for (let j = 0; j < this.behaviors.length; j++) {
             for (let i = 0; i < this.particleNum; i++) {
-                this.behaviors[j].update(this.particles[i], delta);
+                if (!this.particles[i].died) {
+                    this.behaviors[j].update(this.particles[i], delta);
+                }
             }
             this.behaviors[j].frameUpdate(delta);
         }

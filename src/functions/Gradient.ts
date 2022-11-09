@@ -17,7 +17,6 @@ export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionC
     genColor(color: Vector4, t: number): Vector4 {
         let index = this.findFunction(t);
         if (index === -1) {
-            console.error(t);
             return color.copy(this.functions[0][0].a);
         }
         return this.getFunction(index).genColor(color, (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index)));
