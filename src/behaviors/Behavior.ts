@@ -21,6 +21,7 @@ import {ParticleSystem} from "../ParticleSystem";
 import {TurbulenceField} from "./TurbulenceField";
 import {Rotation3DOverLife} from "./Rotation3DOverLife";
 import {ForceOverLife} from "./ForceOverLife";
+import {Noise} from "./Noise";
 
 export interface Behavior {
     type: string;
@@ -40,6 +41,7 @@ export interface BehaviorPlugin {
 
 export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
     "ApplyForce": {type: "ApplyForce", constructor: ApplyForce, params: [["direction", "vec3"], ["magnitude", "value"]], loadJSON: ApplyForce.fromJSON},
+    "Noise": {type: "Noise", constructor: Noise, params: [["frequency", "vec3"], ["power", "vec3"]], loadJSON: Noise.fromJSON},
     "TurbulenceField": {type: "TurbulenceField", constructor: TurbulenceField, params: [["scale", "vec3"], ["power", "vec3"], ["fieldShift", "vec3"]], loadJSON: TurbulenceField.fromJSON},
     "GravityForce": {type: "GravityForce", constructor: GravityForce, params: [["center", "vec3"], ["magnitude", "number"]], loadJSON: GravityForce.fromJSON},
     "ColorOverLife": {type: "ColorOverLife", constructor: ColorOverLife, params: [["color", "colorFunc"]], loadJSON: ColorOverLife.fromJSON},
