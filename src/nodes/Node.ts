@@ -11,9 +11,14 @@ export class Node {
     inputs: (Wire | ConstInput)[] = [];
     outputs: Wire[] = [];
     type: NodeType;
-
-    outputValues: any[] = [];
     data: { [key: string]: any } = {};
+
+    // display
+    position: Vector2 = new Vector2();
+
+    // execution
+    outputValues: any[] = [];
+
 
     constructor(type: NodeType) {
         this.id = "" + Math.round(Math.random() * 100000); //TODO use real random
@@ -40,6 +45,6 @@ export class Wire {
         this.input.outputs[inputIndex] = this;
         this.output = output;
         this.outputIndex = outputIndex;
-        this.output.outputs[outputIndex] = this;
+        this.output.inputs[outputIndex] = this;
     }
 }

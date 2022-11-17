@@ -8,12 +8,16 @@ describe("Node", () => {
         const graph = new NodeGraph("test");
         const result = new Node(NodeTypes['mul']);
         const input1 = new Node(NodeTypes['add']);
+        const output = new Node(NodeTypes['output']);
         input1.inputs[0] = { getValue: () => 1 };
         input1.inputs[1] = { getValue: () => 2 };
-        result.inputs[0] = new Wire(input1, 0, result, 0);
+        graph.addWire(new Wire(input1, 0, result, 0));
         result.inputs[1] = { getValue: () => 3 };
+        graph.addWire(new Wire(result, 0, output, 0));
 
-        graph.outputNodes.push(result);
+        graph.addNode(result);
+        graph.addNode(input1);
+        graph.addNode(output);
 
         let interpreter = new Interpreter();
         interpreter.run(graph, {inputs: [], outputs: []});

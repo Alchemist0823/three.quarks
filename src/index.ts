@@ -11,3 +11,4 @@ export * from "./TypeUtil";
 export * from "./shape/";
 export * from "./functions/";
 export * from "./behaviors/";
+export * from "./nodes/";

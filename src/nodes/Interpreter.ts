@@ -43,10 +43,10 @@ export class Interpreter {
             const inputValues = [];
             const node = nodes[i];
             for (let j = 0; j < node.inputs.length; j ++) {
-                if (node.inputs[i] instanceof Wire) {
-                    inputValues.push((node.inputs[i] as Wire).input.outputValues[(node.inputs[i] as Wire).inputIndex]);
+                if (node.inputs[j] instanceof Wire) {
+                    inputValues.push((node.inputs[j] as Wire).input.outputValues[(node.inputs[j] as Wire).inputIndex]);
                 } else {
-                    inputValues.push((node.inputs[i] as ConstInput).getValue(this.context_!));
+                    inputValues.push((node.inputs[j] as ConstInput).getValue(this.context_!));
                 }
             }
             node.type.func(this.context_!, inputValues, node.outputValues);

@@ -43,5 +43,11 @@ export const NodeTypes: {[key:string]: NodeType} = {
     "random": new NodeType("random", (context, inputs, outputs) => {
         outputs[0] = Math.random() * (inputs[1] - inputs[0]) + inputs[0];
     }, [NodeValueType.Number, NodeValueType.Number], [NodeValueType.Number]),
+    "input": new NodeType("input", (context, inputs, outputs) => {
+        outputs[0] = inputs[0];
+    }, [NodeValueType.AnyType], [NodeValueType.AnyType]),
+    "output": new NodeType("output", (context, inputs, outputs) => {
+        outputs[0] = inputs[0];
+    }, [NodeValueType.AnyType], [NodeValueType.AnyType]),
 
 }
