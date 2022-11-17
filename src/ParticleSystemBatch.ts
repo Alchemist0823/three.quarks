@@ -43,7 +43,7 @@ export interface ParticleSystemBatchSettings {
 export enum RenderMode {
     BillBoard = 0,
     StretchedBillBoard = 1,
-    LocalSpace = 2,
+    Mesh = 2,
     Trail = 3,
 }
 

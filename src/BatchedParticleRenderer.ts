@@ -39,7 +39,7 @@ export class BatchedParticleRenderer extends Object3D {
             case RenderMode.Trail:
                 batch = new TrailBatch(settings);
                 break;
-            case RenderMode.LocalSpace:
+            case RenderMode.Mesh:
             case RenderMode.BillBoard:
             case RenderMode.StretchedBillBoard:
                 batch = new SpriteBatch(settings);

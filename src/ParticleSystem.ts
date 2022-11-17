@@ -250,7 +250,7 @@ export class ParticleSystem {
                         followLocalOrigin: false,
                     };
                     break;
-                case RenderMode.LocalSpace:
+                case RenderMode.Mesh:
                     this.rendererEmitterSettings = {
                         geometry: new PlaneGeometry(1, 1)
                     };
@@ -259,7 +259,7 @@ export class ParticleSystem {
                 case RenderMode.BillBoard:
                 case RenderMode.StretchedBillBoard:
                     this.rendererEmitterSettings = {};
-                    if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                    if (this.rendererSettings.renderMode === RenderMode.Mesh) {
                         this.startRotation = new ConstantValue(0);
                     }
                     break;
@@ -370,12 +370,12 @@ export class ParticleSystem {
             particle.startSize = this.startSize.genValue(emissionState.time / this.duration);
             particle.uvTile = Math.floor(this.startTileIndex.genValue());
             particle.size = particle.startSize;
-            if (this.rendererSettings.renderMode === RenderMode.LocalSpace
+            if (this.rendererSettings.renderMode === RenderMode.Mesh
                 || this.rendererSettings.renderMode === RenderMode.BillBoard
                 || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
             ) {
                 const sprite = particle as SpriteParticle;
-                if (this.rendererSettings.renderMode === RenderMode.LocalSpace) {
+                if (this.rendererSettings.renderMode === RenderMode.Mesh) {
                     if (!(sprite.rotation instanceof Quaternion)) {
                         sprite.rotation = new Quaternion();
                     }
@@ -587,7 +587,7 @@ export class ParticleSystem {
                 startLength: (this.rendererEmitterSettings as TrailSettings).startLength.toJSON(),
                 followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
             };
-        } else if (this.renderMode === RenderMode.LocalSpace) {
+        } else if (this.renderMode === RenderMode.Mesh) {
             rendererSettingsJSON = {};
             /*;*/
         } else {
@@ -638,7 +638,7 @@ export class ParticleSystem {
                 startLength: ValueGeneratorFromJSON(json.rendererEmitterSettings.startLength!),
                 followLocalOrigin: json.rendererEmitterSettings.followLocalOrigin!,
             }
-        } else if (json.renderMode === RenderMode.LocalSpace) {
+        } else if (json.renderMode === RenderMode.Mesh) {
             rendererEmitterSettings = {};
         } else {
             rendererEmitterSettings = {};

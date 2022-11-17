@@ -55,7 +55,7 @@ export class SpriteBatch extends ParticleSystemBatch {
         this.colorBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 4), 4);
         this.colorBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('color', this.colorBuffer);
-        if (this.settings.renderMode === RenderMode.LocalSpace) {
+        if (this.settings.renderMode === RenderMode.Mesh) {
             this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 4), 4);
             this.rotationBuffer.setUsage(DynamicDrawUsage);
             this.geometry.setAttribute('rotation', this.rotationBuffer);
@@ -110,10 +110,10 @@ export class SpriteBatch extends ParticleSystemBatch {
         defines['UV_TILE'] = '';
         uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
-        if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.LocalSpace) {
+        if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.Mesh) {
             let vertexShader;
             let side;
-            if (this.settings.renderMode === RenderMode.LocalSpace) {
+            if (this.settings.renderMode === RenderMode.Mesh) {
                 vertexShader = local_particle_vert;
                 side = DoubleSide;
             } else {
@@ -178,7 +178,7 @@ export class SpriteBatch extends ParticleSystemBatch {
             for (let j = 0; j < particleNum; j++, index ++) {
                 let particle = particles[j] as SpriteParticle;
 
-                if (this.settings.renderMode === RenderMode.LocalSpace) {
+                if (this.settings.renderMode === RenderMode.Mesh) {
                     //this.quaternion_.setFromAxisAngle(UP, particle.rotation as number);
                     let q;
                     if (system.worldSpace) {
@@ -252,7 +252,7 @@ export class SpriteBatch extends ParticleSystemBatch {
                 this.velocityBuffer!.needsUpdate = true;
             }
 
-            if (this.settings.renderMode === RenderMode.LocalSpace) {
+            if (this.settings.renderMode === RenderMode.Mesh) {
                 this.rotationBuffer!.updateRange.count = index * 4;
                 this.rotationBuffer!.needsUpdate = true;
             } else if (this.settings.renderMode === RenderMode.StretchedBillBoard || this.settings.renderMode === RenderMode.BillBoard) {

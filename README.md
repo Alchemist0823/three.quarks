@@ -20,11 +20,15 @@
   [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor) for it. It runs on 
 top of the well-known WebGL library called [three.js](https://threejs.org).
 
-## Features
+## Future Planning
+- Unity / Standalone Cross-platform Native plugin 
 
+## Features
+- Node based / scriptable particle system like popcornFX and houdini
 - Group Particle System
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
+  - Mesh Surface Emitter
 - Plugin System - [Plugin](https://github.com/Alchemist0823/three.quarks/tree/master/src/Plugin.ts)
   - Customizable Behaviors
   - Customizable Emitter Shape
@@ -65,32 +69,32 @@ const batchSystem = new BatchedParticleRenderer();
 const texture = new TextureLoader().load("atlas.png");
 // Particle system configuration
 const muzzle = {
- duration: 1,
- looping: false,
- startLife: new IntervalValue(0.1, 0.2),
- startSpeed: new ConstantValue(0),
- startSize: new IntervalValue(1, 5),
- startColor: new ConstantColor(new THREE.Vector4(1, 1, 1, 1)),
- worldSpace: false,
+    duration: 1,
+    looping: false,
+    startLife: new IntervalValue(0.1, 0.2),
+    startSpeed: new ConstantValue(0),
+    startSize: new IntervalValue(1, 5),
+    startColor: new ConstantColor(new THREE.Vector4(1, 1, 1, 1)),
+    worldSpace: false,
 
- maxParticle: 5,
- emissionOverTime: new ConstantValue(0),
- emissionBursts: [{
-  time: 0,
-  count: 1,
-  cycle: 1,
-  interval: 0.01,
-  probability: 1,
- }],
+    maxParticle: 5,
+    emissionOverTime: new ConstantValue(0),
+    emissionBursts: [{
+        time: 0,
+        count: 1,
+        cycle: 1,
+        interval: 0.01,
+        probability: 1,
+    }],
 
- shape: new PointEmitter(),
- texture: texture,
- blending: AdditiveBlending,
- startTileIndex: 91,
- uTileCount: 10,
- vTileCount: 10,
- renderOrder: 2,
- renderMode: RenderMode.LocalSpace
+    shape: new PointEmitter(),
+    texture: texture,
+    blending: AdditiveBlending,
+    startTileIndex: 91,
+    uTileCount: 10,
+    vTileCount: 10,
+    renderOrder: 2,
+    renderMode: RenderMode.Mesh
 };
 
 // Create particle system based on your configuration
