@@ -1,6 +1,5 @@
 import {NodeValueType} from "./NodeValueType";
 import {NodeGraph} from "./NodeGraph";
-import {NodeTypes} from "./NodeDefs";
 import {Interpreter} from "./Interpreter";
 import {Particle} from "../Particle";
 
@@ -35,13 +34,13 @@ export class GraphNodeType extends NodeType {
     constructor(nodeGraph: NodeGraph) {
         const inputTypes = [];
         for (let i = 0; i < nodeGraph.inputNodes.length; i++) {
-            if (nodeGraph.inputNodes[i].type === NodeTypes['input']) {
+            if (nodeGraph.inputNodes[i].type.name === 'input') {
                 inputTypes.push(nodeGraph.inputNodes[i].data.type);
             }
         }
         const outputTypes = [];
         for (let i = 0; i < nodeGraph.outputNodes.length; i++) {
-            if (nodeGraph.outputNodes[i].type === NodeTypes['output']) {
+            if (nodeGraph.outputNodes[i].type.name === 'output') {
                 outputTypes.push(nodeGraph.outputNodes[i].data.type);
             }
         }

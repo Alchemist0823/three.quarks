@@ -110,6 +110,7 @@ muzzle1.emitter.position.x = 1;
 
 // Add emitter to your Object3D
 scene.add(muzzle1.emitter);
+scene.add(batchSystem);
 ```
 
 Add batch renderer update in your main loop
@@ -122,11 +123,13 @@ batchSystem.update(clock.getDelta());
 #### Import VFX JSON
 
 ```javascript
-let loader = new QuarksLoader();
+const batchSystem = new BatchedParticleRenderer();
+const loader = new QuarksLoader(batchSystem);
 loader.setCrossOrigin("");
-loader.load(jsonURL, batchSystem, (object3D: Object3D)=>{
-    this.state.scene.add(object3D);
+loader.load(jsonURL, (object3D: Object3D)=>{
+    scene.add(object3D);
 }, ()=>{}, ()=>{});
+scene.add(batchSystem);
 ```
 
 Note: the texture url reference is defined by the texture's name field.

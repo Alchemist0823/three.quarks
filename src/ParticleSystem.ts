@@ -1,6 +1,5 @@
 import {
     FunctionValueGenerator,
-    GeneratorFromJSON,
     ValueGenerator,
     ValueGeneratorFromJSON
 } from "./functions/ValueGenerator";
@@ -29,7 +28,7 @@ import {
     ConstantColor,
     ConstantValue,
     FunctionColorGenerator,
-    FunctionJSON, RandomQuatGenerator
+    FunctionJSON, GeneratorFromJSON, RandomQuatGenerator
 } from "./functions";
 import {ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
 import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
@@ -532,11 +531,9 @@ export class ParticleSystem {
         this.normalMatrix.getNormalMatrix(emitterMatrix);
 
         // spawn
-        if (!this.emitEnded) {
-            const totalSpawn = Math.ceil(emissionState.waitEmiting);
-            this.spawn(totalSpawn, emissionState, emitterMatrix);
-            emissionState.waitEmiting -= totalSpawn;
-        }
+        const totalSpawn = Math.ceil(emissionState.waitEmiting);
+        this.spawn(totalSpawn, emissionState, emitterMatrix);
+        emissionState.waitEmiting -= totalSpawn;
 
         // spawn burst
         while (emissionState.burstIndex < this.emissionBursts.length && this.emissionBursts[emissionState.burstIndex].time <= emissionState.time) {
