@@ -12151,7 +12151,7 @@ class WebGLCubeRenderTarget extends WebGLRenderTarget {
 			},
 
 			vertexShader: /* glsl */`
-
+				#include <common>
 				varying vec3 vWorldDirection;
 
 				vec3 transformDirection( in vec3 dir, in mat4 matrix ) {

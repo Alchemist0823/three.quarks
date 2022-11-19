@@ -1,5 +1,5 @@
-export default /* glsl */`
-
+export default /* glsl */ `
+#include <common>
 #include <uv_pars_vertex>
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>

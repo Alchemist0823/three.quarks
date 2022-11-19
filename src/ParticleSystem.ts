@@ -191,6 +191,14 @@ export class ParticleSystem {
     renderer: BatchedParticleRenderer;
     neededToUpdateRender: boolean;
 
+    set time(time:number) {
+        this.emissionState.time = time;
+    }
+
+    get time() : number {
+        return this.emissionState.time;
+    }
+
     get texture() {
         return this.rendererSettings.texture;
     }
