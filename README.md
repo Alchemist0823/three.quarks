@@ -24,8 +24,8 @@ top of the well-known WebGL library called [three.js](https://threejs.org).
 - Unity / Standalone Cross-platform Native plugin 
 
 ## Features
-- Node based / scriptable particle system like popcornFX and houdini
-- Group Particle System
+- Node based / scriptable particle system like popcornFX and houdini (in Dev)
+- Semi-compatible Unity (shuriken) Particle system
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
   - Mesh Surface Emitter
