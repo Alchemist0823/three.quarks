@@ -8,8 +8,8 @@ import {ExecutionContext, NodeType} from "./NodeType";
 
 export class Node {
     id: string;
-    inputs: (Wire | ConstInput)[] = [];
-    outputs: Wire[] = [];
+    inputs: (Wire | ConstInput | undefined)[] = [];
+    outputs: (Wire | undefined)[] = [];
     type: NodeType;
     data: { [key: string]: any } = {};
 
@@ -19,12 +19,15 @@ export class Node {
     // execution
     outputValues: any[] = [];
 
-
     constructor(type: NodeType) {
         this.id = "" + Math.round(Math.random() * 100000); //TODO use real random
         this.type = type;
+        for (let i = 0; i < type.inputTypes.length; i++) {
+            this.inputs.push(undefined);
+        }
         for (let i = 0; i < type.outputTypes.length; i++) {
-            this.outputValues[i] = genDefaultForNodeValueType(type.outputTypes[i]);
+            this.outputs.push(undefined);
+            this.outputValues.push(genDefaultForNodeValueType(type.outputTypes[i]));
         }
     }
 }

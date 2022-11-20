@@ -7,19 +7,14 @@ export class TurbulenceField implements Behavior {
 
     type = 'TurbulenceField';
     generator = new SimplexNoise();
-    offset = [new Vector3(), new Vector3(), new Vector3()];
+    timeOffset = new Vector3();
     temp = new Vector3();
+    temp2 = new Vector3();
 
-    constructor(public scale: Vector3, public power: Vector3, public fieldShift: Vector3) {
-        this.offset[0].x = Math.random() / this.scale.x;
-        this.offset[1].x = Math.random() / this.scale.x;
-        this.offset[2].x = Math.random() / this.scale.x;
-        this.offset[0].y = Math.random() / this.scale.y;
-        this.offset[1].y = Math.random() / this.scale.y;
-        this.offset[2].y = Math.random() / this.scale.y;
-        this.offset[0].z = Math.random() / this.scale.z;
-        this.offset[1].z = Math.random() / this.scale.z;
-        this.offset[2].z = Math.random() / this.scale.z;
+    constructor(public scale: Vector3, public octaves: number, public velocityMultiplier: Vector3, public timeScale: Vector3) {
+        this.timeOffset.x = Math.random() / this.scale.x * this.timeScale.x;
+        this.timeOffset.y = Math.random() / this.scale.y * this.timeScale.y;
+        this.timeOffset.z = Math.random() / this.scale.z * this.timeScale.z;
     }
 
     initialize(particle: Particle): void {
@@ -29,11 +24,19 @@ export class TurbulenceField implements Behavior {
         const x = particle.position.x / this.scale.x;
         const y = particle.position.y / this.scale.y;
         const z = particle.position.z / this.scale.z;
-        this.temp.set(
-            this.generator.noise3D(this.offset[0].x + x, this.offset[0].y + y, this.offset[0].z + z),
-            this.generator.noise3D(this.offset[1].x + x, this.offset[1].y + y, this.offset[1].z + z),
-            this.generator.noise3D(this.offset[2].x + x, this.offset[2].y + y, this.offset[2].z + z)
-        ).multiply(this.power);
+
+        this.temp.set(0,0,0);
+        let lvl = 1;
+        for (let i = 0; i < this.octaves; i ++) {
+            this.temp2.set(
+                this.generator.noise4D(x * lvl, y * lvl, z * lvl, this.timeOffset.x * lvl) / lvl,
+                this.generator.noise4D(x * lvl, y * lvl, z * lvl, this.timeOffset.y * lvl) / lvl,
+                this.generator.noise4D(x * lvl, y * lvl, z * lvl, this.timeOffset.z * lvl) / lvl
+            );
+            this.temp.add(this.temp2);
+            lvl *= 2;
+        }
+        this.temp.multiply(this.velocityMultiplier);
         particle.velocity.addScaledVector(this.temp, delta);
     }
 
@@ -41,33 +44,29 @@ export class TurbulenceField implements Behavior {
         return {
             type: this.type,
             scale: [this.scale.x, this.scale.y, this.scale.z],
-            power: [this.power.x, this.power.y, this.power.z],
-            fieldShift: [this.fieldShift.x, this.fieldShift.y, this.fieldShift.z],
+            octaves: this.octaves,
+            velocityMultiplier: [this.velocityMultiplier.x, this.velocityMultiplier.y, this.velocityMultiplier.z],
+            timeScale: [this.timeScale.x, this.timeScale.y, this.timeScale.z],
         };
     }
 
     frameUpdate(delta: number): void {
-        this.offset[0].x += delta * this.fieldShift.x;
-        this.offset[0].y += delta * this.fieldShift.y;
-        this.offset[0].z += delta * this.fieldShift.z;
-        this.offset[1].x += delta * this.fieldShift.x;
-        this.offset[1].y += delta * this.fieldShift.y;
-        this.offset[1].z += delta * this.fieldShift.z;
-        this.offset[2].x += delta * this.fieldShift.x;
-        this.offset[2].y += delta * this.fieldShift.y;
-        this.offset[2].z += delta * this.fieldShift.z;
+        this.timeOffset.x += delta * this.timeScale.x;
+        this.timeOffset.y += delta * this.timeScale.y;
+        this.timeOffset.z += delta * this.timeScale.z;
     }
 
 
     static fromJSON(json: any): Behavior {
         return new TurbulenceField(
             new Vector3(json.scale![0], json.scale![1], json.scale![2]),
-            new Vector3(json.power![0], json.power![1], json.power![2]),
-            new Vector3(json.fieldShift![0], json.fieldShift![1], json.fieldShift![2]),
+            json.octaves,
+            new Vector3(json.velocityMultiplier![0], json.velocityMultiplier![1], json.velocityMultiplier![2]),
+            new Vector3(json.timeScale![0], json.timeScale![1], json.timeScale![2]),
         );
     }
 
     clone(): Behavior {
-        return new TurbulenceField(this.scale.clone(), this.power.clone(), this.fieldShift.clone());
+        return new TurbulenceField(this.scale.clone(), this.octaves, this.velocityMultiplier.clone(), this.timeScale.clone());
     }
 }

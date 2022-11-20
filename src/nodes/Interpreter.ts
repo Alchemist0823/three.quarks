@@ -45,8 +45,10 @@ export class Interpreter {
             for (let j = 0; j < node.inputs.length; j ++) {
                 if (node.inputs[j] instanceof Wire) {
                     inputValues.push((node.inputs[j] as Wire).input.outputValues[(node.inputs[j] as Wire).inputIndex]);
-                } else {
+                } else if (node.inputs[j] !== undefined) {
                     inputValues.push((node.inputs[j] as ConstInput).getValue(this.context_!));
+                } else {
+                    throw new Error(`miss input for node ${node.id}`);
                 }
             }
             node.type.func(this.context_!, inputValues, node.outputValues);
