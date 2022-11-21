@@ -178,6 +178,9 @@ export class ParticleSystem {
     private emissionState: EmissionState;
     private emitEnded: boolean;
     private markForDestroy: boolean;
+    private previousWorldPos?: Vector3;
+    private temp: Vector3 = new Vector3();
+    private travelDistance: number = 0;
 
     private normalMatrix: Matrix3 = new Matrix3();
 
@@ -552,9 +555,24 @@ export class ParticleSystem {
             emissionState.burstIndex++;
         }
 
+
         if (!this.emitEnded) {
             emissionState.waitEmiting += delta * this.emissionOverTime.genValue(emissionState.time / this.duration);
+
+            if (this.previousWorldPos != undefined) {
+                this.emitter.getWorldPosition(this.temp);
+                this.travelDistance += this.previousWorldPos.distanceTo(this.temp);
+                let emitPerMeter = this.emissionOverDistance.genValue(emissionState.time / this.duration)
+                if (this.travelDistance * emitPerMeter > 0) {
+                    let count = Math.floor(this.travelDistance * emitPerMeter);
+                    this.travelDistance -= count / emitPerMeter;
+                    emissionState.waitEmiting += count;
+                }
+            }
         }
+        if (this.previousWorldPos === undefined)
+            this.previousWorldPos = new Vector3();
+        this.emitter.getWorldPosition(this.previousWorldPos);
         emissionState.time += delta;
     }
 
