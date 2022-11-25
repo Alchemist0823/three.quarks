@@ -62,6 +62,7 @@
             MuzzleFlashDemo,
         } from "./muzzleFlashDemo.js";
         import {TrailDemo} from "./trailDemo.js";
+        import {TurbulenceDemo} from "./turbulenceDemo.js";
 
         const WEBGL = {
             isWebGLAvailable: function () {
@@ -125,7 +126,7 @@
         let scene;
         let demo;
 
-        let demos = [MuzzleFlashDemo, TrailDemo];
+        let demos = [MuzzleFlashDemo, TrailDemo, TurbulenceDemo];
         let demoIndex = 0;
 
         function init() {
