@@ -84,7 +84,7 @@ export interface ParticleSystemParameters {
 }
 
 export interface ParticleSystemJSONParameters {
-
+    version: string;
     // parameters
     autoDestroy: boolean;
     looping: boolean;
@@ -621,6 +621,7 @@ export class ParticleSystem {
             meta.geometries[geometry.uuid] = geometry.toJSON();
         }
         return {
+            version: "1.0",
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,
