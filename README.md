@@ -2,7 +2,7 @@
 ![npm](https://img.shields.io/npm/v/three.quarks.svg)
 ![test status](https://travis-ci.org/Alchemist0823/three.quarks.svg?branch=master)
 ![Github Star](https://img.shields.io/github/stars/Alchemist0823/three.quarks.svg?style=social)
-![Discord](https://img.shields.io/discord/1042342883056963664?color=%235865f2&label=Discord)
+[![Discord](https://img.shields.io/discord/1042342883056963664?color=%235865f2&label=Discord)](https://discord.gg/5Tv3kJCrQZ)
 
 **three.quarks** is a high-performance javascript particle system based visual effect library for threejs
  written in modern **TypeScript**.
