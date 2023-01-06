@@ -1,8 +1,7 @@
-import {FunctionValueGenerator, ValueGenerator} from "./ValueGenerator";
+import {FunctionValueGenerator} from "./ValueGenerator";
 import {PiecewiseFunction} from "./PiecewiseFunction";
 import {Bezier} from "./Bezier";
 import {FunctionJSON} from "./FunctionJSON";
-import {ColorToJSON} from "../util/JSONUtil";
 
 export class PiecewiseBezier extends PiecewiseFunction<Bezier> implements FunctionValueGenerator {
 

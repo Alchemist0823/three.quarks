@@ -4,9 +4,9 @@ import {NodeTypes} from "./NodeDefs";
 export class NodeGraph {
     id: string;
     name: string;
+    version: string;
     inputNodes: Node[] = [];
     outputNodes: Node[] = [];
-    nodes: Node[] = [];
     allNodes: Map<string, Node> = new Map<string, Node>();
     wires: Wire[] = [];
 
@@ -14,6 +14,7 @@ export class NodeGraph {
     nodesInOrder: Array<Node> = [];
 
     constructor(name: string) {
+        this.version = "1.0";
         this.id = "" + Math.round(Math.random() * 100000); //TODO use real random
         this.name = name;
     }
@@ -23,7 +24,7 @@ export class NodeGraph {
     }
 
     addNode(node: Node): void {
-        this.nodes.push(node);
+        //this.nodes.push(node);
         this.allNodes.set(node.id, node);
         if (node.type === NodeTypes['input']) {
             this.inputNodes.push(node);
@@ -37,17 +38,17 @@ export class NodeGraph {
     }
 
     deleteNode(node: Node) {
-        let index = this.nodes.indexOf(node);
+        /*let index = this.nodes.indexOf(node);
         if (index != -1) {
             this.nodes[index] = this.nodes[this.nodes.length - 1];
             this.nodes.pop();
-        }
+        }*/
         this.allNodes.delete(node.id);
     }
 
     deleteWire(wire: Wire): void {
         wire.input.outputs[wire.inputIndex] = undefined;
-        wire.input.outputs[wire.inputIndex] = undefined;
+        wire.output.inputs[wire.outputIndex] = undefined;
 
         let index = this.wires.indexOf(wire);
         if (index != -1) {

@@ -12,4 +12,5 @@ export * from "./ValueGenerator";
 export * from "./RandomQuatGenerator";
 export * from "./AxisAngleGenerator";
 export * from "./RotationGenerator";
+export * from "./EulerGenerator";
 export * from "./Generators";
