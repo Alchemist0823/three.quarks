@@ -3,6 +3,7 @@ import {FunctionJSON} from "./FunctionJSON";
 import {ColorToJSON, JSONToColor} from "../util/JSONUtil";
 import { RandomColor } from "./RandomColor";
 import { ColorRange } from "./ColorRange";
+import {Gradient} from "./Gradient";
 
 export interface ColorGenerator {
     type: 'value';
@@ -52,6 +53,8 @@ export function ColorGeneratorFromJSON(json: FunctionJSON) {
             return ColorRange.fromJSON(json);
         case 'RandomColor':
             return RandomColor.fromJSON(json);
+        case 'Gradient':
+            return Gradient.fromJSON(json);
         default:
             return new ConstantColor(new Vector4(1, 1, 1, 1));
     }
