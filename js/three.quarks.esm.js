@@ -1,9 +1,9 @@
 /**
- * three.quarks v0.8.1 build Sun Nov 20 2022
+ * three.quarks v0.8.2 build Thu Jan 05 2023
  * https://github.com/Alchemist0823/three.quarks#readme
- * Copyright 2022 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
+ * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
-import { Object3D, Vector4, Vector3, MathUtils, Quaternion, Line3, Matrix4, Triangle, Mesh, PlaneGeometry, Matrix3, NormalBlending, InstancedBufferAttribute, DynamicDrawUsage, InstancedBufferGeometry, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, Bone, Group, Sprite, Points, LineSegments, LineLoop, Line, LOD, InstancedMesh, SkinnedMesh, LightProbe, HemisphereLight, SpotLight, RectAreaLight, PointLight, DirectionalLight, AmbientLight, OrthographicCamera, PerspectiveCamera, Scene, Color, Fog, FogExp2, ObjectLoader } from './three.module.js';
+import { Object3D, Vector4, Vector3, MathUtils, Euler, Quaternion, Line3, Matrix4, Triangle, Mesh, PlaneGeometry, Matrix3, NormalBlending, InstancedBufferAttribute, DynamicDrawUsage, InstancedBufferGeometry, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, Bone, Group, Sprite, Points, LineSegments, LineLoop, Line, LOD, InstancedMesh, SkinnedMesh, LightProbe, HemisphereLight, SpotLight, RectAreaLight, PointLight, DirectionalLight, AmbientLight, OrthographicCamera, PerspectiveCamera, Scene, Color, Fog, FogExp2, ObjectLoader } from './three.module.js';
 
 function _regeneratorRuntime() {
   _regeneratorRuntime = function () {
@@ -1359,52 +1359,6 @@ var ColorRange = /*#__PURE__*/function () {
   return ColorRange;
 }();
 
-var ConstantColor = /*#__PURE__*/function () {
-  function ConstantColor(color) {
-    _classCallCheck(this, ConstantColor);
-    this.color = color;
-    _defineProperty(this, "type", void 0);
-    this.type = 'value';
-  }
-  _createClass(ConstantColor, [{
-    key: "genColor",
-    value: function genColor(color) {
-      return color.copy(this.color);
-    }
-  }, {
-    key: "toJSON",
-    value: function toJSON() {
-      return {
-        type: "ConstantColor",
-        color: ColorToJSON(this.color)
-      };
-    }
-  }, {
-    key: "clone",
-    value: function clone() {
-      return new ConstantColor(this.color.clone());
-    }
-  }], [{
-    key: "fromJSON",
-    value: function fromJSON(json) {
-      return new ConstantColor(JSONToColor(json.color));
-    }
-  }]);
-  return ConstantColor;
-}();
-function ColorGeneratorFromJSON(json) {
-  switch (json.type) {
-    case 'ConstantColor':
-      return ConstantColor.fromJSON(json);
-    case 'ColorRange':
-      return ColorRange.fromJSON(json);
-    case 'RandomColor':
-      return RandomColor.fromJSON(json);
-    default:
-      return new ConstantColor(new Vector4(1, 1, 1, 1));
-  }
-}
-
 var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   _inherits(Gradient, _PiecewiseFunction);
   var _super = _createSuper(Gradient);
@@ -1464,6 +1418,54 @@ var Gradient = /*#__PURE__*/function (_PiecewiseFunction) {
   }]);
   return Gradient;
 }(PiecewiseFunction);
+
+var ConstantColor = /*#__PURE__*/function () {
+  function ConstantColor(color) {
+    _classCallCheck(this, ConstantColor);
+    this.color = color;
+    _defineProperty(this, "type", void 0);
+    this.type = 'value';
+  }
+  _createClass(ConstantColor, [{
+    key: "genColor",
+    value: function genColor(color) {
+      return color.copy(this.color);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: "ConstantColor",
+        color: ColorToJSON(this.color)
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new ConstantColor(this.color.clone());
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new ConstantColor(JSONToColor(json.color));
+    }
+  }]);
+  return ConstantColor;
+}();
+function ColorGeneratorFromJSON(json) {
+  switch (json.type) {
+    case 'ConstantColor':
+      return ConstantColor.fromJSON(json);
+    case 'ColorRange':
+      return ColorRange.fromJSON(json);
+    case 'RandomColor':
+      return RandomColor.fromJSON(json);
+    case 'Gradient':
+      return Gradient.fromJSON(json);
+    default:
+      return new ConstantColor(new Vector4(1, 1, 1, 1));
+  }
+}
 
 var RandomQuatGenerator = /*#__PURE__*/function () {
   function RandomQuatGenerator() {
@@ -1550,10 +1552,50 @@ var AxisAngleGenerator = /*#__PURE__*/function () {
   return AxisAngleGenerator;
 }();
 
+var EulerGenerator = /*#__PURE__*/function () {
+  function EulerGenerator(angleX, angleY, angleZ) {
+    _classCallCheck(this, EulerGenerator);
+    this.angleX = angleX;
+    this.angleY = angleY;
+    this.angleZ = angleZ;
+    _defineProperty(this, "type", void 0);
+    this.type = "rotation";
+  }
+  _createClass(EulerGenerator, [{
+    key: "genValue",
+    value: function genValue(quat, t) {
+      return quat.setFromEuler(new Euler(this.angleX.genValue(t), this.angleY.genValue(t), this.angleZ.genValue(t)));
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: "Euler",
+        angleX: this.angleX.toJSON(),
+        angleY: this.angleY.toJSON(),
+        angleZ: this.angleZ.toJSON()
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new EulerGenerator(this.angleX, this.angleY, this.angleZ);
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new EulerGenerator(ValueGeneratorFromJSON(json.angleX), ValueGeneratorFromJSON(json.angleY), ValueGeneratorFromJSON(json.angleZ));
+    }
+  }]);
+  return EulerGenerator;
+}();
+
 function RotationGeneratorFromJSON(json) {
   switch (json.type) {
     case 'AxisAngle':
       return AxisAngleGenerator.fromJSON(json);
+    case 'Euler':
+      return EulerGenerator.fromJSON(json);
     case 'RandomQuat':
       return RandomQuatGenerator.fromJSON(json);
     default:
@@ -3771,6 +3813,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         meta.geometries[geometry.uuid] = geometry.toJSON();
       }
       return {
+        version: "1.0",
         autoDestroy: this.autoDestroy,
         looping: this.looping,
         duration: this.duration,
@@ -5041,13 +5084,14 @@ var NodeGraph = /*#__PURE__*/function () {
     _classCallCheck(this, NodeGraph);
     _defineProperty(this, "id", void 0);
     _defineProperty(this, "name", void 0);
+    _defineProperty(this, "version", void 0);
     _defineProperty(this, "inputNodes", []);
     _defineProperty(this, "outputNodes", []);
-    _defineProperty(this, "nodes", []);
     _defineProperty(this, "allNodes", new Map());
     _defineProperty(this, "wires", []);
     _defineProperty(this, "compiled", false);
     _defineProperty(this, "nodesInOrder", []);
+    this.version = "1.0";
     this.id = "" + Math.round(Math.random() * 100000); //TODO use real random
     this.name = name;
   }
@@ -5059,7 +5103,7 @@ var NodeGraph = /*#__PURE__*/function () {
   }, {
     key: "addNode",
     value: function addNode(node) {
-      this.nodes.push(node);
+      //this.nodes.push(node);
       this.allNodes.set(node.id, node);
       if (node.type === NodeTypes['input']) {
         this.inputNodes.push(node);
@@ -5075,18 +5119,18 @@ var NodeGraph = /*#__PURE__*/function () {
   }, {
     key: "deleteNode",
     value: function deleteNode(node) {
-      var index = this.nodes.indexOf(node);
+      /*let index = this.nodes.indexOf(node);
       if (index != -1) {
-        this.nodes[index] = this.nodes[this.nodes.length - 1];
-        this.nodes.pop();
-      }
+          this.nodes[index] = this.nodes[this.nodes.length - 1];
+          this.nodes.pop();
+      }*/
       this.allNodes["delete"](node.id);
     }
   }, {
     key: "deleteWire",
     value: function deleteWire(wire) {
       wire.input.outputs[wire.inputIndex] = undefined;
-      wire.input.outputs[wire.inputIndex] = undefined;
+      wire.output.inputs[wire.outputIndex] = undefined;
       var index = this.wires.indexOf(wire);
       if (index != -1) {
         this.wires[index] = this.wires[this.wires.length - 1];
@@ -5107,4 +5151,4 @@ var NodeGraph = /*#__PURE__*/function () {
   return NodeGraph;
 }();
 
-export { ApplyForce, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType };
+export { ApplyForce, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, EulerGenerator, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType };
