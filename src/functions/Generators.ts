@@ -12,6 +12,7 @@ export function GeneratorFromJSON(json: FunctionJSON): FunctionValueGenerator | 
             return ValueGeneratorFromJSON(json);
         case 'AxisAngle':
         case 'RandomQuat':
+        case 'Euler':
             return RotationGeneratorFromJSON(json);
         default:
             return new ConstantValue(0);
