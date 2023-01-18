@@ -24,7 +24,7 @@
 top of the well-known WebGL library called [three.js](https://threejs.org).
 
 ## Roadmap
-- Most Simulation Compiler code to Rust
+- Port Simulation Compiler code to Rust
 - WebAssembly Particle Simulation on CPU. (WIP)
 - GPU simulation on GPU (WIP)
 - Node based / scriptable particle system (WIP)
