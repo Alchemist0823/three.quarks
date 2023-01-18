@@ -23,11 +23,14 @@
   [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor) for it. It runs on 
 top of the well-known WebGL library called [three.js](https://threejs.org).
 
-## Future Planning
-- Unity / Standalone Cross-platform Native plugin 
+## Roadmap
+- Most Simulation Compiler code to Rust
+- WebAssembly Particle Simulation on CPU. (WIP)
+- GPU simulation on GPU (WIP)
+- Node based / scriptable particle system (WIP)
+- Unity / Standalone Cross-platform Native plugin to run VFX
 
 ## Features
-- Node based / scriptable particle system like popcornFX and houdini (in Dev)
 - Semi-compatible Unity (shuriken) Particle system
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
