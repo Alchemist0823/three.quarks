@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.8.2 build Thu Jan 05 2023
+ * three.quarks v0.8.3 build Thu Jan 19 2023
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -1611,6 +1611,7 @@ function GeneratorFromJSON(json) {
       return ValueGeneratorFromJSON(json);
     case 'AxisAngle':
     case 'RandomQuat':
+    case 'Euler':
       return RotationGeneratorFromJSON(json);
     default:
       return new ConstantValue(0);
@@ -3278,6 +3279,65 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
   return MeshSurfaceEmitter;
 }();
 
+var GridEmitter = /*#__PURE__*/function () {
+  // [0, Math.PI * 2]
+  // [0, 1]
+  // [0, Math.PI / 2]
+
+  function GridEmitter() {
+    var _parameters$width, _parameters$height, _parameters$column, _parameters$row;
+    var parameters = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, GridEmitter);
+    _defineProperty(this, "type", "grid");
+    _defineProperty(this, "width", void 0);
+    _defineProperty(this, "height", void 0);
+    _defineProperty(this, "column", void 0);
+    _defineProperty(this, "row", void 0);
+    this.width = (_parameters$width = parameters.width) !== null && _parameters$width !== void 0 ? _parameters$width : 1;
+    this.height = (_parameters$height = parameters.height) !== null && _parameters$height !== void 0 ? _parameters$height : 1;
+    this.column = (_parameters$column = parameters.column) !== null && _parameters$column !== void 0 ? _parameters$column : 10;
+    this.row = (_parameters$row = parameters.row) !== null && _parameters$row !== void 0 ? _parameters$row : 10;
+  }
+  _createClass(GridEmitter, [{
+    key: "initialize",
+    value: function initialize(p) {
+      var r = Math.floor(Math.random() * this.row);
+      var c = Math.floor(Math.random() * this.column);
+      p.position.x = c * this.width / this.column - this.width / 2;
+      p.position.y = r * this.height / this.row - this.height / 2;
+      p.position.z = 0;
+      p.velocity.set(0, 0, 1);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: "grid",
+        width: this.width,
+        height: this.height,
+        column: this.column,
+        row: this.row
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new GridEmitter({
+        width: this.width,
+        height: this.height,
+        column: this.column,
+        row: this.row
+      });
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new GridEmitter(json);
+    }
+  }]);
+  return GridEmitter;
+}();
+
 var EmitterShapes = {
   "cone": {
     type: "cone",
@@ -3302,6 +3362,12 @@ var EmitterShapes = {
     params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]],
     constructor: SphereEmitter,
     loadJSON: SphereEmitter.fromJSON
+  },
+  "grid": {
+    type: "grid",
+    params: [["width", "number"], ["height", "number"], ["rows", "number"], ["column", "number"]],
+    constructor: GridEmitter,
+    loadJSON: GridEmitter.fromJSON
   },
   "mesh_surface": {
     type: "mesh_surface",
@@ -4852,6 +4918,79 @@ var QuarksLoader = /*#__PURE__*/function (_ObjectLoader) {
   return QuarksLoader;
 }(ObjectLoader);
 
+var Plugins = [];
+function loadPlugin(plugin) {
+  var existing = Plugins.find(function (item) {
+    return item.id === plugin.id;
+  });
+  if (!existing) {
+    plugin.initialize();
+    var _iterator = _createForOfIteratorHelper(plugin.emitterShapes),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var emitterShape = _step.value;
+        if (!EmitterShapes[emitterShape.type]) {
+          EmitterShapes[emitterShape.type] = emitterShape;
+        }
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    var _iterator2 = _createForOfIteratorHelper(plugin.behaviors),
+      _step2;
+    try {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var behavior = _step2.value;
+        if (!BehaviorTypes[behavior.type]) {
+          BehaviorTypes[behavior.type] = behavior;
+        }
+      }
+    } catch (err) {
+      _iterator2.e(err);
+    } finally {
+      _iterator2.f();
+    }
+  }
+}
+function unloadPlugin(pluginId) {
+  var plugin = Plugins.find(function (item) {
+    return item.id === pluginId;
+  });
+  if (plugin) {
+    var _iterator3 = _createForOfIteratorHelper(plugin.emitterShapes),
+      _step3;
+    try {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        var emitterShape = _step3.value;
+        if (EmitterShapes[emitterShape.type]) {
+          delete EmitterShapes[emitterShape.type];
+        }
+      }
+    } catch (err) {
+      _iterator3.e(err);
+    } finally {
+      _iterator3.f();
+    }
+    var _iterator4 = _createForOfIteratorHelper(plugin.behaviors),
+      _step4;
+    try {
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+        var behavior = _step4.value;
+        if (BehaviorTypes[behavior.type]) {
+          delete BehaviorTypes[behavior.type];
+        }
+      }
+    } catch (err) {
+      _iterator4.e(err);
+    } finally {
+      _iterator4.f();
+    }
+  }
+}
+
 var NodeValueType;
 (function (NodeValueType) {
   NodeValueType[NodeValueType["Number"] = 0] = "Number";
@@ -5151,4 +5290,4 @@ var NodeGraph = /*#__PURE__*/function () {
   return NodeGraph;
 }();
 
-export { ApplyForce, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, EulerGenerator, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType };
+export { ApplyForce, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, EulerGenerator, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, GridEmitter, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, Plugins, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType, loadPlugin, unloadPlugin };
