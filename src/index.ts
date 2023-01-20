@@ -7,6 +7,7 @@ export * from "./TrailBatch";
 export * from "./BatchedParticleRenderer";
 export * from "./QuarksLoader";
 export * from "./TypeUtil";
+export * from "./Plugin";
 
 export * from "./shape/";
 export * from "./functions/";

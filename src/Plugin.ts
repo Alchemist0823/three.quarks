@@ -1,11 +1,10 @@
 import {Behavior, BehaviorPlugin, BehaviorTypes} from "./behaviors";
 import {Constructable} from "./TypeUtil";
 import {EmitterShape, EmitterShapePlugin, EmitterShapes} from "./shape";
-import THREE from "three";
 
 export interface Plugin {
     id: string;
-    initialize: (module: any)=>void;
+    initialize: ()=>void;
     emitterShapes: Array<EmitterShapePlugin>;
     behaviors: Array<BehaviorPlugin>;
 }
@@ -15,7 +14,7 @@ export const Plugins: Array<Plugin> = [];
 export function loadPlugin(plugin: Plugin) {
     const existing = Plugins.find(item => item.id === plugin.id);
     if (!existing) {
-        plugin.initialize(THREE);
+        plugin.initialize();
         for (let emitterShape of plugin.emitterShapes) {
             if (!EmitterShapes[emitterShape.type]) {
                 EmitterShapes[emitterShape.type] = emitterShape;
