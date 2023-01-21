@@ -75,7 +75,7 @@ export class TrailDemo {
             emissionOverTime: new ConstantValue(0),
             emissionBursts: [{
                 time: 0,
-                count: 10,
+                count: 100,
                 cycle: 1,
                 interval: 0.01,
                 probability: 1,

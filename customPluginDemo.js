@@ -88,7 +88,7 @@ export class CustomPluginDemo extends Demo {
             startSpeed: new IntervalValue(0),
             startSize: new ConstantValue(0.1),
             startColor: new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1)),
-            worldSpace: true,
+            worldSpace: false,
 
             emissionOverTime: new ConstantValue(0),
             emissionBursts: [{
@@ -112,6 +112,7 @@ export class CustomPluginDemo extends Demo {
         ps.addBehavior(new SinWave( new ConstantValue(2),  new ConstantValue(5), 5));
         //ps.emitter.rotation.x = - Math.PI / 2;
         ps.emitter.position.y = 0;
+        ps.emitter.scale.set(0.8, 0.8, 0.8);
         this.scene.add(ps.emitter);
     }
 

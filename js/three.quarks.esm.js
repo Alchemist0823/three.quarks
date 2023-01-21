@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.8.3 build Thu Jan 19 2023
+ * three.quarks v0.8.3 build Sat Jan 21 2023
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -4264,7 +4264,15 @@ var SpriteBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
           }
           _this2.offsetBuffer.setXYZ(index, vec.x, vec.y, vec.z);
           _this2.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
-          _this2.sizeBuffer.setX(index, particle.size);
+          if (system.worldSpace) {
+            _this2.sizeBuffer.setX(index, particle.size);
+          } else {
+            if (particle.parentMatrix) {
+              _this2.sizeBuffer.setX(index, particle.size * particle.parentMatrix.elements[0]);
+            } else {
+              _this2.sizeBuffer.setX(index, particle.size * system.emitter.matrixWorld.elements[0]);
+            }
+          }
           _this2.uvTileBuffer.setX(index, particle.uvTile);
           if (_this2.settings.renderMode === RenderMode.StretchedBillBoard) {
             var speedFactor = system.speedFactor;
