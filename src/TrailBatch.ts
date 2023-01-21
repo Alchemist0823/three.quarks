@@ -216,8 +216,18 @@ export class TrailBatch extends ParticleSystemBatch {
                     this.sideBuffer.setX(index, -1);
                     this.sideBuffer.setX(index + 1, 1);
 
-                    this.widthBuffer.setX(index, current.size);
-                    this.widthBuffer.setX(index + 1, current.size);
+                    if (system.worldSpace) {
+                        this.widthBuffer.setX(index, current.size);
+                        this.widthBuffer.setX(index + 1, current.size);
+                    } else {
+                        if (particle.parentMatrix) {
+                            this.widthBuffer.setX(index, current.size * particle.parentMatrix.elements[0]);
+                            this.widthBuffer.setX(index + 1, current.size * particle.parentMatrix.elements[0]);
+                        } else {
+                            this.widthBuffer.setX(index, current.size * system.emitter.matrixWorld.elements[0]);
+                            this.widthBuffer.setX(index + 1, current.size * system.emitter.matrixWorld.elements[0]);
+                        }
+                    }
 
                     this.uvBuffer.setXY(index, (i / particle.previous.length + col) * tileWidth, (vTileCount - row - 1) * tileHeight);
                     this.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
