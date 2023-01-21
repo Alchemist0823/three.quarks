@@ -211,7 +211,16 @@ export class SpriteBatch extends ParticleSystemBatch {
                 }
                 this.offsetBuffer.setXYZ(index, vec.x, vec.y, vec.z);
                 this.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
-                this.sizeBuffer.setX(index, particle.size);
+
+                if (system.worldSpace) {
+                    this.sizeBuffer.setX(index, particle.size);
+                } else {
+                    if (particle.parentMatrix) {
+                        this.sizeBuffer.setX(index, particle.size * particle.parentMatrix.elements[0]);
+                    } else {
+                        this.sizeBuffer.setX(index, particle.size * system.emitter.matrixWorld.elements[0]);
+                    }
+                }
                 this.uvTileBuffer.setX(index, particle.uvTile);
 
                 if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
