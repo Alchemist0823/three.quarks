@@ -25,7 +25,7 @@ import {
 
 
 export class MuzzleFlashDemo {
-
+    name = "Muzzle Flash Performance";
     batchRenderer;
     groups = [];
     totalTime = 0;

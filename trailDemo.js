@@ -23,6 +23,7 @@ import {
 
 export class TrailDemo {
 
+    name = "Trail Renderer";
     batchRenderer;
     groups = [];
     totalTime = 0;

@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.8.3 build Sat Jan 21 2023
+ * three.quarks v0.8.4 build Sat Jan 21 2023
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -1652,6 +1652,9 @@ var ColorOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new ColorOverLife(this.color.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -1704,6 +1707,9 @@ var RotationOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new RotationOverLife(this.angularVelocity.clone(), this.dynamic);
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -1743,6 +1749,9 @@ var SizeOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new SizeOverLife(this.size.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -1782,6 +1791,9 @@ var SpeedOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new SpeedOverLife(this.speed.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -1821,6 +1833,9 @@ var FrameOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new FrameOverLife(this.frame.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -1874,6 +1889,9 @@ var OrbitOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new OrbitOverLife(this.orbitSpeed.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -1919,6 +1937,9 @@ var ApplyForce = /*#__PURE__*/function () {
     value: function clone() {
       return new ApplyForce(this.direction.clone(), this.magnitude.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -1963,6 +1984,9 @@ var GravityForce = /*#__PURE__*/function () {
     value: function clone() {
       return new GravityForce(this.center.clone(), this.magnitude);
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -2008,6 +2032,9 @@ var WidthOverLength = /*#__PURE__*/function () {
     value: function clone() {
       return new WidthOverLength(this.width.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -2063,6 +2090,9 @@ var ChangeEmitDirection = /*#__PURE__*/function () {
     value: function clone() {
       return new ChangeEmitDirection(this.angle);
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -2148,6 +2178,9 @@ var EmitSubParticleSystem = /*#__PURE__*/function () {
     value: function clone() {
       return new EmitSubParticleSystem(this.particleSystem, this.useVelocityAsBasis, this.subParticleSystem);
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json, particleSystem) {
@@ -2671,6 +2704,9 @@ var TurbulenceField = /*#__PURE__*/function () {
     value: function clone() {
       return new TurbulenceField(this.scale.clone(), this.octaves, this.velocityMultiplier.clone(), this.timeScale.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -2728,6 +2764,9 @@ var Rotation3DOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new Rotation3DOverLife(this.angularVelocity.clone(), this.dynamic);
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -2773,6 +2812,9 @@ var ForceOverLife = /*#__PURE__*/function () {
     value: function clone() {
       return new ForceOverLife(this.x.clone(), this.y.clone(), this.z.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -2822,6 +2864,9 @@ var Noise = /*#__PURE__*/function () {
     value: function clone() {
       return new Noise(this.frequency.clone(), this.power.clone());
     }
+  }, {
+    key: "reset",
+    value: function reset() {}
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
@@ -3306,7 +3351,7 @@ var GridEmitter = /*#__PURE__*/function () {
       p.position.x = c * this.width / this.column - this.width / 2;
       p.position.y = r * this.height / this.row - this.height / 2;
       p.position.z = 0;
-      p.velocity.set(0, 0, 1);
+      p.velocity.set(0, 0, p.startSpeed);
     }
   }, {
     key: "toJSON",
@@ -3795,6 +3840,9 @@ var ParticleSystem = /*#__PURE__*/function () {
         if (this.looping) {
           emissionState.time -= this.duration;
           emissionState.burstIndex = 0;
+          this.behaviors.forEach(function (behavior) {
+            behavior.reset();
+          });
         } else {
           if (!this.emitEnded && !this.onlyUsedByOther) {
             this.endEmit();
@@ -4530,8 +4578,18 @@ var TrailBatch = /*#__PURE__*/function (_ParticleSystemBatch) {
             }
             _this2.sideBuffer.setX(index, -1);
             _this2.sideBuffer.setX(index + 1, 1);
-            _this2.widthBuffer.setX(index, current.size);
-            _this2.widthBuffer.setX(index + 1, current.size);
+            if (system.worldSpace) {
+              _this2.widthBuffer.setX(index, current.size);
+              _this2.widthBuffer.setX(index + 1, current.size);
+            } else {
+              if (particle.parentMatrix) {
+                _this2.widthBuffer.setX(index, current.size * particle.parentMatrix.elements[0]);
+                _this2.widthBuffer.setX(index + 1, current.size * particle.parentMatrix.elements[0]);
+              } else {
+                _this2.widthBuffer.setX(index, current.size * system.emitter.matrixWorld.elements[0]);
+                _this2.widthBuffer.setX(index + 1, current.size * system.emitter.matrixWorld.elements[0]);
+              }
+            }
             _this2.uvBuffer.setXY(index, (i / particle.previous.length + col) * tileWidth, (vTileCount - row - 1) * tileHeight);
             _this2.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
             _this2.colorBuffer.setXYZW(index, current.color.x, current.color.y, current.color.z, current.color.w);
@@ -4663,6 +4721,195 @@ var BatchedParticleRenderer = /*#__PURE__*/function (_Object3D) {
   }]);
   return BatchedParticleRenderer;
 }(Object3D);
+
+var TextureSequencer = /*#__PURE__*/function () {
+  function TextureSequencer() {
+    var scaleX = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var scaleY = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    _classCallCheck(this, TextureSequencer);
+    this.scaleX = scaleX;
+    this.scaleY = scaleY;
+    _defineProperty(this, "locations", []);
+  }
+  _createClass(TextureSequencer, [{
+    key: "transform",
+    value: function transform(position, index) {
+      position.x = this.locations[index % this.locations.length].x * this.scaleX;
+      position.y = this.locations[index % this.locations.length].y * this.scaleY;
+      position.z = 0;
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      var textureSequencer = new TextureSequencer(this.scaleX, this.scaleY);
+      textureSequencer.locations = this.locations.map(function (loc) {
+        return loc.clone();
+      });
+      return textureSequencer;
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        scaleX: this.scaleX,
+        scaleY: this.scaleY,
+        locations: this.locations.map(function (loc) {
+          return {
+            x: loc.x,
+            y: loc.y
+          };
+        })
+      };
+    }
+  }, {
+    key: "fromImage",
+    value: function fromImage(img, threshold) {
+      // Create an empty canvas element
+      var canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // Copy the image contents to the canvas
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      var data = ctx.getImageData(0, 0, canvas.width, canvas.height, {
+        colorSpace: "srgb"
+      });
+      canvas.remove();
+      this.locations.length = 0;
+      for (var i = 0; i < data.height; i++) {
+        for (var j = 0; j < data.width; j++) {
+          if (data.data[(i * data.width + j) * 4 + 3] > threshold) {
+            this.locations.push(new Vector2(j, data.height - i));
+          }
+        }
+      }
+      //return data;
+      // Get the data-URL formatted image
+      // Firefox supports PNG and JPEG. You could check img.src to
+      // guess the original format, but be aware the using "image/jpg"
+      // will re-encode the image.
+      //var dataURL = canvas.toDataURL("image/png");
+
+      //return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      var textureSequencer = new TextureSequencer(json.scaleX, json.scaleY);
+      textureSequencer.locations = json.locations.map(function (loc) {
+        return new Vector2(loc.x, loc.y);
+      });
+      return textureSequencer;
+    }
+  }]);
+  return TextureSequencer;
+}();
+
+function SequencerFromJSON(json) {
+  switch (json.type) {
+    case 'TextureSequencer':
+      return TextureSequencer.fromJSON(json);
+    default:
+      return new TextureSequencer();
+  }
+}
+
+var ApplySequences = /*#__PURE__*/function () {
+  function ApplySequences(delayBetweenParticles) {
+    _classCallCheck(this, ApplySequences);
+    _defineProperty(this, "type", 'ApplySequences');
+    _defineProperty(this, "sequencers", []);
+    _defineProperty(this, "time", 0);
+    _defineProperty(this, "index", 0);
+    _defineProperty(this, "pCount", 0);
+    _defineProperty(this, "delay", void 0);
+    _defineProperty(this, "tempV", new Vector3());
+    this.delay = delayBetweenParticles;
+  }
+  _createClass(ApplySequences, [{
+    key: "initialize",
+    value: function initialize(particle) {
+      particle.id = this.pCount;
+      particle.dst = new Vector3();
+      particle.begin = new Vector3();
+      particle.inMotion = false;
+      this.pCount++;
+    }
+  }, {
+    key: "reset",
+    value: function reset() {
+      this.time = 0;
+      this.pCount = 0;
+    }
+  }, {
+    key: "update",
+    value: function update(particle, delta) {
+      var sequencer = this.sequencers[this.index];
+      var delay = particle.id * this.delay;
+      if (this.time >= sequencer[0].a + delay && this.time <= sequencer[0].b + delay) {
+        if (!particle.inMotion) {
+          particle.inMotion = true;
+          particle.begin.copy(particle.position);
+          sequencer[1].transform(particle.dst, particle.id);
+        }
+        particle.position.lerpVectors(particle.begin, particle.dst, ApplySequences.BEZIER.genValue((this.time - sequencer[0].a - delay) / (sequencer[0].b - sequencer[0].a)));
+      } else if (this.time > sequencer[0].b + delay) {
+        particle.inMotion = false;
+      }
+    }
+  }, {
+    key: "frameUpdate",
+    value: function frameUpdate(delta) {
+      while (this.index + 1 < this.sequencers.length && this.time >= this.sequencers[this.index + 1][0].a) {
+        this.index++;
+      }
+      this.time += delta;
+    }
+  }, {
+    key: "appendSequencer",
+    value: function appendSequencer(range, sequencer) {
+      this.sequencers.push([range, sequencer]);
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        delay: this.delay,
+        sequencers: this.sequencers.map(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2),
+            range = _ref2[0],
+            sequencer = _ref2[1];
+          return {
+            range: range.toJSON(),
+            sequencer: sequencer.toJSON()
+          };
+        })
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      var applySequences = new ApplySequences(this.delay);
+      applySequences.sequencers = this.sequencers.map(function (seq) {
+        return [seq[0].clone(), seq[1].clone()];
+      });
+      return applySequences;
+    }
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      var seq = new ApplySequences(json.delay);
+      json.sequencers.forEach(function (sequencerJson) {
+        seq.sequencers.push([ValueGeneratorFromJSON(sequencerJson.range), SequencerFromJSON(sequencerJson.sequencer)]);
+      });
+      return seq;
+    }
+  }]);
+  return ApplySequences;
+}();
+_defineProperty(ApplySequences, "BEZIER", new Bezier(0, 0, 1, 1));
 
 var QuarksLoader = /*#__PURE__*/function (_ObjectLoader) {
   _inherits(QuarksLoader, _ObjectLoader);
@@ -5298,4 +5545,4 @@ var NodeGraph = /*#__PURE__*/function () {
   return NodeGraph;
 }();
 
-export { ApplyForce, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, EulerGenerator, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, GridEmitter, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, Plugins, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType, loadPlugin, unloadPlugin };
+export { ApplyForce, ApplySequences, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, EulerGenerator, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, GridEmitter, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, Plugins, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SequencerFromJSON, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TextureSequencer, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType, loadPlugin, unloadPlugin };

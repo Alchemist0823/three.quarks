@@ -26,6 +26,17 @@
             padding: 0;
         }
 
+        #demo-name {
+            font-weight: bold;
+            font-family: sans-serif;
+            color: white;
+            z-index: 10;
+            position: relative;
+            text-align: center;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
         #renderer-canvas {
             position: absolute;
             width: 100%;
@@ -65,6 +76,7 @@
         import {TurbulenceDemo} from "./turbulenceDemo.js";
         import {TornadoDemo} from "./tornadoDemo.js";
         import {CustomPluginDemo} from "./customPluginDemo.js";
+        import {SequencerDemo} from "./sequencerDemo.js";
 
         const WEBGL = {
             isWebGLAvailable: function () {
@@ -128,7 +140,7 @@
         let scene;
         let demo;
 
-        let demos = [MuzzleFlashDemo, TornadoDemo, TrailDemo, TurbulenceDemo, CustomPluginDemo];
+        let demos = [MuzzleFlashDemo, TornadoDemo, TrailDemo, SequencerDemo, TurbulenceDemo, CustomPluginDemo];
         let demoIndex = 0;
 
         function init() {
@@ -172,6 +184,7 @@
 
             demoIndex = 0;
             demo = new demos[demoIndex]();
+            document.querySelector("#demo-name").innerText = demo.name;
             scene = demo.initScene();
 
             document.getElementById("nextBtn").addEventListener("click", nextDemo, false);
@@ -209,6 +222,7 @@
                 demoIndex = 0;
             }
             demo = new demos[demoIndex]();
+            document.querySelector("#demo-name").innerText = demo.name;
             scene = demo.initScene();
         }
 
@@ -218,6 +232,7 @@
                 demoIndex = demos.length - 1;
             }
             demo = new demos[demoIndex]();
+            document.querySelector("#demo-name").innerText = demo.name;
             scene = demo.initScene();
         }
 
@@ -228,6 +243,7 @@
 </head>
 <body id="home">
 <canvas id="renderer-canvas"></canvas>
+<div id="demo-name">Unname</div>
 <div id="nextBtn" class="next btn">&#62;</div>
 <div id="previousBtn" class="previous btn">&#60;</div>
 </body>
