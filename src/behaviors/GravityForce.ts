@@ -38,4 +38,6 @@ export class GravityForce implements Behavior {
     clone(): Behavior {
         return new GravityForce(this.center.clone(), this.magnitude);
     }
+    reset(): void {
+    }
 }

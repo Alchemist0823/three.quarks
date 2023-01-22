@@ -49,4 +49,6 @@ export class Noise implements Behavior {
     clone(): Behavior {
         return new Noise(this.frequency.clone(), this.power.clone());
     }
+    reset(): void {
+    }
 }

@@ -31,7 +31,7 @@ export class GridEmitter implements EmitterShape {
         p.position.x = c * this.width / this.column - this.width / 2;
         p.position.y = r * this.height / this.row - this.height / 2;
         p.position.z = 0;
-        p.velocity.set(0, 0, 1);
+        p.velocity.set(0, 0, p.startSpeed);
     }
 
     toJSON(): ShapeJSON {

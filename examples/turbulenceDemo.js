@@ -23,6 +23,7 @@ import {Demo} from "./demo.js";
 
 export class TurbulenceDemo extends Demo {
 
+    name = "Turbulence";
     initDemo() {
         const ps = new ParticleSystem(this.batchRenderer, {
             duration: 1,

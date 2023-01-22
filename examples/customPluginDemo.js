@@ -69,6 +69,7 @@ export class SinWave {
 
 export class CustomPluginDemo extends Demo {
 
+    name = "Customized Plugin";
     initDemo() {
 
         let plugin = {
@@ -85,7 +86,7 @@ export class CustomPluginDemo extends Demo {
             duration: 10000,
             looping: false,
             startLife: new ConstantValue(10000),
-            startSpeed: new IntervalValue(0),
+            startSpeed: new ConstantValue(0),
             startSize: new ConstantValue(0.1),
             startColor: new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1)),
             worldSpace: false,

@@ -39,5 +39,7 @@ export class WidthOverLength implements Behavior {
     clone(): Behavior {
         return new WidthOverLength(this.width.clone());
     }
+    reset(): void {
+    }
 
 }

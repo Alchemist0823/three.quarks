@@ -46,4 +46,6 @@ export class RotationOverLife implements Behavior {
     clone(): Behavior {
         return new RotationOverLife(this.angularVelocity.clone(), this.dynamic);
     }
+    reset(): void {
+    }
 }

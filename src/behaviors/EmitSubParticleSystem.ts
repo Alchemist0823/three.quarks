@@ -92,4 +92,6 @@ export class EmitSubParticleSystem implements Behavior {
     clone(): Behavior {
         return new EmitSubParticleSystem(this.particleSystem, this.useVelocityAsBasis, this.subParticleSystem);
     }
+    reset(): void {
+    }
 }

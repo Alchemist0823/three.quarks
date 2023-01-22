@@ -69,4 +69,6 @@ export class TurbulenceField implements Behavior {
     clone(): Behavior {
         return new TurbulenceField(this.scale.clone(), this.octaves, this.velocityMultiplier.clone(), this.timeScale.clone());
     }
+    reset(): void {
+    }
 }

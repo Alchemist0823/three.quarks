@@ -32,4 +32,6 @@ export class FrameOverLife implements Behavior {
     clone(): Behavior {
         return new FrameOverLife(this.frame.clone());
     }
+    reset(): void {
+    }
 }

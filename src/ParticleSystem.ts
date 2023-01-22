@@ -532,6 +532,7 @@ export class ParticleSystem {
             if (this.looping) {
                 emissionState.time -= this.duration;
                 emissionState.burstIndex = 0;
+                this.behaviors.forEach(behavior => {behavior.reset();});
             } else {
                 if (!this.emitEnded && !this.onlyUsedByOther) {
                     this.endEmit();

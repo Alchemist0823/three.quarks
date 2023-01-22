@@ -48,4 +48,6 @@ export class OrbitOverLife implements Behavior {
     clone(): Behavior {
         return new OrbitOverLife(this.orbitSpeed.clone());
     }
+    reset(): void {
+    }
 }

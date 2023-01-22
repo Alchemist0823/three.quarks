@@ -43,4 +43,6 @@ export class NodeGraphBehavior implements Behavior {
     clone(): Behavior {
         return new NodeGraphBehavior(this.nodeGraph);
     }
+    reset(): void {
+    }
 }

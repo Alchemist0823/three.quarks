@@ -45,4 +45,6 @@ export class ForceOverLife implements Behavior {
     clone(): Behavior {
         return new ForceOverLife(this.x.clone(), this.y.clone(), this.z.clone());
     }
+    reset(): void {
+    }
 }

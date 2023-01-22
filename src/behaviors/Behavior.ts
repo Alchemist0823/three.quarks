@@ -30,6 +30,8 @@ export interface Behavior {
     frameUpdate(delta: number): void;
     toJSON(): any;
     clone(): Behavior;
+
+    reset(): void;
 }
 
 export interface BehaviorPlugin {

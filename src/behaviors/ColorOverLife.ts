@@ -38,4 +38,6 @@ export class ColorOverLife implements Behavior {
     clone(): Behavior {
         return new ColorOverLife(this.color.clone());
     }
+    reset(): void {
+    }
 }

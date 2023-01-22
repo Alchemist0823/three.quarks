@@ -20,6 +20,7 @@ import {Demo} from "./demo.js";
 
 export class TornadoDemo extends Demo {
 
+    name = "Tornado";
     initScene() {
         super.initScene();
 

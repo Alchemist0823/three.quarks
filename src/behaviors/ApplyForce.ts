@@ -38,4 +38,7 @@ export class ApplyForce implements Behavior {
     clone(): Behavior {
         return new ApplyForce(this.direction.clone(), this.magnitude.clone());
     }
+
+    reset(): void {
+    }
 }

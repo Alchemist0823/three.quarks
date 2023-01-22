@@ -12,4 +12,5 @@ export * from "./Plugin";
 export * from "./shape/";
 export * from "./functions/";
 export * from "./behaviors/";
+export * from "./sequencers/";
 export * from "./nodes/";

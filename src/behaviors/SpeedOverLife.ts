@@ -32,4 +32,6 @@ export class SpeedOverLife implements Behavior {
     clone(): Behavior {
         return new SpeedOverLife(this.speed.clone());
     }
+    reset(): void {
+    }
 }

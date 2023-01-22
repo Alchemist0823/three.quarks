@@ -27,6 +27,8 @@ export class Demo {
     refreshIndex = 0;
     texture;
 
+    name = "Unname";
+
     render(delta) {
 
         this.groups.forEach(group =>

@@ -52,4 +52,6 @@ export class Rotation3DOverLife implements Behavior {
     clone(): Behavior {
         return new Rotation3DOverLife(this.angularVelocity.clone(), this.dynamic);
     }
+    reset(): void {
+    }
 }

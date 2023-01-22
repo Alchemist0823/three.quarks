@@ -31,4 +31,6 @@ export class SizeOverLife implements Behavior {
     clone(): Behavior {
         return new SizeOverLife(this.size.clone());
     }
+    reset(): void {
+    }
 }
