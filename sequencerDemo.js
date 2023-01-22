@@ -28,12 +28,12 @@ export class SequencerDemo extends Demo {
     initDemo() {
 
         const ps = new ParticleSystem(this.batchRenderer, {
-            duration: 4,
+            duration: 5,
             looping: true,
-            startLife: new ConstantValue(10),
+            startLife: new ConstantValue(4.8),
             startSpeed: new ConstantValue(0),
-            startSize: new ConstantValue(0.1),
-            startColor: new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1)),
+            startSize: new IntervalValue(0.05, 0.2),
+            startColor: new ColorRange(new Vector4(0, 1, 1, 1), new Vector4(0, 1, 1, 1)),
             worldSpace: false,
 
             emissionOverTime: new ConstantValue(0),
