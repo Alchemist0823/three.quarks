@@ -14,4 +14,5 @@ export * from "./EmitSubParticleSystem";
 export * from "./TurbulenceField";
 export * from "./Noise";
 export * from "./ApplySequences";
+export * from "./ApplyCollision";
 export * from "./Behavior";
