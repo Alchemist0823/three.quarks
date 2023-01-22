@@ -36,7 +36,7 @@ export class TrailDemo extends Demo{
             startLife: new IntervalValue(3.8, 4.4),
             startSpeed: new IntervalValue(10, 15),
             startSize: new ConstantValue(0.2),
-            startColor: new ColorRange(new Vector4(1, 0.585716, 0.1691176, 1), new Vector4(1, 1, 1, 1)),
+            startColor: new ColorRange(new Vector4(1, 0.585716, 0.1691176, 1), new Vector4(1, 0.7, 0.3, 1)),
             worldSpace: true,
 
             maxParticle: 10,

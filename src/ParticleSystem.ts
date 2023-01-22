@@ -372,7 +372,7 @@ export class ParticleSystem {
                 }
             }
             const particle = this.particles[this.particleNum - 1];
-            this.startColor.genColor(particle.startColor, emissionState.time);
+            this.startColor.genColor(particle.startColor, Math.random());
             particle.color.copy(particle.startColor);
             particle.startSpeed = this.startSpeed.genValue(emissionState.time / this.duration);
             particle.life = this.startLife.genValue(emissionState.time / this.duration);
