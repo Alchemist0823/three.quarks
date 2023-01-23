@@ -4,7 +4,7 @@
 ![Github Star](https://img.shields.io/github/stars/Alchemist0823/three.quarks.svg?style=social)
 [![Discord](https://img.shields.io/discord/1042342883056963664?color=%235865f2&label=Discord)](https://discord.gg/5Tv3kJCrQZ)
 
-**three.quarks** is a high-performance javascript particle system based visual effect library for threejs
+[**three.quarks**](https://3quarks.org/) is a high-performance javascript particle system based visual effect library for threejs
  written in modern **TypeScript**.
  
  Join our discord for discussion.
@@ -13,6 +13,7 @@
 
 ## Links
 
+- [Official Website](https://3quarks.org/)
 - [Demo](https://alchemist0823.github.io/three.quarks/)
 - [Change Log](./CHANGELOG.md)
 - [Sandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz?file=/index.html)
