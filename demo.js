@@ -25,6 +25,7 @@ export class Demo {
     groups = [];
     totalTime = 0;
     refreshIndex = 0;
+    refreshTime = 2;
     texture;
 
     name = "Unname";
@@ -39,7 +40,7 @@ export class Demo {
             })
         );
 
-        while (Math.floor(this.totalTime * 5) > this.refreshIndex) {
+        while (Math.floor(this.totalTime * this.groups.length) > this.refreshIndex) {
             if (this.refreshIndex < this.groups.length) {
                 this.groups[this.refreshIndex].traverse(object => {
                     if (object instanceof ParticleEmitter) {
@@ -50,7 +51,7 @@ export class Demo {
             this.refreshIndex++;
         }
         this.totalTime += delta;
-        if (this.totalTime > 2) {
+        if (this.totalTime > this.refreshTime) {
             this.totalTime = 0;
             this.refreshIndex = 0;
         }

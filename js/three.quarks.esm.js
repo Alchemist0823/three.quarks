@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.8.5 build Sat Jan 21 2023
+ * three.quarks v0.8.5 build Sun Jan 22 2023
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -3691,7 +3691,7 @@ var ParticleSystem = /*#__PURE__*/function () {
           }
         }
         var particle = this.particles[this.particleNum - 1];
-        this.startColor.genColor(particle.startColor, emissionState.time);
+        this.startColor.genColor(particle.startColor, Math.random());
         particle.color.copy(particle.startColor);
         particle.startSpeed = this.startSpeed.genValue(emissionState.time / this.duration);
         particle.life = this.startLife.genValue(emissionState.time / this.duration);
@@ -3767,6 +3767,9 @@ var ParticleSystem = /*#__PURE__*/function () {
       this.emissionState.burstWaveIndex = 0;
       this.emissionState.time = 0;
       this.emissionState.waitEmiting = 0;
+      this.behaviors.forEach(function (behavior) {
+        behavior.reset();
+      });
       this.emitEnded = false;
       this.markForDestroy = false;
     }
@@ -4726,22 +4729,24 @@ var TextureSequencer = /*#__PURE__*/function () {
   function TextureSequencer() {
     var scaleX = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
     var scaleY = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    var position = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new Vector3();
     _classCallCheck(this, TextureSequencer);
     this.scaleX = scaleX;
     this.scaleY = scaleY;
+    this.position = position;
     _defineProperty(this, "locations", []);
   }
   _createClass(TextureSequencer, [{
     key: "transform",
     value: function transform(position, index) {
-      position.x = this.locations[index % this.locations.length].x * this.scaleX;
-      position.y = this.locations[index % this.locations.length].y * this.scaleY;
-      position.z = 0;
+      position.x = this.locations[index % this.locations.length].x * this.scaleX + this.position.x;
+      position.y = this.locations[index % this.locations.length].y * this.scaleY + this.position.y;
+      position.z = this.position.z;
     }
   }, {
     key: "clone",
     value: function clone() {
-      var textureSequencer = new TextureSequencer(this.scaleX, this.scaleY);
+      var textureSequencer = new TextureSequencer(this.scaleX, this.scaleY, this.position.clone());
       textureSequencer.locations = this.locations.map(function (loc) {
         return loc.clone();
       });
@@ -4753,6 +4758,7 @@ var TextureSequencer = /*#__PURE__*/function () {
       return {
         scaleX: this.scaleX,
         scaleY: this.scaleY,
+        position: this.position,
         locations: this.locations.map(function (loc) {
           return {
             x: loc.x,
@@ -4796,7 +4802,7 @@ var TextureSequencer = /*#__PURE__*/function () {
   }], [{
     key: "fromJSON",
     value: function fromJSON(json) {
-      var textureSequencer = new TextureSequencer(json.scaleX, json.scaleY);
+      var textureSequencer = new TextureSequencer(json.scaleX, json.scaleY, new Vector3(json.position[0], json.position[1], json.position[2]));
       textureSequencer.locations = json.locations.map(function (loc) {
         return new Vector2(loc.x, loc.y);
       });
@@ -4840,6 +4846,7 @@ var ApplySequences = /*#__PURE__*/function () {
     key: "reset",
     value: function reset() {
       this.time = 0;
+      this.index = 0;
       this.pCount = 0;
     }
   }, {
@@ -4910,6 +4917,59 @@ var ApplySequences = /*#__PURE__*/function () {
   return ApplySequences;
 }();
 _defineProperty(ApplySequences, "BEZIER", new Bezier(0, 0, 1, 1));
+
+var physicsResolver;
+function setPhysicsResolver(resolver) {
+  physicsResolver = resolver;
+}
+function getPhysicsResolver() {
+  return physicsResolver;
+}
+var ApplyCollision = /*#__PURE__*/function () {
+  function ApplyCollision(resolver, bounce) {
+    _classCallCheck(this, ApplyCollision);
+    this.resolver = resolver;
+    this.bounce = bounce;
+    _defineProperty(this, "type", 'ApplyCollision');
+    _defineProperty(this, "tempV", new Vector3());
+  }
+  _createClass(ApplyCollision, [{
+    key: "initialize",
+    value: function initialize(particle) {}
+  }, {
+    key: "update",
+    value: function update(particle, delta) {
+      if (this.resolver.resolve(particle.position, this.tempV)) {
+        particle.velocity.reflect(this.tempV).multiplyScalar(this.bounce);
+      }
+    }
+  }, {
+    key: "frameUpdate",
+    value: function frameUpdate(delta) {}
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        type: this.type,
+        bounce: this.bounce
+      };
+    }
+  }, {
+    key: "clone",
+    value: function clone() {
+      return new ApplyCollision(this.resolver, this.bounce);
+    }
+  }, {
+    key: "reset",
+    value: function reset() {}
+  }], [{
+    key: "fromJSON",
+    value: function fromJSON(json) {
+      return new ApplyCollision(getPhysicsResolver(), json.bounce);
+    }
+  }]);
+  return ApplyCollision;
+}();
 
 var QuarksLoader = /*#__PURE__*/function (_ObjectLoader) {
   _inherits(QuarksLoader, _ObjectLoader);
@@ -5545,4 +5605,4 @@ var NodeGraph = /*#__PURE__*/function () {
   return NodeGraph;
 }();
 
-export { ApplyForce, ApplySequences, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, EulerGenerator, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, GridEmitter, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, Plugins, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SequencerFromJSON, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TextureSequencer, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType, loadPlugin, unloadPlugin };
+export { ApplyCollision, ApplyForce, ApplySequences, AxisAngleGenerator, BatchedParticleRenderer, BehaviorFromJSON, BehaviorTypes, Bezier, ChangeEmitDirection, ColorGeneratorFromJSON, ColorOverLife, ColorRange, ConeEmitter, ConstantColor, ConstantValue, DonutEmitter, EmitSubParticleSystem, EmitterFromJSON, EmitterShapes, EulerGenerator, ForceOverLife, FrameOverLife, GeneratorFromJSON, Gradient, GraphNodeType, GravityForce, GridEmitter, Interpreter, IntervalValue, MeshSurfaceEmitter, Node, NodeGraph, NodeType, NodeTypes, NodeValueType, Noise, OrbitOverLife, ParticleEmitter, ParticleSystem, ParticleSystemBatch, PiecewiseBezier, PiecewiseFunction, Plugins, PointEmitter, QuarksLoader, RandomColor, RandomQuatGenerator, RecordState, RenderMode, Rotation3DOverLife, RotationGeneratorFromJSON, RotationOverLife, SequencerFromJSON, SizeOverLife, SpeedOverLife, SphereEmitter, SpriteBatch, SpriteParticle, TextureSequencer, TrailBatch, TrailParticle, TurbulenceField, ValueGeneratorFromJSON, WidthOverLength, Wire, genDefaultForNodeValueType, getPhysicsResolver, loadPlugin, setPhysicsResolver, unloadPlugin };
