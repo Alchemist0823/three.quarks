@@ -452,6 +452,7 @@ export class ParticleSystem {
         this.emissionState.burstWaveIndex = 0;
         this.emissionState.time = 0;
         this.emissionState.waitEmiting = 0;
+        this.behaviors.forEach(behavior => {behavior.reset();});
         this.emitEnded = false;
         this.markForDestroy = false;
     }

@@ -31,6 +31,7 @@ export class ApplySequences implements Behavior {
 
     reset() {
         this.time = 0;
+        this.index = 0;
         this.pCount = 0;
     }
 

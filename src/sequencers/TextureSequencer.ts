@@ -5,22 +5,22 @@ import {Vector2, Vector3} from "three";
 export class TextureSequencer implements Sequencer {
     locations: Vector2[] = [];
 
-    constructor(public scaleX: number = 0, public scaleY: number = 0) {
+    constructor(public scaleX: number = 0, public scaleY: number = 0, public position: Vector3 = new Vector3()) {
     }
     transform(position: Vector3, index: number) {
-        position.x = this.locations[index % this.locations.length].x * this.scaleX;
-        position.y = this.locations[index % this.locations.length].y * this.scaleY;
-        position.z = 0;
+        position.x = this.locations[index % this.locations.length].x * this.scaleX + this.position.x;
+        position.y = this.locations[index % this.locations.length].y * this.scaleY + this.position.y;
+        position.z = this.position.z;
     }
 
     static fromJSON(json: any): Sequencer {
-        let textureSequencer = new TextureSequencer(json.scaleX, json.scaleY);
+        let textureSequencer = new TextureSequencer(json.scaleX, json.scaleY, new Vector3(json.position[0], json.position[1], json.position[2]));
         textureSequencer.locations = json.locations.map((loc: any) => new Vector2(loc.x, loc.y));
         return textureSequencer;
     }
 
     clone(): Sequencer {
-        let textureSequencer = new TextureSequencer(this.scaleX, this.scaleY);
+        let textureSequencer = new TextureSequencer(this.scaleX, this.scaleY, this.position.clone());
         textureSequencer.locations = this.locations.map(loc => loc.clone());
         return textureSequencer;
     }
@@ -29,6 +29,7 @@ export class TextureSequencer implements Sequencer {
         return {
             scaleX: this.scaleX,
             scaleY: this.scaleY,
+            position: this.position,
             locations: this.locations.map(loc => ({
                 x: loc.x,
                 y: loc.y,
