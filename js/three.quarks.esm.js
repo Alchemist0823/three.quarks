@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.8.5 build Sun Jan 22 2023
+ * three.quarks v0.8.6 build Sun Jan 29 2023
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -3211,27 +3211,27 @@ var SphereEmitter = /*#__PURE__*/function () {
 }();
 
 var MeshSurfaceEmitter = /*#__PURE__*/function () {
-  function MeshSurfaceEmitter(mesh) {
+  function MeshSurfaceEmitter(geometry) {
     _classCallCheck(this, MeshSurfaceEmitter);
     _defineProperty(this, "type", "mesh_surface");
     _defineProperty(this, "_triangleIndexToArea", []);
-    _defineProperty(this, "_mesh", void 0);
+    _defineProperty(this, "_geometry", void 0);
     _defineProperty(this, "_tempA", new Vector3());
     _defineProperty(this, "_tempB", new Vector3());
     _defineProperty(this, "_tempC", new Vector3());
-    if (!mesh) {
+    if (!geometry) {
       return;
     }
-    this.mesh = mesh;
+    this.geometry = geometry;
   }
   _createClass(MeshSurfaceEmitter, [{
-    key: "mesh",
+    key: "geometry",
     get: function get() {
-      return this._mesh;
+      return this._geometry;
     },
-    set: function set(mesh) {
-      this._mesh = mesh;
-      if (typeof mesh === "string") return;
+    set: function set(geometry) {
+      this._geometry = geometry;
+      if (typeof geometry === "string") return;
       // optimization
       /*if (mesh.userData.triangleIndexToArea) {
           this._triangleIndexToArea = mesh.userData.triangleIndexToArea;
@@ -3240,7 +3240,6 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
       var tri = new Triangle();
       this._triangleIndexToArea.length = 0;
       var area = 0;
-      var geometry = mesh.geometry;
       if (!geometry.getIndex()) {
         return;
       }
@@ -3252,12 +3251,12 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
         area += tri.getArea();
         this._triangleIndexToArea.push(area);
       }
-      mesh.userData.triangleIndexToArea = this._triangleIndexToArea;
+      geometry.userData.triangleIndexToArea = this._triangleIndexToArea;
     }
   }, {
     key: "initialize",
     value: function initialize(p) {
-      if (!this._mesh) {
+      if (!this._geometry) {
         p.position.set(0, 0, 0);
         p.velocity.set(0, 0, 1).multiplyScalar(p.startSpeed);
         return;
@@ -3283,7 +3282,7 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
         u1 = 1 - u1;
         u2 = 1 - u2;
       }
-      var geometry = this._mesh.geometry;
+      var geometry = this._geometry;
       var index1 = geometry.getIndex().array[left * 3];
       var index2 = geometry.getIndex().array[left * 3 + 1];
       var index3 = geometry.getIndex().array[left * 3 + 2];
@@ -3307,18 +3306,18 @@ var MeshSurfaceEmitter = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         type: 'mesh_surface',
-        mesh: this._mesh ? this._mesh.uuid : ""
+        mesh: this._geometry ? this._geometry.uuid : ""
       };
     }
   }, {
     key: "clone",
     value: function clone() {
-      return new MeshSurfaceEmitter(this._mesh);
+      return new MeshSurfaceEmitter(this._geometry);
     }
   }], [{
     key: "fromJSON",
-    value: function fromJSON(json) {
-      return new MeshSurfaceEmitter(json.mesh);
+    value: function fromJSON(json, meta) {
+      return new MeshSurfaceEmitter(meta.geometries[json.geometry]);
     }
   }]);
   return MeshSurfaceEmitter;
@@ -3416,13 +3415,13 @@ var EmitterShapes = {
   },
   "mesh_surface": {
     type: "mesh_surface",
-    params: [["mesh", "mesh"]],
+    params: [["geometry", "geometry"]],
     constructor: MeshSurfaceEmitter,
     loadJSON: MeshSurfaceEmitter.fromJSON
   }
 };
-function EmitterFromJSON(json) {
-  return EmitterShapes[json.type].loadJSON(json);
+function EmitterFromJSON(json, meta) {
+  return EmitterShapes[json.type].loadJSON(json, meta);
 }
 
 var RenderMode;
@@ -4042,7 +4041,7 @@ var ParticleSystem = /*#__PURE__*/function () {
   }], [{
     key: "fromJSON",
     value: function fromJSON(json, meta, dependencies, renderer) {
-      var shape = EmitterFromJSON(json.shape);
+      var shape = EmitterFromJSON(json.shape, meta);
       var rendererEmitterSettings;
       if (json.renderMode === RenderMode.Trail) {
         rendererEmitterSettings = {
@@ -5000,10 +4999,10 @@ var QuarksLoader = /*#__PURE__*/function (_ObjectLoader) {
       object.traverse(function (child) {
         if (child.type === "ParticleEmitter") {
           var system = child.system;
-          var shape = system.emitterShape;
-          if (shape instanceof MeshSurfaceEmitter) {
-            shape.mesh = objectsMap[shape.mesh];
-          }
+          system.emitterShape;
+          /*if (shape instanceof MeshSurfaceEmitter) {
+              shape.geometry = objectsMap[shape.geometry as any] as Mesh;
+          }*/
           for (var i = 0; i < system.behaviors.length; i++) {
             if (system.behaviors[i] instanceof EmitSubParticleSystem) {
               system.behaviors[i].subParticleSystem = objectsMap[system.behaviors[i].subParticleSystem];
