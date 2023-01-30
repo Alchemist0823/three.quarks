@@ -145,7 +145,7 @@
           "duration": 1,
           "shape": {
             "type": "mesh_surface",
-            "mesh": "033201fa-746f-4b36-a01e-2bdcac900dbc"
+            "geometry": "c4e56c65-fdbd-4c94-b975-030db5a07ac3"
           },
           "startLife": {
             "type": "ConstantValue",

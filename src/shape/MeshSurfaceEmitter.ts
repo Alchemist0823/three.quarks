@@ -1,19 +1,20 @@
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, Mesh, Triangle} from "three";
+import {Vector3, Mesh, Triangle, BufferGeometry} from "three";
+import {JsonMetaData} from "../ParticleSystem";
 
 export class MeshSurfaceEmitter implements EmitterShape {
     type: string = "mesh_surface";
 
     private _triangleIndexToArea: number[] = [];
-    private _mesh?: Mesh;
+    private _geometry?: BufferGeometry;
 
-    get mesh() {
-        return this._mesh!;
+    get geometry() {
+        return this._geometry!;
     }
-    set mesh(mesh: Mesh) {
-        this._mesh = mesh;
-        if (typeof mesh === "string")
+    set geometry(geometry: BufferGeometry) {
+        this._geometry = geometry;
+        if (typeof geometry === "string")
             return;
         // optimization
         /*if (mesh.userData.triangleIndexToArea) {
@@ -23,7 +24,6 @@ export class MeshSurfaceEmitter implements EmitterShape {
         const tri = new Triangle();
         this._triangleIndexToArea.length = 0;
         let area = 0;
-        const geometry = mesh.geometry;
         if (!geometry.getIndex()) {
             return;
         }
@@ -40,14 +40,14 @@ export class MeshSurfaceEmitter implements EmitterShape {
             area += tri.getArea();
             this._triangleIndexToArea.push(area);
         }
-        mesh.userData.triangleIndexToArea = this._triangleIndexToArea;
+        geometry.userData.triangleIndexToArea = this._triangleIndexToArea;
     }
 
-    constructor(mesh?: Mesh) {
-        if (!mesh) {
+    constructor(geometry?: BufferGeometry) {
+        if (!geometry) {
             return;
         }
-        this.mesh = mesh;
+        this.geometry = geometry;
     }
 
     private _tempA: Vector3 = new Vector3();
@@ -55,7 +55,7 @@ export class MeshSurfaceEmitter implements EmitterShape {
     private _tempC: Vector3 = new Vector3();
 
     initialize(p: Particle) {
-        if (!this._mesh) {
+        if (!this._geometry) {
             p.position.set(0, 0, 0);
             p.velocity.set(0, 0, 1).multiplyScalar(p.startSpeed);
             return;
@@ -80,7 +80,7 @@ export class MeshSurfaceEmitter implements EmitterShape {
             u1 = 1 - u1;
             u2 = 1 - u2;
         }
-        const geometry = this._mesh.geometry;
+        const geometry = this._geometry;
         const index1 = geometry.getIndex()!.array[left * 3];
         const index2 = geometry.getIndex()!.array[left * 3 + 1];
         const index3 = geometry.getIndex()!.array[left * 3 + 2];
@@ -103,15 +103,15 @@ export class MeshSurfaceEmitter implements EmitterShape {
     toJSON(): ShapeJSON {
         return {
             type: 'mesh_surface',
-            mesh: this._mesh ? this._mesh.uuid : "",
+            mesh: this._geometry ? this._geometry.uuid : "",
         };
     }
 
-    static fromJSON(json: any): MeshSurfaceEmitter {
-        return new MeshSurfaceEmitter(json.mesh);
+    static fromJSON(json: any, meta: JsonMetaData): MeshSurfaceEmitter {
+        return new MeshSurfaceEmitter(meta.geometries[json.geometry]);
     }
 
     clone(): EmitterShape {
-        return new MeshSurfaceEmitter(this._mesh);
+        return new MeshSurfaceEmitter(this._geometry);
     }
 }

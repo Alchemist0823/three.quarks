@@ -55,9 +55,9 @@ export class QuarksLoader extends ObjectLoader {
             if ( child.type === "ParticleEmitter") {
                 let system = (child as ParticleEmitter<Event>).system;
                 let shape = system.emitterShape;
-                if (shape instanceof MeshSurfaceEmitter) {
-                    shape.mesh = objectsMap[shape.mesh as any] as Mesh;
-                }
+                /*if (shape instanceof MeshSurfaceEmitter) {
+                    shape.geometry = objectsMap[shape.geometry as any] as Mesh;
+                }*/
                 for (let i = 0; i < system.behaviors.length; i ++) {
                     if (system.behaviors[i] instanceof EmitSubParticleSystem) {
                         (system.behaviors[i] as EmitSubParticleSystem).subParticleSystem = objectsMap[(system.behaviors[i] as EmitSubParticleSystem).subParticleSystem as any] as ParticleEmitter<Event>;
@@ -73,7 +73,7 @@ export class QuarksLoader extends ObjectLoader {
         return object as T;
     }
 
-// @ts-ignore
+    // @ts-ignore
     parseObject<T extends Object3D<Event>>(data: any, geometries: any, materials: Material[], textures: Texture[], animations: AnimationClip[]): T {
 
         let object;

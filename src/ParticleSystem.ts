@@ -121,6 +121,11 @@ export interface ParticleSystemJSONParameters {
     worldSpace: boolean;
 }
 
+export interface JsonMetaData {
+    textures: { [uuid: string]: Texture };
+    geometries: { [uuid: string]: BufferGeometry } ;
+}
+
 export interface BillBoardSettings {
 
 }
@@ -657,7 +662,7 @@ export class ParticleSystem {
     }
 
     static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }, renderer: BatchedParticleRenderer): ParticleSystem {
-        let shape = EmitterFromJSON(json.shape);
+        let shape = EmitterFromJSON(json.shape, meta);
         let rendererEmitterSettings;
         if (json.renderMode === RenderMode.Trail) {
             rendererEmitterSettings = {

@@ -27,6 +27,6 @@ describe("QuarksLoader", () => {
         const loader = new QuarksLoader(renderer);
         const object = loader.parse(JSON2, (object)=> {});
         expect(object.children.length).toBe(2);
-        expect(((object.children[1] as ParticleEmitter<Event>).system.emitterShape as MeshSurfaceEmitter).mesh.name).toBe('Cube');
+        expect(Object.keys(((object.children[1] as ParticleEmitter<Event>).system.emitterShape as MeshSurfaceEmitter).geometry.attributes).length).toBe(3);
     });
 });

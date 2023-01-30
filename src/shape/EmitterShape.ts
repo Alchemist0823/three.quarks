@@ -8,6 +8,7 @@ import {ParticleSystemEmitter} from "./ParticleSystemEmitter";
 import {Constructable, ParameterPair} from "../TypeUtil";
 import {ApplyForce, BehaviorPlugin, BehaviorTypes} from "../behaviors";
 import { GridEmitter } from "./GridEmitter";
+import {JsonMetaData} from "../ParticleSystem";
 
 export interface ShapeJSON {
     type: string;
@@ -36,7 +37,7 @@ export interface EmitterShapePlugin {
     type: string;
     constructor: Constructable<EmitterShape>;
     params: ParameterPair[];
-    loadJSON: (json: any) => EmitterShape;
+    loadJSON: (json: any, meta: JsonMetaData) => EmitterShape;
 }
 
 export const EmitterShapes: {[key: string]: EmitterShapePlugin} = {
@@ -45,9 +46,9 @@ export const EmitterShapes: {[key: string]: EmitterShapePlugin} = {
     "point": {type: "point", params: [], constructor: PointEmitter, loadJSON: PointEmitter.fromJSON},
     "sphere": {type: "sphere", params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]], constructor: SphereEmitter, loadJSON: SphereEmitter.fromJSON},
     "grid": {type: "grid", params: [["width", "number"], ["height", "number"], ["rows", "number"], ["column", "number"]], constructor: GridEmitter, loadJSON: GridEmitter.fromJSON},
-    "mesh_surface": {type: "mesh_surface", params: [["mesh", "mesh"]], constructor: MeshSurfaceEmitter, loadJSON: MeshSurfaceEmitter.fromJSON},
+    "mesh_surface": {type: "mesh_surface", params: [["geometry", "geometry"]], constructor: MeshSurfaceEmitter, loadJSON: MeshSurfaceEmitter.fromJSON},
 };
 
-export function EmitterFromJSON(json: ShapeJSON): EmitterShape {
-    return EmitterShapes[json.type].loadJSON(json);
+export function EmitterFromJSON(json: ShapeJSON, meta: JsonMetaData): EmitterShape {
+    return EmitterShapes[json.type].loadJSON(json, meta);
 }
