@@ -26,7 +26,7 @@ import {
     InstancedBufferAttribute, LOD, Line, LineSegments, LineLoop, Points, SpriteMaterial, Bone
 } from "three";
 import {ParticleSystem} from "./ParticleSystem";
-import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
+import {BatchedRenderer} from "./BatchedRenderer";
 import {Behavior, EmitSubParticleSystem} from "./behaviors";
 import {ParticleEmitter} from "./ParticleEmitter";
 import {MeshSurfaceEmitter} from "./shape";
@@ -37,9 +37,9 @@ export class QuarksLoader extends ObjectLoader {
     path?: string;
     resourcePath: string;
 */
-    renderer: BatchedParticleRenderer;
+    renderer: BatchedRenderer;
 
-    constructor(renderer: BatchedParticleRenderer, manager?: LoadingManager) {
+    constructor(renderer: BatchedRenderer, manager?: LoadingManager) {
         super(manager);
         this.renderer = renderer;
         //this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;

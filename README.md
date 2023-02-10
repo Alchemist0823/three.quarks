@@ -72,7 +72,7 @@ Add particle system to the scene
 
 ```javascript
 const clock = new THREE.Clock();
-const batchSystem = new BatchedParticleRenderer();
+const batchSystem = new BatchedRenderer();
 const texture = new TextureLoader().load("atlas.png");
 // Particle system configuration
 const muzzle = {
@@ -130,12 +130,14 @@ batchSystem.update(clock.getDelta());
 #### Import VFX JSON
 
 ```javascript
-const batchSystem = new BatchedParticleRenderer();
+const batchSystem = new BatchedRenderer();
 const loader = new QuarksLoader(batchSystem);
 loader.setCrossOrigin("");
-loader.load(jsonURL, (object3D: Object3D)=>{
+loader.load(jsonURL, (object3D: Object3D) => {
     scene.add(object3D);
-}, ()=>{}, ()=>{});
+}, () => {
+}, () => {
+});
 scene.add(batchSystem);
 ```
 

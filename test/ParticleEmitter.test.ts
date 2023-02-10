@@ -16,13 +16,13 @@ import {
 } from "../src";
 import {AdditiveBlending, NormalBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
-import {BatchedParticleRenderer} from "../src/BatchedParticleRenderer";
+import {BatchedRenderer} from "../src/BatchedRenderer";
 
 
 describe("ParticleEmitter", () => {
 
 
-    const renderer = new BatchedParticleRenderer();
+    const renderer = new BatchedRenderer();
     const texture = new Texture();
     const glowBeam = new ParticleSystem(renderer,{
         duration: 1,
@@ -98,7 +98,7 @@ describe("ParticleEmitter", () => {
 
     test(".fromJSON", () => {
         //const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
-        const renderer = new BatchedParticleRenderer();
+        const renderer = new BatchedRenderer();
         const json = glowBeam.emitter.toJSON();
         const loader = new QuarksLoader(renderer);
         const emitter = loader.parse(json, () => {

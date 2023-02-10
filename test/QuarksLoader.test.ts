@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { BatchedParticleRenderer } from "../src/BatchedParticleRenderer";
+import { BatchedRenderer } from "../src/BatchedRenderer";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {MeshSurfaceEmitter, ParticleEmitter} from "../src";
 import {EmitSubParticleSystem} from "../src/behaviors/EmitSubParticleSystem";
@@ -11,7 +11,7 @@ import JSON2 from "./meshSurface.json";
 describe("QuarksLoader", () => {
     test("#loadSubSystem", () => {
 
-        const renderer = new BatchedParticleRenderer();
+        const renderer = new BatchedRenderer();
         const loader = new QuarksLoader(renderer);
         const object = loader.parse(JSON1, (object)=> {});
         expect(object.children.length).toBe(2);
@@ -23,7 +23,7 @@ describe("QuarksLoader", () => {
 
     test("#loadMeshSurfaceEmitter", () => {
 
-        const renderer = new BatchedParticleRenderer();
+        const renderer = new BatchedRenderer();
         const loader = new QuarksLoader(renderer);
         const object = loader.parse(JSON2, (object)=> {});
         expect(object.children.length).toBe(2);

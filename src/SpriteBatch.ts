@@ -1,35 +1,24 @@
-import {Behavior} from './behaviors/Behavior';
-import {Particle, SpriteParticle, TrailParticle} from './Particle';
-import {ParticleSystem} from './ParticleSystem';
+import {SpriteParticle} from './Particle';
 import {
     AdditiveBlending,
-    Blending,
-    BufferAttribute,
     InstancedBufferAttribute,
     InstancedBufferGeometry,
-    InterleavedBuffer,
-    InterleavedBufferAttribute,
     Matrix3,
-    Mesh,
     ShaderMaterial,
-    Texture,
     Uniform,
     Vector2,
-    Vector4,
-    Object3D,
-    TrianglesDrawMode,
-    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, NormalBlending, Vector3, Quaternion, Sprite
+    DynamicDrawUsage, DoubleSide, FrontSide, Vector3, Quaternion
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
 import particle_vert from './shaders/particle_vert.glsl';
 import local_particle_vert from './shaders/local_particle_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
-import {ParticleSystemBatch, ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
+import {VFXBatch, VFXBatchSettings, RenderMode} from "./VFXBatch";
 
 const UP = new Vector3(0, 0, 1);
 
-export class SpriteBatch extends ParticleSystemBatch {
+export class SpriteBatch extends VFXBatch {
     geometry!: InstancedBufferGeometry;
 
     private offsetBuffer!: InstancedBufferAttribute;
@@ -39,7 +28,7 @@ export class SpriteBatch extends ParticleSystemBatch {
     private uvTileBuffer!: InstancedBufferAttribute;
     private velocityBuffer? : InstancedBufferAttribute;
 
-    constructor(settings: ParticleSystemBatchSettings) {
+    constructor(settings: VFXBatchSettings) {
         super(settings);
 
         this.maxParticles = 1000;

@@ -1,33 +1,24 @@
 import {Particle, RecordState, TrailParticle} from './Particle';
 import {
     AdditiveBlending,
-    Blending,
-    InstancedBufferAttribute,
-    InstancedBufferGeometry,
     Matrix3,
-    Mesh,
     ShaderMaterial,
-    Texture,
     Uniform,
     Vector2,
     DynamicDrawUsage,
     DoubleSide,
-    FrontSide,
     BufferGeometry,
-    NormalBlending,
     Vector3,
-    Quaternion,
-    Sprite,
     BufferAttribute,
 } from 'three';
 
 import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
-import {ParticleSystemBatch, ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
+import {VFXBatch, VFXBatchSettings, RenderMode} from "./VFXBatch";
 
 const UP = new Vector3(0, 0, 1);
 
-export class TrailBatch extends ParticleSystemBatch {
+export class TrailBatch extends VFXBatch {
     geometry!: BufferGeometry;
 
     private positionBuffer!: BufferAttribute;
@@ -39,7 +30,7 @@ export class TrailBatch extends ParticleSystemBatch {
     private colorBuffer!: BufferAttribute;
     private indexBuffer!: BufferAttribute;
 
-    constructor(settings: ParticleSystemBatchSettings) {
+    constructor(settings: VFXBatchSettings) {
         super(settings);
 
         this.maxParticles = 10000;

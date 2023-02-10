@@ -28,7 +28,7 @@ import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.gls
 import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
 
-export interface ParticleSystemBatchSettings {
+export interface VFXBatchSettings {
     // 5 component x,y,z,u,v
     instancingGeometry: BufferGeometry;
     texture: Texture;
@@ -47,15 +47,15 @@ export enum RenderMode {
     Trail = 3,
 }
 
-export abstract class ParticleSystemBatch extends Mesh {
-    type: string = "ParticleSystemBatch";
+export abstract class VFXBatch extends Mesh {
+    type: string = "VFXBatch";
     systems: Set<ParticleSystem>;
     material!: ShaderMaterial;
 
-    settings: ParticleSystemBatchSettings;
+    settings: VFXBatchSettings;
     protected maxParticles;
 
-    protected constructor(settings: ParticleSystemBatchSettings) {
+    protected constructor(settings: VFXBatchSettings) {
         super();
         this.maxParticles = 1000;
         this.systems = new Set<ParticleSystem>();

@@ -30,8 +30,8 @@ import {
     FunctionColorGenerator,
     FunctionJSON, GeneratorFromJSON, RandomQuatGenerator
 } from "./functions";
-import {ParticleSystemBatchSettings, RenderMode} from "./ParticleSystemBatch";
-import {BatchedParticleRenderer} from "./BatchedParticleRenderer";
+import {VFXBatchSettings, RenderMode} from "./VFXBatch";
+import {BatchedRenderer} from "./BatchedRenderer";
 import {EmitSubParticleSystem} from "./behaviors/EmitSubParticleSystem";
 import {RotationGenerator} from "./functions/RotationGenerator";
 
@@ -195,8 +195,8 @@ export class ParticleSystem {
     emitterShape: EmitterShape;
     emitter: ParticleEmitter<BaseEvent>;
 
-    rendererSettings: ParticleSystemBatchSettings;
-    renderer: BatchedParticleRenderer;
+    rendererSettings: VFXBatchSettings;
+    renderer: BatchedRenderer;
     neededToUpdateRender: boolean;
 
     set time(time:number) {
@@ -304,7 +304,7 @@ export class ParticleSystem {
         this.neededToUpdateRender = true;
     }
 
-    constructor(renderer: BatchedParticleRenderer, parameters: ParticleSystemParameters) {
+    constructor(renderer: BatchedRenderer, parameters: ParticleSystemParameters) {
         this.renderer = renderer;
         this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
         this.duration = parameters.duration ?? 1;
@@ -661,7 +661,7 @@ export class ParticleSystem {
         };
     }
 
-    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }, renderer: BatchedParticleRenderer): ParticleSystem {
+    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }, renderer: BatchedRenderer): ParticleSystem {
         let shape = EmitterFromJSON(json.shape, meta);
         let rendererEmitterSettings;
         if (json.renderMode === RenderMode.Trail) {
