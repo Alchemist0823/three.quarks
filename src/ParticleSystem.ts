@@ -13,7 +13,7 @@ import {
     BufferGeometry,
     Matrix3,
     Matrix4,
-    NormalBlending,
+    NormalBlending, Object3D,
     PlaneGeometry,
     Quaternion,
     Texture,
@@ -469,11 +469,18 @@ export class ParticleSystem {
             this.renderer.addSystem(this);
             this.firstTimeUpdate = false;
         }*/
-        if (delta > 0.1)
-            delta = 0.1;
 
         if (this.paused)
             return;
+
+        let currentParent: Object3D = this.emitter;
+        while (currentParent.parent) {
+            currentParent = currentParent.parent;
+        }
+        if (currentParent.type !== "Scene") {
+            this.dispose();
+            return;
+        }
 
         if (this.emitEnded && this.particleNum === 0) {
             if (this.markForDestroy && this.emitter.parent)
