@@ -34,6 +34,7 @@ import {VFXBatchSettings, RenderMode} from "./VFXBatch";
 import {BatchedRenderer} from "./BatchedRenderer";
 import {EmitSubParticleSystem} from "./behaviors/EmitSubParticleSystem";
 import {RotationGenerator} from "./functions/RotationGenerator";
+import {sampler} from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements";
 
 
 export interface BurstParameters {
@@ -46,6 +47,9 @@ export interface BurstParameters {
 
 const UP = new Vector3(0, 0, 1);
 const tempQ = new Quaternion();
+const tempV = new Vector3();
+const tempV2 = new Vector3();
+const tempV3 = new Vector3();
 
 export interface ParticleSystemParameters {
     // parameters
@@ -366,6 +370,10 @@ export class ParticleSystem {
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
         tempQ.setFromRotationMatrix(matrix);
+        const translation = tempV;
+        const quaternion = tempQ;
+        const scale = tempV2;
+        matrix.decompose(translation, quaternion, scale);
         for (let i = 0; i < count; i++) {
 
             this.particleNum++;
@@ -420,8 +428,8 @@ export class ParticleSystem {
             }
             if (this.worldSpace) {
                 particle.position.applyMatrix4(matrix);
-                particle.size = particle.size * matrix.elements[0];
-                particle.velocity.applyMatrix3(this.normalMatrix);
+                particle.size = particle.size * (scale.x + scale.y + scale.z) / 3;
+                particle.velocity.multiply(scale).applyMatrix3(this.normalMatrix);
                 if (particle.rotation && particle.rotation instanceof Quaternion) {
                     particle.rotation.multiplyQuaternions(tempQ, particle.rotation);
                 }

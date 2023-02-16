@@ -9,7 +9,7 @@ import {
     DoubleSide,
     BufferGeometry,
     Vector3,
-    BufferAttribute,
+    BufferAttribute, Quaternion,
 } from 'three';
 
 import trail_frag from './shaders/trail_frag.glsl';
@@ -120,6 +120,9 @@ export class TrailBatch extends VFXBatch {
         return system.emitter as any;
     }*/
     vector_: Vector3 = new Vector3();
+    vector2_: Vector3 = new Vector3();
+    vector3_: Vector3 = new Vector3();
+    quaternion_: Quaternion = new Quaternion();
 
     update() {
         let index = 0;
@@ -136,6 +139,12 @@ export class TrailBatch extends VFXBatch {
         }
 
         this.systems.forEach(system => {
+
+            let rotation = this.quaternion_;
+            let translation = this.vector2_;
+            let scale = this.vector3_;
+            system.emitter.matrixWorld.decompose(translation, rotation, scale);
+
             const particles = system.particles;
             let particleNum = system.particleNum;
 
@@ -212,11 +221,11 @@ export class TrailBatch extends VFXBatch {
                         this.widthBuffer.setX(index + 1, current.size);
                     } else {
                         if (particle.parentMatrix) {
-                            this.widthBuffer.setX(index, current.size * particle.parentMatrix.elements[0]);
-                            this.widthBuffer.setX(index + 1, current.size * particle.parentMatrix.elements[0]);
+                            this.widthBuffer.setX(index, current.size);
+                            this.widthBuffer.setX(index + 1, current.size);
                         } else {
-                            this.widthBuffer.setX(index, current.size * system.emitter.matrixWorld.elements[0]);
-                            this.widthBuffer.setX(index + 1, current.size * system.emitter.matrixWorld.elements[0]);
+                            this.widthBuffer.setX(index, current.size * (scale.x + scale.y + scale.z) / 3);
+                            this.widthBuffer.setX(index + 1, current.size * (scale.x + scale.y + scale.z) / 3);
                         }
                     }
 

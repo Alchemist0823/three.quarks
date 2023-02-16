@@ -141,6 +141,8 @@ export class SpriteBatch extends VFXBatch {
         return system.emitter as any;
     }*/
     vector_: Vector3 = new Vector3();
+    vector2_: Vector3 = new Vector3();
+    vector3_: Vector3 = new Vector3();
     quaternion_: Quaternion = new Quaternion();
     quaternion2_: Quaternion = new Quaternion();
     quaternion3_: Quaternion = new Quaternion();
@@ -161,7 +163,10 @@ export class SpriteBatch extends VFXBatch {
         this.systems.forEach(system => {
             const particles = system.particles;
             let particleNum = system.particleNum;
-            this.quaternion2_.setFromRotationMatrix(system.emitter.matrixWorld);
+            let rotation = this.quaternion2_;
+            let translation = this.vector2_;
+            let scale = this.vector3_;
+            system.emitter.matrixWorld.decompose(translation, rotation, scale);
             this.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
 
             for (let j = 0; j < particleNum; j++, index ++) {
@@ -177,7 +182,7 @@ export class SpriteBatch extends VFXBatch {
                         if (particle.parentMatrix) {
                             parentQ = this.quaternion3_.setFromRotationMatrix(particle.parentMatrix);
                         } else {
-                            parentQ = this.quaternion2_;
+                            parentQ = rotation;
                         }
                         q = this.quaternion_;
                         q.copy(particle.rotation as Quaternion).multiply(parentQ);
@@ -205,9 +210,9 @@ export class SpriteBatch extends VFXBatch {
                     this.sizeBuffer.setX(index, particle.size);
                 } else {
                     if (particle.parentMatrix) {
-                        this.sizeBuffer.setX(index, particle.size * particle.parentMatrix.elements[0]);
+                        this.sizeBuffer.setX(index, particle.size);
                     } else {
-                        this.sizeBuffer.setX(index, particle.size * system.emitter.matrixWorld.elements[0]);
+                        this.sizeBuffer.setX(index, particle.size * (scale.x + scale.y + scale.z) / 3);
                     }
                 }
                 this.uvTileBuffer.setX(index, particle.uvTile);
