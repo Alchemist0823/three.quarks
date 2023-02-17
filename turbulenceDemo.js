@@ -25,7 +25,7 @@ export class TurbulenceDemo extends Demo {
 
     name = "Turbulence";
     initDemo() {
-        const ps = new ParticleSystem(this.batchRenderer, {
+        const ps = new ParticleSystem({
             duration: 1,
             looping: true,
             startLife: new ConstantValue(4),
@@ -50,6 +50,7 @@ export class TurbulenceDemo extends Demo {
         ps.emitter.rotation.x = - Math.PI / 2;
         ps.emitter.position.y = -8;
         this.scene.add(ps.emitter);
+        this.batchRenderer.addSystem(ps);
     }
 
     initScene() {

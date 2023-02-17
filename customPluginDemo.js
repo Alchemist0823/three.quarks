@@ -82,7 +82,7 @@ export class CustomPluginDemo extends Demo {
         };
         loadPlugin(plugin);
 
-        const ps = new ParticleSystem(this.batchRenderer, {
+        const ps = new ParticleSystem({
             duration: 10000,
             looping: false,
             startLife: new ConstantValue(10000),
@@ -114,6 +114,7 @@ export class CustomPluginDemo extends Demo {
         //ps.emitter.rotation.x = - Math.PI / 2;
         ps.emitter.position.y = 0;
         ps.emitter.scale.set(0.8, 0.8, 0.8);
+        this.batchRenderer.addSystem(ps);
         this.scene.add(ps.emitter);
     }
 

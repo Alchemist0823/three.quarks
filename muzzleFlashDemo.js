@@ -38,7 +38,7 @@ export class MuzzleFlashDemo extends Demo{
     initMuzzleEffect(index) {
         const group = new Group();
 
-        const beam = new ParticleSystem(this.batchRenderer, {
+        const beam = new ParticleSystem({
             duration: 1,
             looping: false,
             startLife: new IntervalValue(0.1, 0.2),
@@ -65,6 +65,7 @@ export class MuzzleFlashDemo extends Demo{
             vTileCount: 10,
             renderOrder: 0,
         });
+        this.batchRenderer.addSystem(beam);
         beam.emitter.name = 'beam';
         beam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         group.add(beam.emitter);
@@ -98,15 +99,16 @@ export class MuzzleFlashDemo extends Demo{
             renderMode: RenderMode.LocalSpace
         };
 
-        const muzzle1 = new ParticleSystem(this.batchRenderer, muzzle);
+        const muzzle1 = new ParticleSystem(muzzle);
         muzzle1.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
         muzzle1.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         muzzle1.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
         muzzle1.emitter.name = 'muzzle1';
         muzzle1.emitter.position.x = 1;
         group.add(muzzle1.emitter);
+        this.batchRenderer.addSystem(muzzle1);
 
-        const muzzle2 = new ParticleSystem(this.batchRenderer, muzzle);
+        const muzzle2 = new ParticleSystem(muzzle);
         muzzle2.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
         muzzle2.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         muzzle2.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
@@ -115,8 +117,9 @@ export class MuzzleFlashDemo extends Demo{
         muzzle2.emitter.position.x = 1;
         muzzle2.emitter.rotation.x = Math.PI / 2;
         group.add(muzzle2.emitter);
+        this.batchRenderer.addSystem(muzzle2);
 
-        const flash = new ParticleSystem(this.batchRenderer, {
+        const flash = new ParticleSystem({
             duration: 1,
             looping: false,
             startLife: new IntervalValue(0.1, 0.2),
@@ -149,8 +152,9 @@ export class MuzzleFlashDemo extends Demo{
         flash.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(81, 84.333, 87.666, 91), 0]])));
         flash.emitter.name = 'flash';
         group.add(flash.emitter);
+        this.batchRenderer.addSystem(flash);
 
-        const smoke = new ParticleSystem(this.batchRenderer, {
+        const smoke = new ParticleSystem({
             duration: 2.5,
             looping: false,
             startLife: new IntervalValue(0.6, 0.8),
@@ -190,8 +194,9 @@ export class MuzzleFlashDemo extends Demo{
         smoke.emitter.name = 'smoke';
         smoke.emitter.rotation.y = Math.PI / 2;
         group.add(smoke.emitter);
+        this.batchRenderer.addSystem(smoke);
 
-        const particles = new ParticleSystem(this.batchRenderer, {
+        const particles = new ParticleSystem({
             duration: 1,
             looping: false,
             startLife: new IntervalValue(0.2, 0.6),
@@ -229,6 +234,7 @@ export class MuzzleFlashDemo extends Demo{
         particles.emitter.name = 'particles';
         particles.emitter.rotation.y = Math.PI / 2;
         group.add(particles.emitter);
+        this.batchRenderer.addSystem(particles);
 
         group.position.set(Math.floor(index / 10) * 2 - 10, 0, (index % 10) * 2 - 10);
         group.visible = false;

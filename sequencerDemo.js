@@ -27,7 +27,7 @@ export class SequencerDemo extends Demo {
     name = "Texture Sequencer";
     initDemo() {
 
-        const ps = new ParticleSystem(this.batchRenderer, {
+        const ps = new ParticleSystem({
             duration: 8,
             looping: true,
             startLife: new ConstantValue(7.8),
@@ -55,6 +55,7 @@ export class SequencerDemo extends Demo {
             renderOrder: 0,
         });
         ps.emitter.name = 'ps';
+        this.batchRenderer.addSystem(ps);
 
         let seq = new TextureSequencer(0.08, 0.08, new Vector3(-8, 1, 0));
         seq.fromImage(this.textTexture.image, 0.5);
