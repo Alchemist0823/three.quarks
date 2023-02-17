@@ -25,6 +25,7 @@ export class BatchedRenderer extends Object3D {
     }
 
     addSystem(system: ParticleSystem) {
+        system.renderer = this;
         const settings = system.getRendererSettings();
         for (let i = 0; i < this.batches.length; i++) {
             if (BatchedRenderer.equals(this.batches[i].settings, settings)) {

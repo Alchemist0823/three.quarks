@@ -37,11 +37,9 @@ export class QuarksLoader extends ObjectLoader {
     path?: string;
     resourcePath: string;
 */
-    renderer: BatchedRenderer;
 
-    constructor(renderer: BatchedRenderer, manager?: LoadingManager) {
+    constructor(manager?: LoadingManager) {
         super(manager);
-        this.renderer = renderer;
         //this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
         //this.resourcePath = '';
     }
@@ -130,7 +128,7 @@ export class QuarksLoader extends ObjectLoader {
         switch (data.type) {
 
             case 'ParticleEmitter':
-                object = ParticleSystem.fromJSON(data.ps, meta as any, dependencies, this.renderer).emitter;
+                object = ParticleSystem.fromJSON(data.ps, meta as any, dependencies).emitter;
                 break;
 
             case 'Scene':

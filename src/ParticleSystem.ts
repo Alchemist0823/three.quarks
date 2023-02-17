@@ -200,7 +200,7 @@ export class ParticleSystem {
     emitter: ParticleEmitter<BaseEvent>;
 
     rendererSettings: VFXBatchSettings;
-    renderer: BatchedRenderer;
+    renderer?: BatchedRenderer;
     neededToUpdateRender: boolean;
 
     set time(time:number) {
@@ -308,8 +308,7 @@ export class ParticleSystem {
         this.neededToUpdateRender = true;
     }
 
-    constructor(renderer: BatchedRenderer, parameters: ParticleSystemParameters) {
-        this.renderer = renderer;
+    constructor(parameters: ParticleSystemParameters) {
         this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
         this.duration = parameters.duration ?? 1;
         this.looping = parameters.looping === undefined ? true : parameters.looping;
@@ -356,8 +355,6 @@ export class ParticleSystem {
 
         this.emitEnded = false;
         this.markForDestroy = false;
-
-        this.renderer.addSystem(this);
     }
 
     pause() {
@@ -453,7 +450,8 @@ export class ParticleSystem {
     }
 
     dispose() {
-        this.renderer.deleteSystem(this);
+        if (this.renderer)
+            this.renderer.deleteSystem(this);
         this.emitter!.dispose();
         if (this.emitter.parent)
             this.emitter.parent.remove(this.emitter);
@@ -498,7 +496,8 @@ export class ParticleSystem {
         }
 
         if (this.neededToUpdateRender) {
-            this.renderer.updateSystem(this);
+            if (this.renderer)
+                this.renderer.updateSystem(this);
             this.neededToUpdateRender = false;
         }
 
@@ -677,7 +676,7 @@ export class ParticleSystem {
         };
     }
 
-    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }, renderer: BatchedRenderer): ParticleSystem {
+    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }): ParticleSystem {
         let shape = EmitterFromJSON(json.shape, meta);
         let rendererEmitterSettings;
         if (json.renderMode === RenderMode.Trail) {
@@ -691,7 +690,7 @@ export class ParticleSystem {
             rendererEmitterSettings = {};
         }
 
-        const ps = new ParticleSystem(renderer, {
+        const ps = new ParticleSystem({
             autoDestroy: json.autoDestroy,
             looping: json.looping,
             duration: json.duration,
@@ -763,7 +762,7 @@ export class ParticleSystem {
             rendererEmitterSettings = {};
         }
 
-        return new ParticleSystem(this.renderer, {
+        return new ParticleSystem({
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,

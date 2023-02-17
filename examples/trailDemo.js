@@ -30,7 +30,7 @@ export class TrailDemo extends Demo{
     initTrailEffect() {
         const group = new Group();
 
-        const beam = new ParticleSystem(this.batchRenderer, {
+        const beam = new ParticleSystem({
             duration: 5,
             looping: false,
             startLife: new IntervalValue(3.8, 4.4),
@@ -77,6 +77,7 @@ export class TrailDemo extends Demo{
         }, 0.6));
         beam.emitter.rotation.x = -Math.PI / 2;
         group.add(beam.emitter);
+        this.batchRenderer.addSystem(beam);
 
         group.position.set(0, 0);//Math.floor(index / 10) * 2 - 10, 0, (index % 10) * 2 - 10);
         group.visible = false;

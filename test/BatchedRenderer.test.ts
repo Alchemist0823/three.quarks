@@ -18,7 +18,7 @@ describe("BatchedRenderer", () => {
 
       const renderer = new BatchedRenderer();
       const texture = new Texture();
-      const glowBeam = new ParticleSystem(renderer,{
+      const glowBeam = new ParticleSystem({
          duration: 1,
          looping: true,
          startLife: new ConstantValue(2.0),
@@ -45,6 +45,7 @@ describe("BatchedRenderer", () => {
       glowBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
       glowBeam.addBehavior(new ApplyForce(new Vector3(0, 1, 0), new ConstantValue(10)));
       glowBeam.emitter.name = 'glowBeam';
+      renderer.addSystem(glowBeam);
 
       scene.add(glowBeam.emitter);
       scene.add(renderer);

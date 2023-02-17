@@ -105,7 +105,7 @@ const muzzle = {
 };
 
 // Create particle system based on your configuration
-muzzle1 = new ParticleSystem(batchSystem, {muzzle});
+muzzle1 = new ParticleSystem({muzzle});
 // developers can customize how the particle system works by 
 // using existing behavior or adding their own Behavior.
 muzzle1.addBehavior(new ColorOverLife(new ColorRange(new THREE.Vector4(1, 0.3882312, 0.125, 1), new THREE.Vector4(1, 0.826827, 0.3014706, 1))));
@@ -114,6 +114,8 @@ muzzle1.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0
 muzzle1.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
 muzzle1.emitter.name = 'muzzle1';
 muzzle1.emitter.position.x = 1;
+
+batchSystem.addSystem(muzzle1);
 
 // Add emitter to your Object3D
 scene.add(muzzle1.emitter);
@@ -131,10 +133,15 @@ batchSystem.update(clock.getDelta());
 
 ```javascript
 const batchSystem = new BatchedRenderer();
-const loader = new QuarksLoader(batchSystem);
+const loader = new QuarksLoader();
 loader.setCrossOrigin("");
-loader.load(jsonURL, (object3D: Object3D) => {
-    scene.add(object3D);
+loader.load(jsonURL, (obj) => {
+    obj.traverse((child) => {
+        if (child.type === "ParticleEmitter") {
+            batchRenderer.addSystem(child.system);
+        }
+    });
+    scene.add(obj);
 }, () => {
 }, () => {
 });

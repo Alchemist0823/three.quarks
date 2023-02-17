@@ -11,8 +11,7 @@ import JSON2 from "./meshSurface.json";
 describe("QuarksLoader", () => {
     test("#loadSubSystem", () => {
 
-        const renderer = new BatchedRenderer();
-        const loader = new QuarksLoader(renderer);
+        const loader = new QuarksLoader();
         const object = loader.parse(JSON1, (object)=> {});
         expect(object.children.length).toBe(2);
         expect((object.children[0] as ParticleEmitter<Event>).system.behaviors.length).toBe(1);
@@ -23,8 +22,7 @@ describe("QuarksLoader", () => {
 
     test("#loadMeshSurfaceEmitter", () => {
 
-        const renderer = new BatchedRenderer();
-        const loader = new QuarksLoader(renderer);
+        const loader = new QuarksLoader();
         const object = loader.parse(JSON2, (object)=> {});
         expect(object.children.length).toBe(2);
         expect(Object.keys(((object.children[1] as ParticleEmitter<Event>).system.emitterShape as MeshSurfaceEmitter).geometry.attributes).length).toBe(3);
