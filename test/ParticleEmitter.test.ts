@@ -93,6 +93,7 @@ describe("ParticleEmitter", () => {
         const newPS = glowBeam.clone();
         expect(newPS.behaviors.length).toBe(glowBeam.behaviors.length);
         expect(newPS.blending).toBe(glowBeam.blending);
+        expect(newPS.rendererSettings.renderOrder).toBe(glowBeam.rendererSettings.renderOrder);
         expect((newPS.rendererEmitterSettings as TrailSettings).startLength.type).toBe((newPS.rendererEmitterSettings as TrailSettings).startLength.type);
     })
 

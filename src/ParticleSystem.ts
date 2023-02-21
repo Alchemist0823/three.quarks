@@ -805,6 +805,7 @@ export class ParticleSystem {
 
             instancingGeometry: this.rendererSettings.instancingGeometry,//.interleavedBuffer.array,
             renderMode: this.renderMode,
+            renderOrder: this.renderOrder,
             rendererEmitterSettings: rendererEmitterSettings,
             speedFactor: this.speedFactor,
             material: this.rendererSettings.material,
