@@ -33,6 +33,7 @@ top of the well-known WebGL library called [three.js](https://threejs.org).
 
 ## Features
 - Semi-compatible Unity (shuriken) Particle system
+- Support Mesh Standard Material and Mesh Basic Material 
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
   - Mesh Surface Emitter
@@ -95,8 +96,7 @@ const muzzle = {
     }],
 
     shape: new PointEmitter(),
-    texture: texture,
-    blending: AdditiveBlending,
+    material: new MeshBasicMaterial({map: texture, blending: AdditiveBlending, transparent: true}),
     startTileIndex: 91,
     uTileCount: 10,
     vTileCount: 10,

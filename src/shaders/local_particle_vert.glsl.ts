@@ -1,16 +1,15 @@
 export default /* glsl */ `
 #include <common>
 #include <uv_pars_vertex>
+#include <color_pars_vertex>
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 
 attribute vec3 offset;
 attribute vec4 rotation;
 attribute float size;
-attribute vec4 color;
+// attribute vec4 color;
 attribute float uvTile;
-
-varying vec4 vColor;
 
 #ifdef UV_TILE
 uniform vec2 tileCount;

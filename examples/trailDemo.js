@@ -1,7 +1,7 @@
 import {
     Group,
     Scene,
-    MeshStandardMaterial,
+    MeshBasicMaterial,
     PlaneBufferGeometry,
     PointLight,
     DoubleSide,
@@ -50,8 +50,7 @@ export class TrailDemo extends Demo{
             }],
 
             shape: new ConeEmitter({radius: 0.1, angle: 1}),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
             renderMode: RenderMode.Trail,
             rendererEmitterSettings: {
                 startLength: new ConstantValue(20),

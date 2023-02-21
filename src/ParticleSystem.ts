@@ -8,11 +8,12 @@ import {Particle, SpriteParticle, TrailParticle} from "./Particle";
 import {MetaData, ParticleEmitter} from "./ParticleEmitter";
 import {EmitterFromJSON, EmitterShape, ShapeJSON} from "./shape/EmitterShape";
 import {
+    AdditiveBlending,
     BaseEvent,
     Blending,
-    BufferGeometry,
+    BufferGeometry, DoubleSide, Material,
     Matrix3,
-    Matrix4,
+    Matrix4, MeshBasicMaterial,
     NormalBlending, Object3D,
     PlaneGeometry,
     Quaternion,
@@ -75,13 +76,11 @@ export interface ParticleSystemParameters {
     renderMode?: RenderMode;
     rendererEmitterSettings?: TrailSettings | MeshSettings | BillBoardSettings;
     speedFactor?: number;
-    texture: Texture;
+    material: Material;
     startTileIndex?: ValueGenerator;
     uTileCount?: number;
     vTileCount?: number;
     renderOrder?: number;
-    blending?: Blending;
-    transparent?: boolean;
 
     worldSpace?: boolean;
 
@@ -114,11 +113,13 @@ export interface ParticleSystemJSONParameters {
     renderMode: number;
     renderOrder?: number;
     speedFactor?: number;
-    texture: string;
+    texture?: string; // deprecated
+    material: string;
     startTileIndex: FunctionJSON | number;
     uTileCount: number;
     vTileCount: number;
-    blending: number;
+    blending?: number;  // deprecated
+    transparent?: boolean;  // deprecated
 
     behaviors: Array<any>;
 
@@ -127,7 +128,7 @@ export interface ParticleSystemJSONParameters {
 
 export interface JsonMetaData {
     textures: { [uuid: string]: Texture };
-    geometries: { [uuid: string]: BufferGeometry } ;
+    geometries: { [uuid: string]: BufferGeometry };
 }
 
 export interface BillBoardSettings {
@@ -203,22 +204,31 @@ export class ParticleSystem {
     renderer?: BatchedRenderer;
     neededToUpdateRender: boolean;
 
-    set time(time:number) {
+    set time(time: number) {
         this.emissionState.time = time;
     }
 
-    get time() : number {
+    get time(): number {
         return this.emissionState.time;
     }
 
     get texture() {
-        return this.rendererSettings.texture;
+        return (this.rendererSettings.material as any).map;
     }
 
     set texture(texture: Texture) {
-        this.rendererSettings.texture = texture;
+        (this.rendererSettings.material as any).map = texture;
         this.neededToUpdateRender = true;
         //this.emitter.material.uniforms.map.value = texture;
+    }
+
+    get material() {
+        return this.rendererSettings.material;
+    }
+
+    set material(material: Material) {
+        this.rendererSettings.material = material;
+        this.neededToUpdateRender = true;
     }
 
     get uTileCount() {
@@ -273,7 +283,7 @@ export class ParticleSystem {
                     this.rendererEmitterSettings = {
                         geometry: new PlaneGeometry(1, 1)
                     };
-                    this.startRotation = new AxisAngleGenerator(new Vector3(0, 1,0 ), new ConstantValue(0));
+                    this.startRotation = new AxisAngleGenerator(new Vector3(0, 1, 0), new ConstantValue(0));
                     break;
                 case RenderMode.BillBoard:
                 case RenderMode.StretchedBillBoard:
@@ -300,11 +310,11 @@ export class ParticleSystem {
     }
 
     get blending() {
-        return this.rendererSettings.blending;
+        return this.rendererSettings.material.blending;
     }
 
     set blending(blending) {
-        this.rendererSettings.blending = blending;
+        this.rendererSettings.material.blending = blending;
         this.neededToUpdateRender = true;
     }
 
@@ -328,12 +338,10 @@ export class ParticleSystem {
         this.speedFactor = parameters.speedFactor ?? 0;
         this.rendererEmitterSettings = parameters.rendererEmitterSettings ?? {};
         this.rendererSettings = {
-            blending: parameters.blending ?? NormalBlending,
-            transparent: parameters.transparent ?? true,
             instancingGeometry: parameters.instancingGeometry ?? DEFAULT_GEOMETRY,
             renderMode: parameters.renderMode ?? RenderMode.BillBoard,
             renderOrder: parameters.renderOrder ?? 0,
-            texture: parameters.texture,
+            material: parameters.material,
             uTileCount: parameters.uTileCount ?? 1,
             vTileCount: parameters.vTileCount ?? 1
         };
@@ -464,7 +472,9 @@ export class ParticleSystem {
         this.emissionState.burstWaveIndex = 0;
         this.emissionState.time = 0;
         this.emissionState.waitEmiting = 0;
-        this.behaviors.forEach(behavior => {behavior.reset();});
+        this.behaviors.forEach(behavior => {
+            behavior.reset();
+        });
         this.emitEnded = false;
         this.markForDestroy = false;
     }
@@ -553,7 +563,9 @@ export class ParticleSystem {
             if (this.looping) {
                 emissionState.time -= this.duration;
                 emissionState.burstIndex = 0;
-                this.behaviors.forEach(behavior => {behavior.reset();});
+                this.behaviors.forEach(behavior => {
+                    behavior.reset();
+                });
             } else {
                 if (!this.emitEnded && !this.onlyUsedByOther) {
                     this.endEmit();
@@ -614,12 +626,12 @@ export class ParticleSystem {
             };
         }
 
-        this.texture.toJSON(meta);
+        meta.materials[this.rendererSettings.material.uuid] = this.rendererSettings.material.toJSON(meta);
 
         if (options.useUrlForImage) {
-            if ( this.texture.source !== undefined ) {
+            if (this.texture.source !== undefined) {
                 const image = this.texture.source;
-                meta.images[ image.uuid ] = {
+                meta.images[image.uuid] = {
                     uuid: image.uuid,
                     url: this.texture.image.url,
                 };
@@ -643,7 +655,7 @@ export class ParticleSystem {
             meta.geometries[geometry.uuid] = geometry.toJSON();
         }
         return {
-            version: "1.0",
+            version: "2.0",
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             duration: this.duration,
@@ -664,11 +676,11 @@ export class ParticleSystem {
             renderMode: this.renderMode,
             rendererEmitterSettings: rendererSettingsJSON,
             speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
-            texture: this.texture.uuid,
+            //texture: this.texture.uuid,
+            material: this.rendererSettings.material.uuid,
             startTileIndex: this.startTileIndex.toJSON(),
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
-            blending: this.blending,
 
             behaviors: this.behaviors.map(behavior => behavior.toJSON()),
 
@@ -676,7 +688,7 @@ export class ParticleSystem {
         };
     }
 
-    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }): ParticleSystem {
+    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, materials: { [uuoid: string]: Material }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }): ParticleSystem {
         let shape = EmitterFromJSON(json.shape, meta);
         let rendererEmitterSettings;
         if (json.renderMode === RenderMode.Trail) {
@@ -711,11 +723,23 @@ export class ParticleSystem {
             rendererEmitterSettings: rendererEmitterSettings,
             renderOrder: json.renderOrder,
             speedFactor: json.speedFactor,
-            texture: meta.textures[json.texture],
+            material: json.material ? meta.materials[json.material] : (
+                json.texture ? new MeshBasicMaterial({
+                        map: meta.textures[json.texture],
+                        transparent: json.transparent ?? true,
+                        blending: json.blending,
+                        side: DoubleSide
+                    }) :
+                    new MeshBasicMaterial({
+                        color: 0xffffff,
+                        transparent: true,
+                        blending: AdditiveBlending,
+                        side: DoubleSide
+                    })
+            ),
             startTileIndex: typeof json.startTileIndex === 'number' ? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator,
             uTileCount: json.uTileCount,
             vTileCount: json.vTileCount,
-            blending: json.blending,
 
             behaviors: [],
 
@@ -782,11 +806,10 @@ export class ParticleSystem {
             renderMode: this.renderMode,
             rendererEmitterSettings: rendererEmitterSettings,
             speedFactor: this.speedFactor,
-            texture: this.texture,
+            material: this.rendererSettings.material,
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
-            blending: this.blending,
 
             behaviors: newBehaviors,
 

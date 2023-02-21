@@ -12,7 +12,8 @@ import {
     Color,
     AdditiveBlending,
     NormalBlending,
-    TextureLoader
+    TextureLoader,
+    MeshBasicMaterial,
 } from "./js/three.module.js";
 import {
     Bezier, ColorOverLife, ColorRange,
@@ -58,8 +59,7 @@ export class MuzzleFlashDemo extends Demo{
             }],
 
             shape: new PointEmitter(),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
             startTileIndex: new ConstantValue(1),
             uTileCount: 10,
             vTileCount: 10,
@@ -90,8 +90,7 @@ export class MuzzleFlashDemo extends Demo{
             }],
 
             shape: new PointEmitter(),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
             startTileIndex: new ConstantValue(91),
             uTileCount: 10,
             vTileCount: 10,
@@ -140,8 +139,7 @@ export class MuzzleFlashDemo extends Demo{
             }],
 
             shape: new PointEmitter(),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
             startTileIndex: new ConstantValue(81),
             uTileCount: 10,
             vTileCount: 10,
@@ -180,8 +178,7 @@ export class MuzzleFlashDemo extends Demo{
                 thickness: 1,
                 arc: Math.PI * 2,
             }),
-            texture: this.texture,
-            blending: NormalBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: NormalBlending, transparent: true, side: DoubleSide}),
             startTileIndex: new ConstantValue(81),
             uTileCount: 10,
             vTileCount: 10,
@@ -221,8 +218,7 @@ export class MuzzleFlashDemo extends Demo{
                 thickness: 1,
                 arc: Math.PI * 2,
             }),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
             vTileCount: 10,

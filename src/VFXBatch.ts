@@ -1,43 +1,22 @@
-import {Behavior} from './behaviors/Behavior';
-import {Particle, SpriteParticle, TrailParticle} from './Particle';
+
 import {ParticleSystem} from './ParticleSystem';
 import {
-    AdditiveBlending,
     Blending,
-    BufferAttribute,
-    InstancedBufferAttribute,
-    InstancedBufferGeometry,
-    InterleavedBuffer,
-    InterleavedBufferAttribute,
-    Matrix3,
     Mesh,
     ShaderMaterial,
     Texture,
-    Uniform,
-    Vector2,
-    Vector4,
-    Object3D,
-    TrianglesDrawMode,
-    DynamicDrawUsage, DoubleSide, FrontSide, BufferGeometry, NormalBlending, Vector3, Quaternion, Sprite
+    BufferGeometry, Material,
 } from 'three';
 
-import particle_frag from './shaders/particle_frag.glsl';
-import particle_vert from './shaders/particle_vert.glsl';
-import local_particle_vert from './shaders/local_particle_vert.glsl';
-import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
-import trail_frag from './shaders/trail_frag.glsl';
-import trail_vert from './shaders/trail_vert.glsl';
 
 export interface VFXBatchSettings {
     // 5 component x,y,z,u,v
     instancingGeometry: BufferGeometry;
-    texture: Texture;
+    material: Material;
     uTileCount: number;
     vTileCount: number;
-    blending: Blending;
     renderMode : RenderMode;
     renderOrder : number;
-    transparent: boolean;
 }
 
 export enum RenderMode {
@@ -60,14 +39,12 @@ export abstract class VFXBatch extends Mesh {
         this.maxParticles = 1000;
         this.systems = new Set<ParticleSystem>();
         this.settings = {
-            blending: settings.blending,
             instancingGeometry: settings.instancingGeometry,
             renderMode: settings.renderMode,
             renderOrder: settings.renderOrder,
-            texture: settings.texture,
+            material: settings.material,
             uTileCount: settings.uTileCount,
             vTileCount: settings.vTileCount,
-            transparent: settings.transparent,
         };
         this.frustumCulled = false;
         this.renderOrder = this.settings.renderOrder;

@@ -122,6 +122,7 @@ export class QuarksLoader extends ObjectLoader {
         const meta = {
             textures: textures,
             geometries: geometries,
+            materials: materials,
         };
         const dependencies: {[uuid: string]: Behavior} = {};
 

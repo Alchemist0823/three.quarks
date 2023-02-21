@@ -14,13 +14,14 @@ export class BatchedRenderer extends Object3D {
     }
 
     private static equals(a: VFXBatchSettings, b: VFXBatchSettings) {
-        return a.texture === b.texture &&
-            a.blending === b.blending &&
+        return a.material.side === b.material.side &&
+            a.material.blending === b.material.blending &&
+            a.material.transparent === b.material.transparent &&
+            (a.material as any).map === (b.material as any).map &&
             a.renderMode === b.renderMode &&
             a.uTileCount === b.uTileCount &&
             a.vTileCount === b.vTileCount &&
             a.instancingGeometry === b.instancingGeometry &&
-            a.transparent === b.transparent &&
             a.renderOrder === b.renderOrder;
     }
 

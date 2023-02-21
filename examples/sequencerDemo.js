@@ -2,15 +2,18 @@
 import {
     Group,
     Scene,
-    MeshStandardMaterial,
+    MeshBasicMaterial,
     PlaneBufferGeometry,
     PointLight,
     DoubleSide,
+    FrontSide,
+    BackSide,
     Mesh,
     Vector4,
     Vector3,
     Color,
     AdditiveBlending,
+    NormalBlending,
     TextureLoader
 } from "./js/three.module.js";
 import {
@@ -46,8 +49,7 @@ export class SequencerDemo extends Demo {
             }],
 
             shape: new GridEmitter({width: 15, height: 15, column: 50, row: 50}),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: NormalBlending, transparent: true, side: FrontSide}),
             renderMode: RenderMode.BillBoard,
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,

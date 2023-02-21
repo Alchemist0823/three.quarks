@@ -72,7 +72,7 @@ export class Demo {
         plane.lookAt(new Vector3(0, 1, 0));
 
         const light = new PointLight(0xffffff, 1, 300);
-        light.position.set(0, 20, 0);
+        light.position.set(0, 5, 0);
         this.scene.add(light);
         return this.scene;
     }

@@ -94,9 +94,10 @@ export class TrailBatch extends VFXBatch {
 
         defines['USE_MAP'] = '';
         defines['USE_UV'] = '';
-        uniforms['map'] = new Uniform(this.settings.texture);
+        defines['USE_COLOR_ALPHA'] = '';
+        uniforms['map'] = new Uniform((this.settings.material as any).map);
         //@ts-ignore
-        uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
+        uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
 
         if (this.settings.renderMode === RenderMode.Trail) {
             this.material = new ShaderMaterial({
@@ -104,10 +105,10 @@ export class TrailBatch extends VFXBatch {
                 defines: defines,
                 vertexShader: trail_vert,
                 fragmentShader: trail_frag,
-                transparent: this.settings.transparent,
-                depthWrite: !this.settings.transparent,
+                transparent: this.settings.material.transparent,
+                depthWrite: !this.settings.material.transparent,
                 side: DoubleSide,
-                blending: this.settings.blending || AdditiveBlending,
+                blending: this.settings.material.blending || AdditiveBlending,
             });
         } else {
             throw new Error("render mode unavailable");

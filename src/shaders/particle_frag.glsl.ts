@@ -2,11 +2,10 @@ export default /* glsl */`
 
 #include <common>
 #include <uv_pars_fragment>
+#include <color_pars_fragment>
 #include <map_pars_fragment>
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
-
-varying vec4 vColor;
 
 void main() {
 

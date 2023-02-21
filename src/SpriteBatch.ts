@@ -7,12 +7,22 @@ import {
     ShaderMaterial,
     Uniform,
     Vector2,
-    DynamicDrawUsage, DoubleSide, FrontSide, Vector3, Quaternion
+    DynamicDrawUsage,
+    DoubleSide,
+    FrontSide,
+    Vector3,
+    Quaternion,
+    UniformsLib,
+    Color,
+    UniformsUtils,
+    MeshStandardMaterial, MeshBasicMaterial
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
+import particle_physics_frag from './shaders/particle_physics_frag.glsl';
 import particle_vert from './shaders/particle_vert.glsl';
 import local_particle_vert from './shaders/local_particle_vert.glsl';
+import local_particle_physics_vert from './shaders/local_particle_physics_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 import {VFXBatch, VFXBatchSettings, RenderMode} from "./VFXBatch";
 
@@ -71,6 +81,9 @@ export class SpriteBatch extends VFXBatch {
             this.geometry.dispose();
         this.geometry = new InstancedBufferGeometry();
         this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
+        if (this.settings.instancingGeometry.hasAttribute('normal')) {
+            this.geometry.setAttribute('normal', this.settings.instancingGeometry.getAttribute('normal'));
+        }
         this.geometry.setAttribute('position', this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
         this.geometry.setAttribute('uv', this.settings.instancingGeometry.getAttribute('uv')); //new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
 
@@ -85,39 +98,97 @@ export class SpriteBatch extends VFXBatch {
     }
 
     rebuildMaterial() {
-        let uniforms: { [a: string]: Uniform } = {};
+        let uniforms: { [a: string]: Uniform };
         let defines: { [b: string]: string } = {};
 
-        defines['USE_MAP'] = '';
-        defines['USE_UV'] = '';
-        uniforms['map'] = new Uniform(this.settings.texture);
+        if (this.settings.material.type === "MeshStandardMaterial" || this.settings.material.type === "MeshPhysicalMaterial") {
+            let mat = (this.settings.material as MeshStandardMaterial);
+            uniforms = UniformsUtils.merge( [
+                UniformsLib.common,
+                UniformsLib.envmap,
+                UniformsLib.aomap,
+                UniformsLib.lightmap,
+                UniformsLib.emissivemap,
+                UniformsLib.bumpmap,
+                UniformsLib.normalmap,
+                UniformsLib.displacementmap,
+                UniformsLib.roughnessmap,
+                UniformsLib.metalnessmap,
+                UniformsLib.fog,
+                UniformsLib.lights,
+                {
+                    emissive: { value: /*@__PURE__*/ new Color( 0x000000 ) },
+                    roughness: { value: 1.0 },
+                    metalness: { value: 0.0 },
+                    envMapIntensity: { value: 1 } // temporary
+                }
+            ] );
+            uniforms['diffuse'].value = mat.color;
+            uniforms['opacity'].value = mat.opacity;
+            uniforms['emissive'].value = mat.emissive;
+            uniforms['roughness'].value = mat.roughness;
+            uniforms['metalness'].value = mat.metalness;
+
+            if (mat.envMap) {
+                uniforms['envMap'].value = mat.envMap;
+                uniforms['envMapIntensity'].value = mat.envMapIntensity;
+            }
+            if (mat.normalMap) {
+                uniforms['normalMap'].value = mat.normalMap;
+                uniforms['normalScale'].value = mat.normalScale;
+            }
+            if (mat.roughnessMap) {
+                uniforms['roughnessMap'].value = mat.roughnessMap;
+            }
+            if (mat.metalnessMap) {
+                uniforms['metalnessMap'].value = mat.metalnessMap;
+            }
+        } else {
+            uniforms = {};
+            uniforms['map'] = new Uniform((this.settings.material as any).map);
+        }
+
+        if ((this.settings.material as any).map) {
+            defines['USE_MAP'] = '';
+            defines['USE_UV'] = '';
+            defines['UV_TILE'] = '';
+            let uTileCount = this.settings.uTileCount;
+            let vTileCount = this.settings.vTileCount;
+            uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
+            uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+        }
         //@ts-ignore
-        uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
-        let uTileCount = this.settings.uTileCount;
-        let vTileCount = this.settings.vTileCount;
+        defines['USE_COLOR_ALPHA'] = '';
 
-        defines['UV_TILE'] = '';
-        uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
-
+        let needLights = false;
         if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.Mesh) {
             let vertexShader;
-            let side;
+            let fragmentShader;
             if (this.settings.renderMode === RenderMode.Mesh) {
-                vertexShader = local_particle_vert;
-                side = DoubleSide;
+
+                if (this.settings.material.type === "MeshStandardMaterial" || this.settings.material.type === "MeshPhysicalMaterial") {
+                    defines['USE_COLOR'] = '';
+                    vertexShader = local_particle_physics_vert;
+                    fragmentShader = particle_physics_frag;
+                    needLights = true;
+                } else {
+                    vertexShader = local_particle_vert;
+                    fragmentShader = particle_frag;
+                }
             } else {
                 vertexShader = particle_vert;
-                side = FrontSide;
+                fragmentShader = particle_frag;
             }
             this.material = new ShaderMaterial({
                 uniforms: uniforms,
                 defines: defines,
                 vertexShader: vertexShader,
-                fragmentShader: particle_frag,
-                transparent: this.settings.transparent,
-                depthWrite: !this.settings.transparent,
-                blending: this.settings.blending || AdditiveBlending,
-                side: side,
+                fragmentShader: fragmentShader,
+                transparent: this.settings.material.transparent,
+                depthWrite: !this.settings.material.transparent,
+                blending: this.settings.material.blending,
+                side: this.settings.material.side,
+                lights: needLights,
             });
         } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
             uniforms['speedFactor'] = new Uniform(1.0);
@@ -126,9 +197,10 @@ export class SpriteBatch extends VFXBatch {
                 defines: defines,
                 vertexShader: stretched_bb_particle_vert,
                 fragmentShader: particle_frag,
-                transparent: this.settings.transparent,
-                depthWrite: !this.settings.transparent,
-                blending: this.settings.blending || AdditiveBlending,
+                transparent: this.settings.material.transparent,
+                depthWrite: !this.settings.material.transparent,
+                blending: this.settings.material.blending,
+                side: this.settings.material.side,
             });
         } else {
             throw new Error("render mode unavailable");

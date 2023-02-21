@@ -14,7 +14,7 @@ import {
     SizeOverLife,
     SphereEmitter, TrailSettings
 } from "../src";
-import {AdditiveBlending, NormalBlending, Texture, Vector3, Vector4} from "three";
+import {AdditiveBlending, MeshBasicMaterial, NormalBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedRenderer} from "../src/BatchedRenderer";
 
@@ -40,8 +40,7 @@ describe("ParticleEmitter", () => {
             thickness: 1,
             arc: Math.PI * 2,
         }),
-        texture: texture,
-        blending: NormalBlending,
+        material: new MeshBasicMaterial({map: texture, blending: NormalBlending, transparent: true}),
         startTileIndex: new ConstantValue(1),
         uTileCount: 10,
         vTileCount: 10,
@@ -73,7 +72,7 @@ describe("ParticleEmitter", () => {
         expect(json.object.ps.shape.thickness).toBe(1);
         expect(json.object.ps.shape.arc).toBe(Math.PI * 2);
         //expect(json.object.ps.texture).toBe(1);
-        expect(json.object.ps.blending).toBe(NormalBlending);
+        //expect(json.object.ps.blending).toBe(NormalBlending);
         expect(json.object.ps.startTileIndex.value).toBe(1);
         expect(json.object.ps.uTileCount).toBe(10);
         expect(json.object.ps.vTileCount).toBe(10);
@@ -98,8 +97,9 @@ describe("ParticleEmitter", () => {
     })
 
     test(".fromJSON", () => {
-        //const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
+        // const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
         const json = glowBeam.emitter.toJSON();
+        // console.log(json);
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {
         }) as ParticleEmitter<Event>;

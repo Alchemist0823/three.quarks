@@ -1,13 +1,13 @@
 export default /* glsl */ `
 #include <common>
 #include <uv_pars_vertex>
+#include <color_pars_vertex>
 #include <clipping_planes_pars_vertex>
 #include <logdepthbuf_pars_vertex>
 #include <fog_pars_vertex>
 
 attribute vec3 previous;
 attribute vec3 next;
-attribute vec4 color;
 attribute float side;
 attribute float width;
 
@@ -16,7 +16,6 @@ uniform float lineWidth;
 uniform float sizeAttenuation;
 
 varying vec2 vUV;
-varying vec4 vColor;
     
 vec2 fix(vec4 i, float aspect) {
     vec2 res = i.xy / i.w;
