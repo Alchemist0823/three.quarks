@@ -2,13 +2,13 @@
 import {
     Group,
     Scene,
-    MeshStandardMaterial,
+    MeshBasicMaterial,
     PlaneBufferGeometry,
     PointLight,
     DoubleSide,
     Mesh,
     Vector4,
-    Vector3,
+    FrontSide,
     Color,
     AdditiveBlending,
     TextureLoader
@@ -100,9 +100,8 @@ export class CustomPluginDemo extends Demo {
                 probability: 1,
             }],
 
-            shape: new GridEmitter({width: 20, height: 20, column: 50, row: 50}),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            shape: new GridEmitter({width: 15, height: 15, column: 50, row: 50}),
+            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: FrontSide}),
             renderMode: RenderMode.BillBoard,
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,

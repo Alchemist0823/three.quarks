@@ -1,9 +1,9 @@
 /**
- * three.quarks v0.8.9 build Fri Feb 17 2023
+ * three.quarks v0.10.0 build Tue Feb 21 2023
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
-import { Object3D, Vector4, Vector3, MathUtils, Euler, Quaternion, Line3, Matrix4, Triangle, Mesh, PlaneGeometry, Matrix3, NormalBlending, InstancedBufferAttribute, DynamicDrawUsage, InstancedBufferGeometry, Uniform, Vector2, ShaderMaterial, AdditiveBlending, DoubleSide, FrontSide, BufferGeometry, BufferAttribute, Bone, Group, Sprite, Points, LineSegments, LineLoop, Line, LOD, InstancedMesh, SkinnedMesh, LightProbe, HemisphereLight, SpotLight, RectAreaLight, PointLight, DirectionalLight, AmbientLight, OrthographicCamera, PerspectiveCamera, Scene, Color, Fog, FogExp2, ObjectLoader } from './three.module.js';
+import { Object3D, Vector4, Vector3, MathUtils, Euler, Quaternion, Line3, Matrix4, Triangle, Mesh, PlaneGeometry, Matrix3, MeshBasicMaterial, DoubleSide, AdditiveBlending, InstancedBufferAttribute, DynamicDrawUsage, InstancedBufferGeometry, UniformsUtils, UniformsLib, Color, Uniform, Vector2, ShaderMaterial, BufferGeometry, BufferAttribute, Bone, Group, Sprite, Points, LineSegments, LineLoop, Line, LOD, InstancedMesh, SkinnedMesh, LightProbe, HemisphereLight, SpotLight, RectAreaLight, PointLight, DirectionalLight, AmbientLight, OrthographicCamera, PerspectiveCamera, Scene, Fog, FogExp2, ObjectLoader } from './three.module.js';
 
 function _regeneratorRuntime() {
   _regeneratorRuntime = function () {
@@ -3446,14 +3446,12 @@ var VFXBatch = /*#__PURE__*/function (_Mesh) {
     _this.maxParticles = 1000;
     _this.systems = new Set();
     _this.settings = {
-      blending: settings.blending,
       instancingGeometry: settings.instancingGeometry,
       renderMode: settings.renderMode,
       renderOrder: settings.renderOrder,
-      texture: settings.texture,
+      material: settings.material,
       uTileCount: settings.uTileCount,
-      vTileCount: settings.vTileCount,
-      transparent: settings.transparent
+      vTileCount: settings.vTileCount
     };
     _this.frustumCulled = false;
     _this.renderOrder = _this.settings.renderOrder;
@@ -3481,7 +3479,7 @@ new Vector3();
 var DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
 var ParticleSystem = /*#__PURE__*/function () {
   function ParticleSystem(parameters) {
-    var _parameters$duration, _parameters$startLife, _parameters$startSpee, _parameters$startRota, _parameters$startSize, _parameters$startColo, _parameters$emissionO, _parameters$emissionO2, _parameters$emissionB, _parameters$onlyUsedB, _parameters$shape, _parameters$behaviors, _parameters$worldSpac, _parameters$speedFact, _parameters$rendererE, _parameters$blending, _parameters$transpare, _parameters$instancin, _parameters$renderMod, _parameters$renderOrd, _parameters$uTileCoun, _parameters$vTileCoun;
+    var _parameters$duration, _parameters$startLife, _parameters$startSpee, _parameters$startRota, _parameters$startSize, _parameters$startColo, _parameters$emissionO, _parameters$emissionO2, _parameters$emissionB, _parameters$onlyUsedB, _parameters$shape, _parameters$behaviors, _parameters$worldSpac, _parameters$speedFact, _parameters$rendererE, _parameters$instancin, _parameters$renderMod, _parameters$renderOrd, _parameters$uTileCoun, _parameters$vTileCoun;
     _classCallCheck(this, ParticleSystem);
     _defineProperty(this, "autoDestroy", void 0);
     _defineProperty(this, "looping", void 0);
@@ -3534,12 +3532,10 @@ var ParticleSystem = /*#__PURE__*/function () {
     this.speedFactor = (_parameters$speedFact = parameters.speedFactor) !== null && _parameters$speedFact !== void 0 ? _parameters$speedFact : 0;
     this.rendererEmitterSettings = (_parameters$rendererE = parameters.rendererEmitterSettings) !== null && _parameters$rendererE !== void 0 ? _parameters$rendererE : {};
     this.rendererSettings = {
-      blending: (_parameters$blending = parameters.blending) !== null && _parameters$blending !== void 0 ? _parameters$blending : NormalBlending,
-      transparent: (_parameters$transpare = parameters.transparent) !== null && _parameters$transpare !== void 0 ? _parameters$transpare : true,
       instancingGeometry: (_parameters$instancin = parameters.instancingGeometry) !== null && _parameters$instancin !== void 0 ? _parameters$instancin : DEFAULT_GEOMETRY,
       renderMode: (_parameters$renderMod = parameters.renderMode) !== null && _parameters$renderMod !== void 0 ? _parameters$renderMod : RenderMode.BillBoard,
       renderOrder: (_parameters$renderOrd = parameters.renderOrder) !== null && _parameters$renderOrd !== void 0 ? _parameters$renderOrd : 0,
-      texture: parameters.texture,
+      material: parameters.material,
       uTileCount: (_parameters$uTileCoun = parameters.uTileCount) !== null && _parameters$uTileCoun !== void 0 ? _parameters$uTileCoun : 1,
       vTileCount: (_parameters$vTileCoun = parameters.vTileCount) !== null && _parameters$vTileCoun !== void 0 ? _parameters$vTileCoun : 1
     };
@@ -3574,12 +3570,21 @@ var ParticleSystem = /*#__PURE__*/function () {
   }, {
     key: "texture",
     get: function get() {
-      return this.rendererSettings.texture;
+      return this.rendererSettings.material.map;
     },
     set: function set(texture) {
-      this.rendererSettings.texture = texture;
+      this.rendererSettings.material.map = texture;
       this.neededToUpdateRender = true;
       //this.emitter.material.uniforms.map.value = texture;
+    }
+  }, {
+    key: "material",
+    get: function get() {
+      return this.rendererSettings.material;
+    },
+    set: function set(material) {
+      this.rendererSettings.material = material;
+      this.neededToUpdateRender = true;
     }
   }, {
     key: "uTileCount",
@@ -3661,10 +3666,10 @@ var ParticleSystem = /*#__PURE__*/function () {
   }, {
     key: "blending",
     get: function get() {
-      return this.rendererSettings.blending;
+      return this.rendererSettings.material.blending;
     },
     set: function set(blending) {
-      this.rendererSettings.blending = blending;
+      this.rendererSettings.material.blending = blending;
       this.neededToUpdateRender = true;
     }
   }, {
@@ -3915,7 +3920,7 @@ var ParticleSystem = /*#__PURE__*/function () {
           nodes: {}
         };
       }
-      this.texture.toJSON(meta);
+      meta.materials[this.rendererSettings.material.uuid] = this.rendererSettings.material.toJSON(meta);
       if (options.useUrlForImage) {
         if (this.texture.source !== undefined) {
           var image = this.texture.source;
@@ -3943,7 +3948,7 @@ var ParticleSystem = /*#__PURE__*/function () {
         meta.geometries[geometry.uuid] = geometry.toJSON();
       }
       return {
-        version: "1.0",
+        version: "2.0",
         autoDestroy: this.autoDestroy,
         looping: this.looping,
         duration: this.duration,
@@ -3963,11 +3968,11 @@ var ParticleSystem = /*#__PURE__*/function () {
         renderMode: this.renderMode,
         rendererEmitterSettings: rendererSettingsJSON,
         speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
-        texture: this.texture.uuid,
+        //texture: this.texture.uuid,
+        material: this.rendererSettings.material.uuid,
         startTileIndex: this.startTileIndex.toJSON(),
         uTileCount: this.uTileCount,
         vTileCount: this.vTileCount,
-        blending: this.blending,
         behaviors: this.behaviors.map(function (behavior) {
           return behavior.toJSON();
         }),
@@ -4043,11 +4048,10 @@ var ParticleSystem = /*#__PURE__*/function () {
         renderMode: this.renderMode,
         rendererEmitterSettings: rendererEmitterSettings,
         speedFactor: this.speedFactor,
-        texture: this.texture,
+        material: this.rendererSettings.material,
         startTileIndex: this.startTileIndex,
         uTileCount: this.uTileCount,
         vTileCount: this.vTileCount,
-        blending: this.blending,
         behaviors: newBehaviors,
         worldSpace: this.worldSpace
       });
@@ -4055,6 +4059,7 @@ var ParticleSystem = /*#__PURE__*/function () {
   }], [{
     key: "fromJSON",
     value: function fromJSON(json, meta, dependencies) {
+      var _json$transparent;
       var shape = EmitterFromJSON(json.shape, meta);
       var rendererEmitterSettings;
       if (json.renderMode === RenderMode.Trail) {
@@ -4086,11 +4091,20 @@ var ParticleSystem = /*#__PURE__*/function () {
         rendererEmitterSettings: rendererEmitterSettings,
         renderOrder: json.renderOrder,
         speedFactor: json.speedFactor,
-        texture: meta.textures[json.texture],
+        material: json.material ? meta.materials[json.material] : json.texture ? new MeshBasicMaterial({
+          map: meta.textures[json.texture],
+          transparent: (_json$transparent = json.transparent) !== null && _json$transparent !== void 0 ? _json$transparent : true,
+          blending: json.blending,
+          side: DoubleSide
+        }) : new MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          blending: AdditiveBlending,
+          side: DoubleSide
+        }),
         startTileIndex: typeof json.startTileIndex === 'number' ? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex),
         uTileCount: json.uTileCount,
         vTileCount: json.vTileCount,
-        blending: json.blending,
         behaviors: [],
         worldSpace: json.worldSpace
       });
@@ -4107,7 +4121,7 @@ var ParticleSystem = /*#__PURE__*/function () {
   return ParticleSystem;
 }();
 
-var particle_frag = /* glsl */"\n\n#include <common>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nvarying vec4 vColor;\n\nvoid main() {\n\n    #include <clipping_planes_fragment>\n    \n    vec3 outgoingLight = vec3( 0.0 );\n    vec4 diffuseColor = vColor;\n    \n    #include <logdepthbuf_fragment>\n    \n    #ifdef USE_MAP\n    vec4 texelColor = texture2D( map, vUv);\n    diffuseColor *= texelColor;\n    #endif\n\n    outgoingLight = diffuseColor.rgb;\n\n    gl_FragColor = vec4( outgoingLight, diffuseColor.a );\n    \n    #include <tonemapping_fragment>\n\n}\n";
+var particle_frag = /* glsl */"\n\n#include <common>\n#include <uv_pars_fragment>\n#include <color_pars_fragment>\n#include <map_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nvoid main() {\n\n    #include <clipping_planes_fragment>\n    \n    vec3 outgoingLight = vec3( 0.0 );\n    vec4 diffuseColor = vColor;\n    \n    #include <logdepthbuf_fragment>\n    \n    #ifdef USE_MAP\n    vec4 texelColor = texture2D( map, vUv);\n    diffuseColor *= texelColor;\n    #endif\n\n    outgoingLight = diffuseColor.rgb;\n\n    gl_FragColor = vec4( outgoingLight, diffuseColor.a );\n    \n    #include <tonemapping_fragment>\n\n}\n";
 /*
     gl_FragColor = vec4(vUv.x, vUv.y, 1.0, 1.0);
 
@@ -4121,7 +4135,9 @@ var particle_frag = /* glsl */"\n\n#include <common>\n#include <uv_pars_fragment
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );
 */
 
-var particle_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n\t\n    vec2 alignedPosition = ( position.xy ) * size;\n    \n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    \n    mvPosition.xy += rotatedPosition;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+var particle_physics_frag = /* glsl */"\n#define STANDARD\n#ifdef PHYSICAL\n#define IOR\n#define SPECULAR\n#endif\nuniform vec3 diffuse;\nuniform vec3 emissive;\nuniform float roughness;\nuniform float metalness;\nuniform float opacity;\n#ifdef IOR\nuniform float ior;\n#endif\n#ifdef SPECULAR\nuniform float specularIntensity;\nuniform vec3 specularColor;\n#ifdef USE_SPECULARINTENSITYMAP\nuniform sampler2D specularIntensityMap;\n#endif\n#ifdef USE_SPECULARCOLORMAP\nuniform sampler2D specularColorMap;\n#endif\n#endif\n#ifdef USE_CLEARCOAT\nuniform float clearcoat;\nuniform float clearcoatRoughness;\n#endif\n#ifdef USE_IRIDESCENCE\nuniform float iridescence;\nuniform float iridescenceIOR;\nuniform float iridescenceThicknessMinimum;\nuniform float iridescenceThicknessMaximum;\n#endif\n#ifdef USE_SHEEN\nuniform vec3 sheenColor;\nuniform float sheenRoughness;\n#ifdef USE_SHEENCOLORMAP\nuniform sampler2D sheenColorMap;\n#endif\n#ifdef USE_SHEENROUGHNESSMAP\nuniform sampler2D sheenRoughnessMap;\n#endif\n#endif\n\nvarying vec3 vViewPosition;\n#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <alphatest_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <emissivemap_pars_fragment>\n#include <bsdfs>\n#include <iridescence_fragment>\n#include <cube_uv_reflection_fragment>\n#include <envmap_common_pars_fragment>\n#include <envmap_physical_pars_fragment>\n#include <fog_pars_fragment>\n#include <lights_pars_begin>\n#include <normal_pars_fragment>\n#include <lights_physical_pars_fragment>\n#include <transmission_pars_fragment>\n#include <shadowmap_pars_fragment>\n#include <bumpmap_pars_fragment>\n#include <normalmap_pars_fragment>\n#include <clearcoat_pars_fragment>\n#include <iridescence_pars_fragment>\n#include <roughnessmap_pars_fragment>\n#include <metalnessmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nvoid main() {\n    #include <clipping_planes_fragment>\n    vec4 diffuseColor = vec4( diffuse, opacity );\n    ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );\n    vec3 totalEmissiveRadiance = emissive;\n    #include <logdepthbuf_fragment>\n    #include <map_fragment>\n    #include <color_fragment>\n    #include <alphamap_fragment>\n    #include <alphatest_fragment>\n    #include <roughnessmap_fragment>\n    #include <metalnessmap_fragment>\n    #include <normal_fragment_begin>\n    #include <normal_fragment_maps>\n    #include <clearcoat_normal_fragment_begin>\n    #include <clearcoat_normal_fragment_maps>\n    #include <emissivemap_fragment>\n    // accumulation\n    #include <lights_physical_fragment>\n    #include <lights_fragment_begin>\n    #include <lights_fragment_maps>\n    #include <lights_fragment_end>\n    // modulation\n    #include <aomap_fragment>\n    vec3 totalDiffuse = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;\n    vec3 totalSpecular = reflectedLight.directSpecular + reflectedLight.indirectSpecular;\n    #include <transmission_fragment>\n    vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;\n    #ifdef USE_SHEEN\n    // Sheen energy compensation approximation calculation can be found at the end of\n        // https://drive.google.com/file/d/1T0D1VSyR4AllqIJTQAraEIzjlb5h4FKH/view?usp=sharing\n        float sheenEnergyComp = 1.0 - 0.157 * max3( material.sheenColor );\n        outgoingLight = outgoingLight * sheenEnergyComp + sheenSpecular;\n    #endif\n    #ifdef USE_CLEARCOAT\n        float dotNVcc = saturate( dot( geometry.clearcoatNormal, geometry.viewDir ) );\n        vec3 Fcc = F_Schlick( material.clearcoatF0, material.clearcoatF90, dotNVcc );\n        outgoingLight = outgoingLight * ( 1.0 - material.clearcoat * Fcc ) + clearcoatSpecular * material.clearcoat;\n    #endif\n    #include <output_fragment>\n    #include <tonemapping_fragment>\n    #include <encodings_fragment>\n    #include <fog_fragment>\n    #include <premultiplied_alpha_fragment>\n    #include <dithering_fragment>\n}";
+
+var particle_vert = /* glsl */"\n#include <common>\n#include <color_pars_vertex>\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute float uvTile;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n\t\n    vec2 alignedPosition = ( position.xy ) * size;\n    \n    vec2 rotatedPosition;\n    rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;\n    rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;\n    \n    mvPosition.xy += rotatedPosition;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
 /*
 	#ifndef USE_SIZEATTENUATION
 		bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
@@ -4129,9 +4145,11 @@ var particle_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#
 	#endif
  */
 
-var local_particle_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute vec4 rotation;\nattribute float size;\nattribute vec4 color;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n    \n    float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;\n    float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;\n    float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;\n    float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;\n    float sx = size, sy = size, sz = size;\n    \n    mat4 matrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column\n                      ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column\n                      ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column\n                      offset.x, offset.y, offset.z, 1.0);\n    \n    vec4 mvPosition = modelViewMatrix * (matrix * vec4( position, 1.0 ));\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+var local_particle_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#include <color_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute vec4 rotation;\nattribute float size;\n// attribute vec4 color;\nattribute float uvTile;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n    \n    float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;\n    float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;\n    float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;\n    float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;\n    float sx = size, sy = size, sz = size;\n    \n    mat4 matrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column\n                      ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column\n                      ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column\n                      offset.x, offset.y, offset.z, 1.0);\n    \n    vec4 mvPosition = modelViewMatrix * (matrix * vec4( position, 1.0 ));\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
 
-var stretched_bb_particle_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec4 color;\nattribute vec3 velocity;\nattribute float uvTile;\n\nvarying vec4 vColor;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nuniform float speedFactor;\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n    vec3 viewVelocity = normalMatrix * velocity;\n\n    vec3 scaledPos = vec3(position.xy * size, position.z);\n    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
+var local_particle_physics_vert = /* glsl */"\n#define STANDARD\nvarying vec3 vViewPosition;\n#ifdef USE_TRANSMISSION\n\tvarying vec3 vWorldPosition;\n#endif\n#include <common>\n#include <uv_pars_vertex>\n\nattribute vec3 offset;\nattribute vec4 rotation;\nattribute float size;\nattribute float uvTile;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\n#include <uv2_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <normal_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nvoid main() {\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n    \n    float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;\n    float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;\n    float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;\n    float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;\n    float sx = size, sy = size, sz = size;\n    \n    mat4 particleMatrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column\n                      ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column\n                      ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column\n                      offset.x, offset.y, offset.z, 1.0);\n                      \n\t#include <uv2_vertex>\n\t#include <color_vertex>\n\t#include <morphcolor_vertex>\n\t#include <beginnormal_vertex>\n\t#include <morphnormal_vertex>\n\t#include <skinbase_vertex>\n\t#include <skinnormal_vertex>\n\t\n\t// replace defaultnormal_vertex\n\tvec3 transformedNormal = objectNormal;\n    mat3 m = mat3( particleMatrix );\n    transformedNormal /= vec3( dot( m[ 0 ], m[ 0 ] ), dot( m[ 1 ], m[ 1 ] ), dot( m[ 2 ], m[ 2 ] ) );\n    transformedNormal = m * transformedNormal;\n    transformedNormal = normalMatrix * transformedNormal;\n    #ifdef FLIP_SIDED\n        transformedNormal = - transformedNormal;\n    #endif\n    #ifdef USE_TANGENT\n        vec3 transformedTangent = ( modelViewMatrix * vec4( objectTangent, 0.0 ) ).xyz;\n        #ifdef FLIP_SIDED\n        transformedTangent = - transformedTangent;\n        #endif\n    #endif\n    \n\t#include <normal_vertex>\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <displacementmap_vertex>\n\t\n\t// replace include <project_vertex>\n    vec4 mvPosition = vec4( transformed, 1.0 );\n    mvPosition = modelViewMatrix * (particleMatrix * mvPosition);\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n\tvViewPosition = - mvPosition.xyz;\n\t\n\t#include <worldpos_vertex>\n\t#include <shadowmap_vertex>\n\t#include <fog_vertex>\n#ifdef USE_TRANSMISSION\n\tvWorldPosition = worldPosition.xyz;\n#endif\n}\n";
+
+var stretched_bb_particle_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#include <color_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\n\nattribute vec3 offset;\nattribute float rotation;\nattribute float size;\nattribute vec3 velocity;\nattribute float uvTile;\n\n#ifdef UV_TILE\nuniform vec2 tileCount;\n#endif\n\nuniform float speedFactor;\n\nvoid main() {\n\n    #ifdef UV_TILE\n        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));\n    #else\n        #include <uv_vertex>\n    #endif\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );\n    vec3 viewVelocity = normalMatrix * velocity;\n\n    vec3 scaledPos = vec3(position.xy * size, position.z);\n    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;\n\n\tvColor = color;\n\n\tgl_Position = projectionMatrix * mvPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\n}\n";
 /*
 
     vec3 instancePos = vec3(position.xy * size, position.z);
@@ -4211,6 +4229,9 @@ var SpriteBatch = /*#__PURE__*/function (_VFXBatch) {
       if (this.geometry) this.geometry.dispose();
       this.geometry = new InstancedBufferGeometry();
       this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
+      if (this.settings.instancingGeometry.hasAttribute('normal')) {
+        this.geometry.setAttribute('normal', this.settings.instancingGeometry.getAttribute('normal'));
+      }
       this.geometry.setAttribute('position', this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
       this.geometry.setAttribute('uv', this.settings.instancingGeometry.getAttribute('uv')); //new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
 
@@ -4227,36 +4248,87 @@ var SpriteBatch = /*#__PURE__*/function (_VFXBatch) {
   }, {
     key: "rebuildMaterial",
     value: function rebuildMaterial() {
-      var uniforms = {};
+      var uniforms;
       var defines = {};
-      defines['USE_MAP'] = '';
-      defines['USE_UV'] = '';
-      uniforms['map'] = new Uniform(this.settings.texture);
+      if (this.settings.material.type === "MeshStandardMaterial" || this.settings.material.type === "MeshPhysicalMaterial") {
+        var mat = this.settings.material;
+        uniforms = UniformsUtils.merge([UniformsLib.common, UniformsLib.envmap, UniformsLib.aomap, UniformsLib.lightmap, UniformsLib.emissivemap, UniformsLib.bumpmap, UniformsLib.normalmap, UniformsLib.displacementmap, UniformsLib.roughnessmap, UniformsLib.metalnessmap, UniformsLib.fog, UniformsLib.lights, {
+          emissive: {
+            value: /*@__PURE__*/new Color(0x000000)
+          },
+          roughness: {
+            value: 1.0
+          },
+          metalness: {
+            value: 0.0
+          },
+          envMapIntensity: {
+            value: 1
+          } // temporary
+        }]);
+
+        uniforms['diffuse'].value = mat.color;
+        uniforms['opacity'].value = mat.opacity;
+        uniforms['emissive'].value = mat.emissive;
+        uniforms['roughness'].value = mat.roughness;
+        uniforms['metalness'].value = mat.metalness;
+        if (mat.envMap) {
+          uniforms['envMap'].value = mat.envMap;
+          uniforms['envMapIntensity'].value = mat.envMapIntensity;
+        }
+        if (mat.normalMap) {
+          uniforms['normalMap'].value = mat.normalMap;
+          uniforms['normalScale'].value = mat.normalScale;
+        }
+        if (mat.roughnessMap) {
+          uniforms['roughnessMap'].value = mat.roughnessMap;
+        }
+        if (mat.metalnessMap) {
+          uniforms['metalnessMap'].value = mat.metalnessMap;
+        }
+      } else {
+        uniforms = {};
+        uniforms['map'] = new Uniform(this.settings.material.map);
+      }
+      if (this.settings.material.map) {
+        defines['USE_MAP'] = '';
+        defines['USE_UV'] = '';
+        defines['UV_TILE'] = '';
+        var uTileCount = this.settings.uTileCount;
+        var vTileCount = this.settings.vTileCount;
+        uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.material.map.matrix));
+        uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+      }
       //@ts-ignore
-      uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
-      var uTileCount = this.settings.uTileCount;
-      var vTileCount = this.settings.vTileCount;
-      defines['UV_TILE'] = '';
-      uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+      defines['USE_COLOR_ALPHA'] = '';
+      var needLights = false;
       if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.Mesh) {
         var vertexShader;
-        var side;
+        var fragmentShader;
         if (this.settings.renderMode === RenderMode.Mesh) {
-          vertexShader = local_particle_vert;
-          side = DoubleSide;
+          if (this.settings.material.type === "MeshStandardMaterial" || this.settings.material.type === "MeshPhysicalMaterial") {
+            defines['USE_COLOR'] = '';
+            vertexShader = local_particle_physics_vert;
+            fragmentShader = particle_physics_frag;
+            needLights = true;
+          } else {
+            vertexShader = local_particle_vert;
+            fragmentShader = particle_frag;
+          }
         } else {
           vertexShader = particle_vert;
-          side = FrontSide;
+          fragmentShader = particle_frag;
         }
         this.material = new ShaderMaterial({
           uniforms: uniforms,
           defines: defines,
           vertexShader: vertexShader,
-          fragmentShader: particle_frag,
-          transparent: this.settings.transparent,
-          depthWrite: !this.settings.transparent,
-          blending: this.settings.blending || AdditiveBlending,
-          side: side
+          fragmentShader: fragmentShader,
+          transparent: this.settings.material.transparent,
+          depthWrite: !this.settings.material.transparent,
+          blending: this.settings.material.blending,
+          side: this.settings.material.side,
+          lights: needLights
         });
       } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
         uniforms['speedFactor'] = new Uniform(1.0);
@@ -4265,9 +4337,10 @@ var SpriteBatch = /*#__PURE__*/function (_VFXBatch) {
           defines: defines,
           vertexShader: stretched_bb_particle_vert,
           fragmentShader: particle_frag,
-          transparent: this.settings.transparent,
-          depthWrite: !this.settings.transparent,
-          blending: this.settings.blending || AdditiveBlending
+          transparent: this.settings.material.transparent,
+          depthWrite: !this.settings.material.transparent,
+          blending: this.settings.material.blending,
+          side: this.settings.material.side
         });
       } else {
         throw new Error("render mode unavailable");
@@ -4395,7 +4468,7 @@ var SpriteBatch = /*#__PURE__*/function (_VFXBatch) {
 
 var trail_frag = /* glsl */"\n\n#include <common>\n#include <uv_pars_fragment>\n#include <map_pars_fragment>\n#include <fog_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\n\nuniform sampler2D alphaMap;\nuniform float useAlphaMap;\nuniform float visibility;\nuniform float alphaTest;\nuniform vec2 repeat;\n\nvarying vec4 vColor;\n    \nvoid main() {\n    #include <clipping_planes_fragment>\n    #include <logdepthbuf_fragment>\n\n    vec4 c = vColor;\n    \n    #ifdef USE_MAP\n    c *= texture2D( map, vUv * repeat );\n    #endif\n    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUv * repeat ).a;\n    if( c.a < alphaTest ) discard;\n    gl_FragColor = c;\n\n    #include <fog_fragment>\n    #include <tonemapping_fragment>\n}";
 
-var trail_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute vec4 color;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\nvarying vec4 vColor;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    #include <uv_vertex>\n    \n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
+var trail_vert = /* glsl */"\n#include <common>\n#include <uv_pars_vertex>\n#include <color_pars_vertex>\n#include <clipping_planes_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\n\nattribute vec3 previous;\nattribute vec3 next;\nattribute float side;\nattribute float width;\n\nuniform vec2 resolution;\nuniform float lineWidth;\nuniform float sizeAttenuation;\n\nvarying vec2 vUV;\n    \nvec2 fix(vec4 i, float aspect) {\n    vec2 res = i.xy / i.w;\n    res.x *= aspect;\n    return res;\n}\n    \nvoid main() {\n\n    #include <uv_vertex>\n    \n    float aspect = resolution.x / resolution.y;\n\n    vColor = color;\n\n    mat4 m = projectionMatrix * modelViewMatrix;\n    vec4 finalPosition = m * vec4( position, 1.0 );\n    vec4 prevPos = m * vec4( previous, 1.0 );\n    vec4 nextPos = m * vec4( next, 1.0 );\n\n    vec2 currentP = fix( finalPosition, aspect );\n    vec2 prevP = fix( prevPos, aspect );\n    vec2 nextP = fix( nextPos, aspect );\n\n    float w = lineWidth * width;\n\n    vec2 dir;\n    if( nextP == currentP ) dir = normalize( currentP - prevP );\n    else if( prevP == currentP ) dir = normalize( nextP - currentP );\n    else {\n        vec2 dir1 = normalize( currentP - prevP );\n        vec2 dir2 = normalize( nextP - currentP );\n        dir = normalize( dir1 + dir2 );\n\n        vec2 perp = vec2( -dir1.y, dir1.x );\n        vec2 miter = vec2( -dir.y, dir.x );\n        //w = clamp( w / dot( miter, perp ), 0., 4., * lineWidth * width );\n\n    }\n\n    //vec2 normal = ( cross( vec3( dir, 0. ) vec3( 0., 0., 1. ) ) ).xy;\n    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );\n    normal.xy *= .5 * w;\n    normal *= projectionMatrix;\n    if( sizeAttenuation == 0. ) {\n        normal.xy *= finalPosition.w;\n        normal.xy /= ( vec4( resolution, 0., 1. ) * projectionMatrix ).xy;\n    }\n\n    finalPosition.xy += normal.xy * side;\n\n    gl_Position = finalPosition;\n\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t\n    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n    \n\t#include <fog_vertex>\n}";
 
 new Vector3(0, 0, 1);
 var TrailBatch = /*#__PURE__*/function (_VFXBatch) {
@@ -4500,19 +4573,20 @@ var TrailBatch = /*#__PURE__*/function (_VFXBatch) {
       var defines = {};
       defines['USE_MAP'] = '';
       defines['USE_UV'] = '';
-      uniforms['map'] = new Uniform(this.settings.texture);
+      defines['USE_COLOR_ALPHA'] = '';
+      uniforms['map'] = new Uniform(this.settings.material.map);
       //@ts-ignore
-      uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.texture.matrix));
+      uniforms['uvTransform'] = new Uniform(new Matrix3().copy(this.settings.material.map.matrix));
       if (this.settings.renderMode === RenderMode.Trail) {
         this.material = new ShaderMaterial({
           uniforms: uniforms,
           defines: defines,
           vertexShader: trail_vert,
           fragmentShader: trail_frag,
-          transparent: this.settings.transparent,
-          depthWrite: !this.settings.transparent,
+          transparent: this.settings.material.transparent,
+          depthWrite: !this.settings.material.transparent,
           side: DoubleSide,
-          blending: this.settings.blending || AdditiveBlending
+          blending: this.settings.material.blending || AdditiveBlending
         });
       } else {
         throw new Error("render mode unavailable");
@@ -4745,7 +4819,7 @@ var BatchedRenderer = /*#__PURE__*/function (_Object3D) {
   }], [{
     key: "equals",
     value: function equals(a, b) {
-      return a.texture === b.texture && a.blending === b.blending && a.renderMode === b.renderMode && a.uTileCount === b.uTileCount && a.vTileCount === b.vTileCount && a.instancingGeometry === b.instancingGeometry && a.transparent === b.transparent && a.renderOrder === b.renderOrder;
+      return a.material.side === b.material.side && a.material.blending === b.material.blending && a.material.transparent === b.material.transparent && a.material.map === b.material.map && a.renderMode === b.renderMode && a.uTileCount === b.uTileCount && a.vTileCount === b.vTileCount && a.instancingGeometry === b.instancingGeometry && a.renderOrder === b.renderOrder;
     }
   }]);
   return BatchedRenderer;
@@ -5082,7 +5156,8 @@ var QuarksLoader = /*#__PURE__*/function (_ObjectLoader) {
       var geometry, material;
       var meta = {
         textures: textures,
-        geometries: geometries
+        geometries: geometries,
+        materials: materials
       };
       var dependencies = {};
       switch (data.type) {

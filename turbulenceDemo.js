@@ -2,7 +2,7 @@
 import {
     Group,
     Scene,
-    MeshStandardMaterial,
+    MeshBasicMaterial,
     PlaneBufferGeometry,
     PointLight,
     DoubleSide,
@@ -37,8 +37,7 @@ export class TurbulenceDemo extends Demo {
             emissionOverTime: new ConstantValue(500),
 
             shape: new ConeEmitter({radius: 0.5, angle: 0}),
-            texture: this.texture,
-            blending: AdditiveBlending,
+            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
             renderMode: RenderMode.BillBoard,
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
