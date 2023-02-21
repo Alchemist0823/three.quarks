@@ -433,7 +433,8 @@ export class ParticleSystem {
             }
             if (this.worldSpace) {
                 particle.position.applyMatrix4(matrix);
-                particle.size = particle.size * (scale.x + scale.y + scale.z) / 3;
+                particle.startSize = particle.startSize * (scale.x + scale.y + scale.z) / 3;
+                particle.size = particle.startSize;
                 particle.velocity.multiply(scale).applyMatrix3(this.normalMatrix);
                 if (particle.rotation && particle.rotation instanceof Quaternion) {
                     particle.rotation.multiplyQuaternions(tempQ, particle.rotation);
