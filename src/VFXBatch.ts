@@ -5,7 +5,7 @@ import {
     Mesh,
     ShaderMaterial,
     Texture,
-    BufferGeometry, Material,
+    BufferGeometry, Material, Raycaster, Intersection,
 } from 'three';
 
 
@@ -56,6 +56,11 @@ export abstract class VFXBatch extends Mesh {
 
     removeSystem(system: ParticleSystem) {
         this.systems.delete(system);
+    }
+
+    raycast(raycaster: Raycaster, intersects: Intersection[]) {
+        // do nothing to avoid raycasting generate incorrect results
+        return;
     }
 
     abstract setupBuffers(): void;
