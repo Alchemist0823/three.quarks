@@ -18878,8 +18878,8 @@ function WebGLProgram( renderer, cacheKey, parameters, bindingStates ) {
 	const vertexGlsl = versionString + prefixVertex + vertexShader;
 	const fragmentGlsl = versionString + prefixFragment + fragmentShader;
 
-	console.log( '*VERTEX*', vertexGlsl );
-    console.log( '*FRAGMENT*', fragmentGlsl );
+	// console.log( '*VERTEX*', vertexGlsl );
+    // console.log( '*FRAGMENT*', fragmentGlsl );
 
 	const glVertexShader = WebGLShader( gl, 35633, vertexGlsl );
 	const glFragmentShader = WebGLShader( gl, 35632, fragmentGlsl );

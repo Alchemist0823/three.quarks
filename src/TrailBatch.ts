@@ -78,6 +78,8 @@ export class TrailBatch extends VFXBatch {
     }
 
     rebuildMaterial() {
+        this.layers.mask = this.settings.layers.mask;
+
         let uniforms: { [a: string]: { value: any } } = {
             lineWidth: {value: 1},
             map: {value: null},

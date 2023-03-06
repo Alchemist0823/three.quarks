@@ -5,7 +5,7 @@ import {
     Mesh,
     ShaderMaterial,
     Texture,
-    BufferGeometry, Material, Raycaster, Intersection,
+    BufferGeometry, Material, Raycaster, Intersection, Layers
 } from 'three';
 
 
@@ -17,6 +17,7 @@ export interface VFXBatchSettings {
     vTileCount: number;
     renderMode : RenderMode;
     renderOrder : number;
+    layers: Layers;
 }
 
 export enum RenderMode {
@@ -38,6 +39,8 @@ export abstract class VFXBatch extends Mesh {
         super();
         this.maxParticles = 1000;
         this.systems = new Set<ParticleSystem>();
+        let layers = new Layers();
+        layers.mask = settings.layers.mask;
         this.settings = {
             instancingGeometry: settings.instancingGeometry,
             renderMode: settings.renderMode,
@@ -45,6 +48,7 @@ export abstract class VFXBatch extends Mesh {
             material: settings.material,
             uTileCount: settings.uTileCount,
             vTileCount: settings.vTileCount,
+            layers: layers,
         };
         this.frustumCulled = false;
         this.renderOrder = this.settings.renderOrder;
@@ -56,11 +60,6 @@ export abstract class VFXBatch extends Mesh {
 
     removeSystem(system: ParticleSystem) {
         this.systems.delete(system);
-    }
-
-    raycast(raycaster: Raycaster, intersects: Intersection[]) {
-        // do nothing to avoid raycasting generate incorrect results
-        return;
     }
 
     abstract setupBuffers(): void;

@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "A General-Purpose Particle System for three.js",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/three.quarks.js",
@@ -18,7 +18,7 @@
     "build": "yarn run build:production",
     "prepublishOnly": "yarn run build:production",
     "deploy": "gh-pages -d examples",
-    "doc": "typedoc --out docs --theme default src",
+    "docs": "typedoc --out docs --theme default src",
     "example": "http-server ./examples",
     "test": "jest",
     "test:coverage": "jest --coverage",

@@ -22,7 +22,8 @@ export class BatchedRenderer extends Object3D {
             a.uTileCount === b.uTileCount &&
             a.vTileCount === b.vTileCount &&
             a.instancingGeometry === b.instancingGeometry &&
-            a.renderOrder === b.renderOrder;
+            a.renderOrder === b.renderOrder &&
+            a.layers.mask === b.layers.mask;
     }
 
     addSystem(system: ParticleSystem) {

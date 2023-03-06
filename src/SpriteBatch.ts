@@ -98,6 +98,8 @@ export class SpriteBatch extends VFXBatch {
     }
 
     rebuildMaterial() {
+        this.layers.mask = this.settings.layers.mask;
+
         let uniforms: { [a: string]: Uniform };
         let defines: { [b: string]: string } = {};
 

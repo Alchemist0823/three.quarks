@@ -11,7 +11,7 @@ import {
     AdditiveBlending,
     BaseEvent,
     Blending,
-    BufferGeometry, DoubleSide, Material,
+    BufferGeometry, DoubleSide, Layers, Material,
     Matrix3,
     Matrix4, MeshBasicMaterial,
     NormalBlending, Object3D,
@@ -77,6 +77,7 @@ export interface ParticleSystemParameters {
     rendererEmitterSettings?: TrailSettings | MeshSettings | BillBoardSettings;
     speedFactor?: number;
     material: Material;
+    layers?: Layers;
     startTileIndex?: ValueGenerator;
     uTileCount?: number;
     vTileCount?: number;
@@ -115,6 +116,7 @@ export interface ParticleSystemJSONParameters {
     speedFactor?: number;
     texture?: string; // deprecated
     material: string;
+    layers?: number;
     startTileIndex: FunctionJSON | number;
     uTileCount: number;
     vTileCount: number;
@@ -210,6 +212,11 @@ export class ParticleSystem {
 
     get time(): number {
         return this.emissionState.time;
+    }
+
+    // currently if you change the layers setting, you need manually set this.neededToUpdateRender = true;
+    get layers() {
+        return this.rendererSettings.layers;
     }
 
     get texture() {
@@ -337,13 +344,15 @@ export class ParticleSystem {
         this.worldSpace = parameters.worldSpace ?? false;
         this.speedFactor = parameters.speedFactor ?? 0;
         this.rendererEmitterSettings = parameters.rendererEmitterSettings ?? {};
+
         this.rendererSettings = {
             instancingGeometry: parameters.instancingGeometry ?? DEFAULT_GEOMETRY,
             renderMode: parameters.renderMode ?? RenderMode.BillBoard,
             renderOrder: parameters.renderOrder ?? 0,
             material: parameters.material,
             uTileCount: parameters.uTileCount ?? 1,
-            vTileCount: parameters.vTileCount ?? 1
+            vTileCount: parameters.vTileCount ?? 1,
+            layers: parameters.layers ?? new Layers(),
         };
         this.neededToUpdateRender = true;
 
@@ -679,6 +688,7 @@ export class ParticleSystem {
             speedFactor: this.renderMode === RenderMode.StretchedBillBoard ? this.speedFactor : 0,
             //texture: this.texture.uuid,
             material: this.rendererSettings.material.uuid,
+            layers: this.layers.mask,
             startTileIndex: this.startTileIndex.toJSON(),
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
@@ -703,6 +713,10 @@ export class ParticleSystem {
             rendererEmitterSettings = {};
         }
 
+        let layers = new Layers();
+        if (json.layers) {
+            layers.mask = json.layers;
+        }
         const ps = new ParticleSystem({
             autoDestroy: json.autoDestroy,
             looping: json.looping,
@@ -724,6 +738,7 @@ export class ParticleSystem {
             rendererEmitterSettings: rendererEmitterSettings,
             renderOrder: json.renderOrder,
             speedFactor: json.speedFactor,
+            layers: layers,
             material: json.material ? meta.materials[json.material] : (
                 json.texture ? new MeshBasicMaterial({
                         map: meta.textures[json.texture],
@@ -787,6 +802,9 @@ export class ParticleSystem {
             rendererEmitterSettings = {};
         }
 
+        let layers = new Layers();
+        layers.mask = this.layers.mask;
+
         return new ParticleSystem({
             autoDestroy: this.autoDestroy,
             looping: this.looping,
@@ -816,6 +834,7 @@ export class ParticleSystem {
             behaviors: newBehaviors,
 
             worldSpace: this.worldSpace,
+            layers: layers,
         });
     }
 

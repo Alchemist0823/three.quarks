@@ -14,7 +14,7 @@ import {
     SizeOverLife,
     SphereEmitter, TrailSettings
 } from "../src";
-import {AdditiveBlending, MeshBasicMaterial, NormalBlending, Texture, Vector3, Vector4} from "three";
+import {AdditiveBlending, Layers, MeshBasicMaterial, NormalBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedRenderer} from "../src/BatchedRenderer";
 
@@ -24,6 +24,8 @@ describe("ParticleEmitter", () => {
 
     const renderer = new BatchedRenderer();
     const texture = new Texture();
+    const layers = new Layers();
+    layers.enable(1);
     const glowBeam = new ParticleSystem({
         duration: 1,
         looping: true,
@@ -45,7 +47,8 @@ describe("ParticleEmitter", () => {
         uTileCount: 10,
         vTileCount: 10,
         renderOrder: 2,
-        renderMode: RenderMode.Trail
+        renderMode: RenderMode.Trail,
+        layers: layers,
     });
     glowBeam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
     glowBeam.addBehavior(new ApplyForce(new Vector3(0, 1, 0), new ConstantValue(10)));
@@ -58,6 +61,7 @@ describe("ParticleEmitter", () => {
         const json = glowBeam.emitter.toJSON(meta);
 
         //expect(meta.textures).toBe();
+        expect(json.object.ps.layers).toBe(3);
         expect(json.object.ps.duration).toBe(1);
         expect(json.object.ps.looping).toBe(true);
         expect(json.object.ps.startLife.type).toBe("IntervalValue");
@@ -91,6 +95,7 @@ describe("ParticleEmitter", () => {
 
     test(".clone", ()=> {
         const newPS = glowBeam.clone();
+        expect(newPS.layers.mask).toBe(3);
         expect(newPS.behaviors.length).toBe(glowBeam.behaviors.length);
         expect(newPS.blending).toBe(glowBeam.blending);
         expect(newPS.rendererSettings.renderOrder).toBe(glowBeam.rendererSettings.renderOrder);
@@ -104,6 +109,7 @@ describe("ParticleEmitter", () => {
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {
         }) as ParticleEmitter<Event>;
+        expect(emitter.system.rendererSettings.layers.mask).toBe(3);
         expect(emitter.system.startTileIndex.type).toBe("value");
         expect(emitter.system.rendererSettings.instancingGeometry).toBeDefined();
         expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
