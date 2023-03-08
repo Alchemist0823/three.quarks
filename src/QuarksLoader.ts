@@ -26,10 +26,8 @@ import {
     InstancedBufferAttribute, LOD, Line, LineSegments, LineLoop, Points, SpriteMaterial, Bone
 } from "three";
 import {ParticleSystem} from "./ParticleSystem";
-import {BatchedRenderer} from "./BatchedRenderer";
 import {Behavior, EmitSubParticleSystem} from "./behaviors";
 import {ParticleEmitter} from "./ParticleEmitter";
-import {MeshSurfaceEmitter} from "./shape";
 
 export class QuarksLoader extends ObjectLoader {
     /*manager: LoadingManager;
@@ -45,14 +43,14 @@ export class QuarksLoader extends ObjectLoader {
     }
 
     linkReference(object: Object3D) {
-        let objectsMap: { [uuid: string]: Object3D } = {};
+        const objectsMap: { [uuid: string]: Object3D } = {};
         object.traverse( function ( child ) {
             objectsMap[child.uuid] = child;
         } );
         object.traverse( function ( child ) {
             if ( child.type === "ParticleEmitter") {
-                let system = (child as ParticleEmitter<Event>).system;
-                let shape = system.emitterShape;
+                const system = (child as ParticleEmitter<Event>).system;
+                const shape = system.emitterShape;
                 /*if (shape instanceof MeshSurfaceEmitter) {
                     shape.geometry = objectsMap[shape.geometry as any] as Mesh;
                 }*/
@@ -66,7 +64,7 @@ export class QuarksLoader extends ObjectLoader {
     }
 
     parse<T extends Object3D>(json: any, onLoad?: (object: Object3D) => void): T {
-        let object = super.parse(json, onLoad);
+        const object = super.parse(json, onLoad);
         this.linkReference(object);
         return object as T;
     }
@@ -246,8 +244,7 @@ export class QuarksLoader extends ObjectLoader {
 
                 break;
 
-            case 'InstancedMesh':
-
+            case 'InstancedMesh': {
                 geometry = getGeometry(data.geometry);
                 material = getMaterial(data.material);
                 const count = data.count;
@@ -259,6 +256,7 @@ export class QuarksLoader extends ObjectLoader {
                 if (instanceColor !== undefined) object.instanceColor = new InstancedBufferAttribute(new Float32Array(instanceColor.array), instanceColor.itemSize);
 
                 break;
+            }
 
             case 'LOD':
 

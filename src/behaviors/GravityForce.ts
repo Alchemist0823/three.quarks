@@ -1,7 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
 import {Vector3} from "three";
-import {ValueGenerator, ValueGeneratorFromJSON} from "../functions";
 
 export class GravityForce implements Behavior {
 
@@ -32,7 +31,7 @@ export class GravityForce implements Behavior {
     }
 
     static fromJSON(json: any): Behavior {
-        return new GravityForce(new Vector3(json.center![0], json.center![1],json.center![2]), json.magnitude);
+        return new GravityForce(new Vector3(json.center[0], json.center[1],json.center[2]), json.magnitude);
     }
 
     clone(): Behavior {

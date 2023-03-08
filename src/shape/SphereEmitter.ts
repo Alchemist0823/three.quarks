@@ -1,6 +1,6 @@
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, MathUtils} from "three";
+import { MathUtils} from "three";
 
 export interface SphereEmitterParameters {
     radius?: number;
@@ -9,7 +9,7 @@ export interface SphereEmitterParameters {
 }
 
 export class SphereEmitter implements EmitterShape {
-    type: string = "sphere";
+    type = "sphere";
     radius: number;
     arc: number;
     thickness: number; //[0, 1]

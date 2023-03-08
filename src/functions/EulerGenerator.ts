@@ -1,5 +1,5 @@
 import {RotationGenerator} from "./RotationGenerator";
-import {Euler, Quaternion, Vector3} from "three";
+import {Euler, Quaternion} from "three";
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./ValueGenerator";
 import {FunctionJSON} from "./FunctionJSON";
 
@@ -11,6 +11,7 @@ export class EulerGenerator implements RotationGenerator {
     }
 
     genValue(quat: Quaternion, t?: number): Quaternion {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return quat.setFromEuler(new Euler(this.angleX.genValue(t!), this.angleY.genValue(t!), this.angleZ.genValue(t!)));
     }
 

@@ -1,4 +1,4 @@
-import {Color, Matrix4, Quaternion, Vector3, Vector4} from "three";
+import { Matrix4, Quaternion, Vector3, Vector4} from "three";
 import { EmissionState } from "./ParticleSystem";
 import { LinkedList } from "./util/LinkedList";
 
@@ -24,14 +24,14 @@ export interface Particle {
 export class SpriteParticle implements Particle {
     parentMatrix?: Matrix4;
     // CPU
-    startSpeed: number = 0;
+    startSpeed = 0;
     startColor: Vector4 = new Vector4();
-    startSize: number = 1;
+    startSize = 1;
     position: Vector3 = new Vector3();
     velocity: Vector3 = new Vector3();
-    age: number = 0;
-    life: number = 1;
-    size: number = 1;
+    age = 0;
+    life = 1;
+    size = 1;
 
     // extra
     angularVelocity?: number | Quaternion;
@@ -39,7 +39,7 @@ export class SpriteParticle implements Particle {
     // GPU
     rotation: number | Quaternion = 0;
     color: Vector4 = new Vector4();
-    uvTile: number = 0;
+    uvTile = 0;
 
     get died() {
         return this.age >= this.life;
@@ -54,22 +54,22 @@ export class RecordState {
 export class TrailParticle implements Particle {
     parentMatrix?: Matrix4;
 
-    startSpeed: number = 0;
+    startSpeed = 0;
     startColor: Vector4 = new Vector4();
-    startSize: number = 1;
+    startSize = 1;
     position: Vector3 = new Vector3();
     localPosition?: Vector3;
     velocity: Vector3 = new Vector3();
-    age: number = 0;
-    life: number = 1;
-    size: number = 1;
-    length: number = 100;
+    age = 0;
+    life = 1;
+    size = 1;
+    length = 100;
 
     // GPU
     color: Vector4 = new Vector4();
     // use link list instead
     previous: LinkedList<RecordState> = new LinkedList<RecordState>();
-    uvTile: number = 0;
+    uvTile = 0;
 
     update() {
         if (this.age <= this.life) {

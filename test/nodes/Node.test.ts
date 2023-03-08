@@ -19,7 +19,7 @@ describe("Node", () => {
         graph.addNode(input1);
         graph.addNode(output);
 
-        let interpreter = new Interpreter();
+        const interpreter = new Interpreter();
         interpreter.run(graph, {inputs: [], outputs: []});
         expect(graph.outputNodes[0].outputValues[0]).toBe(9);
 

@@ -1,4 +1,4 @@
-import {MathUtils, Vector4} from "three";
+import { Vector4} from "three";
 import {ColorGenerator} from "./ColorGenerator";
 import {FunctionJSON} from "./FunctionJSON";
 import {ColorToJSON, JSONToColor} from "../util/JSONUtil";

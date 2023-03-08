@@ -1,11 +1,11 @@
-import {BoxGeometry, Mesh, SphereGeometry} from "three";
+import {BoxGeometry, SphereGeometry} from "three";
 import {MeshSurfaceEmitter, SpriteParticle} from "../../src";
 
 describe("MeshSurfaceEmitter", () => {
     test("BoxGeometry", () => {
         const geometry = new BoxGeometry(2, 2, 2, 2, 2, 2);
         const emitter = new MeshSurfaceEmitter(geometry);
-        let p = new SpriteParticle();
+        const p = new SpriteParticle();
         for (let i = 0; i < 50; i ++) {
             emitter.initialize(p);
             expect(p.position.x).toBeLessThanOrEqual(1);
@@ -20,7 +20,7 @@ describe("MeshSurfaceEmitter", () => {
     test("SphereGeometry", () => {
         const geometry = new SphereGeometry(5, 32, 16);
         const emitter = new MeshSurfaceEmitter(geometry);
-        let p = new SpriteParticle();
+        const p = new SpriteParticle();
         for (let i = 0; i < 5; i ++) {
             emitter.initialize(p);
             expect(p.position.length()).toBeLessThan(5.5);

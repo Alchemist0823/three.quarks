@@ -41,8 +41,8 @@ export class Noise implements Behavior {
 
     static fromJSON(json: any): Behavior {
         return new Noise(
-            new Vector3(json.frequency![0], json.frequency![1], json.frequency![2]),
-            new Vector3(json.power![0], json.power![1], json.power![2]),
+            new Vector3(json.frequency[0], json.frequency[1], json.frequency[2]),
+            new Vector3(json.power[0], json.power[1], json.power[2]),
         );
     }
 

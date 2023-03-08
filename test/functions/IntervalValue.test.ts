@@ -1,5 +1,4 @@
 import {IntervalValue} from "../../src";
-import { Vector4 } from "three";
 
 describe("IntervalValue", () => {
     test(".toJSON", () => {

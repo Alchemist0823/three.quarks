@@ -16,11 +16,11 @@ export class Bezier {
 
     // get the coefficients of the polynomial's derivatives
     derivativeCoefficients(points: number[]): number[][] {
-        let dpoints = [];
+        const dpoints = [];
         for (let p = points, c = p.length - 1; c > 0; c--) {
-            let list = [];
+            const list = [];
             for (let j = 0; j < c; j++) {
-                let dpt = c * (p[j + 1] - p[j]);
+                const dpt = c * (p[j + 1] - p[j]);
                 list.push(dpt);
             }
             dpoints.push(list);
@@ -51,10 +51,10 @@ export class Bezier {
         let p = this.p;
         let _p = [],
             pt,
-            q = [],
             idx = 0,
             i = 0,
             l = 0;
+        const q = [];
         q[idx++] = p[0];
         q[idx++] = p[1];
         q[idx++] = p[2];
@@ -75,8 +75,8 @@ export class Bezier {
 
     split(t: number) {
         // no shortcut: use "de Casteljau" iteration.
-        let q = this.hull(t);
-        let result = {
+        const q = this.hull(t);
+        const result = {
             left : new Bezier(q[0], q[4], q[7], q[9]),
             right: new Bezier(q[9], q[8], q[6], q[3]),
             span: q

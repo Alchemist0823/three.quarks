@@ -1,7 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle, SpriteParticle} from "../Particle";
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
-import {Quaternion, Vector3} from "three";
+import {Quaternion} from "three";
 import {RotationGenerator, RotationGeneratorFromJSON} from "../functions/RotationGenerator";
 
 const IdentityQuaternion = new Quaternion();

@@ -4,9 +4,7 @@ import {DonutEmitter} from "./DonutEmitter";
 import {PointEmitter} from "./PointEmitter";
 import {SphereEmitter} from "./SphereEmitter";
 import {MeshSurfaceEmitter} from "./MeshSurfaceEmitter";
-import {ParticleSystemEmitter} from "./ParticleSystemEmitter";
 import {Constructable, ParameterPair} from "../TypeUtil";
-import {ApplyForce, BehaviorPlugin, BehaviorTypes} from "../behaviors";
 import { GridEmitter } from "./GridEmitter";
 import {JsonMetaData} from "../ParticleSystem";
 

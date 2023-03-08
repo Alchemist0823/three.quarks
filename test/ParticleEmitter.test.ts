@@ -14,7 +14,7 @@ import {
     SizeOverLife,
     SphereEmitter, TrailSettings
 } from "../src";
-import {AdditiveBlending, Layers, MeshBasicMaterial, NormalBlending, Texture, Vector3, Vector4} from "three";
+import { Layers, MeshBasicMaterial, NormalBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedRenderer} from "../src/BatchedRenderer";
 
@@ -112,6 +112,7 @@ describe("ParticleEmitter", () => {
         expect(emitter.system.rendererSettings.layers.mask).toBe(3);
         expect(emitter.system.startTileIndex.type).toBe("value");
         expect(emitter.system.rendererSettings.instancingGeometry).toBeDefined();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe("value");
         expect(emitter.system.behaviors.length).toBe(2);
 

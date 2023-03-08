@@ -15,6 +15,13 @@ export class Interpreter {
     private context_?: ExecutionContext;
 
     private traverse(node: Node) {
+        if (this.context_ === undefined) {
+            throw new Error("context is undefined");
+        }
+        if (this.graph_ === undefined) {
+            throw new Error("graph is undefined");
+        }
+
         this.visited.add(node.id);
         const inputValues = [];
         for (let i = 0; i < node.inputs.length; i ++) {
@@ -29,16 +36,22 @@ export class Interpreter {
                     throw new Error(`Node ${node.id} has not inputs`);
                 }*/
             } else {
-                inputValues.push((node.inputs[i] as ConstInput).getValue(this.context_!));
+                inputValues.push((node.inputs[i] as ConstInput).getValue(this.context_));
             }
         }
         // calculation
-        node.type.func(this.context_!, inputValues, node.outputValues);
-        this.graph_!.nodesInOrder.push(node);
+        node.type.func(this.context_, inputValues, node.outputValues);
+        this.graph_.nodesInOrder.push(node);
     }
 
     private executeCompiledGraph() {
-        const nodes = this.graph_!.nodesInOrder;
+        if (this.context_ === undefined) {
+            throw new Error("context is undefined");
+        }
+        if (this.graph_ === undefined) {
+            throw new Error("graph is undefined");
+        }
+        const nodes = this.graph_.nodesInOrder;
         for (let i = 0; i < nodes.length; i ++) {
             const inputValues = [];
             const node = nodes[i];
@@ -46,12 +59,12 @@ export class Interpreter {
                 if (node.inputs[j] instanceof Wire) {
                     inputValues.push((node.inputs[j] as Wire).input.outputValues[(node.inputs[j] as Wire).inputIndex]);
                 } else if (node.inputs[j] !== undefined) {
-                    inputValues.push((node.inputs[j] as ConstInput).getValue(this.context_!));
+                    inputValues.push((node.inputs[j] as ConstInput).getValue(this.context_));
                 } else {
                     throw new Error(`miss input for node ${node.id}`);
                 }
             }
-            node.type.func(this.context_!, inputValues, node.outputValues);
+            node.type.func(this.context_, inputValues, node.outputValues);
         }
     }
 

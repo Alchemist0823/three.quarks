@@ -1,9 +1,8 @@
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, MathUtils} from "three";
 
 export class PointEmitter implements EmitterShape {
-    type: string = "point";
+    type = "point";
 
     constructor() {
     }

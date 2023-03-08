@@ -1,8 +1,7 @@
 import {PiecewiseFunction} from "./PiecewiseFunction";
-import {ColorGenerator, FunctionColorGenerator} from "./ColorGenerator";
-import {Color, Vector4} from "three";
+import { FunctionColorGenerator} from "./ColorGenerator";
+import { Vector4} from "three";
 import {ColorRange} from "./ColorRange";
-import {Bezier} from "./Bezier";
 import {FunctionJSON} from "./FunctionJSON";
 
 export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionColorGenerator {
@@ -15,7 +14,7 @@ export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionC
     }
 
     genColor(color: Vector4, t: number): Vector4 {
-        let index = this.findFunction(t);
+        const index = this.findFunction(t);
         if (index === -1) {
             return color.copy(this.functions[0][0].a);
         }

@@ -1,5 +1,4 @@
 import {PiecewiseBezier, Bezier} from "../../src";
-import { Vector4 } from "three";
 
 describe("PiecewiseBezier", () => {
     test(".toJSON", () => {

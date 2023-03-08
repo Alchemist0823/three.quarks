@@ -3,8 +3,6 @@ import {
    BatchedRenderer, Bezier,
    ConstantColor,
    ConstantValue,
-   IntervalValue,
-   ParticleEmitter,
    ParticleSystem, PiecewiseBezier,
    RenderMode, SizeOverLife,
    SphereEmitter
@@ -53,7 +51,7 @@ describe("BatchedRenderer", () => {
 
       expect(glowBeam.particleNum).toBeGreaterThan(0);
 
-      let previousCount = glowBeam.particleNum;
+      const previousCount = glowBeam.particleNum;
 
       scene.remove(glowBeam.emitter);
       renderer.update(1);

@@ -10,7 +10,7 @@ export class NodeGraph {
     allNodes: Map<string, Node> = new Map<string, Node>();
     wires: Wire[] = [];
 
-    compiled: boolean = false;
+    compiled = false;
     nodesInOrder: Array<Node> = [];
 
     constructor(name: string) {
@@ -50,7 +50,7 @@ export class NodeGraph {
         wire.input.outputs[wire.inputIndex] = undefined;
         wire.output.inputs[wire.outputIndex] = undefined;
 
-        let index = this.wires.indexOf(wire);
+        const index = this.wires.indexOf(wire);
         if (index != -1) {
             this.wires[index] = this.wires[this.wires.length - 1];
             this.wires.pop();

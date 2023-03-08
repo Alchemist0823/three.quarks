@@ -1,9 +1,5 @@
-import {Particle} from "../Particle";
-import {Interpreter} from "./Interpreter";
-import {NodeGraph} from "./NodeGraph";
-import {Vector2, Vector3, Vector4} from "three";
-import {NodeTypes} from "./NodeDefs";
-import {genDefaultForNodeValueType, NodeValueType} from "./NodeValueType";
+import {Vector2} from "three";
+import {genDefaultForNodeValueType} from "./NodeValueType";
 import {ExecutionContext, NodeType} from "./NodeType";
 
 export class Node {

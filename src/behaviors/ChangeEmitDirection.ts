@@ -1,7 +1,7 @@
 import {Behavior} from "./Behavior";
-import {Particle, SpriteParticle} from "../Particle";
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
-import {Line, Line3, Plane, Quaternion, Vector2, Vector3} from "three";
+import {Particle} from "../Particle";
+import { ValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
+import { Quaternion, Vector3} from "three";
 
 const V3_Z = new Vector3(0, 0, 1);
 

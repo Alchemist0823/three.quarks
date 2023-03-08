@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {Bezier, FunctionValueGenerator, IntervalValue, ValueGenerator, ValueGeneratorFromJSON} from "../functions";
+import {Bezier, IntervalValue, ValueGeneratorFromJSON} from "../functions";
 import {Vector3} from "three";
 import {Sequencer, SequencerFromJSON} from "../sequencers/Sequencer";
 
@@ -36,8 +36,8 @@ export class ApplySequences implements Behavior {
     }
 
     update(particle: Particle, delta: number): void {
-        let sequencer = this.sequencers[this.index];
-        let delay = (particle as any).id * this.delay;
+        const sequencer = this.sequencers[this.index];
+        const delay = (particle as any).id * this.delay;
         if (this.time >= sequencer[0].a + delay && this.time <= sequencer[0].b + delay) {
             if (!(particle as any).inMotion) {
                 (particle as any).inMotion = true;
@@ -73,7 +73,7 @@ export class ApplySequences implements Behavior {
     }
 
     static fromJSON(json: any): Behavior {
-        let seq = new ApplySequences(json.delay);
+        const seq = new ApplySequences(json.delay);
         json.sequencers.forEach((sequencerJson: any) => {
             seq.sequencers.push([ValueGeneratorFromJSON(sequencerJson.range) as IntervalValue, SequencerFromJSON(sequencerJson.sequencer)]);
         })
@@ -81,7 +81,7 @@ export class ApplySequences implements Behavior {
     }
 
     clone(): Behavior {
-        let applySequences = new ApplySequences(this.delay);
+        const applySequences = new ApplySequences(this.delay);
         applySequences.sequencers = this.sequencers.map(seq => [seq[0].clone() as IntervalValue, seq[1].clone()]);
         return applySequences;
     }

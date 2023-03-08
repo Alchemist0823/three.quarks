@@ -12,8 +12,8 @@ export class PiecewiseBezier extends PiecewiseFunction<Bezier> implements Functi
         this.functions = curves;
     }
 
-    genValue(t: number = 0): number {
-        let index = this.findFunction(t);
+    genValue(t = 0): number {
+        const index = this.findFunction(t);
         if (index === -1) {
             return 0;
         }

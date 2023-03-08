@@ -46,6 +46,7 @@ export class CircularLinkedList<T> {
         } else {
             node.prev = this.head.prev;
             node.next = this.head;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.head.prev!.next = node;
             this.head.prev = node;
         }
@@ -57,6 +58,7 @@ export class CircularLinkedList<T> {
         const node = new LinkedListNode(data);
         node.prev = prevNode;
         node.next = prevNode.next;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         prevNode.next!.prev = node;
         prevNode.next = node;
         this.length++;
@@ -65,6 +67,7 @@ export class CircularLinkedList<T> {
 
     last(): LinkedListNode<T> | undefined {
         if (this.head) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             return this.head.prev!;
         } else
             return undefined;
@@ -76,8 +79,11 @@ export class CircularLinkedList<T> {
         let current = this.head;
         if (current !== null) {
             yield current.data;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             while (current!.next !== this.head) {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 current = current!.next;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 yield current!.data;
             }
         }

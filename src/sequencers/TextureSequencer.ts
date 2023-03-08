@@ -1,4 +1,3 @@
-import {Particle} from "../Particle";
 import {Sequencer} from "./Sequencer";
 import {Vector2, Vector3} from "three";
 
@@ -14,13 +13,13 @@ export class TextureSequencer implements Sequencer {
     }
 
     static fromJSON(json: any): Sequencer {
-        let textureSequencer = new TextureSequencer(json.scaleX, json.scaleY, new Vector3(json.position[0], json.position[1], json.position[2]));
+        const textureSequencer = new TextureSequencer(json.scaleX, json.scaleY, new Vector3(json.position[0], json.position[1], json.position[2]));
         textureSequencer.locations = json.locations.map((loc: any) => new Vector2(loc.x, loc.y));
         return textureSequencer;
     }
 
     clone(): Sequencer {
-        let textureSequencer = new TextureSequencer(this.scaleX, this.scaleY, this.position.clone());
+        const textureSequencer = new TextureSequencer(this.scaleX, this.scaleY, this.position.clone());
         textureSequencer.locations = this.locations.map(loc => loc.clone());
         return textureSequencer;
     }
@@ -39,14 +38,17 @@ export class TextureSequencer implements Sequencer {
 
     fromImage(img: CanvasImageSource, threshold: number) {
         // Create an empty canvas element
-        let canvas = document.createElement("canvas");
+        const canvas = document.createElement("canvas");
         canvas.width = img.width as number;
         canvas.height = img.height as number;
 
         // Copy the image contents to the canvas
-        let ctx = canvas.getContext("2d")!;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            return;
+        }
         ctx.drawImage(img, 0, 0);
-        let data = ctx.getImageData(0, 0, canvas.width, canvas.height, {colorSpace: "srgb"});
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height, {colorSpace: "srgb"});
         canvas.remove();
 
         this.locations.length = 0;

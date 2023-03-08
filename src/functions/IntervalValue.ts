@@ -1,7 +1,6 @@
 import {ValueGenerator} from "./ValueGenerator";
 import {MathUtils} from "three";
 import {FunctionJSON} from "./FunctionJSON";
-import {ColorToJSON} from "../util/JSONUtil";
 
 export class IntervalValue implements ValueGenerator {
 

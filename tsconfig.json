@@ -15,6 +15,12 @@
     "module": "es6",
     "strict": true
   },
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs",
+    "excludeInternal": true,
+    "excludePrivate": true,
+  },
   "include": ["src"],
   "exclude": ["node_modules", "test", "dist"]
 }

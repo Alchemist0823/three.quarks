@@ -1,21 +1,25 @@
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, Mesh, Triangle, BufferGeometry} from "three";
+import {Vector3, Triangle, BufferGeometry} from "three";
 import {JsonMetaData} from "../ParticleSystem";
 
 export class MeshSurfaceEmitter implements EmitterShape {
-    type: string = "mesh_surface";
+    type = "mesh_surface";
 
     private _triangleIndexToArea: number[] = [];
     private _geometry?: BufferGeometry;
 
     get geometry() {
-        return this._geometry!;
+        return this._geometry;
     }
-    set geometry(geometry: BufferGeometry) {
+    set geometry(geometry: BufferGeometry | undefined) {
         this._geometry = geometry;
-        if (typeof geometry === "string")
+        if (geometry === undefined) {
             return;
+        }
+        if (typeof geometry === "string") {
+            return;
+        }
         // optimization
         /*if (mesh.userData.triangleIndexToArea) {
             this._triangleIndexToArea = mesh.userData.triangleIndexToArea;
@@ -27,6 +31,7 @@ export class MeshSurfaceEmitter implements EmitterShape {
         if (!geometry.getIndex()) {
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const array = geometry.getIndex()!.array;
         const triCount = array.length / 3;
         this._triangleIndexToArea.push(0);
@@ -55,7 +60,8 @@ export class MeshSurfaceEmitter implements EmitterShape {
     private _tempC: Vector3 = new Vector3();
 
     initialize(p: Particle) {
-        if (!this._geometry) {
+        const geometry = this._geometry;
+        if (!geometry || geometry.getIndex() === null) {
             p.position.set(0, 0, 0);
             p.velocity.set(0, 0, 1).multiplyScalar(p.startSpeed);
             return;
@@ -80,9 +86,11 @@ export class MeshSurfaceEmitter implements EmitterShape {
             u1 = 1 - u1;
             u2 = 1 - u2;
         }
-        const geometry = this._geometry;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const index1 = geometry.getIndex()!.array[left * 3];
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const index2 = geometry.getIndex()!.array[left * 3 + 1];
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const index3 = geometry.getIndex()!.array[left * 3 + 2];
         const positionBuffer = geometry.getAttribute("position");
         this._tempA.fromBufferAttribute(positionBuffer, index1);

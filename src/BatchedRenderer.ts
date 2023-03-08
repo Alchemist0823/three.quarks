@@ -7,7 +7,7 @@ import {TrailBatch} from "./TrailBatch";
 export class BatchedRenderer extends Object3D {
     batches: Array<VFXBatch> = [];
     systemToBatchIndex: Map<ParticleSystem, number> = new Map<ParticleSystem, number>();
-    type: string = "BatchedRenderer";
+    type = "BatchedRenderer";
 
     constructor() {
         super();
@@ -27,7 +27,7 @@ export class BatchedRenderer extends Object3D {
     }
 
     addSystem(system: ParticleSystem) {
-        system.renderer = this;
+        system._renderer = this;
         const settings = system.getRendererSettings();
         for (let i = 0; i < this.batches.length; i++) {
             if (BatchedRenderer.equals(this.batches[i].settings, settings)) {
@@ -54,7 +54,7 @@ export class BatchedRenderer extends Object3D {
     }
 
     deleteSystem(system: ParticleSystem) {
-        let batchIndex = this.systemToBatchIndex.get(system);
+        const batchIndex = this.systemToBatchIndex.get(system);
         if (batchIndex != undefined) {
             this.batches[batchIndex].removeSystem(system);
             this.systemToBatchIndex.delete(system);

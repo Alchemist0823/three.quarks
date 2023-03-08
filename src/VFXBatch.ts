@@ -1,11 +1,9 @@
 
 import {ParticleSystem} from './ParticleSystem';
 import {
-    Blending,
     Mesh,
     ShaderMaterial,
-    Texture,
-    BufferGeometry, Material, Raycaster, Intersection, Layers
+    BufferGeometry, Material, Layers
 } from 'three';
 
 
@@ -28,7 +26,7 @@ export enum RenderMode {
 }
 
 export abstract class VFXBatch extends Mesh {
-    type: string = "VFXBatch";
+    type = "VFXBatch";
     systems: Set<ParticleSystem>;
     material!: ShaderMaterial;
 
@@ -39,7 +37,7 @@ export abstract class VFXBatch extends Mesh {
         super();
         this.maxParticles = 1000;
         this.systems = new Set<ParticleSystem>();
-        let layers = new Layers();
+        const layers = new Layers();
         layers.mask = settings.layers.mask;
         this.settings = {
             instancingGeometry: settings.instancingGeometry,

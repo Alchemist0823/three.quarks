@@ -8,7 +8,7 @@ describe('Linked List', function () {
             list.push(1);
             list.push(10);
             list.push(5);
-            let iter = list.values();
+            const iter = list.values();
             expect(iter.next().value).toBe(1);
             expect(iter.next().value).toBe(10);
             let cur = iter.next();

@@ -1,4 +1,4 @@
-import {Particle, RecordState, TrailParticle} from './Particle';
+import { RecordState, TrailParticle} from './Particle';
 import {
     AdditiveBlending,
     Matrix3,
@@ -80,7 +80,7 @@ export class TrailBatch extends VFXBatch {
     rebuildMaterial() {
         this.layers.mask = this.settings.layers.mask;
 
-        let uniforms: { [a: string]: { value: any } } = {
+        const uniforms: { [a: string]: { value: any } } = {
             lineWidth: {value: 1},
             map: {value: null},
             useMap: {value: 0},
@@ -92,13 +92,12 @@ export class TrailBatch extends VFXBatch {
             alphaTest: {value: 0},
             repeat: {value: new Vector2(1, 1)},
         };
-        let defines: { [b: string]: string } = {};
+        const defines: { [b: string]: string } = {};
 
         defines['USE_MAP'] = '';
         defines['USE_UV'] = '';
         defines['USE_COLOR_ALPHA'] = '';
         uniforms['map'] = new Uniform((this.settings.material as any).map);
-        //@ts-ignore
         uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
 
         if (this.settings.renderMode === RenderMode.Trail) {
@@ -143,26 +142,26 @@ export class TrailBatch extends VFXBatch {
 
         this.systems.forEach(system => {
 
-            let rotation = this.quaternion_;
-            let translation = this.vector2_;
-            let scale = this.vector3_;
+            const rotation = this.quaternion_;
+            const translation = this.vector2_;
+            const scale = this.vector3_;
             system.emitter.matrixWorld.decompose(translation, rotation, scale);
 
             const particles = system.particles;
-            let particleNum = system.particleNum;
+            const particleNum = system.particleNum;
 
-            let uTileCount = this.settings.uTileCount;
-            let vTileCount = this.settings.vTileCount;
+            const uTileCount = this.settings.uTileCount;
+            const vTileCount = this.settings.vTileCount;
 
             const tileWidth = 1 / uTileCount;
             const tileHeight = 1 / vTileCount;
 
             for (let j = 0; j < particleNum; j++) {
-                let particle = particles[j] as TrailParticle;
+                const particle = particles[j] as TrailParticle;
                 const col = particle.uvTile % vTileCount;
                 const row = Math.floor(particle.uvTile / vTileCount);
 
-                let iter = particle.previous.values();
+                const iter = particle.previous.values();
                 let curIter = iter.next();
                 let previous: RecordState = curIter.value as RecordState;
                 let current: RecordState = previous;

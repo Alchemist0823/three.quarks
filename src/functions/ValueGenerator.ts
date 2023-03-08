@@ -2,7 +2,6 @@ import {FunctionJSON} from "./FunctionJSON";
 import { ConstantValue } from "./ConstantValue";
 import { IntervalValue } from "./IntervalValue";
 import { PiecewiseBezier } from "./PiecewiseBezier";
-import {RotationGenerator, RotationGeneratorFromJSON} from "./RotationGenerator";
 
 export interface ValueGenerator {
     type: 'value';

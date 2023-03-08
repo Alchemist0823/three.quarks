@@ -1,6 +1,5 @@
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, MathUtils} from "three";
 
 export interface GridEmitterParameters {
     width?: number;
@@ -11,7 +10,7 @@ export interface GridEmitterParameters {
 
 export class GridEmitter implements EmitterShape {
 
-    type: string = "grid";
+    type = "grid";
     width: number;
     height: number; // [0, Math.PI * 2]
     column: number; // [0, 1]

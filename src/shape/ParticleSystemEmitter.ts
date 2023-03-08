@@ -3,14 +3,14 @@ import {Particle} from "../Particle";
 import {ParticleSystem} from "../ParticleSystem";
 
 export class ParticleSystemEmitter implements EmitterShape {
-    type: string = "particle_system";
+    type = "particle_system";
 
     private _particleSystem?: ParticleSystem;
 
     get particleSystem() {
-        return this._particleSystem!;
+        return this._particleSystem;
     }
-    set particleSystem(particleSystem: ParticleSystem) {
+    set particleSystem(particleSystem: ParticleSystem | undefined) {
         this._particleSystem = particleSystem;
     }
 

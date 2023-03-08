@@ -1,8 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "../functions";
 import {Vector3} from "three";
-import {ParticleSystem} from "../ParticleSystem";
 
 interface PhysicsResolver {
     resolve(pos: Vector3, normal: Vector3): boolean;

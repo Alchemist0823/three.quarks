@@ -1,5 +1,4 @@
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./ValueGenerator";
-import {MathUtils, Quaternion, Vector3} from "three";
+import { Quaternion} from "three";
 import {FunctionJSON} from "./FunctionJSON";
 import {RotationGenerator} from "./RotationGenerator";
 
@@ -12,7 +11,7 @@ export class RandomQuatGenerator implements RotationGenerator {
     }
 
     genValue(quat: Quaternion, t: number): Quaternion {
-        let x, y, z, u, v, w, s;
+        let x, y, z, u, v, w;
         do {
             x = Math.random() * 2 - 1;
             y = Math.random() * 2 - 1;
@@ -23,7 +22,7 @@ export class RandomQuatGenerator implements RotationGenerator {
             v = Math.random() * 2 - 1;
             w = u * u + v * v;
         } while (w > 1);
-        s = Math.sqrt((1 - z) / w);
+        const s = Math.sqrt((1 - z) / w);
         quat.set(x, y, s * u, s * v);
         return quat;
     }

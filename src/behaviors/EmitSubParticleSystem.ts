@@ -1,6 +1,5 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions";
 import {EmissionState, ParticleSystem} from "../ParticleSystem";
 import {BaseEvent, Matrix4, Quaternion, Vector3} from "three";
 import {ParticleEmitter} from "../ParticleEmitter";
@@ -36,7 +35,7 @@ export class EmitSubParticleSystem implements Behavior {
     update(particle: Particle, delta: number): void {
         if (!this.subParticleSystem || !particle.emissionState)
             return;
-        let m = (particle.emissionState! as any).matrix;
+        const m = (particle.emissionState as any).matrix;
         let rotation;
         if (particle.rotation === undefined || this.useVelocityAsBasis) {
             if (particle.velocity.x === 0 && particle.velocity.y === 0 && (particle.velocity.z === 1 || particle.velocity.z === 0)) {
@@ -70,7 +69,7 @@ export class EmitSubParticleSystem implements Behavior {
         if (!this.particleSystem.worldSpace) {
             m.multiplyMatrices(this.particleSystem.emitter.matrixWorld, m);
         }
-        this.subParticleSystem!.system.emit(delta, particle.emissionState!, m);
+        this.subParticleSystem.system.emit(delta, particle.emissionState, m);
     }
 
     frameUpdate(delta: number): void {

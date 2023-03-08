@@ -1,5 +1,4 @@
 import {Vector3} from "three";
-import {ConstantValue, IntervalValue, PiecewiseBezier} from "../functions";
 import {TextureSequencer} from "./TextureSequencer";
 
 export interface Sequencer {

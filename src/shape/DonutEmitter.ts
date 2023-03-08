@@ -1,6 +1,6 @@
 import {EmitterShape, ShapeJSON} from "./EmitterShape";
 import {Particle} from "../Particle";
-import {Vector3, MathUtils} from "three";
+import { MathUtils} from "three";
 
 
 export interface DonutEmitterParameters {
@@ -11,7 +11,7 @@ export interface DonutEmitterParameters {
 }
 
 export class DonutEmitter implements EmitterShape {
-    type: string = "donut";
+    type = "donut";
     radius: number;
     arc: number; // [0, Math.PI * 2]
     thickness: number;

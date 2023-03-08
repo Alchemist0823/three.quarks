@@ -1,26 +1,23 @@
 
 import {ParticleSystem, SerializationOptions} from './ParticleSystem';
 import {
-    Blending,
-    Texture,
-    Object3D,
-    BufferGeometry, BaseEvent
+    Object3D, BaseEvent
 } from 'three';
 
 export interface MetaData {
-    geometries: any;
-    materials: any;
-    textures: any;
-    images: any;
-    shapes: any;
-    skeletons: any;
-    animations: any;
-    nodes: any;
+    geometries: {[key: string]: any};
+    materials: {[key: string]: any};
+    textures: {[key: string]: any};
+    images: {[key: string]: any};
+    shapes: {[key: string]: any};
+    skeletons: {[key: string]: any};
+    animations: {[key: string]: any};
+    nodes: {[key: string]: any};
 }
 
 export class ParticleEmitter<E extends BaseEvent> extends Object3D<E> {
 
-    type: string = "ParticleEmitter";
+    type = "ParticleEmitter";
     system: ParticleSystem;
     //interleavedBuffer: InterleavedBuffer;
 
@@ -32,7 +29,7 @@ export class ParticleEmitter<E extends BaseEvent> extends Object3D<E> {
     }
 
     clone() {
-        let system = this.system.clone();
+        const system = this.system.clone();
         system.emitter.copy(this, true);
         return system.emitter as any;
     }
@@ -45,10 +42,10 @@ export class ParticleEmitter<E extends BaseEvent> extends Object3D<E> {
     // remove metadata on each item
     // and return as array
     extractFromCache( cache: any ) {
-        var values = [];
-        for ( var key in cache ) {
+        const values = [];
+        for ( const key in cache ) {
 
-            var data = cache[ key ];
+            const data = cache[ key ];
             delete data.metadata;
             values.push( data );
 
@@ -106,6 +103,7 @@ export class ParticleEmitter<E extends BaseEvent> extends Object3D<E> {
 
 		// object specific properties
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         if ( this.system !== null ) object.ps = this.system.toJSON(meta!, options);
 
 		if ( this.children.length > 0 ) {
@@ -118,10 +116,14 @@ export class ParticleEmitter<E extends BaseEvent> extends Object3D<E> {
 		}
 
 		if ( isRootObject ) {
-			var geometries = this.extractFromCache( meta!.geometries );
-			var materials = this.extractFromCache( meta!.materials );
-			var textures = this.extractFromCache( meta!.textures );
-			var images = this.extractFromCache( meta!.images );
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const geometries = this.extractFromCache( meta!.geometries );
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const materials = this.extractFromCache( meta!.materials );
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const textures = this.extractFromCache( meta!.textures );
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const images = this.extractFromCache( meta!.images );
 
 			if ( geometries.length > 0 ) output.geometries = geometries;
 			if ( materials.length > 0 ) output.materials = materials;

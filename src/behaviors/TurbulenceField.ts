@@ -59,10 +59,10 @@ export class TurbulenceField implements Behavior {
 
     static fromJSON(json: any): Behavior {
         return new TurbulenceField(
-            new Vector3(json.scale![0], json.scale![1], json.scale![2]),
+            new Vector3(json.scale[0], json.scale[1], json.scale[2]),
             json.octaves,
-            new Vector3(json.velocityMultiplier![0], json.velocityMultiplier![1], json.velocityMultiplier![2]),
-            new Vector3(json.timeScale![0], json.timeScale![1], json.timeScale![2]),
+            new Vector3(json.velocityMultiplier[0], json.velocityMultiplier[1], json.velocityMultiplier[2]),
+            new Vector3(json.timeScale[0], json.timeScale[1], json.timeScale[2]),
         );
     }
 
