@@ -159,31 +159,181 @@ export interface SerializationOptions {
     useUrlForImage?: boolean;
 }
 
+/**
+ * ParticleSystem represents a system that generates and controls particles with similar attributes.
+ *
+ * @class
+ */
 export class ParticleSystem {
-    // parameters
+    /**
+     * Determines whether the ParticleSystem should be automatically disposed when it finishes emitting particles.
+     *
+     * @type {boolean}
+     */
     autoDestroy: boolean;
+
+    /**
+     * Determines whether the ParticleSystem should loop, i.e., restart emitting particles after the duration of the particle system is expired.
+     *
+     * @type {boolean}
+     */
     looping: boolean;
+
+    /**
+     * The duration of the ParticleSystem in seconds.
+     *
+     * @type {number}
+     */
     duration: number;
+
+    /**
+     * The value generator or function value generator for the starting life of particles.
+     *
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     startLife: ValueGenerator | FunctionValueGenerator;
+
+    /**
+     * The value generator or function value generator for the starting speed of particles.
+     *
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     startSpeed: ValueGenerator | FunctionValueGenerator;
+
+    /**
+     * The value generator or function value generator or rotation generator for the starting rotation of particles.
+     *
+     * @type {ValueGenerator | FunctionValueGenerator | RotationGenerator}
+     */
     startRotation: ValueGenerator | FunctionValueGenerator | RotationGenerator;
+
+    /**
+     * The value generator or function value generator for the starting size of particles.
+     *
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     startSize: ValueGenerator | FunctionValueGenerator;
+
+    /**
+     * The color generator or function color generator for the starting color of particles.
+     *
+     * @type {ColorGenerator | FunctionColorGenerator}
+     */
     startColor: ColorGenerator | FunctionColorGenerator;
+
+    /**
+     * The value generator for the starting tile index of particles.
+     *
+     * @type {ValueGenerator}
+     */
     startTileIndex: ValueGenerator;
 
+    /**
+     * The renderer emitter settings for the ParticleSystem.
+     *
+     * @type {TrailSettings | MeshSettings | BillBoardSettings}
+     */
     rendererEmitterSettings: TrailSettings | MeshSettings | BillBoardSettings;
 
+    /**
+     * The value generator or function value generator for the emission rate of particles over time.
+     *
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     emissionOverTime: ValueGenerator | FunctionValueGenerator;
+
+    /**
+     * The value generator or function value generator for the emission rate of particles over distance.
+     *
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     emissionOverDistance: ValueGenerator | FunctionValueGenerator;
+
+    /**
+     * An array of burst parameters for the ParticleSystem.
+     *
+     * @type {Array<BurstParameters>}
+     */
     emissionBursts: Array<BurstParameters>;
+
+    /**
+     * Determines whether the ParticleSystem is only used by other ParticleSystems.
+     *
+     * @type {boolean}
+     */
     onlyUsedByOther: boolean;
 
+    /**
+     * Determines whether the ParticleSystem is in world space or local space.
+     *
+     * @type {boolean}
+     */
     worldSpace: boolean;
+
+    /**
+     * In render mode StretchedBillBoard
+     * how stretched the particle is in the direction of the camera based on the speed of the particle.
+     *
+     * @type {number}
+     */
     speedFactor: number;
 
-    // runtime data
+    /**
+     * The number of particles in the ParticleSystem.
+     *
+     * @type {number}
+     */
     particleNum: number;
+
+    /**
+     * Determines whether the ParticleSystem is paused.
+     *
+     * @type {boolean}
+     */
     paused: boolean;
+
+    /**
+     * All the particles in the ParticleSystem.
+     *
+     * @type {Array<Particle>}
+     */
+    particles: Array<Particle>;
+
+    /**
+     * the shape of the emitter.
+     *
+     * @type {EmitterShape}
+     */
+    emitterShape: EmitterShape;
+
+    /**
+     * the emitter object that should be added in the scene.
+     *
+     * @type {ParticleEmitter<BaseEvent>}
+     */
+    emitter: ParticleEmitter<BaseEvent>;
+
+    /**
+     * the VFX renderer settings for the batch renderer
+     *
+     * @type {VFXBatchSettings}
+     */
+    rendererSettings: VFXBatchSettings;
+
+    /**
+     * whether needs to update renderer settings for the batch renderer
+     *
+     * @type {boolean}
+     */
+    neededToUpdateRender: boolean;
+
+    /**
+     * a list of particle behaviors in the particle system
+     *
+     * @type {Array<Behavior>}
+     */
+    behaviors: Array<Behavior>;
+
     private emissionState: EmissionState;
     private emitEnded: boolean;
     private markForDestroy: boolean;
@@ -192,17 +342,8 @@ export class ParticleSystem {
     private travelDistance = 0;
 
     private normalMatrix: Matrix3 = new Matrix3();
-
-    behaviors: Array<Behavior>;
-
-    particles: Array<Particle>;
-    emitterShape: EmitterShape;
-    emitter: ParticleEmitter<BaseEvent>;
-
-    rendererSettings: VFXBatchSettings;
     /** @internal **/
     _renderer?: BatchedRenderer;
-    neededToUpdateRender: boolean;
 
     set time(time: number) {
         this.emissionState.time = time;
