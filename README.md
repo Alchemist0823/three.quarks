@@ -64,7 +64,9 @@ by adding their own Behavior.
 Launch Examples
 
 ```bash
-yarn example
+yarn install             # install dependencies
+yarn build:production    # build three.quarks
+yarn example             # start an HTTP server to serve example particle effects
 ```
 
 ### Check [examples](examples) folder

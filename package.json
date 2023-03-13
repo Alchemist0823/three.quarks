@@ -14,7 +14,7 @@
     "type-check:watch": "yarn run type-check -- --watch",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build:production": "yarn run build:types && cross-env NODE_ENV=production yarn run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/ && replace-in-file 'three'; './three.module.js'; examples/js/three.quarks.esm.js",
+    "build:production": "yarn run build:types && cross-env NODE_ENV=production yarn run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/ && replace-in-file \"'three';\" \"'./three.module.js';\" examples/js/three.quarks.esm.js",
     "build": "yarn run build:production",
     "lint": "eslint . --ext .ts",
     "prepublishOnly": "yarn run build:production",

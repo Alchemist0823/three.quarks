@@ -72,6 +72,7 @@ typings/
 
 # Project file
 .idea/
+.vscode/
 /example/three.quarks.min.js
 
 # Doc
