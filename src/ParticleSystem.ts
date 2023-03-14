@@ -48,11 +48,13 @@ const tempQ = new Quaternion();
 const tempV = new Vector3();
 const tempV2 = new Vector3();
 const tempV3 = new Vector3();
+const PREWARM_FPS = 60;
 
 export interface ParticleSystemParameters {
     // parameters
     autoDestroy?: boolean;
     looping?: boolean;
+    prewarm?: boolean
     duration?: number;
 
     shape?: EmitterShape;
@@ -89,6 +91,7 @@ export interface ParticleSystemJSONParameters {
     // parameters
     autoDestroy: boolean;
     looping: boolean;
+    prewarm: boolean;
     duration: number;
 
     shape: ShapeJSON;
@@ -171,6 +174,13 @@ export class ParticleSystem {
      * @type {boolean}
      */
     autoDestroy: boolean;
+
+    /**
+     * Determines whether the ParticleSystem should loop, i.e., restart emitting particles after the duration of the particle system is expired.
+     *
+     * @type {boolean}
+     */
+    prewarm: boolean;
 
     /**
      * Determines whether the ParticleSystem should loop, i.e., restart emitting particles after the duration of the particle system is expired.
@@ -334,6 +344,7 @@ export class ParticleSystem {
      */
     behaviors: Array<Behavior>;
 
+    private prewarmed: boolean;
     private emissionState: EmissionState;
     private emitEnded: boolean;
     private markForDestroy: boolean;
@@ -468,6 +479,7 @@ export class ParticleSystem {
         this.autoDestroy = parameters.autoDestroy === undefined ? false : parameters.autoDestroy;
         this.duration = parameters.duration ?? 1;
         this.looping = parameters.looping === undefined ? true : parameters.looping;
+        this.prewarm = parameters.prewarm === undefined ? false : parameters.prewarm;
         this.startLife = parameters.startLife ?? new ConstantValue(5);
         this.startSpeed = parameters.startSpeed ?? new ConstantValue(0);
         this.startRotation = parameters.startRotation ?? new ConstantValue(0);
@@ -511,6 +523,7 @@ export class ParticleSystem {
 
         this.emitEnded = false;
         this.markForDestroy = false;
+        this.prewarmed = false;
     }
 
     pause() {
@@ -626,6 +639,7 @@ export class ParticleSystem {
         });
         this.emitEnded = false;
         this.markForDestroy = false;
+        this.prewarmed = false;
     }
 
     //firstTimeUpdate = true;
@@ -652,6 +666,13 @@ export class ParticleSystem {
             if (this.markForDestroy && this.emitter.parent)
                 this.dispose();
             return;
+        }
+
+        if (this.looping && this.prewarm && !this.prewarmed) {
+            this.prewarmed = true;
+            for (let i = 0; i < this.duration * PREWARM_FPS; i++) {
+                this.update(1.0 / PREWARM_FPS);
+            }
         }
 
         if (this.neededToUpdateRender) {
@@ -809,6 +830,7 @@ export class ParticleSystem {
             version: "2.0",
             autoDestroy: this.autoDestroy,
             looping: this.looping,
+            prewarm: this.prewarm,
             duration: this.duration,
 
             shape: this.emitterShape.toJSON(),
@@ -861,6 +883,7 @@ export class ParticleSystem {
         const ps = new ParticleSystem({
             autoDestroy: json.autoDestroy,
             looping: json.looping,
+            prewarm: json.prewarm,
             duration: json.duration,
 
             shape: shape,
