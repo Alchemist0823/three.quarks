@@ -176,7 +176,7 @@ export class ParticleSystem {
     autoDestroy: boolean;
 
     /**
-     * Determines whether the ParticleSystem should loop, i.e., restart emitting particles after the duration of the particle system is expired.
+     * Determines whether a looping ParticleSystem should prewarm, i.e., the Particle System looks like it has already simulated for one loop when first becoming visible.
      *
      * @type {boolean}
      */
