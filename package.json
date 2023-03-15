@@ -20,7 +20,7 @@
     "prepublishOnly": "yarn run build:production",
     "deploy": "gh-pages -d examples",
     "docs": "typedoc",
-    "example": "http-server ./examples",
+    "example": "http-server ./examples -c-1 -p 8000",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:prod": "yarn run test -- --no-cache"

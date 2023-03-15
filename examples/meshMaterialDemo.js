@@ -37,6 +37,7 @@ export class MeshMaterialDemo extends Demo {
         let ps = new ParticleSystem({
             duration: 1,
             looping: true,
+            prewarm: true,
             instancingGeometry: geo,
             startLife: new IntervalValue(2.0, 3.0),
             startSpeed: new ConstantValue(1),
