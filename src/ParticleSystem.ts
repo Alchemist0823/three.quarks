@@ -1,26 +1,26 @@
-import {
-    FunctionValueGenerator,
-    ValueGenerator,
-    ValueGeneratorFromJSON
-} from "./functions/ValueGenerator";
-import {Behavior, BehaviorFromJSON} from "./behaviors/Behavior";
-import {Particle, SpriteParticle, TrailParticle} from "./Particle";
-import {MetaData, ParticleEmitter} from "./ParticleEmitter";
-import {EmitterFromJSON, EmitterShape, ShapeJSON} from "./shape/EmitterShape";
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './functions/ValueGenerator';
+import {Behavior, BehaviorFromJSON} from './behaviors/Behavior';
+import {Particle, SpriteParticle, TrailParticle} from './Particle';
+import {MetaData, ParticleEmitter} from './ParticleEmitter';
+import {EmitterFromJSON, EmitterShape, ShapeJSON} from './shape/EmitterShape';
 import {
     AdditiveBlending,
     BaseEvent,
-    BufferGeometry, DoubleSide, Layers, Material,
+    BufferGeometry,
+    DoubleSide,
+    Layers,
+    Material,
     Matrix3,
-    Matrix4, MeshBasicMaterial,
+    Matrix4,
+    MeshBasicMaterial,
     Object3D,
     PlaneGeometry,
     Quaternion,
     Texture,
     Vector3,
-    Vector4
-} from "three";
-import {SphereEmitter} from "./shape";
+    Vector4,
+} from 'three';
+import {SphereEmitter} from './shape';
 import {
     AxisAngleGenerator,
     ColorGenerator,
@@ -28,12 +28,12 @@ import {
     ConstantColor,
     ConstantValue,
     FunctionColorGenerator,
-    FunctionJSON, GeneratorFromJSON
-} from "./functions";
-import {VFXBatchSettings, RenderMode} from "./VFXBatch";
-import {BatchedRenderer} from "./BatchedRenderer";
-import {RotationGenerator} from "./functions/RotationGenerator";
-
+    FunctionJSON,
+    GeneratorFromJSON,
+} from './functions';
+import {VFXBatchSettings, RenderMode} from './VFXBatch';
+import {BatchedRenderer} from './BatchedRenderer';
+import {RotationGenerator} from './functions/RotationGenerator';
 
 export interface BurstParameters {
     time: number;
@@ -54,7 +54,7 @@ export interface ParticleSystemParameters {
     // parameters
     autoDestroy?: boolean;
     looping?: boolean;
-    prewarm?: boolean
+    prewarm?: boolean;
     duration?: number;
 
     shape?: EmitterShape;
@@ -83,7 +83,6 @@ export interface ParticleSystemParameters {
     renderOrder?: number;
 
     worldSpace?: boolean;
-
 }
 
 export interface ParticleSystemJSONParameters {
@@ -108,7 +107,7 @@ export interface ParticleSystemJSONParameters {
     rendererEmitterSettings: {
         startLength?: FunctionJSON;
         followLocalOrigin?: boolean;
-    }
+    };
 
     instancingGeometry?: any;
     renderMode: number;
@@ -120,8 +119,8 @@ export interface ParticleSystemJSONParameters {
     startTileIndex: FunctionJSON | number;
     uTileCount: number;
     vTileCount: number;
-    blending?: number;  // deprecated
-    transparent?: boolean;  // deprecated
+    blending?: number; // deprecated
+    transparent?: boolean; // deprecated
 
     behaviors: Array<any>;
 
@@ -129,13 +128,11 @@ export interface ParticleSystemJSONParameters {
 }
 
 export interface JsonMetaData {
-    textures: { [uuid: string]: Texture };
-    geometries: { [uuid: string]: BufferGeometry };
+    textures: {[uuid: string]: Texture};
+    geometries: {[uuid: string]: BufferGeometry};
 }
 
-export interface BillBoardSettings {
-
-}
+export interface BillBoardSettings {}
 
 export interface TrailSettings {
     startLength: ValueGenerator | FunctionValueGenerator;
@@ -149,7 +146,7 @@ export interface MeshSettings {
     startRotationZ: ValueGenerator | FunctionValueGenerator;
 }
 
-const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1)
+const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
 
 export interface EmissionState {
     burstIndex: number;
@@ -423,8 +420,10 @@ export class ParticleSystem {
     }
 
     set renderMode(renderMode: RenderMode) {
-        if ((this.rendererSettings.renderMode != RenderMode.Trail && renderMode === RenderMode.Trail)
-            || (this.rendererSettings.renderMode == RenderMode.Trail && renderMode !== RenderMode.Trail)) {
+        if (
+            (this.rendererSettings.renderMode != RenderMode.Trail && renderMode === RenderMode.Trail) ||
+            (this.rendererSettings.renderMode == RenderMode.Trail && renderMode !== RenderMode.Trail)
+        ) {
             this.restart();
             this.particles.length = 0;
         }
@@ -438,7 +437,7 @@ export class ParticleSystem {
                     break;
                 case RenderMode.Mesh:
                     this.rendererEmitterSettings = {
-                        geometry: new PlaneGeometry(1, 1)
+                        geometry: new PlaneGeometry(1, 1),
                     };
                     this.startRotation = new AxisAngleGenerator(new Vector3(0, 1, 0), new ConstantValue(0));
                     break;
@@ -519,7 +518,7 @@ export class ParticleSystem {
             burstWaveIndex: 0,
             time: 0,
             waitEmiting: 0,
-        }
+        };
 
         this.emitEnded = false;
         this.markForDestroy = false;
@@ -541,7 +540,6 @@ export class ParticleSystem {
         const scale = tempV2;
         matrix.decompose(translation, quaternion, scale);
         for (let i = 0; i < count; i++) {
-
             this.particleNum++;
             while (this.particles.length < this.particleNum) {
                 if (this.rendererSettings.renderMode === RenderMode.Trail) {
@@ -559,22 +557,26 @@ export class ParticleSystem {
             particle.startSize = this.startSize.genValue(emissionState.time / this.duration);
             particle.uvTile = Math.floor(this.startTileIndex.genValue());
             particle.size = particle.startSize;
-            if (this.rendererSettings.renderMode === RenderMode.Mesh
-                || this.rendererSettings.renderMode === RenderMode.BillBoard
-                || this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
+            if (
+                this.rendererSettings.renderMode === RenderMode.Mesh ||
+                this.rendererSettings.renderMode === RenderMode.BillBoard ||
+                this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
             ) {
                 const sprite = particle as SpriteParticle;
                 if (this.rendererSettings.renderMode === RenderMode.Mesh) {
                     if (!(sprite.rotation instanceof Quaternion)) {
                         sprite.rotation = new Quaternion();
                     }
-                    if (this.startRotation.type === "rotation") {
+                    if (this.startRotation.type === 'rotation') {
                         this.startRotation.genValue(sprite.rotation as Quaternion, emissionState.time / this.duration);
                     } else {
-                        (sprite.rotation as Quaternion).setFromAxisAngle(UP, this.startRotation.genValue((emissionState.time / this.duration) as number));
+                        (sprite.rotation as Quaternion).setFromAxisAngle(
+                            UP,
+                            this.startRotation.genValue((emissionState.time / this.duration) as number)
+                        );
                     }
                 } else {
-                    if (this.startRotation.type === "rotation") {
+                    if (this.startRotation.type === 'rotation') {
                         sprite.rotation = 0;
                     } else {
                         sprite.rotation = this.startRotation.genValue(emissionState.time / this.duration);
@@ -582,19 +584,23 @@ export class ParticleSystem {
                 }
             } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
                 const trail = particle as TrailParticle;
-                trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(emissionState.time / this.duration);
+                trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(
+                    emissionState.time / this.duration
+                );
                 trail.reset();
             }
 
             this.emitterShape.initialize(particle);
-            if (this.rendererSettings.renderMode === RenderMode.Trail
-                && (this.rendererEmitterSettings as TrailSettings).followLocalOrigin) {
+            if (
+                this.rendererSettings.renderMode === RenderMode.Trail &&
+                (this.rendererEmitterSettings as TrailSettings).followLocalOrigin
+            ) {
                 const trail = particle as TrailParticle;
                 trail.localPosition = new Vector3().copy(trail.position);
             }
             if (this.worldSpace) {
                 particle.position.applyMatrix4(matrix);
-                particle.startSize = particle.startSize * (scale.x + scale.y + scale.z) / 3;
+                particle.startSize = (particle.startSize * (scale.x + scale.y + scale.z)) / 3;
                 particle.size = particle.startSize;
                 particle.velocity.multiply(scale).applyMatrix3(this.normalMatrix);
                 if (particle.rotation && particle.rotation instanceof Quaternion) {
@@ -620,11 +626,9 @@ export class ParticleSystem {
     }
 
     dispose() {
-        if (this._renderer)
-            this._renderer.deleteSystem(this);
+        if (this._renderer) this._renderer.deleteSystem(this);
         this.emitter.dispose();
-        if (this.emitter.parent)
-            this.emitter.parent.remove(this.emitter);
+        if (this.emitter.parent) this.emitter.parent.remove(this.emitter);
     }
 
     restart() {
@@ -634,7 +638,7 @@ export class ParticleSystem {
         this.emissionState.burstWaveIndex = 0;
         this.emissionState.time = 0;
         this.emissionState.waitEmiting = 0;
-        this.behaviors.forEach(behavior => {
+        this.behaviors.forEach((behavior) => {
             behavior.reset();
         });
         this.emitEnded = false;
@@ -650,21 +654,19 @@ export class ParticleSystem {
             this.firstTimeUpdate = false;
         }*/
 
-        if (this.paused)
-            return;
+        if (this.paused) return;
 
         let currentParent: Object3D = this.emitter;
         while (currentParent.parent) {
             currentParent = currentParent.parent;
         }
-        if (currentParent.type !== "Scene") {
+        if (currentParent.type !== 'Scene') {
             this.dispose();
             return;
         }
 
         if (this.emitEnded && this.particleNum === 0) {
-            if (this.markForDestroy && this.emitter.parent)
-                this.dispose();
+            if (this.markForDestroy && this.emitter.parent) this.dispose();
             return;
         }
 
@@ -676,8 +678,7 @@ export class ParticleSystem {
         }
 
         if (this.neededToUpdateRender) {
-            if (this._renderer)
-                this._renderer.updateSystem(this);
+            if (this._renderer) this._renderer.updateSystem(this);
             this.neededToUpdateRender = false;
         }
 
@@ -695,8 +696,10 @@ export class ParticleSystem {
             this.behaviors[j].frameUpdate(delta);
         }
         for (let i = 0; i < this.particleNum; i++) {
-            if ((this.rendererEmitterSettings as TrailSettings).followLocalOrigin
-                && (this.particles[i] as TrailParticle).localPosition) {
+            if (
+                (this.rendererEmitterSettings as TrailSettings).followLocalOrigin &&
+                (this.particles[i] as TrailParticle).localPosition
+            ) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 this.particles[i].position.copy((this.particles[i] as TrailParticle).localPosition!);
                 if (this.particles[i].parentMatrix) {
@@ -735,7 +738,7 @@ export class ParticleSystem {
             if (this.looping) {
                 emissionState.time -= this.duration;
                 emissionState.burstIndex = 0;
-                this.behaviors.forEach(behavior => {
+                this.behaviors.forEach((behavior) => {
                     behavior.reset();
                 });
             } else {
@@ -753,7 +756,10 @@ export class ParticleSystem {
         emissionState.waitEmiting -= totalSpawn;
 
         // spawn burst
-        while (emissionState.burstIndex < this.emissionBursts.length && this.emissionBursts[emissionState.burstIndex].time <= emissionState.time) {
+        while (
+            emissionState.burstIndex < this.emissionBursts.length &&
+            this.emissionBursts[emissionState.burstIndex].time <= emissionState.time
+        ) {
             if (Math.random() < this.emissionBursts[emissionState.burstIndex].probability) {
                 const count = this.emissionBursts[emissionState.burstIndex].count;
                 this.spawn(count, emissionState, emitterMatrix);
@@ -761,14 +767,13 @@ export class ParticleSystem {
             emissionState.burstIndex++;
         }
 
-
         if (!this.emitEnded) {
             emissionState.waitEmiting += delta * this.emissionOverTime.genValue(emissionState.time / this.duration);
 
             if (this.previousWorldPos != undefined) {
                 this.emitter.getWorldPosition(this.temp);
                 this.travelDistance += this.previousWorldPos.distanceTo(this.temp);
-                const emitPerMeter = this.emissionOverDistance.genValue(emissionState.time / this.duration)
+                const emitPerMeter = this.emissionOverDistance.genValue(emissionState.time / this.duration);
                 if (this.travelDistance * emitPerMeter > 0) {
                     const count = Math.floor(this.travelDistance * emitPerMeter);
                     this.travelDistance -= count / emitPerMeter;
@@ -776,14 +781,13 @@ export class ParticleSystem {
                 }
             }
         }
-        if (this.previousWorldPos === undefined)
-            this.previousWorldPos = new Vector3();
+        if (this.previousWorldPos === undefined) this.previousWorldPos = new Vector3();
         this.emitter.getWorldPosition(this.previousWorldPos);
         emissionState.time += delta;
     }
 
     toJSON(meta: MetaData, options: SerializationOptions = {}): ParticleSystemJSONParameters {
-        const isRootObject = (meta === undefined || typeof meta === 'string');
+        const isRootObject = meta === undefined || typeof meta === 'string';
         if (isRootObject) {
             // initialize meta obj
             meta = {
@@ -794,7 +798,7 @@ export class ParticleSystem {
                 shapes: {},
                 skeletons: {},
                 animations: {},
-                nodes: {}
+                nodes: {},
             };
         }
 
@@ -827,7 +831,7 @@ export class ParticleSystem {
             meta.geometries[geometry.uuid] = geometry.toJSON();
         }
         return {
-            version: "2.0",
+            version: '2.0',
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             prewarm: this.prewarm,
@@ -844,7 +848,7 @@ export class ParticleSystem {
             emissionBursts: this.emissionBursts,
             onlyUsedByOther: this.onlyUsedByOther,
 
-            instancingGeometry: this.rendererSettings.instancingGeometry.uuid,//Array.from(this.emitter.interleavedBuffer.array as Float32Array),
+            instancingGeometry: this.rendererSettings.instancingGeometry.uuid, //Array.from(this.emitter.interleavedBuffer.array as Float32Array),
             renderOrder: this.renderOrder,
             renderMode: this.renderMode,
             rendererEmitterSettings: rendererSettingsJSON,
@@ -856,20 +860,31 @@ export class ParticleSystem {
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
 
-            behaviors: this.behaviors.map(behavior => behavior.toJSON()),
+            behaviors: this.behaviors.map((behavior) => behavior.toJSON()),
 
             worldSpace: this.worldSpace,
         };
     }
 
-    static fromJSON(json: ParticleSystemJSONParameters, meta: { textures: { [uuid: string]: Texture }, materials: { [uuoid: string]: Material }, geometries: { [uuid: string]: BufferGeometry } }, dependencies: { [uuid: string]: Behavior }): ParticleSystem {
+    static fromJSON(
+        json: ParticleSystemJSONParameters,
+        meta: {
+            textures: {[uuid: string]: Texture};
+            materials: {[uuoid: string]: Material};
+            geometries: {[uuid: string]: BufferGeometry};
+        },
+        dependencies: {[uuid: string]: Behavior}
+    ): ParticleSystem {
         const shape = EmitterFromJSON(json.shape, meta);
         let rendererEmitterSettings;
         if (json.renderMode === RenderMode.Trail) {
             rendererEmitterSettings = {
-                startLength: json.rendererEmitterSettings.startLength != undefined ? ValueGeneratorFromJSON(json.rendererEmitterSettings.startLength) : new ConstantValue(30),
+                startLength:
+                    json.rendererEmitterSettings.startLength != undefined
+                        ? ValueGeneratorFromJSON(json.rendererEmitterSettings.startLength)
+                        : new ConstantValue(30),
                 followLocalOrigin: json.rendererEmitterSettings.followLocalOrigin,
-            }
+            };
         } else if (json.renderMode === RenderMode.Mesh) {
             rendererEmitterSettings = {};
         } else {
@@ -891,7 +906,7 @@ export class ParticleSystem {
             startSpeed: ValueGeneratorFromJSON(json.startSpeed),
             startRotation: GeneratorFromJSON(json.startRotation),
             startSize: ValueGeneratorFromJSON(json.startSize),
-            startColor: ColorGeneratorFromJSON(json.startColor),
+            startColor: ColorGeneratorFromJSON(json.startColor) as ColorGenerator,
             emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
             emissionBursts: json.emissionBursts,
@@ -903,21 +918,25 @@ export class ParticleSystem {
             renderOrder: json.renderOrder,
             speedFactor: json.speedFactor,
             layers: layers,
-            material: json.material ? meta.materials[json.material] : (
-                json.texture ? new MeshBasicMaterial({
-                        map: meta.textures[json.texture],
-                        transparent: json.transparent ?? true,
-                        blending: json.blending,
-                        side: DoubleSide
-                    }) :
-                    new MeshBasicMaterial({
-                        color: 0xffffff,
-                        transparent: true,
-                        blending: AdditiveBlending,
-                        side: DoubleSide
-                    })
-            ),
-            startTileIndex: typeof json.startTileIndex === 'number' ? new ConstantValue(json.startTileIndex) : ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator,
+            material: json.material
+                ? meta.materials[json.material]
+                : json.texture
+                ? new MeshBasicMaterial({
+                      map: meta.textures[json.texture],
+                      transparent: json.transparent ?? true,
+                      blending: json.blending,
+                      side: DoubleSide,
+                  })
+                : new MeshBasicMaterial({
+                      color: 0xffffff,
+                      transparent: true,
+                      blending: AdditiveBlending,
+                      side: DoubleSide,
+                  }),
+            startTileIndex:
+                typeof json.startTileIndex === 'number'
+                    ? new ConstantValue(json.startTileIndex)
+                    : (ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator),
             uTileCount: json.uTileCount,
             vTileCount: json.vTileCount,
 
@@ -925,9 +944,9 @@ export class ParticleSystem {
 
             worldSpace: json.worldSpace,
         });
-        ps.behaviors = json.behaviors.map(behaviorJson => {
+        ps.behaviors = json.behaviors.map((behaviorJson) => {
             const behavior = BehaviorFromJSON(behaviorJson, ps);
-            if (behavior.type === "EmitSubParticleSystem") {
+            if (behavior.type === 'EmitSubParticleSystem') {
                 dependencies[behaviorJson.subParticleSystem] = behavior;
             }
             return behavior;
@@ -947,7 +966,7 @@ export class ParticleSystem {
         const newEmissionBursts: Array<BurstParameters> = [];
         for (const emissionBurst of this.emissionBursts) {
             const newEmissionBurst = {};
-            Object.assign(newEmissionBurst, emissionBurst)
+            Object.assign(newEmissionBurst, emissionBurst);
             newEmissionBursts.push(newEmissionBurst as BurstParameters);
         }
 
@@ -985,7 +1004,7 @@ export class ParticleSystem {
             emissionBursts: newEmissionBursts,
             onlyUsedByOther: this.onlyUsedByOther,
 
-            instancingGeometry: this.rendererSettings.instancingGeometry,//.interleavedBuffer.array,
+            instancingGeometry: this.rendererSettings.instancingGeometry, //.interleavedBuffer.array,
             renderMode: this.renderMode,
             renderOrder: this.renderOrder,
             rendererEmitterSettings: rendererEmitterSettings,
@@ -1001,5 +1020,4 @@ export class ParticleSystem {
             layers: layers,
         });
     }
-
 }

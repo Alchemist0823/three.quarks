@@ -1,28 +1,36 @@
-import {Behavior} from "./Behavior";
-import {Particle} from "../Particle";
-import {ColorGeneratorFromJSON, FunctionColorGenerator} from "../functions";
+import {Behavior} from './Behavior';
+import {Particle} from '../Particle';
+import {ColorGeneratorFromJSON, FunctionColorGenerator, MemorizedFunctionColorGenerator} from '../functions';
 
 export class ColorOverLife implements Behavior {
-
     type = 'ColorOverLife';
 
-    constructor(public color: FunctionColorGenerator) {
-    }
+    constructor(public color: FunctionColorGenerator | MemorizedFunctionColorGenerator) {}
 
     initialize(particle: Particle): void {
+        if (this.color.type === 'memorizedFunction') {
+            (particle as any).colorOverLifeMemory = {};
+            (this.color as MemorizedFunctionColorGenerator).startGen((particle as any).colorOverLifeMemory);
+        }
     }
 
     update(particle: Particle, delta: number): void {
-        this.color.genColor(particle.color, particle.age / particle.life)
+        if (this.color.type === 'memorizedFunction') {
+            (this.color as MemorizedFunctionColorGenerator).genColor(
+                particle.color,
+                particle.age / particle.life,
+                (particle as any).colorOverLifeMemory
+            );
+        } else {
+            (this.color as FunctionColorGenerator).genColor(particle.color, particle.age / particle.life);
+        }
         particle.color.x *= particle.startColor.x;
         particle.color.y *= particle.startColor.y;
         particle.color.z *= particle.startColor.z;
         particle.color.w *= particle.startColor.w;
     }
 
-    frameUpdate(delta: number): void {
-    }
-
+    frameUpdate(delta: number): void {}
 
     toJSON(): any {
         return {
@@ -38,6 +46,5 @@ export class ColorOverLife implements Behavior {
     clone(): Behavior {
         return new ColorOverLife(this.color.clone());
     }
-    reset(): void {
-    }
+    reset(): void {}
 }

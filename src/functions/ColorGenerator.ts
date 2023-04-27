@@ -1,9 +1,10 @@
-import {Vector4} from "three";
-import {FunctionJSON} from "./FunctionJSON";
-import {ColorToJSON, JSONToColor} from "../util/JSONUtil";
-import { RandomColor } from "./RandomColor";
-import { ColorRange } from "./ColorRange";
-import {Gradient} from "./Gradient";
+import {Vector4} from 'three';
+import {FunctionJSON} from './FunctionJSON';
+import {ColorToJSON, JSONToColor} from '../util/JSONUtil';
+import {RandomColor} from './RandomColor';
+import {ColorRange} from './ColorRange';
+import {Gradient} from './Gradient';
+import {RandomColorBetweenGradient} from './RandomColorBetweenGradient';
 
 export interface ColorGenerator {
     type: 'value';
@@ -19,6 +20,14 @@ export interface FunctionColorGenerator {
     clone(): FunctionColorGenerator;
 }
 
+export interface MemorizedFunctionColorGenerator {
+    type: 'memorizedFunction';
+    startGen(memory: any): void;
+    genColor(color: Vector4, t: number, memory: any): Vector4;
+    toJSON(): FunctionJSON;
+    clone(): MemorizedFunctionColorGenerator;
+}
+
 export class ConstantColor implements ColorGenerator {
     constructor(public color: Vector4) {
         this.type = 'value';
@@ -27,12 +36,12 @@ export class ConstantColor implements ColorGenerator {
         return color.copy(this.color);
     }
 
-    type: "value";
+    type: 'value';
 
     toJSON(): FunctionJSON {
         return {
-            type: "ConstantColor",
-            color: ColorToJSON(this.color)
+            type: 'ConstantColor',
+            color: ColorToJSON(this.color),
         };
     }
 
@@ -46,7 +55,7 @@ export class ConstantColor implements ColorGenerator {
 }
 
 export function ColorGeneratorFromJSON(json: FunctionJSON) {
-    switch(json.type) {
+    switch (json.type) {
         case 'ConstantColor':
             return ConstantColor.fromJSON(json);
         case 'ColorRange':
@@ -55,6 +64,8 @@ export function ColorGeneratorFromJSON(json: FunctionJSON) {
             return RandomColor.fromJSON(json);
         case 'Gradient':
             return Gradient.fromJSON(json);
+        case 'RandomColorBetweenGradient':
+            return RandomColorBetweenGradient.fromJSON(json);
         default:
             return new ConstantColor(new Vector4(1, 1, 1, 1));
     }
