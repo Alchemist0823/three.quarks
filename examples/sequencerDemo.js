@@ -1,11 +1,7 @@
-
 import {
     Group,
     Scene,
     MeshBasicMaterial,
-    PlaneBufferGeometry,
-    PointLight,
-    DoubleSide,
     FrontSide,
     BackSide,
     Mesh,
@@ -14,22 +10,32 @@ import {
     Color,
     AdditiveBlending,
     NormalBlending,
-    TextureLoader
-} from "./js/three.module.js";
+    TextureLoader,
+} from './js/three.module.js';
 import {
-    Bezier, ColorRange, ConstantValue, TurbulenceField,
-    IntervalValue, PiecewiseBezier, ColorOverLife,
-    RenderMode, SizeOverLife, ParticleSystem,
-    ParticleEmitter, BatchedParticleRenderer, GridEmitter, ValueGeneratorFromJSON, loadPlugin, TextureSequencer, ApplySequences
-} from "./js/three.quarks.esm.js";
-import {Demo} from "./demo.js";
-
+    Bezier,
+    ColorRange,
+    ConstantValue,
+    TurbulenceField,
+    IntervalValue,
+    PiecewiseBezier,
+    ColorOverLife,
+    RenderMode,
+    SizeOverLife,
+    ParticleSystem,
+    ParticleEmitter,
+    BatchedParticleRenderer,
+    GridEmitter,
+    ValueGeneratorFromJSON,
+    loadPlugin,
+    TextureSequencer,
+    ApplySequences,
+} from './js/three.quarks.esm.js';
+import {Demo} from './demo.js';
 
 export class SequencerDemo extends Demo {
-
-    name = "Texture Sequencer";
+    name = 'Texture Sequencer';
     initDemo() {
-
         const ps = new ParticleSystem({
             duration: 8,
             looping: true,
@@ -40,16 +46,23 @@ export class SequencerDemo extends Demo {
             worldSpace: false,
 
             emissionOverTime: new ConstantValue(0),
-            emissionBursts: [{
-                time: 0,
-                count: 1500,
-                cycle: 1,
-                interval: 1,
-                probability: 1,
-            }],
+            emissionBursts: [
+                {
+                    time: 0,
+                    count: 1500,
+                    cycle: 1,
+                    interval: 1,
+                    probability: 1,
+                },
+            ],
 
             shape: new GridEmitter({width: 15, height: 15, column: 50, row: 50}),
-            material: new MeshBasicMaterial({map: this.texture, blending: NormalBlending, transparent: true, side: FrontSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: NormalBlending,
+                transparent: true,
+                side: FrontSide,
+            }),
             renderMode: RenderMode.BillBoard,
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
@@ -82,20 +95,19 @@ export class SequencerDemo extends Demo {
     initScene() {
         super.initScene();
 
-
         let loader = new TextureLoader();
-        this.textTexture = loader.load("textures/text_texture.png", (texture) => {
-            texture.name = "textures/text_texture.png";
+        this.textTexture = loader.load('textures/text_texture.png', (texture) => {
+            texture.name = 'textures/text_texture.png';
             this.load1 = true;
             this.finishLoading();
         });
-        this.texture = loader.load("textures/texture1.png", (texture) => {
-            texture.name = "textures/texture1.png";
+        this.texture = loader.load('textures/texture1.png', (texture) => {
+            texture.name = 'textures/texture1.png';
             this.load2 = true;
             this.finishLoading();
         });
-        this.logoTexture = loader.load("textures/logo_texture.png", (texture) => {
-            texture.name = "textures/logo_texture.png";
+        this.logoTexture = loader.load('textures/logo_texture.png', (texture) => {
+            texture.name = 'textures/logo_texture.png';
             this.load3 = true;
             this.finishLoading();
         });

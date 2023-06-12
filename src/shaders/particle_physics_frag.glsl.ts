@@ -1,4 +1,4 @@
-export default /* glsl */`
+export default /* glsl */ `
 #define STANDARD
 #ifdef PHYSICAL
 #define IOR
@@ -49,7 +49,6 @@ varying vec3 vViewPosition;
 #include <dithering_pars_fragment>
 #include <color_pars_fragment>
 #include <uv_pars_fragment>
-#include <uv2_pars_fragment>
 #include <map_pars_fragment>
 #include <alphamap_pars_fragment>
 #include <alphatest_pars_fragment>

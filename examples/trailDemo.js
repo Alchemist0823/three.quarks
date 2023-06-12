@@ -2,8 +2,6 @@ import {
     Group,
     Scene,
     MeshBasicMaterial,
-    PlaneBufferGeometry,
-    PointLight,
     DoubleSide,
     Mesh,
     Vector4,

@@ -1,25 +1,20 @@
-
+import {Group, MeshStandardMaterial, BoxGeometry, Vector4, Color, AdditiveBlending} from './js/three.module.js';
 import {
-    Group,
-    MeshStandardMaterial,
-    MeshBasicMaterial,
-    PlaneBufferGeometry,
-    PointLight,
-    DoubleSide,
-    Mesh,
-    BoxGeometry,
-    Vector4,
-    Color,
-    AdditiveBlending,
-} from "./js/three.module.js";
-import {
-    BatchedParticleRenderer, RandomQuatGenerator, QuarksLoader, ParticleEmitter, ParticleSystem, ConeEmitter, ConstantValue, ConstantColor, RenderMode, IntervalValue
-} from "./js/three.quarks.esm.js";
-import {Demo} from "./demo.js";
+    BatchedParticleRenderer,
+    RandomQuatGenerator,
+    QuarksLoader,
+    ParticleEmitter,
+    ParticleSystem,
+    ConeEmitter,
+    ConstantValue,
+    ConstantColor,
+    RenderMode,
+    IntervalValue,
+} from './js/three.quarks.esm.js';
+import {Demo} from './demo.js';
 
 export class MeshMaterialDemo extends Demo {
-
-    name = "Mesh Standard Material";
+    name = 'Mesh Standard Material';
     initScene() {
         super.initScene();
 

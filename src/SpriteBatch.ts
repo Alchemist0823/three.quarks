@@ -12,7 +12,7 @@ import {
     UniformsLib,
     Color,
     UniformsUtils,
-    MeshStandardMaterial
+    MeshStandardMaterial,
 } from 'three';
 
 import particle_frag from './shaders/particle_frag.glsl';
@@ -21,7 +21,8 @@ import particle_vert from './shaders/particle_vert.glsl';
 import local_particle_vert from './shaders/local_particle_vert.glsl';
 import local_particle_physics_vert from './shaders/local_particle_physics_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
-import {VFXBatch, VFXBatchSettings, RenderMode} from "./VFXBatch";
+import {VFXBatch, VFXBatchSettings, RenderMode} from './VFXBatch';
+import {getMaterialUVChannelName} from './util/ThreeUtil';
 
 const UP = new Vector3(0, 0, 1);
 
@@ -33,7 +34,7 @@ export class SpriteBatch extends VFXBatch {
     private sizeBuffer!: InstancedBufferAttribute;
     private colorBuffer!: InstancedBufferAttribute;
     private uvTileBuffer!: InstancedBufferAttribute;
-    private velocityBuffer? : InstancedBufferAttribute;
+    private velocityBuffer?: InstancedBufferAttribute;
 
     constructor(settings: VFXBatchSettings) {
         super(settings);
@@ -55,7 +56,10 @@ export class SpriteBatch extends VFXBatch {
             this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 4), 4);
             this.rotationBuffer.setUsage(DynamicDrawUsage);
             this.geometry.setAttribute('rotation', this.rotationBuffer);
-        } else if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.StretchedBillBoard) {
+        } else if (
+            this.settings.renderMode === RenderMode.BillBoard ||
+            this.settings.renderMode === RenderMode.StretchedBillBoard
+        ) {
             this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles), 1);
             this.rotationBuffer.setUsage(DynamicDrawUsage);
             this.geometry.setAttribute('rotation', this.rotationBuffer);
@@ -74,8 +78,7 @@ export class SpriteBatch extends VFXBatch {
     }
 
     setupBuffers(): void {
-        if (this.geometry)
-            this.geometry.dispose();
+        if (this.geometry) this.geometry.dispose();
         this.geometry = new InstancedBufferGeometry();
         this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
         if (this.settings.instancingGeometry.hasAttribute('normal')) {
@@ -97,12 +100,15 @@ export class SpriteBatch extends VFXBatch {
     rebuildMaterial() {
         this.layers.mask = this.settings.layers.mask;
 
-        let uniforms: { [a: string]: Uniform };
-        const defines: { [b: string]: string } = {};
+        let uniforms: {[a: string]: Uniform};
+        const defines: {[b: string]: string} = {};
 
-        if (this.settings.material.type === "MeshStandardMaterial" || this.settings.material.type === "MeshPhysicalMaterial") {
-            const mat = (this.settings.material as MeshStandardMaterial);
-            uniforms = UniformsUtils.merge( [
+        if (
+            this.settings.material.type === 'MeshStandardMaterial' ||
+            this.settings.material.type === 'MeshPhysicalMaterial'
+        ) {
+            const mat = this.settings.material as MeshStandardMaterial;
+            uniforms = UniformsUtils.merge([
                 UniformsLib.common,
                 UniformsLib.envmap,
                 UniformsLib.aomap,
@@ -116,12 +122,12 @@ export class SpriteBatch extends VFXBatch {
                 UniformsLib.fog,
                 UniformsLib.lights,
                 {
-                    emissive: { value: /*@__PURE__*/ new Color( 0x000000 ) },
-                    roughness: { value: 1.0 },
-                    metalness: { value: 0.0 },
-                    envMapIntensity: { value: 1 } // temporary
-                }
-            ] );
+                    emissive: {value: /*@__PURE__*/ new Color(0x000000)},
+                    roughness: {value: 1.0},
+                    metalness: {value: 0.0},
+                    envMapIntensity: {value: 1}, // temporary
+                },
+            ]);
             uniforms['diffuse'].value = mat.color;
             uniforms['opacity'].value = mat.opacity;
             uniforms['emissive'].value = mat.emissive;
@@ -153,6 +159,7 @@ export class SpriteBatch extends VFXBatch {
             defines['UV_TILE'] = '';
             const uTileCount = this.settings.uTileCount;
             const vTileCount = this.settings.vTileCount;
+            defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
             uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
             uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
         }
@@ -163,8 +170,10 @@ export class SpriteBatch extends VFXBatch {
             let vertexShader;
             let fragmentShader;
             if (this.settings.renderMode === RenderMode.Mesh) {
-
-                if (this.settings.material.type === "MeshStandardMaterial" || this.settings.material.type === "MeshPhysicalMaterial") {
+                if (
+                    this.settings.material.type === 'MeshStandardMaterial' ||
+                    this.settings.material.type === 'MeshPhysicalMaterial'
+                ) {
                     defines['USE_COLOR'] = '';
                     vertexShader = local_particle_physics_vert;
                     fragmentShader = particle_physics_frag;
@@ -201,7 +210,7 @@ export class SpriteBatch extends VFXBatch {
                 side: this.settings.material.side,
             });
         } else {
-            throw new Error("render mode unavailable");
+            throw new Error('render mode unavailable');
         }
     }
 
@@ -223,14 +232,14 @@ export class SpriteBatch extends VFXBatch {
         let index = 0;
 
         let particleCount = 0;
-        this.systems.forEach(system => {
+        this.systems.forEach((system) => {
             particleCount += system.particleNum;
         });
         if (particleCount > this.maxParticles) {
             this.expandBuffers(particleCount);
         }
 
-        this.systems.forEach(system => {
+        this.systems.forEach((system) => {
             const particles = system.particles;
             const particleNum = system.particleNum;
             const rotation = this.quaternion2_;
@@ -239,7 +248,7 @@ export class SpriteBatch extends VFXBatch {
             system.emitter.matrixWorld.decompose(translation, rotation, scale);
             this.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
 
-            for (let j = 0; j < particleNum; j++, index ++) {
+            for (let j = 0; j < particleNum; j++, index++) {
                 const particle = particles[j] as SpriteParticle;
 
                 if (this.settings.renderMode === RenderMode.Mesh) {
@@ -258,7 +267,10 @@ export class SpriteBatch extends VFXBatch {
                         q.copy(particle.rotation as Quaternion).multiply(parentQ);
                     }
                     this.rotationBuffer.setXYZW(index, q.x, q.y, q.z, q.w);
-                } else if (this.settings.renderMode === RenderMode.StretchedBillBoard || this.settings.renderMode === RenderMode.BillBoard) {
+                } else if (
+                    this.settings.renderMode === RenderMode.StretchedBillBoard ||
+                    this.settings.renderMode === RenderMode.BillBoard
+                ) {
                     this.rotationBuffer.setX(index, particle.rotation as number);
                 }
 
@@ -282,7 +294,7 @@ export class SpriteBatch extends VFXBatch {
                     if (particle.parentMatrix) {
                         this.sizeBuffer.setX(index, particle.size);
                     } else {
-                        this.sizeBuffer.setX(index, particle.size * (scale.x + scale.y + scale.z) / 3);
+                        this.sizeBuffer.setX(index, (particle.size * (scale.x + scale.y + scale.z)) / 3);
                     }
                 }
                 this.uvTileBuffer.setX(index, particle.uvTile);
@@ -295,7 +307,7 @@ export class SpriteBatch extends VFXBatch {
                     } else {
                         vec = this.vector_;
                         if (particle.parentMatrix) {
-                            this.rotationMat2_.setFromMatrix4(particle.parentMatrix)
+                            this.rotationMat2_.setFromMatrix4(particle.parentMatrix);
                             vec.copy(particle.velocity).applyMatrix3(this.rotationMat2_);
                         } else {
                             vec.copy(particle.velocity).applyMatrix3(this.rotationMat_);
@@ -328,7 +340,10 @@ export class SpriteBatch extends VFXBatch {
             if (this.settings.renderMode === RenderMode.Mesh) {
                 this.rotationBuffer.updateRange.count = index * 4;
                 this.rotationBuffer.needsUpdate = true;
-            } else if (this.settings.renderMode === RenderMode.StretchedBillBoard || this.settings.renderMode === RenderMode.BillBoard) {
+            } else if (
+                this.settings.renderMode === RenderMode.StretchedBillBoard ||
+                this.settings.renderMode === RenderMode.BillBoard
+            ) {
                 this.rotationBuffer.updateRange.count = index;
                 this.rotationBuffer.needsUpdate = true;
             }

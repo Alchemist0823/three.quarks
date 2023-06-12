@@ -1,29 +1,24 @@
-
+import {MeshBasicMaterial, Vector4, FrontSide, AdditiveBlending, TextureLoader} from './js/three.module.js';
 import {
-    Group,
-    Scene,
-    MeshBasicMaterial,
-    PlaneBufferGeometry,
-    PointLight,
-    DoubleSide,
-    Mesh,
-    Vector4,
-    FrontSide,
-    Color,
-    AdditiveBlending,
-    TextureLoader
-} from "./js/three.module.js";
-import {
-    Bezier, ColorRange, ConstantValue, TurbulenceField,
-    IntervalValue, PiecewiseBezier, ColorOverLife,
-    RenderMode, SizeOverLife, ParticleSystem,
-    ParticleEmitter, BatchedParticleRenderer, GridEmitter, ValueGeneratorFromJSON, loadPlugin
-} from "./js/three.quarks.esm.js";
-import {Demo} from "./demo.js";
-
+    Bezier,
+    ColorRange,
+    ConstantValue,
+    TurbulenceField,
+    IntervalValue,
+    PiecewiseBezier,
+    ColorOverLife,
+    RenderMode,
+    SizeOverLife,
+    ParticleSystem,
+    ParticleEmitter,
+    BatchedParticleRenderer,
+    GridEmitter,
+    ValueGeneratorFromJSON,
+    loadPlugin,
+} from './js/three.quarks.esm.js';
+import {Demo} from './demo.js';
 
 export class SinWave {
-
     type = 'SinWave';
     frequency = 1;
     height = 10;
@@ -37,12 +32,17 @@ export class SinWave {
         this.time = 0;
     }
 
-    initialize(particle) {
-    }
+    initialize(particle) {}
 
     update(particle, delta) {
         let height = this.height.genValue(particle.age / particle.life);
-        particle.position.z = Math.sin(this.time * this.frequency.genValue(particle.age / particle.life) + (particle.position.x + particle.position.y) * (1 / this.waveSize)) * height - height / 2;
+        particle.position.z =
+            Math.sin(
+                this.time * this.frequency.genValue(particle.age / particle.life) +
+                    (particle.position.x + particle.position.y) * (1 / this.waveSize)
+            ) *
+                height -
+            height / 2;
     }
 
     frameUpdate(delta) {
@@ -68,17 +68,24 @@ export class SinWave {
 }
 
 export class CustomPluginDemo extends Demo {
-
-    name = "Customized Plugin";
+    name = 'Customized Plugin';
     initDemo() {
-
         let plugin = {
-            id: "MyPlugin",
-            initialize: () => {
-
-            },
+            id: 'MyPlugin',
+            initialize: () => {},
             emitterShapes: [],
-            behaviors: [{type: "SinWave", constructor: SinWave, params: [["frequency", "valueFunc"], ["height", "valueFunc"], ["waveSize", "number"]], loadJSON: SinWave.fromJSON}],
+            behaviors: [
+                {
+                    type: 'SinWave',
+                    constructor: SinWave,
+                    params: [
+                        ['frequency', 'valueFunc'],
+                        ['height', 'valueFunc'],
+                        ['waveSize', 'number'],
+                    ],
+                    loadJSON: SinWave.fromJSON,
+                },
+            ],
         };
         loadPlugin(plugin);
 
@@ -92,16 +99,23 @@ export class CustomPluginDemo extends Demo {
             worldSpace: false,
 
             emissionOverTime: new ConstantValue(0),
-            emissionBursts: [{
-                time: 0,
-                count: 2500,
-                cycle: 1,
-                interval: 1,
-                probability: 1,
-            }],
+            emissionBursts: [
+                {
+                    time: 0,
+                    count: 2500,
+                    cycle: 1,
+                    interval: 1,
+                    probability: 1,
+                },
+            ],
 
             shape: new GridEmitter({width: 15, height: 15, column: 50, row: 50}),
-            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: FrontSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: AdditiveBlending,
+                transparent: true,
+                side: FrontSide,
+            }),
             renderMode: RenderMode.BillBoard,
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
@@ -109,7 +123,7 @@ export class CustomPluginDemo extends Demo {
             renderOrder: 0,
         });
         ps.emitter.name = 'ps';
-        ps.addBehavior(new SinWave( new ConstantValue(2),  new ConstantValue(5), 5));
+        ps.addBehavior(new SinWave(new ConstantValue(2), new ConstantValue(5), 5));
         //ps.emitter.rotation.x = - Math.PI / 2;
         ps.emitter.position.y = 0;
         ps.emitter.scale.set(0.8, 0.8, 0.8);
@@ -120,8 +134,8 @@ export class CustomPluginDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.texture = new TextureLoader().load("textures/texture1.png", (texture) => {
-            this.texture.name = "textures/texture1.png";
+        this.texture = new TextureLoader().load('textures/texture1.png', (texture) => {
+            this.texture.name = 'textures/texture1.png';
             this.batchRenderer = new BatchedParticleRenderer();
             this.scene.add(this.batchRenderer);
 

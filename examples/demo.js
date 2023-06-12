@@ -2,7 +2,7 @@ import {
     Group,
     Scene,
     MeshStandardMaterial,
-    PlaneBufferGeometry,
+    PlaneGeometry,
     PointLight,
     DoubleSide,
     Mesh,
@@ -10,17 +10,26 @@ import {
     Vector3,
     Color,
     AdditiveBlending,
-    TextureLoader
-} from "./js/three.module.js";
+    TextureLoader,
+} from './js/three.module.js';
 import {
-    Bezier, ColorRange, ConstantValue, TurbulenceField,
-    IntervalValue, PiecewiseBezier, ColorOverLife,
-    RenderMode, SizeOverLife, ParticleSystem,
-    ParticleEmitter, BatchedParticleRenderer, ConeEmitter, ApplyForce
-} from "./js/three.quarks.esm.js";
+    Bezier,
+    ColorRange,
+    ConstantValue,
+    TurbulenceField,
+    IntervalValue,
+    PiecewiseBezier,
+    ColorOverLife,
+    RenderMode,
+    SizeOverLife,
+    ParticleSystem,
+    ParticleEmitter,
+    BatchedParticleRenderer,
+    ConeEmitter,
+    ApplyForce,
+} from './js/three.quarks.esm.js';
 
 export class Demo {
-
     batchRenderer;
     groups = [];
     totalTime = 0;
@@ -28,12 +37,11 @@ export class Demo {
     refreshTime = 2;
     texture;
 
-    name = "Unname";
+    name = 'Unname';
 
     render(delta) {
-
-        this.groups.forEach(group =>
-            group.traverse(object => {
+        this.groups.forEach((group) =>
+            group.traverse((object) => {
                 if (object.userData && object.userData.func) {
                     object.userData.func.call(object, delta);
                 }
@@ -42,7 +50,7 @@ export class Demo {
 
         while (Math.floor(this.totalTime * this.groups.length) > this.refreshIndex) {
             if (this.refreshIndex < this.groups.length) {
-                this.groups[this.refreshIndex].traverse(object => {
+                this.groups[this.refreshIndex].traverse((object) => {
                     if (object instanceof ParticleEmitter) {
                         object.system.restart();
                     }
@@ -56,15 +64,13 @@ export class Demo {
             this.refreshIndex = 0;
         }
 
-        if (this.batchRenderer)
-            this.batchRenderer.update(delta);
+        if (this.batchRenderer) this.batchRenderer.update(delta);
     }
-
 
     initScene() {
         this.scene = new Scene();
         this.scene.background = new Color(0);
-        const geo = new PlaneBufferGeometry(2000, 2000, 8, 8);
+        const geo = new PlaneGeometry(2000, 2000, 8, 8);
         const mat = new MeshStandardMaterial({color: 0x222222, side: DoubleSide});
         const plane = new Mesh(geo, mat);
         this.scene.add(plane);

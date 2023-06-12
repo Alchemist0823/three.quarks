@@ -16,7 +16,6 @@ attribute float uvTile;
 uniform vec2 tileCount;
 #endif
 
-#include <uv2_pars_vertex>
 #include <displacementmap_pars_vertex>
 #include <color_pars_vertex>
 #include <fog_pars_vertex>
@@ -45,7 +44,6 @@ void main() {
                       ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column
                       offset.x, offset.y, offset.z, 1.0);
                       
-	#include <uv2_vertex>
 	#include <color_vertex>
 	#include <morphcolor_vertex>
 	#include <beginnormal_vertex>

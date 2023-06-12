@@ -1,29 +1,35 @@
-
 import {
     Group,
     Scene,
     MeshBasicMaterial,
-    PlaneBufferGeometry,
-    PointLight,
     DoubleSide,
     Mesh,
     Vector4,
     Vector3,
     Color,
     AdditiveBlending,
-    TextureLoader
-} from "./js/three.module.js";
+    TextureLoader,
+} from './js/three.module.js';
 import {
-    Bezier, ColorRange, ConstantValue, TurbulenceField,
-    IntervalValue, PiecewiseBezier, ColorOverLife,
-    RenderMode, SizeOverLife, ParticleSystem,
-    ParticleEmitter, BatchedParticleRenderer, ConeEmitter, ApplyForce
-} from "./js/three.quarks.esm.js";
-import {Demo} from "./demo.js";
+    Bezier,
+    ColorRange,
+    ConstantValue,
+    TurbulenceField,
+    IntervalValue,
+    PiecewiseBezier,
+    ColorOverLife,
+    RenderMode,
+    SizeOverLife,
+    ParticleSystem,
+    ParticleEmitter,
+    BatchedParticleRenderer,
+    ConeEmitter,
+    ApplyForce,
+} from './js/three.quarks.esm.js';
+import {Demo} from './demo.js';
 
 export class TurbulenceDemo extends Demo {
-
-    name = "Turbulence";
+    name = 'Turbulence';
     initDemo() {
         const ps = new ParticleSystem({
             duration: 1,
@@ -37,7 +43,12 @@ export class TurbulenceDemo extends Demo {
             emissionOverTime: new ConstantValue(500),
 
             shape: new ConeEmitter({radius: 0.5, angle: 0}),
-            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: AdditiveBlending,
+                transparent: true,
+                side: DoubleSide,
+            }),
             renderMode: RenderMode.BillBoard,
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
@@ -46,7 +57,7 @@ export class TurbulenceDemo extends Demo {
         });
         ps.emitter.name = 'ps';
         ps.addBehavior(new TurbulenceField(new Vector3(10, 10, 10), 2, new Vector3(8, 8, 8), new Vector3(5, 5, 5)));
-        ps.emitter.rotation.x = - Math.PI / 2;
+        ps.emitter.rotation.x = -Math.PI / 2;
         ps.emitter.position.y = -8;
         this.scene.add(ps.emitter);
         this.batchRenderer.addSystem(ps);
@@ -55,8 +66,8 @@ export class TurbulenceDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.texture = new TextureLoader().load("textures/texture1.png", (texture) => {
-            this.texture.name = "textures/texture1.png";
+        this.texture = new TextureLoader().load('textures/texture1.png', (texture) => {
+            this.texture.name = 'textures/texture1.png';
             this.batchRenderer = new BatchedParticleRenderer();
             this.scene.add(this.batchRenderer);
 

@@ -1,10 +1,5 @@
-
 import {
     Group,
-    Scene,
-    MeshStandardMaterial,
-    PlaneBufferGeometry,
-    PointLight,
     DoubleSide,
     Mesh,
     Vector4,
@@ -14,20 +9,30 @@ import {
     NormalBlending,
     TextureLoader,
     MeshBasicMaterial,
-} from "./js/three.module.js";
+} from './js/three.module.js';
 import {
-    Bezier, ColorOverLife, ColorRange,
-    ConeEmitter, ConstantColor, ConstantValue, FrameOverLife,
+    Bezier,
+    ColorOverLife,
+    ColorRange,
+    ConeEmitter,
+    ConstantColor,
+    ConstantValue,
+    FrameOverLife,
     IntervalValue,
-    PiecewiseBezier, PointEmitter, RandomColor,
-    RenderMode, RotationOverLife,
-    SizeOverLife, ParticleSystem, ParticleEmitter, BatchedParticleRenderer
-} from "./js/three.quarks.esm.js";
-import {Demo} from "./demo.js";
+    PiecewiseBezier,
+    PointEmitter,
+    RandomColor,
+    RenderMode,
+    RotationOverLife,
+    SizeOverLife,
+    ParticleSystem,
+    ParticleEmitter,
+    BatchedParticleRenderer,
+} from './js/three.quarks.esm.js';
+import {Demo} from './demo.js';
 
-
-export class MuzzleFlashDemo extends Demo{
-    name = "Muzzle Flash Performance";
+export class MuzzleFlashDemo extends Demo {
+    name = 'Muzzle Flash Performance';
     batchRenderer;
     groups = [];
     totalTime = 0;
@@ -50,16 +55,23 @@ export class MuzzleFlashDemo extends Demo{
 
             maxParticle: 10,
             emissionOverTime: new ConstantValue(0),
-            emissionBursts: [{
-                time: 0,
-                count: 1,
-                cycle: 1,
-                interval: 0.01,
-                probability: 1,
-            }],
+            emissionBursts: [
+                {
+                    time: 0,
+                    count: 1,
+                    cycle: 1,
+                    interval: 0.01,
+                    probability: 1,
+                },
+            ],
 
             shape: new PointEmitter(),
-            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: AdditiveBlending,
+                transparent: true,
+                side: DoubleSide,
+            }),
             startTileIndex: new ConstantValue(1),
             uTileCount: 10,
             vTileCount: 10,
@@ -81,25 +93,36 @@ export class MuzzleFlashDemo extends Demo{
 
             maxParticle: 5,
             emissionOverTime: new ConstantValue(0),
-            emissionBursts: [{
-                time: 0,
-                count: 1,
-                cycle: 1,
-                interval: 0.01,
-                probability: 1,
-            }],
+            emissionBursts: [
+                {
+                    time: 0,
+                    count: 1,
+                    cycle: 1,
+                    interval: 0.01,
+                    probability: 1,
+                },
+            ],
 
             shape: new PointEmitter(),
-            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: AdditiveBlending,
+                transparent: true,
+                side: DoubleSide,
+            }),
             startTileIndex: new ConstantValue(91),
             uTileCount: 10,
             vTileCount: 10,
             renderOrder: 2,
-            renderMode: RenderMode.LocalSpace
+            renderMode: RenderMode.LocalSpace,
         };
 
         const muzzle1 = new ParticleSystem(muzzle);
-        muzzle1.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
+        muzzle1.addBehavior(
+            new ColorOverLife(
+                new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))
+            )
+        );
         muzzle1.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         muzzle1.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
         muzzle1.emitter.name = 'muzzle1';
@@ -108,7 +131,11 @@ export class MuzzleFlashDemo extends Demo{
         this.batchRenderer.addSystem(muzzle1);
 
         const muzzle2 = new ParticleSystem(muzzle);
-        muzzle2.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
+        muzzle2.addBehavior(
+            new ColorOverLife(
+                new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))
+            )
+        );
         muzzle2.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         muzzle2.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
         muzzle2.emitter.renderOrder = 2;
@@ -130,23 +157,32 @@ export class MuzzleFlashDemo extends Demo{
 
             maxParticle: 5,
             emissionOverTime: new ConstantValue(0),
-            emissionBursts: [{
-                time: 0,
-                count: 2,
-                cycle: 1,
-                interval: 0.01,
-                probability: 1,
-            }],
+            emissionBursts: [
+                {
+                    time: 0,
+                    count: 2,
+                    cycle: 1,
+                    interval: 0.01,
+                    probability: 1,
+                },
+            ],
 
             shape: new PointEmitter(),
-            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: AdditiveBlending,
+                transparent: true,
+                side: DoubleSide,
+            }),
             startTileIndex: new ConstantValue(81),
             uTileCount: 10,
             vTileCount: 10,
             renderMode: RenderMode.BillBoard,
             renderOrder: 2,
         });
-        flash.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.95, 0.82, 1), new Vector4(1, 0.38, 0.12, 1))));
+        flash.addBehavior(
+            new ColorOverLife(new ColorRange(new Vector4(1, 0.95, 0.82, 1), new Vector4(1, 0.38, 0.12, 1)))
+        );
         flash.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(81, 84.333, 87.666, 91), 0]])));
         flash.emitter.name = 'flash';
         group.add(flash.emitter);
@@ -159,26 +195,33 @@ export class MuzzleFlashDemo extends Demo{
             startSpeed: new IntervalValue(0.1, 3),
             startSize: new IntervalValue(0.75, 1.5),
             startRotation: new IntervalValue(-Math.PI, Math.PI),
-            startColor: new RandomColor(new Vector4(0.6323, 0.6323, 0.6323, .31), new Vector4(1, 1, 1, 0.54)),
+            startColor: new RandomColor(new Vector4(0.6323, 0.6323, 0.6323, 0.31), new Vector4(1, 1, 1, 0.54)),
             worldSpace: true,
 
             maxParticle: 10,
             emissionOverTime: new ConstantValue(0),
-            emissionBursts: [{
-                time: 0,
-                count: 5,
-                cycle: 1,
-                interval: 0.01,
-                probability: 1,
-            }],
+            emissionBursts: [
+                {
+                    time: 0,
+                    count: 5,
+                    cycle: 1,
+                    interval: 0.01,
+                    probability: 1,
+                },
+            ],
 
             shape: new ConeEmitter({
-                angle: 20 * Math.PI / 180,
+                angle: (20 * Math.PI) / 180,
                 radius: 0.3,
                 thickness: 1,
                 arc: Math.PI * 2,
             }),
-            material: new MeshBasicMaterial({map: this.texture, blending: NormalBlending, transparent: true, side: DoubleSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: NormalBlending,
+                transparent: true,
+                side: DoubleSide,
+            }),
             startTileIndex: new ConstantValue(81),
             uTileCount: 10,
             vTileCount: 10,
@@ -204,21 +247,28 @@ export class MuzzleFlashDemo extends Demo{
 
             maxParticle: 10,
             emissionOverTime: new ConstantValue(0),
-            emissionBursts: [{
-                time: 0,
-                count: 8,
-                cycle: 1,
-                interval: 0.01,
-                probability: 1,
-            }],
+            emissionBursts: [
+                {
+                    time: 0,
+                    count: 8,
+                    cycle: 1,
+                    interval: 0.01,
+                    probability: 1,
+                },
+            ],
 
             shape: new ConeEmitter({
-                angle: 20 * Math.PI / 180,
+                angle: (20 * Math.PI) / 180,
                 radius: 0.3,
                 thickness: 1,
                 arc: Math.PI * 2,
             }),
-            material: new MeshBasicMaterial({map: this.texture, blending: AdditiveBlending, transparent: true, side: DoubleSide}),
+            material: new MeshBasicMaterial({
+                map: this.texture,
+                blending: AdditiveBlending,
+                transparent: true,
+                side: DoubleSide,
+            }),
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
             vTileCount: 10,
@@ -241,8 +291,8 @@ export class MuzzleFlashDemo extends Demo{
     initScene() {
         this.scene = super.initScene();
 
-        this.texture = new TextureLoader().load("textures/texture1.png", (texture) => {
-            this.texture.name = "textures/texture1.png";
+        this.texture = new TextureLoader().load('textures/texture1.png', (texture) => {
+            this.texture.name = 'textures/texture1.png';
             this.batchRenderer = new BatchedParticleRenderer();
             this.scene.add(this.batchRenderer);
 

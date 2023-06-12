@@ -1,4 +1,4 @@
-import { RecordState, TrailParticle} from './Particle';
+import {RecordState, TrailParticle} from './Particle';
 import {
     AdditiveBlending,
     Matrix3,
@@ -9,12 +9,14 @@ import {
     DoubleSide,
     BufferGeometry,
     Vector3,
-    BufferAttribute, Quaternion,
+    BufferAttribute,
+    Quaternion,
 } from 'three';
 
 import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
-import {VFXBatch, VFXBatchSettings, RenderMode} from "./VFXBatch";
+import {VFXBatch, VFXBatchSettings, RenderMode} from './VFXBatch';
+import {getMaterialUVChannelName} from './util/ThreeUtil';
 
 const UP = new Vector3(0, 0, 1);
 
@@ -40,8 +42,7 @@ export class TrailBatch extends VFXBatch {
     }
 
     setupBuffers(): void {
-        if (this.geometry)
-            this.geometry.dispose();
+        if (this.geometry) this.geometry.dispose();
         this.geometry = new BufferGeometry();
         this.indexBuffer = new BufferAttribute(new Uint32Array(this.maxParticles * 6), 1);
         this.indexBuffer.setUsage(DynamicDrawUsage);
@@ -80,7 +81,7 @@ export class TrailBatch extends VFXBatch {
     rebuildMaterial() {
         this.layers.mask = this.settings.layers.mask;
 
-        const uniforms: { [a: string]: { value: any } } = {
+        const uniforms: {[a: string]: {value: any}} = {
             lineWidth: {value: 1},
             map: {value: null},
             useMap: {value: 0},
@@ -92,13 +93,17 @@ export class TrailBatch extends VFXBatch {
             alphaTest: {value: 0},
             repeat: {value: new Vector2(1, 1)},
         };
-        const defines: { [b: string]: string } = {};
+        const defines: {[b: string]: string} = {};
 
-        defines['USE_MAP'] = '';
         defines['USE_UV'] = '';
         defines['USE_COLOR_ALPHA'] = '';
-        uniforms['map'] = new Uniform((this.settings.material as any).map);
-        uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
+
+        if ((this.settings.material as any).map) {
+            defines['USE_MAP'] = '';
+            defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
+            uniforms['map'] = new Uniform((this.settings.material as any).map);
+            uniforms['mapTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
+        }
 
         if (this.settings.renderMode === RenderMode.Trail) {
             this.material = new ShaderMaterial({
@@ -108,11 +113,11 @@ export class TrailBatch extends VFXBatch {
                 fragmentShader: trail_frag,
                 transparent: this.settings.material.transparent,
                 depthWrite: !this.settings.material.transparent,
-                side: DoubleSide,
+                side: this.settings.material.side,
                 blending: this.settings.material.blending || AdditiveBlending,
             });
         } else {
-            throw new Error("render mode unavailable");
+            throw new Error('render mode unavailable');
         }
     }
 
@@ -131,7 +136,7 @@ export class TrailBatch extends VFXBatch {
         let triangles = 0;
 
         let particleCount = 0;
-        this.systems.forEach(system => {
+        this.systems.forEach((system) => {
             for (let j = 0; j < system.particleNum; j++) {
                 particleCount += (system.particles[j] as TrailParticle).previous.length * 2;
             }
@@ -140,8 +145,7 @@ export class TrailBatch extends VFXBatch {
             this.expandBuffers(particleCount);
         }
 
-        this.systems.forEach(system => {
-
+        this.systems.forEach((system) => {
             const rotation = this.quaternion_;
             const translation = this.vector2_;
             const scale = this.vector3_;
@@ -178,7 +182,12 @@ export class TrailBatch extends VFXBatch {
 
                     if (system.worldSpace) {
                         this.positionBuffer.setXYZ(index, current.position.x, current.position.y, current.position.z);
-                        this.positionBuffer.setXYZ(index + 1, current.position.x, current.position.y, current.position.z);
+                        this.positionBuffer.setXYZ(
+                            index + 1,
+                            current.position.x,
+                            current.position.y,
+                            current.position.z
+                        );
                     } else {
                         if (particle.parentMatrix) {
                             this.vector_.copy(current.position).applyMatrix4(particle.parentMatrix);
@@ -190,8 +199,18 @@ export class TrailBatch extends VFXBatch {
                     }
 
                     if (system.worldSpace) {
-                        this.previousBuffer.setXYZ(index, previous.position.x, previous.position.y, previous.position.z);
-                        this.previousBuffer.setXYZ(index + 1, previous.position.x, previous.position.y, previous.position.z);
+                        this.previousBuffer.setXYZ(
+                            index,
+                            previous.position.x,
+                            previous.position.y,
+                            previous.position.z
+                        );
+                        this.previousBuffer.setXYZ(
+                            index + 1,
+                            previous.position.x,
+                            previous.position.y,
+                            previous.position.z
+                        );
                     } else {
                         if (particle.parentMatrix) {
                             this.vector_.copy(previous.position).applyMatrix4(particle.parentMatrix);
@@ -226,16 +245,30 @@ export class TrailBatch extends VFXBatch {
                             this.widthBuffer.setX(index, current.size);
                             this.widthBuffer.setX(index + 1, current.size);
                         } else {
-                            this.widthBuffer.setX(index, current.size * (scale.x + scale.y + scale.z) / 3);
-                            this.widthBuffer.setX(index + 1, current.size * (scale.x + scale.y + scale.z) / 3);
+                            this.widthBuffer.setX(index, (current.size * (scale.x + scale.y + scale.z)) / 3);
+                            this.widthBuffer.setX(index + 1, (current.size * (scale.x + scale.y + scale.z)) / 3);
                         }
                     }
 
-                    this.uvBuffer.setXY(index, (i / particle.previous.length + col) * tileWidth, (vTileCount - row - 1) * tileHeight);
-                    this.uvBuffer.setXY(index + 1, (i / particle.previous.length + col) * tileWidth, (vTileCount - row) * tileHeight);
+                    this.uvBuffer.setXY(
+                        index,
+                        (i / particle.previous.length + col) * tileWidth,
+                        (vTileCount - row - 1) * tileHeight
+                    );
+                    this.uvBuffer.setXY(
+                        index + 1,
+                        (i / particle.previous.length + col) * tileWidth,
+                        (vTileCount - row) * tileHeight
+                    );
 
                     this.colorBuffer.setXYZW(index, current.color.x, current.color.y, current.color.z, current.color.w);
-                    this.colorBuffer.setXYZW(index + 1, current.color.x, current.color.y, current.color.z, current.color.w);
+                    this.colorBuffer.setXYZW(
+                        index + 1,
+                        current.color.x,
+                        current.color.y,
+                        current.color.z,
+                        current.color.w
+                    );
 
                     if (i + 1 < particle.previous.length) {
                         this.indexBuffer.setX(triangles * 3, index);

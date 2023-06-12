@@ -14,8 +14,6 @@ attribute float width;
 uniform vec2 resolution;
 uniform float lineWidth;
 uniform float sizeAttenuation;
-
-varying vec2 vUV;
     
 vec2 fix(vec4 i, float aspect) {
     vec2 res = i.xy / i.w;

@@ -6,6 +6,7 @@ import {EmitterFromJSON, EmitterShape, ShapeJSON} from './shape/EmitterShape';
 import {
     AdditiveBlending,
     BaseEvent,
+    Blending,
     BufferGeometry,
     DoubleSide,
     Layers,
@@ -119,7 +120,7 @@ export interface ParticleSystemJSONParameters {
     startTileIndex: FunctionJSON | number;
     uTileCount: number;
     vTileCount: number;
-    blending?: number; // deprecated
+    blending?: Blending; // deprecated
     transparent?: boolean; // deprecated
 
     behaviors: Array<any>;
