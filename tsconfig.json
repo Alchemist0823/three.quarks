@@ -13,14 +13,15 @@
     "declaration": true,
     "target": "es6",
     "module": "es6",
-    "strict": true
+    "strict": true,
+    "typeRoots": [ "./node_modules/@webgpu/types", "./node_modules/@types", "./types"]
   },
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs",
     "excludeInternal": true,
-    "excludePrivate": true,
+    "excludePrivate": true
   },
-  "include": ["src"],
+  "include": ["src", "types"],
   "exclude": ["node_modules", "test", "dist"]
 }
