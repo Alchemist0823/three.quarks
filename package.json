@@ -43,10 +43,10 @@
     "url": "https://github.com/Alchemist0823/three.quarks/issues"
   },
   "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
-  "dependencies": {
+  "dependencies": {},
+  "peerDependencies": {
     "three": "^0.153.0"
   },
-  "peerDependencies": {},
   "devDependencies": {
     "@babel/core": "^7.22.8",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
