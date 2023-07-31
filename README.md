@@ -107,7 +107,7 @@ const muzzle = {
 };
 
 // Create particle system based on your configuration
-muzzle1 = new ParticleSystem({muzzle});
+muzzle1 = new ParticleSystem(muzzle);
 // developers can customize how the particle system works by 
 // using existing behavior or adding their own Behavior.
 muzzle1.addBehavior(new ColorOverLife(new ColorRange(new THREE.Vector4(1, 0.3882312, 0.125, 1), new THREE.Vector4(1, 0.826827, 0.3014706, 1))));
