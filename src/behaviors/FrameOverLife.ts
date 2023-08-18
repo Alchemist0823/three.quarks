@@ -12,7 +12,7 @@ export class FrameOverLife implements Behavior {
     }
 
     update(particle: Particle, delta: number): void {
-        particle.uvTile = Math.floor(this.frame.genValue(particle.age / particle.life));
+        particle.uvTile = this.frame.genValue(particle.age / particle.life);
     }
 
     frameUpdate(delta: number): void {

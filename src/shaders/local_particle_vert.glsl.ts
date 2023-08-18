@@ -1,3 +1,6 @@
+import tile_vertex from "./chunks/tile_vertex.glsl";
+import tile_pars_vertex from "./chunks/tile_pars_vertex.glsl";
+
 export default /* glsl */ `
 #include <common>
 #include <uv_pars_vertex>
@@ -5,23 +8,16 @@ export default /* glsl */ `
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 
+${tile_pars_vertex}
+
 attribute vec3 offset;
 attribute vec4 rotation;
 attribute float size;
 // attribute vec4 color;
-attribute float uvTile;
-
-#ifdef UV_TILE
-uniform vec2 tileCount;
-#endif
 
 void main() {
 
-    #ifdef UV_TILE
-        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));
-    #else
-        #include <uv_vertex>
-    #endif
+    ${tile_vertex}
     
     float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;
     float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;

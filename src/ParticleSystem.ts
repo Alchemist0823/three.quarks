@@ -81,6 +81,7 @@ export interface ParticleSystemParameters {
     startTileIndex?: ValueGenerator;
     uTileCount?: number;
     vTileCount?: number;
+    blendTiles?: boolean;
     renderOrder?: number;
 
     worldSpace?: boolean;
@@ -120,6 +121,7 @@ export interface ParticleSystemJSONParameters {
     startTileIndex: FunctionJSON | number;
     uTileCount: number;
     vTileCount: number;
+    blendTiles?: boolean;
     blending?: Blending; // deprecated
     transparent?: boolean; // deprecated
 
@@ -405,6 +407,15 @@ export class ParticleSystem {
         this.neededToUpdateRender = true;
     }
 
+    get blendTiles() {
+        return this.rendererSettings.blendTiles;
+    }
+
+    set blendTiles(v: boolean) {
+        this.rendererSettings.blendTiles = v;
+        this.neededToUpdateRender = true;
+    }
+
     get instancingGeometry(): BufferGeometry {
         return this.rendererSettings.instancingGeometry;
     }
@@ -503,6 +514,7 @@ export class ParticleSystem {
             material: parameters.material,
             uTileCount: parameters.uTileCount ?? 1,
             vTileCount: parameters.vTileCount ?? 1,
+            blendTiles: parameters.blendTiles ?? false,
             layers: parameters.layers ?? new Layers(),
         };
         this.neededToUpdateRender = true;
@@ -556,7 +568,7 @@ export class ParticleSystem {
             particle.life = this.startLife.genValue(emissionState.time / this.duration);
             particle.age = 0;
             particle.startSize = this.startSize.genValue(emissionState.time / this.duration);
-            particle.uvTile = Math.floor(this.startTileIndex.genValue());
+            particle.uvTile = this.startTileIndex.genValue();
             particle.size = particle.startSize;
             if (
                 this.rendererSettings.renderMode === RenderMode.Mesh ||
@@ -860,6 +872,7 @@ export class ParticleSystem {
             startTileIndex: this.startTileIndex.toJSON(),
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
+            blendTiles: this.blendTiles,
 
             behaviors: this.behaviors.map((behavior) => behavior.toJSON()),
 
@@ -940,6 +953,7 @@ export class ParticleSystem {
                     : (ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator),
             uTileCount: json.uTileCount,
             vTileCount: json.vTileCount,
+            blendTiles: json.blendTiles,
 
             behaviors: [],
 
@@ -1014,6 +1028,7 @@ export class ParticleSystem {
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
+            blendTiles: this.blendTiles,
 
             behaviors: newBehaviors,
 
