@@ -13,6 +13,7 @@ export interface VFXBatchSettings {
     material: Material;
     uTileCount: number;
     vTileCount: number;
+    blendTiles: boolean;
     renderMode : RenderMode;
     renderOrder : number;
     layers: Layers;
@@ -46,6 +47,7 @@ export abstract class VFXBatch extends Mesh {
             material: settings.material,
             uTileCount: settings.uTileCount,
             vTileCount: settings.vTileCount,
+            blendTiles: settings.blendTiles,
             layers: layers,
         };
         this.frustumCulled = false;

@@ -1,11 +1,13 @@
-export default /* glsl */`
+import tile_pars_fragment from "./chunks/tile_pars_fragment.glsl";
 
+export default /* glsl */`
 #include <common>
-#include <uv_pars_fragment>
 #include <color_pars_fragment>
 #include <map_pars_fragment>
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
+
+${tile_pars_fragment}
 
 void main() {
 
@@ -18,6 +20,9 @@ void main() {
     
     #ifdef USE_MAP
     vec4 texelColor = texture2D( map, vUv);
+        #ifdef TILE_BLEND
+            texelColor = mix( texelColor, texture2D( map, vUvNext ), vUvBlend );
+        #endif
     diffuseColor *= texelColor;
     #endif
 

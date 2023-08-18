@@ -159,6 +159,7 @@ export class SpriteBatch extends VFXBatch {
             defines['UV_TILE'] = '';
             const uTileCount = this.settings.uTileCount;
             const vTileCount = this.settings.vTileCount;
+            if(this.settings.blendTiles) defines['TILE_BLEND'] = ''
             defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
             uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
             uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
