@@ -17,6 +17,7 @@
 - [Demo](https://alchemist0823.github.io/three.quarks/)
 - [Change Log](./CHANGELOG.md)
 - [Sandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz?file=/index.html)
+- [Three Fiber Example](https://codesandbox.io/s/three-quarks-with-react-three-fiber-llhvxk)
 
 ## Background
  [three.quarks](https://github.com/Alchemist0823/three.quarks) is a high-performance general-purpose particle
@@ -41,8 +42,8 @@ top of the well-known WebGL library called [three.js](https://threejs.org).
   - Customizable Behaviors
   - Customizable Emitter Shape
 - 4 Type of renderer
-  - BillBoard
-  - Stretched BillBoard
+  - Billboard
+  - Stretched Billboard
   - Mesh Renderer
   - Trail Renderer [TrailBatch](https://github.com/Alchemist0823/three.quarks/tree/master/src/TrailBatch.ts)
 - Spawn Particle on Mesh Surface
@@ -53,9 +54,9 @@ top of the well-known WebGL library called [three.js](https://threejs.org).
 - A realtime editor to test and create visual effects [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor)
 - VFX json load and save 
 
-three.quarks computes most particles information on CPU, and it uses customized shader
- , instancing, batch technique to render those particles with as less draw call as possible. 
-three.quarks supports 1 dimension piecewise Bézier curves for the customizable transform
+three.quarks computes most particle information on CPU, and it uses customized shader
+, instancing, batch techniques to render those particles with as few draw calls as possible. 
+three.quarks supports one dimension piecewise Bézier curves for the customizable transform
 visual effect. Most importantly, developers can customize how the particle system works 
 by adding their own Behavior.
 
