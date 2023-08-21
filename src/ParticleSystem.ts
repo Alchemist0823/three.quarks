@@ -10,10 +10,8 @@ import {
     BufferGeometry,
     DoubleSide,
     Layers,
-    Material,
     Matrix3,
     Matrix4,
-    MeshBasicMaterial,
     Object3D,
     PlaneGeometry,
     Quaternion,
@@ -35,6 +33,8 @@ import {
 import {VFXBatchSettings, RenderMode} from './VFXBatch';
 import {BatchedRenderer} from './BatchedRenderer';
 import {RotationGenerator} from './functions/RotationGenerator';
+import {ParticleMaterial} from './types/ParticleMaterial';
+import {MeshBasicParticleMaterial} from './materials/MeshBasicParticleMaterial';
 
 export interface BurstParameters {
     time: number;
@@ -76,7 +76,7 @@ export interface ParticleSystemParameters {
     renderMode?: RenderMode;
     rendererEmitterSettings?: TrailSettings | MeshSettings | BillBoardSettings;
     speedFactor?: number;
-    material: Material;
+    material: ParticleMaterial;
     layers?: Layers;
     startTileIndex?: ValueGenerator;
     uTileCount?: number;
@@ -383,7 +383,7 @@ export class ParticleSystem {
         return this.rendererSettings.material;
     }
 
-    set material(material: Material) {
+    set material(material: ParticleMaterial) {
         this.rendererSettings.material = material;
         this.neededToUpdateRender = true;
     }
@@ -395,7 +395,6 @@ export class ParticleSystem {
     set uTileCount(u: number) {
         this.rendererSettings.uTileCount = u;
         this.neededToUpdateRender = true;
-        //this.emitter.material.uniforms.tileCount.value.x = u;
     }
 
     get vTileCount() {
@@ -844,7 +843,7 @@ export class ParticleSystem {
             meta.geometries[geometry.uuid] = geometry.toJSON();
         }
         return {
-            version: '2.0',
+            version: '3.0',
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             prewarm: this.prewarm,
@@ -884,7 +883,7 @@ export class ParticleSystem {
         json: ParticleSystemJSONParameters,
         meta: {
             textures: {[uuid: string]: Texture};
-            materials: {[uuoid: string]: Material};
+            materials: {[uuoid: string]: ParticleMaterial};
             geometries: {[uuid: string]: BufferGeometry};
         },
         dependencies: {[uuid: string]: Behavior}
@@ -935,13 +934,13 @@ export class ParticleSystem {
             material: json.material
                 ? meta.materials[json.material]
                 : json.texture
-                ? new MeshBasicMaterial({
+                ? new MeshBasicParticleMaterial({
                       map: meta.textures[json.texture],
                       transparent: json.transparent ?? true,
                       blending: json.blending,
                       side: DoubleSide,
                   })
-                : new MeshBasicMaterial({
+                : new MeshBasicParticleMaterial({
                       color: 0xffffff,
                       transparent: true,
                       blending: AdditiveBlending,

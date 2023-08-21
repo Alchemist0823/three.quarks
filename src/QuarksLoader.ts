@@ -28,6 +28,7 @@ import {
 import {ParticleSystem} from "./ParticleSystem";
 import {Behavior, EmitSubParticleSystem} from "./behaviors";
 import {ParticleEmitter} from "./ParticleEmitter";
+import QuarksMaterialLoader from "./QuarksMaterialLoader";
 
 export class QuarksLoader extends ObjectLoader {
     /*manager: LoadingManager;
@@ -397,5 +398,25 @@ export class QuarksLoader extends ObjectLoader {
 
         // @ts-ignore
         return object;
+    }
+
+    parseMaterials(json: any, textures: { [key: string]: Texture; }): any {
+        console.log('json', json);
+        const cache = {} as Record<string, THREE.Material>; // MultiMaterial
+		const materials = {} as Record<string, THREE.Material>;
+
+		if ( json !== undefined ) {
+			const loader = new QuarksMaterialLoader();
+			loader.setTextures( textures );
+
+			for ( let i = 0, l = json.length; i < l; i ++ ) {
+				const data = json[ i ];
+				if ( cache[ data.uuid ] === undefined ) {
+					cache[ data.uuid ] = loader.parse( data );
+				}
+				materials[ data.uuid ] = cache[ data.uuid ];
+			}
+		}
+		return materials;
     }
 }

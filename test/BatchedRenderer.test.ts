@@ -7,7 +7,8 @@ import {
    RenderMode, SizeOverLife,
    SphereEmitter
 } from "../src";
-import {MeshBasicMaterial, NormalBlending, Scene, Texture, Vector3, Vector4} from "three";
+import {NormalBlending, Scene, Texture, Vector3, Vector4} from "three";
+import MeshBasicParticleMaterial from "../src/materials/MeshBasicParticleMaterial";
 
 describe("BatchedRenderer", () => {
    test("update", () => {
@@ -32,7 +33,7 @@ describe("BatchedRenderer", () => {
             thickness: 1,
             arc: Math.PI * 2,
          }),
-         material: new MeshBasicMaterial({map: texture, blending: NormalBlending}),
+         material: new MeshBasicParticleMaterial({map: texture, blending: NormalBlending}),
          startTileIndex: new ConstantValue(1),
          uTileCount: 10,
          vTileCount: 10,

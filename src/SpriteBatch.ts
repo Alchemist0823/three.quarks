@@ -1,28 +1,14 @@
-import {SpriteParticle} from './Particle';
 import {
+    DynamicDrawUsage,
     InstancedBufferAttribute,
     InstancedBufferGeometry,
     Matrix3,
-    ShaderMaterial,
-    Uniform,
-    Vector2,
-    DynamicDrawUsage,
-    Vector3,
     Quaternion,
-    UniformsLib,
-    Color,
-    UniformsUtils,
-    MeshStandardMaterial,
+    Vector3
 } from 'three';
+import { SpriteParticle } from './Particle';
 
-import particle_frag from './shaders/particle_frag.glsl';
-import particle_physics_frag from './shaders/particle_physics_frag.glsl';
-import particle_vert from './shaders/particle_vert.glsl';
-import local_particle_vert from './shaders/local_particle_vert.glsl';
-import local_particle_physics_vert from './shaders/local_particle_physics_vert.glsl';
-import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
-import {VFXBatch, VFXBatchSettings, RenderMode} from './VFXBatch';
-import {getMaterialUVChannelName} from './util/ThreeUtil';
+import { RenderMode, VFXBatch, VFXBatchSettings } from './VFXBatch';
 
 const UP = new Vector3(0, 0, 1);
 
@@ -98,121 +84,123 @@ export class SpriteBatch extends VFXBatch {
     }
 
     rebuildMaterial() {
-        this.layers.mask = this.settings.layers.mask;
+       this.layers.mask = this.settings.layers.mask;
 
-        let uniforms: {[a: string]: Uniform};
-        const defines: {[b: string]: string} = {};
+       this.material =  this.settings.material.build(this.settings);
 
-        if (
-            this.settings.material.type === 'MeshStandardMaterial' ||
-            this.settings.material.type === 'MeshPhysicalMaterial'
-        ) {
-            const mat = this.settings.material as MeshStandardMaterial;
-            uniforms = UniformsUtils.merge([
-                UniformsLib.common,
-                UniformsLib.envmap,
-                UniformsLib.aomap,
-                UniformsLib.lightmap,
-                UniformsLib.emissivemap,
-                UniformsLib.bumpmap,
-                UniformsLib.normalmap,
-                UniformsLib.displacementmap,
-                UniformsLib.roughnessmap,
-                UniformsLib.metalnessmap,
-                UniformsLib.fog,
-                UniformsLib.lights,
-                {
-                    emissive: {value: /*@__PURE__*/ new Color(0x000000)},
-                    roughness: {value: 1.0},
-                    metalness: {value: 0.0},
-                    envMapIntensity: {value: 1}, // temporary
-                },
-            ]);
-            uniforms['diffuse'].value = mat.color;
-            uniforms['opacity'].value = mat.opacity;
-            uniforms['emissive'].value = mat.emissive;
-            uniforms['roughness'].value = mat.roughness;
-            uniforms['metalness'].value = mat.metalness;
+        // let uniforms: {[a: string]: Uniform};
+        // const defines: {[b: string]: string} = {};
 
-            if (mat.envMap) {
-                uniforms['envMap'].value = mat.envMap;
-                uniforms['envMapIntensity'].value = mat.envMapIntensity;
-            }
-            if (mat.normalMap) {
-                uniforms['normalMap'].value = mat.normalMap;
-                uniforms['normalScale'].value = mat.normalScale;
-            }
-            if (mat.roughnessMap) {
-                uniforms['roughnessMap'].value = mat.roughnessMap;
-            }
-            if (mat.metalnessMap) {
-                uniforms['metalnessMap'].value = mat.metalnessMap;
-            }
-        } else {
-            uniforms = {};
-            uniforms['map'] = new Uniform((this.settings.material as any).map);
-        }
+        // if (
+        //     this.settings.material.type === 'MeshStandardMaterial' ||
+        //     this.settings.material.type === 'MeshPhysicalMaterial'
+        // ) {
+        //     const mat = this.settings.material as MeshStandardMaterial;
+        //     uniforms = UniformsUtils.merge([
+        //         UniformsLib.common,
+        //         UniformsLib.envmap,
+        //         UniformsLib.aomap,
+        //         UniformsLib.lightmap,
+        //         UniformsLib.emissivemap,
+        //         UniformsLib.bumpmap,
+        //         UniformsLib.normalmap,
+        //         UniformsLib.displacementmap,
+        //         UniformsLib.roughnessmap,
+        //         UniformsLib.metalnessmap,
+        //         UniformsLib.fog,
+        //         UniformsLib.lights,
+        //         {
+        //             emissive: {value: /*@__PURE__*/ new Color(0x000000)},
+        //             roughness: {value: 1.0},
+        //             metalness: {value: 0.0},
+        //             envMapIntensity: {value: 1}, // temporary
+        //         },
+        //     ]);
+        //     uniforms['diffuse'].value = mat.color;
+        //     uniforms['opacity'].value = mat.opacity;
+        //     uniforms['emissive'].value = mat.emissive;
+        //     uniforms['roughness'].value = mat.roughness;
+        //     uniforms['metalness'].value = mat.metalness;
 
-        if ((this.settings.material as any).map) {
-            defines['USE_MAP'] = '';
-            defines['USE_UV'] = '';
-            defines['UV_TILE'] = '';
-            const uTileCount = this.settings.uTileCount;
-            const vTileCount = this.settings.vTileCount;
-            if(this.settings.blendTiles) defines['TILE_BLEND'] = ''
-            defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
-            uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
-            uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
-        }
-        defines['USE_COLOR_ALPHA'] = '';
+        //     if (mat.envMap) {
+        //         uniforms['envMap'].value = mat.envMap;
+        //         uniforms['envMapIntensity'].value = mat.envMapIntensity;
+        //     }
+        //     if (mat.normalMap) {
+        //         uniforms['normalMap'].value = mat.normalMap;
+        //         uniforms['normalScale'].value = mat.normalScale;
+        //     }
+        //     if (mat.roughnessMap) {
+        //         uniforms['roughnessMap'].value = mat.roughnessMap;
+        //     }
+        //     if (mat.metalnessMap) {
+        //         uniforms['metalnessMap'].value = mat.metalnessMap;
+        //     }
+        // } else {
+        //     uniforms = {};
+        //     uniforms['map'] = new Uniform((this.settings.material as any).map);
+        // }
 
-        let needLights = false;
-        if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.Mesh) {
-            let vertexShader;
-            let fragmentShader;
-            if (this.settings.renderMode === RenderMode.Mesh) {
-                if (
-                    this.settings.material.type === 'MeshStandardMaterial' ||
-                    this.settings.material.type === 'MeshPhysicalMaterial'
-                ) {
-                    defines['USE_COLOR'] = '';
-                    vertexShader = local_particle_physics_vert;
-                    fragmentShader = particle_physics_frag;
-                    needLights = true;
-                } else {
-                    vertexShader = local_particle_vert;
-                    fragmentShader = particle_frag;
-                }
-            } else {
-                vertexShader = particle_vert;
-                fragmentShader = particle_frag;
-            }
-            this.material = new ShaderMaterial({
-                uniforms: uniforms,
-                defines: defines,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
-                transparent: this.settings.material.transparent,
-                depthWrite: !this.settings.material.transparent,
-                blending: this.settings.material.blending,
-                side: this.settings.material.side,
-                lights: needLights,
-            });
-        } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
-            uniforms['speedFactor'] = new Uniform(1.0);
-            this.material = new ShaderMaterial({
-                uniforms: uniforms,
-                defines: defines,
-                vertexShader: stretched_bb_particle_vert,
-                fragmentShader: particle_frag,
-                transparent: this.settings.material.transparent,
-                depthWrite: !this.settings.material.transparent,
-                blending: this.settings.material.blending,
-                side: this.settings.material.side,
-            });
-        } else {
-            throw new Error('render mode unavailable');
-        }
+        // if ((this.settings.material as any).map) {
+        //     defines['USE_MAP'] = '';
+        //     defines['USE_UV'] = '';
+        //     defines['UV_TILE'] = '';
+        //     const uTileCount = this.settings.uTileCount;
+        //     const vTileCount = this.settings.vTileCount;
+        //     if(this.settings.blendTiles) defines['TILE_BLEND'] = ''
+        //     defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
+        //     uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
+        //     uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+        // }
+        // defines['USE_COLOR_ALPHA'] = '';
+
+        // let needLights = false;
+        // if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.Mesh) {
+        //     let vertexShader;
+        //     let fragmentShader;
+        //     if (this.settings.renderMode === RenderMode.Mesh) {
+        //         if (
+        //             this.settings.material.type === 'MeshStandardMaterial' ||
+        //             this.settings.material.type === 'MeshPhysicalMaterial'
+        //         ) {
+        //             defines['USE_COLOR'] = '';
+        //             vertexShader = local_particle_physics_vert;
+        //             fragmentShader = particle_physics_frag;
+        //             needLights = true;
+        //         } else {
+        //             vertexShader = local_particle_vert;
+        //             fragmentShader = particle_frag;
+        //         }
+        //     } else {
+        //         vertexShader = particle_vert;
+        //         fragmentShader = particle_frag;
+        //     }
+        //     this.material = new ShaderMaterial({
+        //         uniforms: uniforms,
+        //         defines: defines,
+        //         vertexShader: vertexShader,
+        //         fragmentShader: fragmentShader,
+        //         transparent: this.settings.material.transparent,
+        //         depthWrite: !this.settings.material.transparent,
+        //         blending: this.settings.material.blending,
+        //         side: this.settings.material.side,
+        //         lights: needLights,
+        //     });
+        // } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
+        //     uniforms['speedFactor'] = new Uniform(1.0);
+        //     this.material = new ShaderMaterial({
+        //         uniforms: uniforms,
+        //         defines: defines,
+        //         vertexShader: stretched_bb_particle_vert,
+        //         fragmentShader: particle_frag,
+        //         transparent: this.settings.material.transparent,
+        //         depthWrite: !this.settings.material.transparent,
+        //         blending: this.settings.material.blending,
+        //         side: this.settings.material.side,
+        //     });
+        // } else {
+        //     throw new Error('render mode unavailable');
+        // }
     }
 
     /*

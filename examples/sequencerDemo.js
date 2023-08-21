@@ -30,6 +30,7 @@ import {
     loadPlugin,
     TextureSequencer,
     ApplySequences,
+    MeshBasicParticleMaterial
 } from './js/three.quarks.esm.js';
 import {Demo} from './demo.js';
 
@@ -57,7 +58,7 @@ export class SequencerDemo extends Demo {
             ],
 
             shape: new GridEmitter({width: 15, height: 15, column: 50, row: 50}),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: NormalBlending,
                 transparent: true,

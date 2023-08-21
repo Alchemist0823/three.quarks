@@ -26,8 +26,8 @@ import {
     RotationOverLife,
     SizeOverLife,
     ParticleSystem,
-    ParticleEmitter,
     BatchedParticleRenderer,
+    MeshBasicParticleMaterial
 } from './js/three.quarks.esm.js';
 import {Demo} from './demo.js';
 
@@ -66,7 +66,7 @@ export class MuzzleFlashDemo extends Demo {
             ],
 
             shape: new PointEmitter(),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: AdditiveBlending,
                 transparent: true,
@@ -104,7 +104,7 @@ export class MuzzleFlashDemo extends Demo {
             ],
 
             shape: new PointEmitter(),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: AdditiveBlending,
                 transparent: true,
@@ -168,7 +168,7 @@ export class MuzzleFlashDemo extends Demo {
             ],
 
             shape: new PointEmitter(),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: AdditiveBlending,
                 transparent: true,
@@ -216,7 +216,7 @@ export class MuzzleFlashDemo extends Demo {
                 thickness: 1,
                 arc: Math.PI * 2,
             }),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: NormalBlending,
                 transparent: true,
@@ -263,7 +263,7 @@ export class MuzzleFlashDemo extends Demo {
                 thickness: 1,
                 arc: Math.PI * 2,
             }),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: AdditiveBlending,
                 transparent: true,

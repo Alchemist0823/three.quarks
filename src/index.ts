@@ -16,4 +16,6 @@ export * from "./behaviors/";
 export * from "./sequencers/";
 export * from "./nodes/";
 
-console.log("%c Powered by three.quarks. https://quarks.art/", "color: #ff0000; font-size: 16px; font-weight: bold;");
+export * from './materials'
+
+console.log("%c Powered by three.quarks. https:/quarks.art/", "color: #ff0000; font-size: 16px; font-weight: bold;");

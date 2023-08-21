@@ -6,7 +6,6 @@ import {
     Uniform,
     Vector2,
     DynamicDrawUsage,
-    DoubleSide,
     BufferGeometry,
     Vector3,
     BufferAttribute,

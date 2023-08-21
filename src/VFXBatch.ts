@@ -3,14 +3,14 @@ import {ParticleSystem} from './ParticleSystem';
 import {
     Mesh,
     ShaderMaterial,
-    BufferGeometry, Material, Layers
+    BufferGeometry, Layers
 } from 'three';
-
+import type { ParticleMaterial } from './types/ParticleMaterial';
 
 export interface VFXBatchSettings {
     // 5 component x,y,z,u,v
     instancingGeometry: BufferGeometry;
-    material: Material;
+    material: ParticleMaterial;
     uTileCount: number;
     vTileCount: number;
     blendTiles: boolean;

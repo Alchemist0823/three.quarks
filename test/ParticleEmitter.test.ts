@@ -14,9 +14,10 @@ import {
     SizeOverLife,
     SphereEmitter, TrailSettings
 } from "../src";
-import { Layers, MeshBasicMaterial, NormalBlending, Texture, Vector3, Vector4} from "three";
+import { Layers, NormalBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedRenderer} from "../src/BatchedRenderer";
+import MeshBasicParticleMaterial from "../src/materials/MeshBasicParticleMaterial";
 
 
 describe("ParticleEmitter", () => {
@@ -42,7 +43,7 @@ describe("ParticleEmitter", () => {
             thickness: 1,
             arc: Math.PI * 2,
         }),
-        material: new MeshBasicMaterial({map: texture, blending: NormalBlending, transparent: true}),
+        material: new MeshBasicParticleMaterial({map: texture, blending: NormalBlending, transparent: true}),
         startTileIndex: new ConstantValue(1),
         uTileCount: 10,
         vTileCount: 10,

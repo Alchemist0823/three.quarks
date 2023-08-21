@@ -27,6 +27,7 @@ import {
     ApplyForce,
     ApplyCollision,
     Gradient,
+    MeshBasicParticleMaterial
 } from './js/three.quarks.esm.js';
 import {Demo} from './demo.js';
 export class TrailDemo extends Demo {
@@ -59,7 +60,7 @@ export class TrailDemo extends Demo {
             ],
 
             shape: new ConeEmitter({radius: 0.1, angle: 1}),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: AdditiveBlending,
                 transparent: true,

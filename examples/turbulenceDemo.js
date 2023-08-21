@@ -24,7 +24,7 @@ import {
     ParticleEmitter,
     BatchedParticleRenderer,
     ConeEmitter,
-    ApplyForce,
+    MeshBasicParticleMaterial
 } from './js/three.quarks.esm.js';
 import {Demo} from './demo.js';
 
@@ -43,7 +43,7 @@ export class TurbulenceDemo extends Demo {
             emissionOverTime: new ConstantValue(500),
 
             shape: new ConeEmitter({radius: 0.5, angle: 0}),
-            material: new MeshBasicMaterial({
+            material: new MeshBasicParticleMaterial({
                 map: this.texture,
                 blending: AdditiveBlending,
                 transparent: true,
