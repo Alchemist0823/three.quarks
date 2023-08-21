@@ -17,7 +17,7 @@ import {
 import { Layers, NormalBlending, Texture, Vector3, Vector4} from "three";
 import {QuarksLoader} from "../src/QuarksLoader";
 import {BatchedRenderer} from "../src/BatchedRenderer";
-import MeshBasicParticleMaterial from "../src/materials/MeshBasicParticleMaterial";
+import {MeshBasicParticleMaterial} from "../src/materials/MeshBasicParticleMaterial";
 
 
 describe("ParticleEmitter", () => {

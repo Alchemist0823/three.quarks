@@ -55,7 +55,7 @@ export class MeshBasicParticleMaterial extends MeshBasicMaterial {
         uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
         if(renderMode === RenderMode.StretchedBillBoard ) {
-            // uniforms['speedFactor'] = new Uniform(1.0);
+            uniforms['speedFactor'] = new Uniform(1.0);
         }
 
         let vertexShader;
@@ -72,8 +72,6 @@ export class MeshBasicParticleMaterial extends MeshBasicMaterial {
             case RenderMode.Trail:
                 throw new Error("Error");
         }
-
-        console.log("build")
 
         const fragmentShader = particle_frag;
 

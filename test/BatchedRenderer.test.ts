@@ -8,7 +8,7 @@ import {
    SphereEmitter
 } from "../src";
 import {NormalBlending, Scene, Texture, Vector3, Vector4} from "three";
-import MeshBasicParticleMaterial from "../src/materials/MeshBasicParticleMaterial";
+import {MeshBasicParticleMaterial} from "../src/materials/MeshBasicParticleMaterial";
 
 describe("BatchedRenderer", () => {
    test("update", () => {

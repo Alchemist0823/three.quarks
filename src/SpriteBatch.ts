@@ -87,7 +87,7 @@ export class SpriteBatch extends VFXBatch {
        this.layers.mask = this.settings.layers.mask;
 
        // Dispose old material
-       this.material.dispose();
+       this.material?.dispose();
 
        // Rebuild the particle material with current settings
        this.material =  this.settings.material.build(this.settings);
