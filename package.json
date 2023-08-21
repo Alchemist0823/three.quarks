@@ -6,7 +6,10 @@
   "main": "./dist/three.quarks.js",
   "module": "./dist/three.quarks.esm.js",
   "browser_NO_NPM": "./dist/three.quarks.min.js",
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "type-check": "tsc --noEmit",
     "type-check:watch": "yarn run type-check -- --watch",
@@ -43,7 +46,7 @@
   "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
   "dependencies": {},
   "peerDependencies": {
-    "three": "^0.154.0"
+    "three": "^0.155.0"
   },
   "devDependencies": {
     "@babel/core": "^7.22.8",
@@ -56,7 +59,7 @@
     "@rollup/plugin-typescript": "^11.1.2",
     "@types/jest": "^29.5.3",
     "@types/node": "^16.18.38",
-    "@types/three": "^0.154.0",
+    "@types/three": "^0.155.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "cpx": "^1.5.0",
