@@ -370,11 +370,11 @@ export class ParticleSystem {
     }
 
     get texture() {
-        return (this.rendererSettings.material as any).map;
+        return this.rendererSettings.material.map;
     }
 
-    set texture(texture: Texture) {
-        (this.rendererSettings.material as any).map = texture;
+    set texture(texture: Texture | null) {
+        this.rendererSettings.material.map = texture;
         this.neededToUpdateRender = true;
         //this.emitter.material.uniforms.map.value = texture;
     }
@@ -817,7 +817,7 @@ export class ParticleSystem {
         meta.materials[this.rendererSettings.material.uuid] = this.rendererSettings.material.toJSON(meta);
 
         if (options.useUrlForImage) {
-            if (this.texture.source !== undefined) {
+            if (this.texture?.source !== undefined) {
                 const image = this.texture.source;
                 meta.images[image.uuid] = {
                     uuid: image.uuid,
@@ -843,7 +843,7 @@ export class ParticleSystem {
             meta.geometries[geometry.uuid] = geometry.toJSON();
         }
         return {
-            version: '3.0',
+            version: '4.0',
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             prewarm: this.prewarm,

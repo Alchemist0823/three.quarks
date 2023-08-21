@@ -54,6 +54,10 @@ export class MeshBasicParticleMaterial extends MeshBasicMaterial {
         defines['USE_COLOR_ALPHA'] = '';
         uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
 
+        if(renderMode === RenderMode.StretchedBillBoard ) {
+            // uniforms['speedFactor'] = new Uniform(1.0);
+        }
+
         let vertexShader;
         switch (renderMode) {
             case RenderMode.StretchedBillBoard:
@@ -68,6 +72,8 @@ export class MeshBasicParticleMaterial extends MeshBasicMaterial {
             case RenderMode.Trail:
                 throw new Error("Error");
         }
+
+        console.log("build")
 
         const fragmentShader = particle_frag;
 
@@ -104,4 +110,4 @@ export class MeshBasicParticleMaterial extends MeshBasicMaterial {
     fromJSON(json: any) {
       this.blendTiles = json.blendTiles;
     }
-}
+}  

@@ -86,6 +86,10 @@ export class SpriteBatch extends VFXBatch {
     rebuildMaterial() {
        this.layers.mask = this.settings.layers.mask;
 
+       // Dispose old material
+       this.material.dispose();
+
+       // Rebuild the particle material with current settings
        this.material =  this.settings.material.build(this.settings);
 
         // let uniforms: {[a: string]: Uniform};
