@@ -5,10 +5,10 @@ import {MetaData, ParticleEmitter} from './ParticleEmitter';
 import {EmitterFromJSON, EmitterShape, ShapeJSON} from './shape/EmitterShape';
 import {
     AdditiveBlending,
-    BaseEvent,
     Blending,
     BufferGeometry,
     DoubleSide,
+    Event,
     Layers,
     Matrix3,
     Matrix4,
@@ -319,9 +319,9 @@ export class ParticleSystem {
     /**
      * the emitter object that should be added in the scene.
      *
-     * @type {ParticleEmitter<BaseEvent>}
+     * @type {ParticleEmitter<Event>}
      */
-    emitter: ParticleEmitter<BaseEvent>;
+    emitter: ParticleEmitter<Event>;
 
     /**
      * the VFX renderer settings for the batch renderer

@@ -1,20 +1,22 @@
-import {VFXBatch, VFXBatchSettings, RenderMode} from "./VFXBatch";
-import {ParticleSystem} from "./ParticleSystem";
-import {Object3D} from "three";
-import { SpriteBatch } from "./SpriteBatch";
-import {TrailBatch} from "./TrailBatch";
+import {VFXBatch, VFXBatchSettings, RenderMode} from './VFXBatch';
+import {ParticleSystem} from './ParticleSystem';
+import {Object3D} from 'three';
+import {SpriteBatch} from './SpriteBatch';
+import {TrailBatch} from './TrailBatch';
 
-export class BatchedRenderer extends Object3D {
+export class BatchedRenderer extends Object3D<Event> {
     batches: Array<VFXBatch> = [];
     systemToBatchIndex: Map<ParticleSystem, number> = new Map<ParticleSystem, number>();
-    type = "BatchedRenderer";
+    type = 'BatchedRenderer';
+    depthTexture: THREE.Texture | null = null;
 
     constructor() {
         super();
     }
 
     private static equals(a: VFXBatchSettings, b: VFXBatchSettings) {
-        return a.material.side === b.material.side &&
+        return (
+            a.material.side === b.material.side &&
             a.material.blending === b.material.blending &&
             a.material.transparent === b.material.transparent &&
             (a.material as any).map === (b.material as any).map &&
@@ -23,7 +25,8 @@ export class BatchedRenderer extends Object3D {
             a.vTileCount === b.vTileCount &&
             a.instancingGeometry === b.instancingGeometry &&
             a.renderOrder === b.renderOrder &&
-            a.layers.mask === b.layers.mask;
+            a.layers.mask === b.layers.mask
+        );
     }
 
     addSystem(system: ParticleSystem) {
@@ -47,6 +50,9 @@ export class BatchedRenderer extends Object3D {
                 batch = new SpriteBatch(settings);
                 break;
         }
+        if (this.depthTexture) {
+            batch.applyDepthTexture(this.depthTexture);
+        }
         batch.addSystem(system);
         this.batches.push(batch);
         this.systemToBatchIndex.set(system, this.batches.length - 1);
@@ -66,6 +72,13 @@ export class BatchedRenderer extends Object3D {
                 return;
             }
         }*/
+    }
+
+    setDepthTexture(depthTexture: THREE.Texture | null) {
+        this.depthTexture = depthTexture;
+        for (const batch of this.batches) {
+            batch.applyDepthTexture(depthTexture);
+        }
     }
 
     updateSystem(system: ParticleSystem) {

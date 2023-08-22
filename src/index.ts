@@ -1,3 +1,5 @@
+import registerShaderChunks from "./shaders/chunks/register-shader-chunks";
+
 export * from "./ParticleEmitter";
 export * from "./Particle";
 export * from "./ParticleSystem";
@@ -17,5 +19,7 @@ export * from "./sequencers/";
 export * from "./nodes/";
 
 export * from './materials'
+
+registerShaderChunks();
 
 console.log("%c Powered by three.quarks. https:/quarks.art/", "color: #ff0000; font-size: 16px; font-weight: bold;");

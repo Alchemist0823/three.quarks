@@ -59,7 +59,7 @@
     "@rollup/plugin-typescript": "^11.1.2",
     "@types/jest": "^29.5.3",
     "@types/node": "^16.18.38",
-    "@types/three": "^0.155.0",
+    "@types/three": "^0.154.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "cpx": "^1.5.0",

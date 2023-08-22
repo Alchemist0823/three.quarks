@@ -1,5 +1,3 @@
-import tile_vertex from "./chunks/tile_vertex.glsl";
-import tile_pars_vertex from "./chunks/tile_pars_vertex.glsl";
 
 export default /* glsl */ `
 #include <common>
@@ -7,7 +5,8 @@ export default /* glsl */ `
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 
-${tile_pars_vertex}
+#include <tile_pars_vertex>
+#include <soft_pars_vertex>
 
 attribute vec3 offset;
 attribute float rotation;
@@ -18,8 +17,6 @@ uniform float speedFactor;
 
 void main() {
 
-    ${tile_vertex}
-	
     vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
     vec3 viewVelocity = normalMatrix * velocity;
 
@@ -33,6 +30,8 @@ void main() {
 	#include <logdepthbuf_vertex>
 	#include <clipping_planes_vertex>
 
+	#include <tile_vertex>
+	#include <soft_vertex>
 }
 `;
 /*

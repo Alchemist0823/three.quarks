@@ -1,10 +1,10 @@
 
-import {ParticleSystem} from './ParticleSystem';
 import {
+    BufferGeometry, Layers,
     Mesh,
-    ShaderMaterial,
-    BufferGeometry, Layers
+    ShaderMaterial
 } from 'three';
+import { ParticleSystem } from './ParticleSystem';
 import type { ParticleMaterial } from './types/ParticleMaterial';
 
 export interface VFXBatchSettings {
@@ -60,6 +60,16 @@ export abstract class VFXBatch extends Mesh {
 
     removeSystem(system: ParticleSystem) {
         this.systems.delete(system);
+    }
+
+    applyDepthTexture(depthTexture: THREE.Texture | null): void {
+        const uniform = this.material.uniforms['depthTexture'];
+        if (uniform) {
+            if(uniform.value !==depthTexture) {
+                uniform.value = depthTexture;
+                this.material.needsUpdate = true;
+            }
+        }
     }
 
     abstract setupBuffers(): void;

@@ -1,5 +1,3 @@
-import tile_pars_fragment from "./chunks/tile_pars_fragment.glsl";
-
 export default /* glsl */`
 #include <common>
 #include <color_pars_fragment>
@@ -7,7 +5,8 @@ export default /* glsl */`
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
 
-${tile_pars_fragment}
+#include <tile_pars_fragment>
+#include <soft_pars_fragment>
 
 void main() {
 
@@ -17,21 +16,14 @@ void main() {
     vec4 diffuseColor = vColor;
     
     #include <logdepthbuf_fragment>
-    
-    #ifdef USE_MAP
-    vec4 texelColor = texture2D( map, vUv);
-        #ifdef TILE_BLEND
-            texelColor = mix( texelColor, texture2D( map, vUvNext ), vUvBlend );
-        #endif
-    diffuseColor *= texelColor;
-    #endif
+    #include <tile_fragment>
 
     outgoingLight = diffuseColor.rgb;
 
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );
     
+    #include <soft_fragment>
     #include <tonemapping_fragment>
-
 }
 `;
 /*
