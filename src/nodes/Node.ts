@@ -1,13 +1,15 @@
-import {Vector2} from "three";
-import {genDefaultForNodeValueType} from "./NodeValueType";
-import {ExecutionContext, NodeType} from "./NodeType";
+import {Vector2} from 'three';
+import {genDefaultForNodeValueType, NodeValueType} from './NodeValueType';
+import {ExecutionContext, NodeType} from './NodeType';
 
+export type NodeData = {[key: string]: any};
 export class Node {
     id: string;
     inputs: (Wire | ConstInput | undefined)[] = [];
     outputs: (Wire | undefined)[] = [];
     type: NodeType;
-    data: { [key: string]: any } = {};
+    signatureIndex: number = -1;
+    data: NodeData = {};
 
     // display
     position: Vector2 = new Vector2();
@@ -16,15 +18,30 @@ export class Node {
     outputValues: any[] = [];
 
     constructor(type: NodeType) {
-        this.id = "" + Math.round(Math.random() * 100000); //TODO use real random
+        this.id = '' + Math.round(Math.random() * 100000); //TODO use real random
         this.type = type;
-        for (let i = 0; i < type.inputTypes.length; i++) {
+        for (let i = 0; i < type.nodeTypeSignatures[0].inputTypes.length; i++) {
             this.inputs.push(undefined);
         }
-        for (let i = 0; i < type.outputTypes.length; i++) {
+        for (let i = 0; i < type.nodeTypeSignatures[0].outputTypes.length; i++) {
             this.outputs.push(undefined);
-            this.outputValues.push(genDefaultForNodeValueType(type.outputTypes[i]));
+            this.outputValues.push(genDefaultForNodeValueType(type.nodeTypeSignatures[0].outputTypes[i]));
         }
+    }
+
+    get inputTypes(): NodeValueType[] {
+        let signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
+        return this.type.nodeTypeSignatures[signatureIndex].inputTypes;
+    }
+
+    get outputTypes(): NodeValueType[] {
+        let signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
+        return this.type.nodeTypeSignatures[signatureIndex].outputTypes;
+    }
+
+    func(context: ExecutionContext, inputs: any[], outputs: any[]) {
+        let signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
+        this.type.nodeTypeSignatures[signatureIndex].func(context, this.data, inputs, outputs);
     }
 }
 

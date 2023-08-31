@@ -1,30 +1,41 @@
-import {NodeValueType} from "./NodeValueType";
-import {NodeGraph} from "./NodeGraph";
-import {Interpreter} from "./Interpreter";
-import {Particle} from "../Particle";
-
+import {NodeValueType} from './NodeValueType';
+import {NodeGraph} from './NodeGraph';
+import {Interpreter} from './Interpreter';
+import {Particle} from '../Particle';
+import {Vector2, Vector3, Vector4} from 'three';
+import {Node, NodeData} from './Node';
 
 export interface ExecutionContext {
-    inputs: any[];
-    outputs: any[];
+    inputs: NodeValue[];
+    outputs: NodeValue[];
     particle?: Particle;
     delta?: number;
 }
 
-type NodeExecFunction = (context: ExecutionContext, inputs: any[], outputs: any[]) => void;
+type NodeValue = number | boolean | Vector2 | Vector3 | Vector4;
+
+type NodeExecFunction = (context: ExecutionContext, data: NodeData, inputs: NodeValue[], outputs: NodeValue[]) => void;
+
+export interface NodeTypeSignature {
+    inputTypes: NodeValueType[];
+    outputTypes: NodeValueType[];
+    func: NodeExecFunction;
+}
 
 export class NodeType {
     name: string;
-    inputTypes: NodeValueType[] = [];
-    outputTypes: NodeValueType[] = [];
-    func: NodeExecFunction;
+    nodeTypeSignatures: NodeTypeSignature[] = [];
 
-    constructor(name: string, func: NodeExecFunction, inputTypes: NodeValueType[], outputTypes: NodeValueType[]) {
+    constructor(name: string) {
         this.name = name;
-        this.func = func;
+    }
 
-        this.inputTypes = inputTypes;
-        this.outputTypes = outputTypes;
+    addSignature(inputTypes: NodeValueType[], outputTypes: NodeValueType[], func: NodeExecFunction) {
+        this.nodeTypeSignatures.push({
+            inputTypes: inputTypes,
+            outputTypes: outputTypes,
+            func: func,
+        });
     }
 }
 
@@ -45,11 +56,12 @@ export class GraphNodeType extends NodeType {
             }
         }
 
-        super(nodeGraph.name, (context: ExecutionContext, inputs: any[], outputs: any[]) => {
+        super(nodeGraph.name);
+        this.addSignature(inputTypes, outputTypes, (context: ExecutionContext, data, inputs, outputs) => {
             context.inputs = inputs;
             context.outputs = outputs;
             Interpreter.Instance.run(nodeGraph, context);
-        }, inputTypes, outputTypes);
+        });
         this.nodeGraph = nodeGraph;
     }
 }
