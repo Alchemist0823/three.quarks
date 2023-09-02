@@ -1,10 +1,13 @@
 # Change Log
 
+## version 0.10.5
+- Support alpha test on billboard material
+
 ## Version 0.10.4
-- make three js peer dependencies
+- Make three js peer dependencies
 
 ## Version 0.10.3
-- fix bugs caused by three.js version upgrade
+- Fix bugs caused by three.js version upgrade
 
 ## Version 0.10.0
 - Support BSDF material MeshStandardMaterial and MeshBasicMaterial (Unlit)
