@@ -6,7 +6,7 @@ export type NodeData = {[key: string]: any};
 export class Node {
     id: string;
     inputs: (Wire | ConstInput | undefined)[] = [];
-    outputs: (Wire | undefined)[] = [];
+    outputs: Wire[][] = [];
     type: NodeType;
     signatureIndex: number = -1;
     data: NodeData = {};
@@ -24,7 +24,7 @@ export class Node {
             this.inputs.push(undefined);
         }
         for (let i = 0; i < type.nodeTypeSignatures[0].outputTypes.length; i++) {
-            this.outputs.push(undefined);
+            this.outputs.push([]);
             this.outputValues.push(genDefaultForNodeValueType(type.nodeTypeSignatures[0].outputTypes[i]));
         }
     }
@@ -58,7 +58,7 @@ export class Wire {
     constructor(input: Node, inputIndex: number, output: Node, outputIndex: number) {
         this.input = input;
         this.inputIndex = inputIndex;
-        this.input.outputs[inputIndex] = this;
+        this.input.outputs[inputIndex].push(this);
         this.output = output;
         this.outputIndex = outputIndex;
         this.output.inputs[outputIndex] = this;

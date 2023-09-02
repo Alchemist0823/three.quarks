@@ -1,10 +1,11 @@
-import {Node, Wire} from "./Node";
-import {NodeTypes} from "./NodeDefs";
+import {Node, Wire} from './Node';
+import {NodeTypes} from './NodeDefs';
 
 export class NodeGraph {
     id: string;
     name: string;
     version: string;
+    revision: number;
     inputNodes: Node[] = [];
     outputNodes: Node[] = [];
     allNodes: Map<string, Node> = new Map<string, Node>();
@@ -14,13 +15,15 @@ export class NodeGraph {
     nodesInOrder: Array<Node> = [];
 
     constructor(name: string) {
-        this.version = "1.0";
-        this.id = "" + Math.round(Math.random() * 100000); //TODO use real random
+        this.version = '1.0';
+        this.id = '' + Math.round(Math.random() * 100000); //TODO use real random
         this.name = name;
+        this.revision = 0;
     }
 
     addWire(wire: Wire): void {
         this.wires.push(wire);
+        this.revision++;
     }
 
     addNode(node: Node): void {
@@ -31,6 +34,7 @@ export class NodeGraph {
         } else if (node.type === NodeTypes['output']) {
             this.outputNodes.push(node);
         }
+        this.revision++;
     }
 
     getNode(id: string): Node | undefined {
@@ -44,25 +48,29 @@ export class NodeGraph {
             this.nodes.pop();
         }*/
         this.allNodes.delete(node.id);
+        this.revision++;
     }
 
     deleteWire(wire: Wire): void {
-        wire.input.outputs[wire.inputIndex] = undefined;
+        let index = wire.input.outputs[wire.inputIndex].indexOf(wire);
+        if (index !== -1) {
+            wire.input.outputs[wire.inputIndex].splice(index, 1);
+        }
         wire.output.inputs[wire.outputIndex] = undefined;
 
-        const index = this.wires.indexOf(wire);
+        index = this.wires.indexOf(wire);
         if (index != -1) {
             this.wires[index] = this.wires[this.wires.length - 1];
             this.wires.pop();
         }
+        this.revision++;
     }
 
-
     toJSON(): any {
-        throw new Error("not implemented");
+        throw new Error('not implemented');
     }
 
     clone(): NodeGraph {
-        throw new Error("not implemented");
+        throw new Error('not implemented');
     }
 }
