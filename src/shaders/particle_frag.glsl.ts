@@ -1,4 +1,4 @@
-export default /* glsl */`
+export default /* glsl */ `
 
 #include <common>
 #include <uv_pars_fragment>
@@ -6,6 +6,7 @@ export default /* glsl */`
 #include <map_pars_fragment>
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
+#include <alphatest_pars_fragment>
 
 void main() {
 
@@ -22,6 +23,8 @@ void main() {
     #endif
 
     outgoingLight = diffuseColor.rgb;
+    
+    #include <alphatest_fragment>
 
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );
     

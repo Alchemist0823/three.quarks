@@ -78,6 +78,7 @@
         import {CustomPluginDemo} from "./customPluginDemo.js";
         import {SequencerDemo} from "./sequencerDemo.js";
         import {MeshMaterialDemo} from "./meshMaterialDemo.js";
+        import {AlphaTestDemo} from "./alphaTestDemo.js";
 
         const WEBGL = {
             isWebGLAvailable: function () {
@@ -141,7 +142,7 @@
         let scene;
         let demo;
 
-        let demos = [MuzzleFlashDemo, TornadoDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, TurbulenceDemo, CustomPluginDemo];
+        let demos = [MuzzleFlashDemo, TornadoDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo];
         let demoIndex = 0;
 
         function init() {
