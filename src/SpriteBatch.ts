@@ -148,20 +148,39 @@ export class SpriteBatch extends VFXBatch {
             if (mat.metalnessMap) {
                 uniforms['metalnessMap'].value = mat.metalnessMap;
             }
+            if (mat.map) {
+                uniforms['map'] = new Uniform(mat.map);
+            }
         } else {
             uniforms = {};
             uniforms['map'] = new Uniform((this.settings.material as any).map);
         }
 
+        if ((this.settings.material as any).alphaTest) {
+            defines['USE_ALPHATEST'] = '';
+            uniforms['alphaTest'] = new Uniform((this.settings.material as any).alphaTest);
+        }
+
+        defines['USE_UV'] = '';
+        const uTileCount = this.settings.uTileCount;
+        const vTileCount = this.settings.vTileCount;
+        if (uTileCount > 1 || vTileCount > 1) {
+            defines['UV_TILE'] = '';
+            uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+        }
+
+        if ((this.settings.material as any).normalMap) {
+            defines['USE_NORMALMAP'] = '';
+            defines['NORMALMAP_UV'] = getMaterialUVChannelName((this.settings.material as any).normalMap.channel);
+            uniforms['normalMapTransform'] = new Uniform(
+                new Matrix3().copy((this.settings.material as any).normalMap.matrix)
+            );
+        }
+
         if ((this.settings.material as any).map) {
             defines['USE_MAP'] = '';
-            defines['USE_UV'] = '';
-            defines['UV_TILE'] = '';
-            const uTileCount = this.settings.uTileCount;
-            const vTileCount = this.settings.vTileCount;
             defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
-            uniforms['uvTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
-            uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
+            uniforms['mapTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
         }
         defines['USE_COLOR_ALPHA'] = '';
 
@@ -195,6 +214,7 @@ export class SpriteBatch extends VFXBatch {
                 depthWrite: !this.settings.material.transparent,
                 blending: this.settings.material.blending,
                 side: this.settings.material.side,
+                alphaTest: this.settings.material.alphaTest,
                 lights: needLights,
             });
         } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
@@ -208,6 +228,7 @@ export class SpriteBatch extends VFXBatch {
                 depthWrite: !this.settings.material.transparent,
                 blending: this.settings.material.blending,
                 side: this.settings.material.side,
+                alphaTest: this.settings.material.alphaTest,
             });
         } else {
             throw new Error('render mode unavailable');

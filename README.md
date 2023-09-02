@@ -30,6 +30,7 @@ top of the well-known WebGL library called [three.js](https://threejs.org).
 - WebAssembly Particle Simulation on CPU. (WIP)
 - GPU simulation on GPU (WIP)
 - Node based / scriptable particle system (WIP)
+- Simulation Frequency - Performance
 - Unity / Standalone Cross-platform Native plugin to run VFX
 
 ## Features
@@ -100,7 +101,7 @@ const muzzle = {
 
     shape: new PointEmitter(),
     material: new MeshBasicMaterial({map: texture, blending: AdditiveBlending, transparent: true}),
-    startTileIndex: 91,
+    startTileIndex: new ConstantValue(91),
     uTileCount: 10,
     vTileCount: 10,
     renderOrder: 2,

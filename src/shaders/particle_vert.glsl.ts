@@ -16,11 +16,7 @@ uniform vec2 tileCount;
 
 void main() {
 
-    #ifdef UV_TILE
-        vUv = vec2((mod(uvTile, tileCount.x) + uv.x) * (1.0 / tileCount.x), ((tileCount.y - floor(uvTile / tileCount.x) - 1.0) + uv.y) * (1.0 / tileCount.y));
-    #else
-        #include <uv_vertex>
-    #endif
+    #include <uv_vertex_tile>
 	
     vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
 	

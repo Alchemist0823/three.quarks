@@ -18,14 +18,13 @@ void main() {
     #include <logdepthbuf_fragment>
     
     #ifdef USE_MAP
-    vec4 texelColor = texture2D( map, vUv);
-    diffuseColor *= texelColor;
+    diffuseColor *= texture2D( map, vMapUv);
     #endif
-
-    outgoingLight = diffuseColor.rgb;
     
     #include <alphatest_fragment>
 
+    outgoingLight = diffuseColor.rgb;
+    
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );
     
     #include <tonemapping_fragment>

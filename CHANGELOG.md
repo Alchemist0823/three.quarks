@@ -1,7 +1,9 @@
 # Change Log
 
 ## version 0.10.5
-- Support alpha test on billboard material
+- Support alpha test / alpha clip / depth test on all material
+- Fix uv mapping on mesh standard / physics material
+- Support normal map
 
 ## Version 0.10.4
 - Make three js peer dependencies
