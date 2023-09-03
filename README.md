@@ -14,6 +14,9 @@
 ## Links
 
 - [Official Website](https://quarks.art/)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Contributing Guide](./CONTRIBUTING.md)
+- [Development Guide](./DEVELOPMENT_GUIDE.md)
 - [Demo](https://alchemist0823.github.io/three.quarks/)
 - [Change Log](./CHANGELOG.md)
 - [Sandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz?file=/index.html)
