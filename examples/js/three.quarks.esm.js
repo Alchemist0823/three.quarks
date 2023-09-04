@@ -1,5 +1,5 @@
 /**
- * three.quarks v0.10.5 build Sun Sep 03 2023
+ * three.quarks v0.10.5 build Mon Sep 04 2023
  * https://github.com/Alchemist0823/three.quarks#readme
  * Copyright 2023 Alchemist0823 <the.forrest.sun@gmail.com>, MIT
  */
@@ -3482,7 +3482,7 @@ var VFXBatch = /*#__PURE__*/function (_Mesh) {
     var _this;
     _classCallCheck(this, VFXBatch);
     _this = _super.call(this);
-    _defineProperty(_assertThisInitialized(_this), "type", "VFXBatch");
+    _defineProperty(_assertThisInitialized(_this), "type", 'VFXBatch');
     _this.maxParticles = 1000;
     _this.systems = new Set();
     var layers = new Layers();

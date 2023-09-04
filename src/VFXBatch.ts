@@ -1,11 +1,5 @@
-
 import {ParticleSystem} from './ParticleSystem';
-import {
-    Mesh,
-    ShaderMaterial,
-    BufferGeometry, Material, Layers
-} from 'three';
-
+import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers} from 'three';
 
 export interface VFXBatchSettings {
     // 5 component x,y,z,u,v
@@ -13,8 +7,8 @@ export interface VFXBatchSettings {
     material: Material;
     uTileCount: number;
     vTileCount: number;
-    renderMode : RenderMode;
-    renderOrder : number;
+    renderMode: RenderMode;
+    renderOrder: number;
     layers: Layers;
 }
 
@@ -26,9 +20,9 @@ export enum RenderMode {
 }
 
 export abstract class VFXBatch extends Mesh {
-    type = "VFXBatch";
+    type = 'VFXBatch';
     systems: Set<ParticleSystem>;
-    material!: ShaderMaterial;
+    declare material: ShaderMaterial;
 
     settings: VFXBatchSettings;
     protected maxParticles;

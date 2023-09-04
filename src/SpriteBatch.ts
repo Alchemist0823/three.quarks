@@ -27,7 +27,7 @@ import {getMaterialUVChannelName} from './util/ThreeUtil';
 const UP = new Vector3(0, 0, 1);
 
 export class SpriteBatch extends VFXBatch {
-    geometry!: InstancedBufferGeometry;
+    declare geometry: InstancedBufferGeometry;
 
     private offsetBuffer!: InstancedBufferAttribute;
     private rotationBuffer!: InstancedBufferAttribute;

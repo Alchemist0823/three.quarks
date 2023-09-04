@@ -21,7 +21,7 @@ import {getMaterialUVChannelName} from './util/ThreeUtil';
 const UP = new Vector3(0, 0, 1);
 
 export class TrailBatch extends VFXBatch {
-    geometry!: BufferGeometry;
+    declare geometry: BufferGeometry;
 
     private positionBuffer!: BufferAttribute;
     private previousBuffer!: BufferAttribute;

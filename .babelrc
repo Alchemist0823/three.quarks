@@ -1,10 +1,13 @@
 {
   "presets": [
     "@babel/preset-env",
-    "@babel/typescript"
+    "@babel/preset-typescript"
   ],
   "plugins": [
     "@babel/proposal-class-properties",
-    "@babel/proposal-object-rest-spread"
+    "@babel/proposal-object-rest-spread",
+    ["@babel/plugin-transform-typescript", {
+      "allowDeclareFields": true
+    }]
   ]
 }
