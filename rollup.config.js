@@ -1,10 +1,10 @@
-import resolve from '@rollup/plugin-node-resolve'
+import resolve from '@rollup/plugin-node-resolve';
 //import commonjs from '@rollup/plugin-commonjs'
-import babel from '@rollup/plugin-babel'
-import {terser} from "rollup-plugin-terser";
-import pkg from './package.json'
+import babel from '@rollup/plugin-babel';
+import {terser} from 'rollup-plugin-terser';
+import pkg from './package.json' assert {type: 'json'};
 
-const date = (new Date()).toDateString();
+const date = new Date().toDateString();
 
 const banner = `/**
  * ${pkg.name} v${pkg.version} build ${date}
@@ -12,42 +12,43 @@ const banner = `/**
  * Copyright ${date.slice(-4)} ${pkg.author}, ${pkg.license}
  */`;
 
-const production = (process.env.NODE_ENV === "production");
-const globals = { three: "THREE" };
-const extensions = [
-    '.js', '.jsx', '.ts', '.tsx',
-];
+const production = process.env.NODE_ENV === 'production';
+const globals = {three: 'THREE'};
+const extensions = ['.js', '.jsx', '.ts', '.tsx'];
 
 export const lib = {
     main: {
-        input: "src/index.ts",
+        input: 'src/index.ts',
         external: Object.keys(globals),
         plugins: [
             resolve({
                 extensions: extensions,
                 customResolveOptions: {
-                    moduleDirectories: ['src']
-                }
+                    moduleDirectories: ['src'],
+                },
             }),
             babel({
                 extensions,
                 include: ['src/**/*'],
-                babelHelpers: "bundled"
+                babelHelpers: 'bundled',
                 //runtimeHelpers: true,
-            })
+            }),
         ],
-        output: [{
-            file: pkg.module,
-            format: "esm",
-            globals,
-            banner
-        }, {
-            file: pkg.main,
-            format: "umd",
-            name: pkg.name.replace(/-/g, "").toUpperCase(),
-            globals,
-            banner
-        }]
+        output: [
+            {
+                file: pkg.module,
+                format: 'esm',
+                globals,
+                banner,
+            },
+            {
+                file: pkg.main,
+                format: 'umd',
+                name: pkg.name.replace(/-/g, '').toUpperCase(),
+                globals,
+                banner,
+            },
+        ],
     },
 
     min: {
@@ -56,18 +57,16 @@ export const lib = {
         plugins: [
             terser({
                 keep_classnames: true,
-                keep_fnames: true
+                keep_fnames: true,
             }),
         ],
         output: {
-            file: pkg.main.replace(".js", ".min.js"),
-            format: "umd",
-            name: pkg.name.replace(/-/g, "").toUpperCase(),
+            file: pkg.main.replace('.js', '.min.js'),
+            format: 'umd',
+            name: pkg.name.replace(/-/g, '').toUpperCase(),
             globals,
-            banner
-        }
-    }
+            banner,
+        },
+    },
 };
-export default (production ? [
-    lib.main, lib.min,
-] : [lib.main]);
+export default production ? [lib.main, lib.min] : [lib.main];

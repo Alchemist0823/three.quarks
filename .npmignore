@@ -4,3 +4,6 @@ src
 test
 yarn.lock
 .babelrc
+examples
+.github
+.idea
