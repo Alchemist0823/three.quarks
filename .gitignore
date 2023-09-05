@@ -1,5 +1,6 @@
 # Builds
 dist/
+examples/js/three.quarks.esm.js
 
 # Logs
 logs
