@@ -1,5 +1,5 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+# Build / Test / Deploy examples to Pages
+name: Build / Test / Deploy examples to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -29,7 +29,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: npm build
+      - run: npm run build
       - run: npm test
   # Single deploy job since we're just deploying
   deploy:
