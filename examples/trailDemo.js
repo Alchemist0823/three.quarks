@@ -80,8 +80,26 @@ export class TrailDemo extends Demo {
         beam.addBehavior(
             new ColorOverLife(
                 new RandomColorBetweenGradient(
-                    new Gradient([[new ColorRange(new Vector4(1, 0, 0, 1), new Vector4(1, 0, 0, 1)), 0]]),
-                    new Gradient([[new ColorRange(new Vector4(0, 1, 0, 1), new Vector4(0, 1, 0, 1)), 0]])
+                    new Gradient(
+                        [
+                            [new Vector3(1, 0, 0), 0],
+                            [new Vector3(1, 0, 0), 0],
+                        ],
+                        [
+                            [1, 0],
+                            [1, 1],
+                        ]
+                    ),
+                    new Gradient(
+                        [
+                            [new Vector3(0, 1, 0), 0],
+                            [new Vector3(0, 1, 0), 1],
+                        ],
+                        [
+                            [1, 0],
+                            [1, 1],
+                        ]
+                    )
                 )
             )
         );

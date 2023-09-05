@@ -1,40 +1,68 @@
-import {PiecewiseFunction} from "./PiecewiseFunction";
-import { FunctionColorGenerator} from "./ColorGenerator";
-import { Vector4} from "three";
-import {ColorRange} from "./ColorRange";
-import {FunctionJSON} from "./FunctionJSON";
+import {PiecewiseFunction} from './PiecewiseFunction';
+import {FunctionColorGenerator} from './ColorGenerator';
+import {Vector3, Vector4} from 'three';
+import {ColorRange} from './ColorRange';
+import {FunctionJSON} from './FunctionJSON';
+import {ColorToJSON, JSONToColor} from '../util/JSONUtil';
+import {ContinuousLinearFunction} from './ContinuousLinearFunction';
 
-export class Gradient extends PiecewiseFunction<ColorRange> implements FunctionColorGenerator {
-
+const tempVec3 = new Vector3();
+export class Gradient implements FunctionColorGenerator {
+    type: 'function';
+    color: ContinuousLinearFunction<Vector3>;
+    alpha: ContinuousLinearFunction<number>;
     // default linear bezier
-    constructor(functions: Array<[ColorRange, number]> = [[new ColorRange(new Vector4(0,0,0,1), new Vector4(1,1,1,1)), 0]]) {
-        super();
-        this.type = "function";
-        this.functions = functions;
+    constructor(
+        color: Array<[Vector3, number]> = [
+            [new Vector3(0, 0, 0), 0],
+            [new Vector3(1, 1, 1), 0],
+        ],
+        alpha: Array<[number, number]> = [
+            [1, 0],
+            [1, 1],
+        ]
+    ) {
+        this.type = 'function';
+        this.color = new ContinuousLinearFunction<Vector3>(color, 'Color');
+        this.alpha = new ContinuousLinearFunction<number>(alpha, 'Number');
     }
 
     genColor(color: Vector4, t: number): Vector4 {
-        const index = this.findFunction(t);
-        if (index === -1) {
-            return color.copy(this.functions[0][0].a);
-        }
-        return this.getFunction(index).genColor(color, (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index)));
+        this.color.genValue(tempVec3, t);
+        return color.set(tempVec3.x, tempVec3.y, tempVec3.z, this.alpha.genValue(1, t));
     }
-
-    type: "function";
 
     toJSON(): FunctionJSON {
         return {
-            type: "Gradient",
-            functions: this.functions.map(([range, start]) => ({function: range.toJSON(), start: start})),
+            type: 'Gradient',
+            color: this.color.toJSON(),
+            alpha: this.alpha.toJSON(),
         };
     }
 
     static fromJSON(json: FunctionJSON): Gradient {
-        return new Gradient(json.functions.map((piecewiseFunction: any) => ([ColorRange.fromJSON(piecewiseFunction.function), piecewiseFunction.start])));
+        // compatibility
+        if (json.functions) {
+            let keys = json.functions.map((func: any) => [ColorRange.fromJSON(func.function).a, func.start]);
+            if (json.functions.length > 0) {
+                keys.push([ColorRange.fromJSON(json.functions[json.functions.length - 1].function).b, 1]);
+            }
+            return new Gradient(
+                keys.map((key: any) => [new Vector3(key[0].x, key[0].y, key[0].z), key[1]]),
+                keys.map((key: any) => [key[0].w, key[1]])
+            );
+        } else {
+            let gradient = new Gradient();
+            gradient.alpha = ContinuousLinearFunction.fromJSON(json.alpha);
+            gradient.color = ContinuousLinearFunction.fromJSON(json.color);
+            return gradient;
+        }
     }
 
     clone(): FunctionColorGenerator {
-        return new Gradient(this.functions.map(([range, start])=> ([range.clone() as ColorRange, start])));
+        let gradient = new Gradient();
+        gradient.alpha = this.alpha.clone();
+        gradient.color = this.color.clone();
+        return gradient;
     }
 }
