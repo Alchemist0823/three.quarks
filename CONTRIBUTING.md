@@ -51,11 +51,8 @@ Scan through our [existing issues](https://github.com/Alchemist0823/three.quarks
 4. Install dependencies.
 
 ```bash
-yarn install
-```
-
-```bash
 npm install
+npm run build
 ```
 
 4. Create a working branch and start with your changes!
@@ -66,12 +63,17 @@ For new features, make sure to add tests to cover the new functionality. For bug
 Also make sure to run the tests before submitting a PR by running the following command:
 
 ```bash
-yarn test
-```
-
-```bash
 npm test
 ```
+
+#### Test Examples
+
+Make sure examples work before submitting a PR by running the following command:
+
+```bash
+npm run examples
+```
+
 
 ### Commit your update
 

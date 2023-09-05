@@ -64,14 +64,10 @@ three.quarks supports one dimension piecewise Bézier curves for the customizabl
 visual effect. Most importantly, developers can customize how the particle system works 
 by adding their own Behavior.
 
-## Examples
-
-Launch Examples
-
+### Install
+#### Package install
 ```bash
-yarn install             # install dependencies
-yarn build:production    # build three.quarks
-yarn example             # start an HTTP server to serve example particle effects
+npm install three.quarks
 ```
 
 ### Check [examples](examples) folder
@@ -164,6 +160,15 @@ JSON.stringify(muzzle1.emitter.toJSON())
 JSON.stringify(muzzle1.emitter.parent.toJSON())
 ```
 
+## Examples
+
+Launch Examples
+
+```bash
+npm install             # install dependencies
+npm run build           # build three.quarks
+npm run example         # start an HTTP server to serve example particle effects
+```
 
 ### three.quarks-editor
 
@@ -173,13 +178,6 @@ three.quarks-editor can help you preview a set of particle system at once.
   Javascript scripting system to test those effect in a similar environment to your 
   application.
 
-### Install
-#### Package install
-```bash
-yarn install three.quarks
-```
-
-#### browser install
 
 ### Tests
 Check [test](test) folder
