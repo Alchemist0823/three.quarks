@@ -1,5 +1,9 @@
 # Change Log
 
+## version 0.10.6
+- fix render setting reference bug
+- fix shaders can not loaded in some loader because of shader chunk reference 
+
 ## version 0.10.5
 - Support alpha test / alpha clip / depth test on all material
 - Fix uv mapping on mesh standard / physics material

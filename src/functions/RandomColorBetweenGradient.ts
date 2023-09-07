@@ -19,7 +19,7 @@ export class RandomColorBetweenGradient implements MemorizedFunctionColorGenerat
         memory.rand = Math.random();
     }
 
-    genColor(color: Vector4, t: number, memory?: {rand: number}): Vector4 {
+    genColor(color: Vector4, t: number, memory?: any): Vector4 {
         this.gradient1.genColor(color, t);
         this.gradient2.genColor(tempColor, t);
         if (memory && memory.rand) {
