@@ -1,7 +1,3 @@
-import {ShaderChunk} from 'three';
-import uv_vertex_tile from './shaders/lib/uv_vertex_tile.glsl';
-(ShaderChunk as any)['uv_vertex_tile'] = uv_vertex_tile;
-
 export * from './ParticleEmitter';
 export * from './Particle';
 export * from './ParticleSystem';

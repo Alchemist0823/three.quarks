@@ -1,7 +1,7 @@
-import {ParticleSystem} from './ParticleSystem';
-import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers} from 'three';
+import {ParticleSystem, VFXBatchSettings} from './ParticleSystem';
+import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Blending, Side, MeshBasicMaterial} from 'three';
 
-export interface VFXBatchSettings {
+export interface StoredBatchSettings {
     // 5 component x,y,z,u,v
     instancingGeometry: BufferGeometry;
     material: Material;
@@ -24,7 +24,7 @@ export abstract class VFXBatch extends Mesh {
     systems: Set<ParticleSystem>;
     declare material: ShaderMaterial;
 
-    settings: VFXBatchSettings;
+    settings: StoredBatchSettings;
     protected maxParticles;
 
     protected constructor(settings: VFXBatchSettings) {
@@ -37,7 +37,7 @@ export abstract class VFXBatch extends Mesh {
             instancingGeometry: settings.instancingGeometry,
             renderMode: settings.renderMode,
             renderOrder: settings.renderOrder,
-            material: settings.material,
+            material: settings.material.clone(),
             uTileCount: settings.uTileCount,
             vTileCount: settings.vTileCount,
             layers: layers,

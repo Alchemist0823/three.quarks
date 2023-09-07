@@ -15,8 +15,9 @@ import {
 
 import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
-import {VFXBatch, VFXBatchSettings, RenderMode} from './VFXBatch';
+import {VFXBatch, RenderMode} from './VFXBatch';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
+import {VFXBatchSettings} from './ParticleSystem';
 
 const UP = new Vector3(0, 0, 1);
 

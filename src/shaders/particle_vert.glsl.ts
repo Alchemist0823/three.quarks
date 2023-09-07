@@ -1,3 +1,4 @@
+import uv_vertex_tile from './chunks/uv_vertex_tile.glsl';
 export default /* glsl */ `
 #include <common>
 #include <color_pars_vertex>
@@ -16,7 +17,7 @@ uniform vec2 tileCount;
 
 void main() {
 
-    #include <uv_vertex_tile>
+    ${uv_vertex_tile}
 	
     vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
 	

@@ -1,5 +1,5 @@
-import {VFXBatch, VFXBatchSettings, RenderMode} from './VFXBatch';
-import {ParticleSystem} from './ParticleSystem';
+import {VFXBatch, RenderMode, StoredBatchSettings} from './VFXBatch';
+import {ParticleSystem, VFXBatchSettings} from './ParticleSystem';
 import {Object3D} from 'three';
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
@@ -18,11 +18,13 @@ export class BatchedRenderer extends Object3D {
         super();
     }
 
-    private static equals(a: VFXBatchSettings, b: VFXBatchSettings) {
+    private static equals(a: StoredBatchSettings, b: VFXBatchSettings) {
         return (
             a.material.side === b.material.side &&
             a.material.blending === b.material.blending &&
             a.material.transparent === b.material.transparent &&
+            a.material.type === b.material.type &&
+            a.material.alphaTest === b.material.alphaTest &&
             (a.material as any).map === (b.material as any).map &&
             a.renderMode === b.renderMode &&
             a.uTileCount === b.uTileCount &&

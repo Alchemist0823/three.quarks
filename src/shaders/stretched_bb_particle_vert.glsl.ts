@@ -1,3 +1,5 @@
+import uv_vertex_tile from './chunks/uv_vertex_tile.glsl';
+
 export default /* glsl */ `
 #include <common>
 #include <uv_pars_vertex>
@@ -19,7 +21,7 @@ uniform float speedFactor;
 
 void main() {
 
-    #include <uv_vertex_tile>
+    ${uv_vertex_tile}
 	
     vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
     vec3 viewVelocity = normalMatrix * velocity;

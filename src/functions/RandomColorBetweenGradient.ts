@@ -1,4 +1,4 @@
-import {MemorizedFunctionColorGenerator} from './ColorGenerator';
+import {FunctionColorGenerator, MemorizedFunctionColorGenerator} from './ColorGenerator';
 import {Vector4} from 'three';
 import {FunctionJSON} from './FunctionJSON';
 import {Gradient} from './Gradient';
@@ -19,10 +19,14 @@ export class RandomColorBetweenGradient implements MemorizedFunctionColorGenerat
         memory.rand = Math.random();
     }
 
-    genColor(color: Vector4, t: number, memory: any): Vector4 {
+    genColor(color: Vector4, t: number, memory?: {rand: number}): Vector4 {
         this.gradient1.genColor(color, t);
         this.gradient2.genColor(tempColor, t);
-        color.lerp(tempColor, memory.rand);
+        if (memory && memory.rand) {
+            color.lerp(tempColor, memory.rand);
+        } else {
+            color.lerp(tempColor, Math.random());
+        }
         return color;
     }
 
@@ -40,7 +44,7 @@ export class RandomColorBetweenGradient implements MemorizedFunctionColorGenerat
         return new RandomColorBetweenGradient(Gradient.fromJSON(json.gradient1), Gradient.fromJSON(json.gradient2));
     }
 
-    clone(): MemorizedFunctionColorGenerator {
+    clone(): RandomColorBetweenGradient {
         return new RandomColorBetweenGradient(this.gradient1.clone() as Gradient, this.gradient2.clone() as Gradient);
     }
 }

@@ -31,11 +31,22 @@ import {
     FunctionColorGenerator,
     FunctionJSON,
     GeneratorFromJSON,
+    MemorizedFunctionColorGenerator,
 } from './functions';
-import {VFXBatchSettings, RenderMode} from './VFXBatch';
+import {RenderMode} from './VFXBatch';
 import {BatchedRenderer} from './BatchedRenderer';
 import {RotationGenerator} from './functions/RotationGenerator';
 
+export interface VFXBatchSettings {
+    // 5 component x,y,z,u,v
+    instancingGeometry: BufferGeometry;
+    material: Material;
+    uTileCount: number;
+    vTileCount: number;
+    renderMode: RenderMode;
+    renderOrder: number;
+    layers: Layers;
+}
 export interface BurstParameters {
     time: number;
     count: number;
@@ -64,7 +75,7 @@ export interface ParticleSystemParameters {
     startRotation?: ValueGenerator | FunctionValueGenerator | RotationGenerator;
     startSize?: ValueGenerator | FunctionValueGenerator;
     startLength?: ValueGenerator | FunctionValueGenerator;
-    startColor?: ColorGenerator | FunctionColorGenerator;
+    startColor?: ColorGenerator | FunctionColorGenerator | MemorizedFunctionColorGenerator;
     emissionOverTime?: ValueGenerator | FunctionValueGenerator;
     emissionOverDistance?: ValueGenerator | FunctionValueGenerator;
     emissionBursts?: Array<BurstParameters>;
@@ -227,7 +238,7 @@ export class ParticleSystem {
      *
      * @type {ColorGenerator | FunctionColorGenerator}
      */
-    startColor: ColorGenerator | FunctionColorGenerator;
+    startColor: ColorGenerator | FunctionColorGenerator | MemorizedFunctionColorGenerator;
 
     /**
      * The value generator for the starting tile index of particles.
@@ -550,7 +561,7 @@ export class ParticleSystem {
                 }
             }
             const particle = this.particles[this.particleNum - 1];
-            this.startColor.genColor(particle.startColor, Math.random());
+            this.startColor.genColor(particle.startColor, this.emissionState.time, {});
             particle.color.copy(particle.startColor);
             particle.startSpeed = this.startSpeed.genValue(emissionState.time / this.duration);
             particle.life = this.startLife.genValue(emissionState.time / this.duration);

@@ -30,6 +30,7 @@ import {
     loadPlugin,
     TextureSequencer,
     ApplySequences,
+    RandomColor,
 } from './js/three.quarks.esm.js';
 import {Demo} from './demo.js';
 
@@ -42,7 +43,7 @@ export class SequencerDemo extends Demo {
             startLife: new ConstantValue(7.8),
             startSpeed: new ConstantValue(0),
             startSize: new IntervalValue(0.05, 0.2),
-            startColor: new ColorRange(new Vector4(0, 1, 1, 1), new Vector4(1, 0, 1, 1)),
+            startColor: new RandomColor(new Vector4(0, 1, 1, 1), new Vector4(1, 0, 1, 1)),
             worldSpace: false,
 
             emissionOverTime: new ConstantValue(0),

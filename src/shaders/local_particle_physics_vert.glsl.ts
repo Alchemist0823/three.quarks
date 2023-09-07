@@ -1,3 +1,5 @@
+import uv_vertex_tile from './chunks/uv_vertex_tile.glsl';
+
 export default /* glsl */ `
 #define STANDARD
 varying vec3 vViewPosition;
@@ -27,7 +29,7 @@ uniform vec2 tileCount;
 #include <clipping_planes_pars_vertex>
 
 void main() {
-    #include <uv_vertex_tile>
+    ${uv_vertex_tile}
     
     float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;
     float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;
