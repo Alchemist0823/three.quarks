@@ -246,7 +246,7 @@ export class TrailBatch extends VFXBatch {
                             this.widthBuffer.setX(index, current.size);
                             this.widthBuffer.setX(index + 1, current.size);
                         } else {
-                            const objectScale = Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z);
+                            const objectScale = (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z)) / 3;
                             this.widthBuffer.setX(index, current.size * objectScale);
                             this.widthBuffer.setX(index + 1, current.size * objectScale);
                         }
