@@ -316,7 +316,7 @@ export class SpriteBatch extends VFXBatch {
                     if (particle.parentMatrix) {
                         this.sizeBuffer.setX(index, particle.size);
                     } else {
-                        this.sizeBuffer.setX(index, (particle.size * (scale.x + scale.y + scale.z)) / 3);
+                        this.sizeBuffer.setX(index, (particle.size * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3);
                     }
                 }
                 this.uvTileBuffer.setX(index, particle.uvTile);
