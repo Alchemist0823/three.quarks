@@ -1,14 +1,22 @@
 {
   "name": "three.quarks",
-  "version": "0.10.6",
+  "version": "0.10.7",
   "description": "A General-Purpose Particle System for three.js",
   "type": "module",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/three.quarks.js",
   "module": "./dist/three.quarks.esm.js",
   "browser_NO_NPM": "./dist/three.quarks.min.js",
+  "exports": {
+    ".": {
+      "import": "./dist/three.quarks.esm.js",
+      "require": "./dist/three.quarks.cjs"
+    }
+  },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "type-check": "tsc --noEmit",

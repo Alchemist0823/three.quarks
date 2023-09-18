@@ -36,6 +36,13 @@ export const lib = {
         ],
         output: [
             {
+                file: pkg.exports['.'].require,
+                format: 'cjs',
+                name: pkg.name.replace(/-/g, '').toUpperCase(),
+                globals,
+                banner,
+            },
+            {
                 file: pkg.module,
                 format: 'esm',
                 globals,
@@ -60,13 +67,21 @@ export const lib = {
                 keep_fnames: true,
             }),
         ],
-        output: {
-            file: pkg.main.replace('.js', '.min.js'),
-            format: 'umd',
-            name: pkg.name.replace(/-/g, '').toUpperCase(),
-            globals,
-            banner,
-        },
+        output: [
+            {
+                file: pkg.module.replace('.js', '.min.js'),
+                format: 'esm',
+                globals,
+                banner,
+            },
+            {
+                file: pkg.main.replace('.js', '.min.js'),
+                format: 'umd',
+                name: pkg.name.replace(/-/g, '').toUpperCase(),
+                globals,
+                banner,
+            },
+        ],
     },
 };
 export default production ? [lib.main, lib.min] : [lib.main];
