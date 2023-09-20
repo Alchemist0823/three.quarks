@@ -17,4 +17,4 @@ export * from './sequencers/';
 export * from './nodes/';
 
 // remove this line if you have pro license
-console.log('%c Powered by three.quarks. https://quarks.art/', 'font-size: 16px; font-weight: bold;');
+console.log('%c Particle system powered by three.quarks. https://quarks.art/', 'font-size: 16px; font-weight: bold;');
