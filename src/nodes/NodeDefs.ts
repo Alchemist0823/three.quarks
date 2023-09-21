@@ -427,22 +427,145 @@ outputNode.addSignature([NodeValueType.Boolean], [NodeValueType.Boolean], (conte
 });
 NodeTypes['output'] = outputNode;
 
-/*
-    "curve": new NodeType("curve", (context, data, inputs, outputs) => {
-        //outputs[0] = inputs[0] + inputs[1];
-    }, [], []),
-    "vrand": new NodeType("vrand", (context, data, inputs, outputs) => {
-        //outputs[0] = inputs[0] + inputs[1];
-    }, [], []),
-    "curveSample": new NodeType("curveSample", (context, data, inputs, outputs) => {
-        //outputs[0] = inputs[0] + inputs[1];
-    }, [], []),
-    "random": new NodeType("random", (context, data, inputs, outputs) => {
-        outputs[0] = Math.random() * (inputs[1] - inputs[0]) + inputs[0];
-    }, [NodeValueType.Number, NodeValueType.Number], [NodeValueType.Number]),
-    "input": new NodeType("input", (context, data, inputs, outputs) => {
-        outputs[0] = inputs[0];
-    }, [NodeValueType.AnyType], [NodeValueType.AnyType]),
-    "output": new NodeType("output", (context, data, inputs, outputs) => {
-        outputs[0] = inputs[0];
-    }, [NodeValueType.AnyType], [NodeValueType.AnyType]),*/
+// More math
+const normalD = (x: number) => {
+    return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(x * x * -0.5);
+};
+let normalDistributionNode = new NodeType('normDistrib');
+normalDistributionNode.addSignature(
+    [NodeValueType.Number],
+    [NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        outputs[0] = normalD(inputs[0] as number);
+    }
+);
+NodeTypes['normDistrib'] = normalDistributionNode;
+
+let normcdfNode = new NodeType('normcdf');
+normcdfNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
+    // constants
+    let x = inputs[0] as number;
+    const a1 = 0.254829592;
+    const a2 = -0.284496736;
+    const a3 = 1.421413741;
+    const a4 = -1.453152027;
+    const a5 = 1.061405429;
+    const p = 0.3275911;
+
+    // Save the sign of x
+    let sign = 1;
+    if (x < 0) sign = -1;
+    x = Math.abs(x) / Math.sqrt(2.0);
+
+    // A&S formula 7.1.26
+    const t = 1.0 / (1.0 + p * x);
+    const y = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+
+    outputs[0] = 0.5 * (1.0 + sign * y);
+});
+NodeTypes['normcdf'] = normcdfNode;
+
+let normcdfInvNode = new NodeType('normcdfInv');
+
+const rationalApproximation = (t: number) => {
+    // Abramowitz and Stegun formula 26.2.23.
+    // The absolute value of the error should be less than 4.5 e-4.
+    const c = [2.515517, 0.802853, 0.010328];
+    const d = [1.432788, 0.189269, 0.001308];
+    return t - ((c[2] * t + c[1]) * t + c[0]) / (((d[2] * t + d[1]) * t + d[0]) * t + 1.0);
+};
+
+const normcdfInv = (p: number) => {
+    // See article above for explanation of this section.
+    if (p < 0.5) {
+        // F^-1(p) = - G^-1(p)
+        return -rationalApproximation(Math.sqrt(-2.0 * Math.log(p)));
+    } else {
+        // F^-1(p) = G^-1(1-p)
+        return rationalApproximation(Math.sqrt(-2.0 * Math.log(1 - p)));
+    }
+};
+
+normcdfInvNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
+    outputs[0] = normcdfInv(inputs[0] as number);
+});
+NodeTypes['normcdfInv'] = normcdfInvNode;
+
+let clampNode = new NodeType('clamp');
+clampNode.addSignature(
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    [NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        outputs[0] = Math.max(Math.min(inputs[0] as number, inputs[2] as number), inputs[1] as number);
+    }
+);
+NodeTypes['clamp'] = clampNode;
+
+let smoothstepNode = new NodeType('smoothstep');
+smoothstepNode.addSignature(
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    [NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        let x = Math.max(Math.min(inputs[0] as number, inputs[2] as number), inputs[1] as number);
+        outputs[0] = x * x * (3 - 2 * x);
+    }
+);
+NodeTypes['smoothstep'] = smoothstepNode;
+
+let randomNode = new NodeType('random');
+randomNode.addSignature(
+    [NodeValueType.Number, NodeValueType.Number],
+    [NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        outputs[0] = Math.random() * ((inputs[1] as number) - (inputs[0] as number)) + (inputs[0] as number);
+    }
+);
+randomNode.addSignature(
+    [NodeValueType.Vec2, NodeValueType.Vec2],
+    [NodeValueType.Vec2],
+    (context, data, inputs, outputs) => {
+        let random = Math.random();
+        (outputs[0] as Vector2).lerpVectors(inputs[0] as Vector2, inputs[1] as Vector2, random);
+    }
+);
+randomNode.addSignature(
+    [NodeValueType.Vec3, NodeValueType.Vec3],
+    [NodeValueType.Vec3],
+    (context, data, inputs, outputs) => {
+        let random = Math.random();
+        (outputs[0] as Vector3).lerpVectors(inputs[0] as Vector3, inputs[1] as Vector3, random);
+    }
+);
+randomNode.addSignature(
+    [NodeValueType.Vec4, NodeValueType.Vec4],
+    [NodeValueType.Vec4],
+    (context, data, inputs, outputs) => {
+        let random = Math.random();
+        (outputs[0] as Vector4).lerpVectors(inputs[0] as Vector4, inputs[1] as Vector4, random);
+    }
+);
+NodeTypes['random'] = randomNode;
+
+let vrandNode = new NodeType('vrand');
+vrandNode.addSignature([], [NodeValueType.Vec2], (context, data, inputs, outputs) => {
+    let x = normcdfInv(Math.random());
+    let y = normcdfInv(Math.random());
+    const mag = Math.sqrt(x * x + y * y);
+    (outputs[0] as Vector2).set(x / mag, y / mag);
+});
+vrandNode.addSignature([], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
+    let x = normcdfInv(Math.random());
+    let y = normcdfInv(Math.random());
+    let z = normcdfInv(Math.random());
+    const mag = Math.sqrt(x * x + y * y + z * z);
+    (outputs[0] as Vector3).set(x / mag, y / mag, z / mag);
+});
+vrandNode.addSignature([], [NodeValueType.Vec4], (context, data, inputs, outputs) => {
+    let x = normcdfInv(Math.random());
+    let y = normcdfInv(Math.random());
+    let z = normcdfInv(Math.random());
+    let w = normcdfInv(Math.random());
+    const mag = Math.sqrt(x * x + y * y + z * z + w * w);
+    (outputs[0] as Vector4).set(x / mag, y / mag, z / mag, w / mag);
+});
+NodeTypes['vrand'] = vrandNode;

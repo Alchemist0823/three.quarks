@@ -20,19 +20,19 @@
   ],
   "scripts": {
     "type-check": "tsc --noEmit",
-    "type-check:watch": "yarn run type-check -- --watch",
+    "type-check:watch": "npm run type-check -- --watch",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build:production": "yarn run build:types && cross-env NODE_ENV=production yarn run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/ && replace-in-file \"'three';\" \"'./three.module.js';\" examples/js/three.quarks.esm.js",
-    "build": "yarn run build:production",
+    "build:production": "npm run build:types && cross-env NODE_ENV=production npm run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/ && replace-in-file \"'three';\" \"'./three.module.js';\" examples/js/three.quarks.esm.js",
+    "build": "npm run build:production",
     "lint": "eslint . --ext .ts",
-    "prepublishOnly": "yarn run build:production",
+    "prepublishOnly": "npm run build:production",
     "deploy": "gh-pages -d examples",
     "docs": "typedoc",
     "example": "http-server ./examples -c-1 -p 8000",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:prod": "yarn run test -- --no-cache"
+    "test:prod": "npm run test -- --no-cache"
   },
   "repository": {
     "type": "git",
