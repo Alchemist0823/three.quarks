@@ -52,6 +52,8 @@ export class BatchedRenderer extends Object3D {
                 break;
             case RenderMode.Mesh:
             case RenderMode.BillBoard:
+            case RenderMode.VerticalBillBoard:
+            case RenderMode.HorizontalBillBoard:
             case RenderMode.StretchedBillBoard:
                 batch = new SpriteBatch(settings);
                 break;

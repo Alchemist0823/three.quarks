@@ -19,15 +19,25 @@ void main() {
 
     ${uv_vertex_tile}
 	
-    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
-	
     vec2 alignedPosition = ( position.xy ) * size;
     
     vec2 rotatedPosition;
     rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;
     rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;
-    
+#ifdef HORIZONTAL
+    vec4 mvPosition = modelMatrix * vec4( offset, 1.0 );
+    mvPosition.x += rotatedPosition.x;
+    mvPosition.z -= rotatedPosition.y;
+    mvPosition = viewMatrix * mvPosition;
+#elif defined(VERTICAL)
+    vec4 mvPosition = modelMatrix * vec4( offset, 1.0 );
+    mvPosition.y += rotatedPosition.y;
+    mvPosition = viewMatrix * mvPosition;
+    mvPosition.x += rotatedPosition.x;
+#else
+    vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
     mvPosition.xy += rotatedPosition;
+#endif
 
 	vColor = color;
 

@@ -59,6 +59,8 @@ export class SpriteBatch extends VFXBatch {
             this.geometry.setAttribute('rotation', this.rotationBuffer);
         } else if (
             this.settings.renderMode === RenderMode.BillBoard ||
+            this.settings.renderMode === RenderMode.HorizontalBillBoard ||
+            this.settings.renderMode === RenderMode.VerticalBillBoard ||
             this.settings.renderMode === RenderMode.StretchedBillBoard
         ) {
             this.rotationBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles), 1);
@@ -186,7 +188,12 @@ export class SpriteBatch extends VFXBatch {
         defines['USE_COLOR_ALPHA'] = '';
 
         let needLights = false;
-        if (this.settings.renderMode === RenderMode.BillBoard || this.settings.renderMode === RenderMode.Mesh) {
+        if (
+            this.settings.renderMode === RenderMode.BillBoard ||
+            this.settings.renderMode === RenderMode.VerticalBillBoard ||
+            this.settings.renderMode === RenderMode.HorizontalBillBoard ||
+            this.settings.renderMode === RenderMode.Mesh
+        ) {
             let vertexShader;
             let fragmentShader;
             if (this.settings.renderMode === RenderMode.Mesh) {
@@ -205,6 +212,11 @@ export class SpriteBatch extends VFXBatch {
             } else {
                 vertexShader = particle_vert;
                 fragmentShader = particle_frag;
+            }
+            if (this.settings.renderMode === RenderMode.VerticalBillBoard) {
+                defines['VERTICAL'] = '';
+            } else if (this.settings.renderMode === RenderMode.HorizontalBillBoard) {
+                defines['HORIZONTAL'] = '';
             }
             this.material = new ShaderMaterial({
                 uniforms: uniforms,
@@ -236,11 +248,6 @@ export class SpriteBatch extends VFXBatch {
         }
     }
 
-    /*
-    clone() {
-        let system = this.system.clone();
-        return system.emitter as any;
-    }*/
     vector_: Vector3 = new Vector3();
     vector2_: Vector3 = new Vector3();
     vector3_: Vector3 = new Vector3();
@@ -291,6 +298,8 @@ export class SpriteBatch extends VFXBatch {
                     this.rotationBuffer.setXYZW(index, q.x, q.y, q.z, q.w);
                 } else if (
                     this.settings.renderMode === RenderMode.StretchedBillBoard ||
+                    this.settings.renderMode === RenderMode.VerticalBillBoard ||
+                    this.settings.renderMode === RenderMode.HorizontalBillBoard ||
                     this.settings.renderMode === RenderMode.BillBoard
                 ) {
                     this.rotationBuffer.setX(index, particle.rotation as number);
@@ -316,7 +325,10 @@ export class SpriteBatch extends VFXBatch {
                     if (particle.parentMatrix) {
                         this.sizeBuffer.setX(index, particle.size);
                     } else {
-                        this.sizeBuffer.setX(index, (particle.size * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3);
+                        this.sizeBuffer.setX(
+                            index,
+                            (particle.size * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3
+                        );
                     }
                 }
                 this.uvTileBuffer.setX(index, particle.uvTile);
@@ -364,6 +376,8 @@ export class SpriteBatch extends VFXBatch {
                 this.rotationBuffer.needsUpdate = true;
             } else if (
                 this.settings.renderMode === RenderMode.StretchedBillBoard ||
+                this.settings.renderMode === RenderMode.HorizontalBillBoard ||
+                this.settings.renderMode === RenderMode.VerticalBillBoard ||
                 this.settings.renderMode === RenderMode.BillBoard
             ) {
                 this.rotationBuffer.updateRange.count = index;

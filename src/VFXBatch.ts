@@ -17,6 +17,8 @@ export enum RenderMode {
     StretchedBillBoard = 1,
     Mesh = 2,
     Trail = 3,
+    HorizontalBillBoard = 4,
+    VerticalBillBoard = 5,
 }
 
 export abstract class VFXBatch extends Mesh {

@@ -1,5 +1,8 @@
 # Change Log
 
+## version 0.10.8
+- Support horizontal and vertical billboard in shader
+
 ## version 0.10.6
 - fix render setting reference bug
 - fix shaders can not loaded in some loader because of shader chunk reference 

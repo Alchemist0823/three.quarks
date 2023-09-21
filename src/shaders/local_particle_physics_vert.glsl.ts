@@ -30,25 +30,25 @@ uniform vec2 tileCount;
 
 void main() {
     ${uv_vertex_tile}
-    
+
     float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;
     float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;
     float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;
     float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;
     float sx = size, sy = size, sz = size;
-    
+
     mat4 particleMatrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column
                       ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column
                       ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column
                       offset.x, offset.y, offset.z, 1.0);
-                      
+
 	#include <color_vertex>
 	#include <morphcolor_vertex>
 	#include <beginnormal_vertex>
 	#include <morphnormal_vertex>
 	#include <skinbase_vertex>
 	#include <skinnormal_vertex>
-	
+
 	// replace defaultnormal_vertex
 	vec3 transformedNormal = objectNormal;
     mat3 m = mat3( particleMatrix );
@@ -64,16 +64,16 @@ void main() {
         transformedTangent = - transformedTangent;
         #endif
     #endif
-    
+
 	#include <normal_vertex>
 	#include <begin_vertex>
 	#include <morphtarget_vertex>
 	#include <skinning_vertex>
 	#include <displacementmap_vertex>
-	
+
 	// replace include <project_vertex>
-    vec4 mvPosition = vec4( transformed, 1.0 );
-    mvPosition = modelViewMatrix * (particleMatrix * mvPosition);
+  vec4 mvPosition = vec4( transformed, 1.0 );
+  mvPosition = modelViewMatrix * (particleMatrix * mvPosition);
 	gl_Position = projectionMatrix * mvPosition;
 
 	#include <logdepthbuf_vertex>

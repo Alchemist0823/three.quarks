@@ -454,6 +454,8 @@ export class ParticleSystem {
                     this.startRotation = new AxisAngleGenerator(new Vector3(0, 1, 0), new ConstantValue(0));
                     break;
                 case RenderMode.BillBoard:
+                case RenderMode.VerticalBillBoard:
+                case RenderMode.HorizontalBillBoard:
                 case RenderMode.StretchedBillBoard:
                     this.rendererEmitterSettings = {};
                     if (this.rendererSettings.renderMode === RenderMode.Mesh) {
@@ -572,6 +574,8 @@ export class ParticleSystem {
             if (
                 this.rendererSettings.renderMode === RenderMode.Mesh ||
                 this.rendererSettings.renderMode === RenderMode.BillBoard ||
+                this.rendererSettings.renderMode === RenderMode.VerticalBillBoard ||
+                this.rendererSettings.renderMode === RenderMode.HorizontalBillBoard ||
                 this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
             ) {
                 const sprite = particle as SpriteParticle;
@@ -612,7 +616,8 @@ export class ParticleSystem {
             }
             if (this.worldSpace) {
                 particle.position.applyMatrix4(matrix);
-                particle.startSize = (particle.startSize * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3;
+                particle.startSize =
+                    (particle.startSize * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3;
                 particle.size = particle.startSize;
                 particle.velocity.multiply(scale).applyMatrix3(this.normalMatrix);
                 if (particle.rotation && particle.rotation instanceof Quaternion) {
@@ -685,8 +690,13 @@ export class ParticleSystem {
         if (this.looping && this.prewarm && !this.prewarmed) {
             this.prewarmed = true;
             for (let i = 0; i < this.duration * PREWARM_FPS; i++) {
+                // stack overflow?
                 this.update(1.0 / PREWARM_FPS);
             }
+        }
+
+        if (delta > 0.1) {
+            delta = 0.1;
         }
 
         if (this.neededToUpdateRender) {
