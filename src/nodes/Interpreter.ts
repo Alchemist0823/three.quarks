@@ -10,17 +10,8 @@ export class Interpreter {
     }
 
     visited: Set<string> = new Set<string>();
-    private graph_?: NodeGraph;
-    private context_?: ExecutionContext;
 
-    private traverse(node: Node) {
-        if (this.context_ === undefined) {
-            throw new Error('context is undefined');
-        }
-        if (this.graph_ === undefined) {
-            throw new Error('graph is undefined');
-        }
-
+    private traverse(node: Node, graph: NodeGraph, context: ExecutionContext) {
         this.visited.add(node.id);
         const inputValues = [];
         for (let i = 0; i < node.inputs.length; i++) {
@@ -28,29 +19,25 @@ export class Interpreter {
                 const inputNode = (node.inputs[i] as Wire).input;
                 //if (inputNode) {
                 if (!this.visited.has(inputNode.id)) {
-                    this.traverse(inputNode);
+                    this.traverse(inputNode, graph, context);
                 }
                 inputValues.push(inputNode.outputValues[(node.inputs[i] as Wire).inputIndex]);
                 /*} else {
                     throw new Error(`Node ${node.id} has not inputs`);
                 }*/
+            } else if (node.inputs[i] !== undefined) {
+                inputValues.push((node.inputs[i] as ConstInput).getValue(context));
             } else {
-                inputValues.push((node.inputs[i] as ConstInput).getValue(this.context_));
+                inputValues.push(undefined);
             }
         }
         // calculation
-        node.func(this.context_, inputValues, node.outputValues);
-        this.graph_.nodesInOrder.push(node);
+        node.func(context, inputValues, node.outputValues);
+        graph.nodesInOrder.push(node);
     }
 
-    private executeCompiledGraph() {
-        if (this.context_ === undefined) {
-            throw new Error('context is undefined');
-        }
-        if (this.graph_ === undefined) {
-            throw new Error('graph is undefined');
-        }
-        const nodes = this.graph_.nodesInOrder;
+    private executeCompiledGraph(graph: NodeGraph, context: ExecutionContext) {
+        const nodes = graph.nodesInOrder;
         for (let i = 0; i < nodes.length; i++) {
             const inputValues = [];
             const node = nodes[i];
@@ -58,28 +45,25 @@ export class Interpreter {
                 if (node.inputs[j] instanceof Wire) {
                     inputValues.push((node.inputs[j] as Wire).input.outputValues[(node.inputs[j] as Wire).inputIndex]);
                 } else if (node.inputs[j] !== undefined) {
-                    inputValues.push((node.inputs[j] as ConstInput).getValue(this.context_));
+                    inputValues.push((node.inputs[j] as ConstInput).getValue(context));
                 } else {
-                    throw new Error(`miss input for node ${node.id}`);
+                    inputValues.push(undefined);
                 }
             }
-            node.func(this.context_, inputValues, node.outputValues);
+            node.func(context, inputValues, node.outputValues);
         }
     }
 
     run(graph: NodeGraph, context: ExecutionContext) {
-        this.graph_ = graph;
-        this.context_ = context;
-
         if (graph.compiled) {
-            this.executeCompiledGraph();
+            this.executeCompiledGraph(graph, context);
         } else {
             graph.nodesInOrder.length = 0;
             this.visited.clear();
             for (let i = 0; i < graph.outputNodes.length; i++) {
                 const node = graph.outputNodes[i];
                 if (node.inputs[0] !== undefined) {
-                    this.traverse(node);
+                    this.traverse(node, graph, context);
                 }
             }
             graph.compiled = true;

@@ -3,7 +3,7 @@ import {BufferGeometry, Layers, Material, Object3D} from 'three';
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
 import {ParticleEmitter} from './ParticleEmitter';
-import {Particle} from './Particle';
+import {IParticle, Particle} from './Particle';
 
 export interface VFXBatchSettings {
     // 5 component x,y,z,u,v
@@ -22,7 +22,7 @@ export interface IParticleSystem {
     speedFactor: number;
     worldSpace: boolean;
     particleNum: number;
-    particles: Array<Particle>;
+    particles: Array<IParticle>;
     emitter: ParticleEmitter<any>;
     _renderer?: BatchedRenderer;
 

@@ -9,7 +9,7 @@ import {
     NormalBlending,
     TextureLoader,
     MeshBasicMaterial,
-} from './js/three.module.js';
+} from 'three';
 import {
     Bezier,
     ColorOverLife,
@@ -28,7 +28,7 @@ import {
     ParticleSystem,
     ParticleEmitter,
     BatchedParticleRenderer,
-} from './js/three.quarks.esm.js';
+} from 'three.quarks';
 import {Demo} from './demo.js';
 
 export class MuzzleFlashDemo extends Demo {

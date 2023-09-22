@@ -1,4 +1,4 @@
-import {BatchedParticleRenderer, QuarksLoader, ParticleEmitter} from './js/three.quarks.esm.js';
+import {BatchedParticleRenderer, QuarksLoader, ParticleEmitter} from 'three.quarks';
 import {Demo} from './demo.js';
 
 export class TornadoDemo extends Demo {

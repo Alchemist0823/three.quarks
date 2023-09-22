@@ -1,4 +1,4 @@
-import {MeshBasicMaterial, Vector4, FrontSide, AdditiveBlending, TextureLoader} from './js/three.module.js';
+import {MeshBasicMaterial, Vector4, FrontSide, AdditiveBlending, TextureLoader} from 'three';
 import {
     Bezier,
     ColorRange,
@@ -15,7 +15,7 @@ import {
     GridEmitter,
     ValueGeneratorFromJSON,
     loadPlugin,
-} from './js/three.quarks.esm.js';
+} from 'three.quarks';
 import {Demo} from './demo.js';
 
 export class SinWave {

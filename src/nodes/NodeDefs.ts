@@ -360,22 +360,76 @@ numberNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outp
 NodeTypes['number'] = numberNode;
 
 const vec2Node = new NodeType('vec2');
-vec2Node.addSignature([], [NodeValueType.Vec2], (context, data, inputs, outputs) => {
-    outputs[0] = data.value;
-});
+vec2Node.addSignature(
+    [NodeValueType.Number, NodeValueType.Number],
+    [NodeValueType.Vec2],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as Vector2).x = inputs[0] as number;
+        (outputs[0] as Vector2).y = inputs[1] as number;
+    }
+);
 NodeTypes['vec2'] = vec2Node;
 
 const vec3Node = new NodeType('vec3');
-vec3Node.addSignature([], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
-    outputs[0] = data.value;
-});
+vec3Node.addSignature(
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    [NodeValueType.Vec3],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as Vector3).x = inputs[0] as number;
+        (outputs[0] as Vector3).y = inputs[1] as number;
+        (outputs[0] as Vector3).z = inputs[2] as number;
+    }
+);
 NodeTypes['vec3'] = vec3Node;
 
 const vec4Node = new NodeType('vec4');
-vec4Node.addSignature([], [NodeValueType.Vec4], (context, data, inputs, outputs) => {
-    (outputs[0] as Vector4).copy(data.value);
-});
+vec4Node.addSignature(
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    [NodeValueType.Vec4],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as Vector4).x = inputs[0] as number;
+        (outputs[0] as Vector4).y = inputs[1] as number;
+        (outputs[0] as Vector4).z = inputs[2] as number;
+        (outputs[0] as Vector4).w = inputs[3] as number;
+    }
+);
 NodeTypes['vec4'] = vec4Node;
+
+const splitVec2Node = new NodeType('splitVec2');
+splitVec2Node.addSignature(
+    [NodeValueType.Vec2],
+    [NodeValueType.Number, NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as number) = (inputs[0] as Vector2).x;
+        (outputs[1] as number) = (inputs[0] as Vector2).y;
+    }
+);
+NodeTypes['splitVec2'] = splitVec2Node;
+
+const splitVec3Node = new NodeType('splitVec3');
+splitVec3Node.addSignature(
+    [NodeValueType.Vec3],
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as number) = (inputs[0] as Vector3).x;
+        (outputs[1] as number) = (inputs[0] as Vector3).y;
+        (outputs[2] as number) = (inputs[0] as Vector3).z;
+    }
+);
+NodeTypes['splitVec3'] = splitVec3Node;
+
+const splitVec4Node = new NodeType('splitVec4');
+splitVec4Node.addSignature(
+    [NodeValueType.Vec4],
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as number) = (inputs[0] as Vector4).x;
+        (outputs[1] as number) = (inputs[0] as Vector4).y;
+        (outputs[2] as number) = (inputs[0] as Vector4).z;
+        (outputs[3] as number) = (inputs[0] as Vector4).w;
+    }
+);
+NodeTypes['splitVec4'] = splitVec4Node;
 
 const boolNode = new NodeType('bool');
 boolNode.addSignature([], [NodeValueType.Boolean], (context, data, inputs, outputs) => {
@@ -396,8 +450,8 @@ particlePropertyNode.addSignature(
                 (context.particle as any)[data.property] = inputs[0];
             }
         }
-        if (outputs[0] !== undefined) {
-            if (typeof inputs[0] === 'object') {
+        if ((context.particle as any)[data.property] !== undefined) {
+            if (typeof outputs[0] === 'object') {
                 (outputs[0] as any).copy((context.particle as any)[data.property]);
             } else {
                 outputs[0] = (context.particle as any)[data.property];
@@ -429,8 +483,8 @@ graphPropertyNode.addSignature(
                 (context.graph as any)[data.property] = inputs[0];
             }
         }
-        if (outputs[0] !== undefined) {
-            if (typeof inputs[0] === 'object') {
+        if ((context.graph as any)[data.property] !== undefined) {
+            if (typeof outputs[0] === 'object') {
                 (outputs[0] as any).copy((context.graph as any)[data.property]);
             } else {
                 outputs[0] = (context.graph as any)[data.property];
@@ -468,9 +522,16 @@ const timeNode = new NodeType('time');
 timeNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = context.emissionState.time;
 });
+NodeTypes['time'] = timeNode;
+
+const deltaNode = new NodeType('delta');
+deltaNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outputs) => {
+    outputs[0] = context.delta;
+});
+NodeTypes['delta'] = deltaNode;
 
 // input output
-let outputNode = new NodeType('output');
+const outputNode = new NodeType('output');
 outputNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = inputs[0];
 });

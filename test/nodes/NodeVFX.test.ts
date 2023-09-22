@@ -34,8 +34,15 @@ describe('NodeVFX', () => {
 
     test('Interpreter particle properties', () => {
         const graph = new NodeGraph('test');
-        const pos = new Node(NodeTypes['vec3'], 0, {value: new Vector3(4, 5, 6)});
-        const pos2 = new Node(NodeTypes['vec3'], 0, {value: new Vector3(1, 2, 3)});
+        const pos = new Node(NodeTypes['vec3'], 0);
+        const age = new Node(NodeTypes['particleProperty'], 0, {property: 'age'});
+        pos.inputs[0] = {getValue: () => 4};
+        pos.inputs[1] = {getValue: () => 5};
+        pos.inputs[2] = {getValue: () => 6};
+        const pos2 = new Node(NodeTypes['vec3'], 0);
+        pos2.inputs[0] = {getValue: () => 1};
+        pos2.inputs[1] = {getValue: () => 2};
+        pos2.inputs[2] = {getValue: () => 3};
 
         const add = new Node(NodeTypes['add'], 2);
         const ppos = new Node(NodeTypes['particleProperty'], 0, {property: 'position'});
@@ -46,19 +53,20 @@ describe('NodeVFX', () => {
         graph.addNode(add);
         graph.addNode(ppos);
         graph.addNode(pvel);
+        graph.addWire(new Wire(age, 0, pos, 0));
         graph.addWire(new Wire(pos, 0, add, 0));
         graph.addWire(new Wire(pos2, 0, add, 1));
         graph.addWire(new Wire(add, 0, ppos, 0));
         graph.addWire(new Wire(pos2, 0, pvel, 0));
 
         const interpreter = new Interpreter();
-        const particle = {position: new Vector3(), velocity: new Vector3()} as Particle;
+        const particle = {position: new Vector3(), velocity: new Vector3(), age: 10} as Particle;
         const context = {particle: particle};
         interpreter.run(graph, context);
         expect(context.particle.velocity.x).toBe(1);
         expect(context.particle.velocity.y).toBe(2);
         expect(context.particle.velocity.z).toBe(3);
-        expect(context.particle.position.x).toBe(5);
+        expect(context.particle.position.x).toBe(11);
         expect(context.particle.position.y).toBe(7);
         expect(context.particle.position.z).toBe(9);
 
@@ -66,7 +74,7 @@ describe('NodeVFX', () => {
         expect(context.particle.velocity.x).toBe(1);
         expect(context.particle.velocity.y).toBe(2);
         expect(context.particle.velocity.z).toBe(3);
-        expect(context.particle.position.x).toBe(5);
+        expect(context.particle.position.x).toBe(11);
         expect(context.particle.position.y).toBe(7);
         expect(context.particle.position.z).toBe(9);
     });

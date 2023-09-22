@@ -1,14 +1,14 @@
 import {NodeValueType} from './NodeValueType';
 import {NodeGraph} from './NodeGraph';
 import {Interpreter} from './Interpreter';
-import {Particle} from '../Particle';
+import {IParticle, Particle} from '../Particle';
 import {Vector2, Vector3, Vector4} from 'three';
 import {Node, NodeData} from './Node';
 
 export interface ExecutionContext {
     inputs?: NodeValue[];
     outputs?: NodeValue[];
-    particle?: Particle;
+    particle?: IParticle;
     [key: string]: any;
 }
 

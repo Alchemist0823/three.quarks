@@ -9,7 +9,7 @@ import {
     Color,
     AdditiveBlending,
     TextureLoader,
-} from './js/three.module.js';
+} from 'three';
 import {
     Bezier,
     ColorRange,
@@ -25,7 +25,7 @@ import {
     BatchedParticleRenderer,
     ConeEmitter,
     ApplyForce,
-} from './js/three.quarks.esm.js';
+} from 'three.quarks';
 import {Demo} from './demo.js';
 
 export class TurbulenceDemo extends Demo {

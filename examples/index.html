@@ -17,9 +17,19 @@
     <!--script type="module" src="//cdnjs.cloudflare.com/ajax/libs/three.js/r110/three.module.js" integrity="sha512-8Q+LHYWnd5k/kWiIDvLd+FKKCQUjxhnnWa29z9xnQZcEmrI/sM/ONo2NJtN4UIHY91/jEZArn+AFI3oySADsug==" crossorigin="anonymous"></script>
     <script type="module" src="//cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js" integrity="sha512-mfOs9z5Hk96xJH71l0ptzjgGvflNJRnHA7brsEwqDZf7mJa8QDfUtcHICKMXq4Ys80g5HKQMD9rsY3R44ZlEug==" crossorigin="anonymous"></script>
     <script type="module" src="//threejs.org/examples/jsm/controls/OrbitControls.js"></script-->
-    <!--script type="module" src="./js/three.module.js"></script>
+    <!--script type="module" src="three"></script>
     <script type="module" src="./js/OrbitControls.js"></script>
     <script type="module" src="./three.quarks.esm.js"></script-->
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "./js/three.module.js",
+            "three.quarks": "./js/three.quarks.esm.js"
+          }
+        }
+    </script>
+
     <style>
         body {
             margin: 0;
@@ -66,7 +76,7 @@
             Clock,
             PerspectiveCamera,
             WebGLRenderer,
-        } from "./js/three.module.js";
+        } from "three";
         import {OrbitControls} from "./js/OrbitControls.js";
         import Stats from "./js/Stats.min.js";
         import {
@@ -80,6 +90,7 @@
         import {MeshMaterialDemo} from "./meshMaterialDemo.js";
         import {AlphaTestDemo} from "./alphaTestDemo.js";
         import {BillboardDemo} from "./billboardDemo.js";
+        import {NodeBasedVFXDemo} from "./nodeBasedVFXDemo.js";
 
         const WEBGL = {
             isWebGLAvailable: function () {
@@ -143,7 +154,7 @@
         let scene;
         let demo;
 
-        let demos = [MuzzleFlashDemo, TornadoDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo];
+        let demos = [MuzzleFlashDemo, TornadoDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, NodeBasedVFXDemo];
         let demoIndex = 0;
 
         function init() {

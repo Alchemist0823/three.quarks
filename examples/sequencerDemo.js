@@ -11,7 +11,7 @@ import {
     AdditiveBlending,
     NormalBlending,
     TextureLoader,
-} from './js/three.module.js';
+} from 'three';
 import {
     Bezier,
     ColorRange,
@@ -31,7 +31,7 @@ import {
     TextureSequencer,
     ApplySequences,
     RandomColor,
-} from './js/three.quarks.esm.js';
+} from 'three.quarks';
 import {Demo} from './demo.js';
 
 export class SequencerDemo extends Demo {

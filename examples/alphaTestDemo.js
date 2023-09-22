@@ -14,15 +14,8 @@ import {
     Rotation3DOverLife,
     RotationOverLife,
     SpeedOverLife,
-} from './js/three.quarks.esm.js';
-import {
-    MeshBasicMaterial,
-    NormalBlending,
-    AdditiveBlending,
-    TextureLoader,
-    Vector4,
-    Vector3,
-} from './js/three.module.js';
+} from 'three.quarks';
+import {MeshBasicMaterial, NormalBlending, AdditiveBlending, TextureLoader, Vector4, Vector3} from 'three';
 import {Demo} from './demo.js';
 import {GLTFLoader} from './js/GLTFLoader.js';
 

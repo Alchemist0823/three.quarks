@@ -1,33 +1,5 @@
-import {
-    Group,
-    Scene,
-    MeshStandardMaterial,
-    PlaneGeometry,
-    PointLight,
-    DoubleSide,
-    Mesh,
-    Vector4,
-    Vector3,
-    Color,
-    AdditiveBlending,
-    TextureLoader,
-} from './js/three.module.js';
-import {
-    Bezier,
-    ColorRange,
-    ConstantValue,
-    TurbulenceField,
-    IntervalValue,
-    PiecewiseBezier,
-    ColorOverLife,
-    RenderMode,
-    SizeOverLife,
-    ParticleSystem,
-    ParticleEmitter,
-    BatchedParticleRenderer,
-    ConeEmitter,
-    ApplyForce,
-} from './js/three.quarks.esm.js';
+import {Group, Scene, MeshStandardMaterial, PlaneGeometry, PointLight, DoubleSide, Mesh, Vector3, Color} from 'three';
+import {ParticleEmitter} from 'three.quarks';
 
 export class Demo {
     batchRenderer;

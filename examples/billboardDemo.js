@@ -15,7 +15,7 @@ import {
     RotationOverLife,
     SpeedOverLife,
     EulerGenerator,
-} from './js/three.quarks.esm.js';
+} from 'three.quarks';
 import {
     MeshBasicMaterial,
     NormalBlending,
@@ -25,11 +25,11 @@ import {
     Vector3,
     PlaneGeometry,
     DoubleSide,
-} from './js/three.module.js';
+} from 'three';
 import {Demo} from './demo.js';
 
 export class BillboardDemo extends Demo {
-    name = 'Horizon & Vertical BillboardDemo';
+    name = 'Horizon & Vertical Billboard';
 
     initScene() {
         super.initScene();

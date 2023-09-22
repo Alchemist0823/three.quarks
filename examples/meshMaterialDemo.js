@@ -1,4 +1,4 @@
-import {Group, MeshStandardMaterial, BoxGeometry, Vector4, Color, AdditiveBlending} from './js/three.module.js';
+import {Group, MeshStandardMaterial, BoxGeometry, Vector4, Color, AdditiveBlending} from 'three';
 import {
     BatchedParticleRenderer,
     RandomQuatGenerator,
@@ -10,7 +10,7 @@ import {
     ConstantColor,
     RenderMode,
     IntervalValue,
-} from './js/three.quarks.esm.js';
+} from 'three.quarks';
 import {Demo} from './demo.js';
 
 export class MeshMaterialDemo extends Demo {

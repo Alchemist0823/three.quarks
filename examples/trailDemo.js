@@ -9,7 +9,7 @@ import {
     Color,
     AdditiveBlending,
     TextureLoader,
-} from './js/three.module.js';
+} from 'three';
 import {
     Bezier,
     ColorRange,
@@ -27,7 +27,7 @@ import {
     ApplyForce,
     ApplyCollision,
     Gradient,
-} from './js/three.quarks.esm.js';
+} from 'three.quarks';
 import {Demo} from './demo.js';
 
 export class TrailDemo extends Demo {

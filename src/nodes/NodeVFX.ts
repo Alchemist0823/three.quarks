@@ -1,4 +1,4 @@
-import {Particle, SpriteParticle, TrailParticle} from '../Particle';
+import {IParticle, NodeParticle, Particle, SpriteParticle, TrailParticle} from '../Particle';
 import {ParticleEmitter} from '../ParticleEmitter';
 import {
     BaseEvent,
@@ -109,7 +109,7 @@ export class NodeVFX implements IParticleSystem {
      *
      * @type {Array<Particle>}
      */
-    particles: Array<Particle>;
+    particles: Array<IParticle>;
 
     /**
      * the emitter object that should be added in the scene.
@@ -300,14 +300,16 @@ export class NodeVFX implements IParticleSystem {
 
         this.particleNum++;
         while (this.particles.length < this.particleNum) {
-            if (this.rendererSettings.renderMode === RenderMode.Trail) {
+            /*if (this.rendererSettings.renderMode === RenderMode.Trail) {
                 this.particles.push(new TrailParticle());
             } else {
                 this.particles.push(new SpriteParticle());
-            }
+            }*/
+            this.particles.push(new NodeParticle());
         }
         const particle = this.particles[this.particleNum - 1];
-        this.interpreter.run(this.emissionGraph, {particle: particle});
+        (particle as NodeParticle).reset();
+        this.interpreter.run(this.updateGraph, {particle: particle, emissionState: this.emissionState});
 
         if (
             this.rendererSettings.renderMode === RenderMode.Trail &&
@@ -318,8 +320,7 @@ export class NodeVFX implements IParticleSystem {
         }
         if (this.worldSpace) {
             particle.position.applyMatrix4(matrix);
-            particle.startSize = (particle.startSize * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3;
-            particle.size = particle.startSize;
+            particle.size *= (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z)) / 3;
             particle.velocity.multiply(scale).applyMatrix3(this.normalMatrix);
             if (particle.rotation && particle.rotation instanceof Quaternion) {
                 particle.rotation.multiplyQuaternions(tempQ, particle.rotation);
@@ -353,11 +354,6 @@ export class NodeVFX implements IParticleSystem {
     //firstTimeUpdate = true;
 
     private update(delta: number) {
-        /*if (this.firstTimeUpdate) {
-            this.renderer.addSystem(this);
-            this.firstTimeUpdate = false;
-        }*/
-
         if (this.paused) return;
 
         let currentParent: Object3D = this.emitter;
@@ -393,6 +389,14 @@ export class NodeVFX implements IParticleSystem {
 
         this.emit(delta, this.emissionState, this.emitter.matrixWorld);
 
+        // simuate
+
+        const context: any = {particle: undefined, emissionState: this.emissionState, delta};
+        for (let i = 0; i < this.particleNum; i++) {
+            context.particle = this.particles[i];
+            this.interpreter.run(this.updateGraph, context);
+        }
+
         for (let i = 0; i < this.particleNum; i++) {
             if (
                 (this.rendererEmitterSettings as TrailSettings).followLocalOrigin &&
@@ -400,9 +404,9 @@ export class NodeVFX implements IParticleSystem {
             ) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 this.particles[i].position.copy((this.particles[i] as TrailParticle).localPosition!);
-                if (this.particles[i].parentMatrix) {
+                if ((this.particles[i] as Particle).parentMatrix) {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    this.particles[i].position.applyMatrix4(this.particles[i].parentMatrix!);
+                    this.particles[i].position.applyMatrix4((this.particles[i] as Particle).parentMatrix!);
                 } else {
                     this.particles[i].position.applyMatrix4(this.emitter.matrixWorld);
                 }
@@ -441,9 +445,7 @@ export class NodeVFX implements IParticleSystem {
                 }
             }
         }
-
         this.normalMatrix.getNormalMatrix(emitterMatrix);
-
         // spawn
 
         // spawn burst
@@ -456,7 +458,6 @@ export class NodeVFX implements IParticleSystem {
         };
         if (!this.emitEnded) {
             this.interpreter.run(this.emissionGraph, context);
-            //emissionState.waitEmiting += delta * this.interpreter.run(this.emissionGraph, context);
         }
         if (this.previousWorldPos === undefined) this.previousWorldPos = new Vector3();
         this.emitter.getWorldPosition(this.previousWorldPos);
