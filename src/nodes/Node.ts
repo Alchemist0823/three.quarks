@@ -9,7 +9,7 @@ export class Node {
     outputs: Wire[][] = [];
     type: NodeType;
     signatureIndex: number = -1;
-    data: NodeData = {};
+    data: NodeData;
 
     // display
     position: Vector2 = new Vector2();
@@ -17,30 +17,33 @@ export class Node {
     // execution
     outputValues: any[] = [];
 
-    constructor(type: NodeType) {
+    constructor(type: NodeType, signatureIndex: number = -1, data: NodeData = {}) {
         this.id = '' + Math.round(Math.random() * 100000); //TODO use real random
         this.type = type;
-        for (let i = 0; i < type.nodeTypeSignatures[0].inputTypes.length; i++) {
+        this.signatureIndex = signatureIndex;
+        this.data = data;
+        const realIndex = signatureIndex === -1 ? 0 : signatureIndex;
+        for (let i = 0; i < type.nodeTypeSignatures[realIndex].inputTypes.length; i++) {
             this.inputs.push(undefined);
         }
-        for (let i = 0; i < type.nodeTypeSignatures[0].outputTypes.length; i++) {
+        for (let i = 0; i < type.nodeTypeSignatures[realIndex].outputTypes.length; i++) {
             this.outputs.push([]);
-            this.outputValues.push(genDefaultForNodeValueType(type.nodeTypeSignatures[0].outputTypes[i]));
+            this.outputValues.push(genDefaultForNodeValueType(type.nodeTypeSignatures[realIndex].outputTypes[i]));
         }
     }
 
     get inputTypes(): NodeValueType[] {
-        let signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
+        const signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
         return this.type.nodeTypeSignatures[signatureIndex].inputTypes;
     }
 
     get outputTypes(): NodeValueType[] {
-        let signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
+        const signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
         return this.type.nodeTypeSignatures[signatureIndex].outputTypes;
     }
 
     func(context: ExecutionContext, inputs: any[], outputs: any[]) {
-        let signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
+        const signatureIndex = this.signatureIndex === -1 ? 0 : this.signatureIndex;
         this.type.nodeTypeSignatures[signatureIndex].func(context, this.data, inputs, outputs);
     }
 }

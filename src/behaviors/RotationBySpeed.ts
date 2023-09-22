@@ -1,5 +1,5 @@
 import {Behavior} from './Behavior';
-import {Particle, SpriteParticle} from '../Particle';
+import {Particle} from '../Particle';
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions/ValueGenerator';
 import {Quaternion} from 'three';
 import {IntervalValue} from '../functions';

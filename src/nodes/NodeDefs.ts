@@ -5,7 +5,7 @@ import {NodeType} from './NodeType';
 export const NodeTypes: {[key: string]: NodeType} = {};
 
 // Math
-let addNode = new NodeType('add');
+const addNode = new NodeType('add');
 addNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -36,7 +36,7 @@ addNode.addSignature(
 );
 NodeTypes['add'] = addNode;
 
-let subNode = new NodeType('sub');
+const subNode = new NodeType('sub');
 subNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -67,7 +67,7 @@ subNode.addSignature(
 );
 NodeTypes['sub'] = subNode;
 
-let mulNode = new NodeType('mul');
+const mulNode = new NodeType('mul');
 mulNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -98,7 +98,7 @@ mulNode.addSignature(
 );
 NodeTypes['mul'] = mulNode;
 
-let divNode = new NodeType('div');
+const divNode = new NodeType('div');
 divNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -129,31 +129,31 @@ divNode.addSignature(
 );
 NodeTypes['div'] = divNode;
 
-let sinNode = new NodeType('sin');
+const sinNode = new NodeType('sin');
 sinNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = Math.sin(inputs[0] as number);
 });
 NodeTypes['sin'] = sinNode;
 
-let cosNode = new NodeType('cos');
+const cosNode = new NodeType('cos');
 cosNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = Math.cos(inputs[0] as number);
 });
 NodeTypes['cos'] = cosNode;
 
-let tanNode = new NodeType('tan');
+const tanNode = new NodeType('tan');
 tanNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = Math.tan(inputs[0] as number);
 });
 NodeTypes['tan'] = tanNode;
 
-let absNode = new NodeType('abs');
+const absNode = new NodeType('abs');
 absNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = Math.abs(inputs[0] as number);
 });
 NodeTypes['abs'] = absNode;
 
-let minNode = new NodeType('min');
+const minNode = new NodeType('min');
 minNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -163,7 +163,7 @@ minNode.addSignature(
 );
 NodeTypes['min'] = minNode;
 
-let maxNode = new NodeType('max');
+const maxNode = new NodeType('max');
 maxNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -173,7 +173,7 @@ maxNode.addSignature(
 );
 NodeTypes['max'] = maxNode;
 
-let dot = new NodeType('dot');
+const dot = new NodeType('dot');
 dot.addSignature([NodeValueType.Vec2, NodeValueType.Vec2], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = (inputs[0] as Vector2).dot(inputs[1] as Vector2);
 });
@@ -185,13 +185,13 @@ dot.addSignature([NodeValueType.Vec4, NodeValueType.Vec4], [NodeValueType.Number
 });
 NodeTypes['dot'] = dot;
 
-let cross = new NodeType('cross');
+const cross = new NodeType('cross');
 cross.addSignature([NodeValueType.Vec3, NodeValueType.Vec3], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
     (outputs[0] as Vector3).crossVectors(inputs[0] as Vector3, inputs[1] as Vector3);
 });
 NodeTypes['cross'] = cross;
 
-let length = new NodeType('length');
+const length = new NodeType('length');
 length.addSignature([NodeValueType.Vec2], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = (inputs[0] as Vector2).length();
 });
@@ -203,7 +203,7 @@ length.addSignature([NodeValueType.Vec4], [NodeValueType.Number], (context, data
 });
 NodeTypes['length'] = length;
 
-let lengthSq = new NodeType('lengthSq');
+const lengthSq = new NodeType('lengthSq');
 lengthSq.addSignature([NodeValueType.Vec2], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = (inputs[0] as Vector2).lengthSq();
 });
@@ -215,7 +215,7 @@ lengthSq.addSignature([NodeValueType.Vec4], [NodeValueType.Number], (context, da
 });
 NodeTypes['lengthSq'] = lengthSq;
 
-let normalize = new NodeType('normalize');
+const normalize = new NodeType('normalize');
 normalize.addSignature([NodeValueType.Vec2], [NodeValueType.Vec2], (context, data, inputs, outputs) => {
     (outputs[0] as Vector2).copy(inputs[0] as Vector2).normalize();
 });
@@ -227,7 +227,7 @@ normalize.addSignature([NodeValueType.Vec4], [NodeValueType.Vec4], (context, dat
 });
 NodeTypes['normalize'] = normalize;
 
-let distance = new NodeType('distance');
+const distance = new NodeType('distance');
 distance.addSignature(
     [NodeValueType.Vec2, NodeValueType.Vec2],
     [NodeValueType.Number],
@@ -245,7 +245,7 @@ distance.addSignature(
 NodeTypes['distance'] = distance;
 
 // Logic
-let andNode = new NodeType('and');
+const andNode = new NodeType('and');
 andNode.addSignature(
     [NodeValueType.Boolean, NodeValueType.Boolean],
     [NodeValueType.Boolean],
@@ -255,7 +255,7 @@ andNode.addSignature(
 );
 NodeTypes['and'] = andNode;
 
-let orNode = new NodeType('or');
+const orNode = new NodeType('or');
 orNode.addSignature(
     [NodeValueType.Boolean, NodeValueType.Boolean],
     [NodeValueType.Boolean],
@@ -265,13 +265,13 @@ orNode.addSignature(
 );
 NodeTypes['or'] = orNode;
 
-let notNode = new NodeType('not');
+const notNode = new NodeType('not');
 notNode.addSignature([NodeValueType.Boolean], [NodeValueType.Boolean], (context, data, inputs, outputs) => {
     outputs[0] = !(inputs[0] as boolean);
 });
 NodeTypes['not'] = notNode;
 
-let equalNode = new NodeType('equal');
+const equalNode = new NodeType('equal');
 equalNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Boolean],
@@ -302,7 +302,7 @@ equalNode.addSignature(
 );
 NodeTypes['equal'] = equalNode;
 
-let lessThanNode = new NodeType('lessThan');
+const lessThanNode = new NodeType('lessThan');
 lessThanNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Boolean],
@@ -312,7 +312,7 @@ lessThanNode.addSignature(
 );
 NodeTypes['lessThan'] = lessThanNode;
 
-let greaterThanNode = new NodeType('greaterThan');
+const greaterThanNode = new NodeType('greaterThan');
 greaterThanNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Boolean],
@@ -322,7 +322,7 @@ greaterThanNode.addSignature(
 );
 NodeTypes['greaterThan'] = greaterThanNode;
 
-let lessThanOrEqualNode = new NodeType('lessThanOrEqual');
+const lessThanOrEqualNode = new NodeType('lessThanOrEqual');
 lessThanOrEqualNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Boolean],
@@ -332,7 +332,7 @@ lessThanOrEqualNode.addSignature(
 );
 NodeTypes['lessThanOrEqual'] = lessThanOrEqualNode;
 
-let greaterThanOrEqualNode = new NodeType('greaterThanOrEqual');
+const greaterThanOrEqualNode = new NodeType('greaterThanOrEqual');
 greaterThanOrEqualNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Boolean],
@@ -342,7 +342,7 @@ greaterThanOrEqualNode.addSignature(
 );
 NodeTypes['greaterThanOrEqual'] = greaterThanOrEqualNode;
 
-let ifNode = new NodeType('if');
+const ifNode = new NodeType('if');
 ifNode.addSignature(
     [NodeValueType.Boolean, NodeValueType.AnyType, NodeValueType.AnyType],
     [NodeValueType.AnyType],
@@ -353,60 +353,121 @@ ifNode.addSignature(
 NodeTypes['if'] = ifNode;
 
 // Constants
-let numberNode = new NodeType('number');
+const numberNode = new NodeType('number');
 numberNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outputs) => {
     outputs[0] = data.value;
 });
 NodeTypes['number'] = numberNode;
 
-let vec2Node = new NodeType('vec2');
+const vec2Node = new NodeType('vec2');
 vec2Node.addSignature([], [NodeValueType.Vec2], (context, data, inputs, outputs) => {
     outputs[0] = data.value;
 });
 NodeTypes['vec2'] = vec2Node;
 
-let vec3Node = new NodeType('vec3');
+const vec3Node = new NodeType('vec3');
 vec3Node.addSignature([], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
     outputs[0] = data.value;
 });
 NodeTypes['vec3'] = vec3Node;
 
-let vec4Node = new NodeType('vec4');
+const vec4Node = new NodeType('vec4');
 vec4Node.addSignature([], [NodeValueType.Vec4], (context, data, inputs, outputs) => {
-    outputs[0] = data.value;
+    (outputs[0] as Vector4).copy(data.value);
 });
 NodeTypes['vec4'] = vec4Node;
 
-let boolNode = new NodeType('bool');
+const boolNode = new NodeType('bool');
 boolNode.addSignature([], [NodeValueType.Boolean], (context, data, inputs, outputs) => {
     outputs[0] = data.value;
 });
 NodeTypes['bool'] = boolNode;
 
 // Particles
-let particlePositionNode = new NodeType('particlePosition');
-particlePositionNode.addSignature([], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
-    outputs[0] = (context.particle as any)[data.property];
-});
-NodeTypes['particlePosition'] = particlePositionNode;
+const particlePropertyNode = new NodeType('particleProperty');
+particlePropertyNode.addSignature(
+    [NodeValueType.NullableAnyType],
+    [NodeValueType.NullableAnyType],
+    (context, data, inputs, outputs) => {
+        if (inputs[0] !== undefined) {
+            if (typeof inputs[0] === 'object') {
+                (context.particle as any)[data.property].copy(inputs[0]);
+            } else {
+                (context.particle as any)[data.property] = inputs[0];
+            }
+        }
+        if (outputs[0] !== undefined) {
+            if (typeof inputs[0] === 'object') {
+                (outputs[0] as any).copy((context.particle as any)[data.property]);
+            } else {
+                outputs[0] = (context.particle as any)[data.property];
+            }
+        }
+    }
+);
+NodeTypes['particleProperty'] = particlePropertyNode;
 
-let particleVelocityNode = new NodeType('particleVelocity');
-particleVelocityNode.addSignature([], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
-    outputs[0] = (context.particle as any)[data.property];
+// emit
+const emitNode = new NodeType('emit');
+emitNode.addSignature([NodeValueType.EventStream], [], (context, data, inputs, outputs) => {
+    const arr = inputs[0] as Array<any>;
+    for (let i = 0; i < arr.length; i++) {
+        context.signal(i, arr[i]);
+    }
 });
-NodeTypes['particleVelocity'] = particleVelocityNode;
+NodeTypes['emit'] = emitNode;
 
-let particleRotationNode = new NodeType('particleRotation');
-particleRotationNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outputs) => {
-    outputs[0] = (context.particle as any)[data.property];
-});
-NodeTypes['particleRotation'] = particleRotationNode;
+const graphPropertyNode = new NodeType('graphProperty');
+graphPropertyNode.addSignature(
+    [NodeValueType.NullableAnyType],
+    [NodeValueType.NullableAnyType],
+    (context, data, inputs, outputs) => {
+        if (inputs[0] !== undefined) {
+            if (typeof inputs[0] === 'object') {
+                (context.graph as any)[data.property].copy(inputs[0]);
+            } else {
+                (context.graph as any)[data.property] = inputs[0];
+            }
+        }
+        if (outputs[0] !== undefined) {
+            if (typeof inputs[0] === 'object') {
+                (outputs[0] as any).copy((context.graph as any)[data.property]);
+            } else {
+                outputs[0] = (context.graph as any)[data.property];
+            }
+        }
+    }
+);
+NodeTypes['graphProperty'] = graphPropertyNode;
 
-let particleAgeNode = new NodeType('particleAge');
-particleAgeNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outputs) => {
-    outputs[0] = (context.particle as any)[data.property];
+const startEventNode = new NodeType('startEvent');
+startEventNode.addSignature([], [NodeValueType.EventStream], (context, data, inputs, outputs) => {
+    outputs[0] = [{type: 'start'}];
 });
-NodeTypes['particleAge'] = particleAgeNode;
+NodeTypes['startEvent'] = startEventNode;
+
+const repeaterNode = new NodeType('repeater');
+repeaterNode.addSignature(
+    [NodeValueType.EventStream, NodeValueType.Number],
+    [NodeValueType.EventStream],
+    (context, data, inputs, outputs) => {
+        const arr = inputs[0] as Array<any>;
+        const count = inputs[1] as number;
+        const result = [];
+        for (let j = 0; j < arr.length; j++) {
+            for (let i = 0; i < count; i++) {
+                result.push(arr[j]);
+            }
+        }
+        outputs[0] = result;
+    }
+);
+NodeTypes['repeater'] = repeaterNode;
+
+const timeNode = new NodeType('time');
+timeNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outputs) => {
+    outputs[0] = context.emissionState.time;
+});
 
 // input output
 let outputNode = new NodeType('output');
@@ -431,7 +492,7 @@ NodeTypes['output'] = outputNode;
 const normalD = (x: number) => {
     return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(x * x * -0.5);
 };
-let normalDistributionNode = new NodeType('normDistrib');
+const normalDistributionNode = new NodeType('normDistrib');
 normalDistributionNode.addSignature(
     [NodeValueType.Number],
     [NodeValueType.Number],
@@ -441,7 +502,7 @@ normalDistributionNode.addSignature(
 );
 NodeTypes['normDistrib'] = normalDistributionNode;
 
-let normcdfNode = new NodeType('normcdf');
+const normcdfNode = new NodeType('normcdf');
 normcdfNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
     // constants
     let x = inputs[0] as number;
@@ -465,7 +526,7 @@ normcdfNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (contex
 });
 NodeTypes['normcdf'] = normcdfNode;
 
-let normcdfInvNode = new NodeType('normcdfInv');
+const normcdfInvNode = new NodeType('normcdfInv');
 
 const rationalApproximation = (t: number) => {
     // Abramowitz and Stegun formula 26.2.23.
@@ -491,7 +552,7 @@ normcdfInvNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (con
 });
 NodeTypes['normcdfInv'] = normcdfInvNode;
 
-let clampNode = new NodeType('clamp');
+const clampNode = new NodeType('clamp');
 clampNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -501,18 +562,18 @@ clampNode.addSignature(
 );
 NodeTypes['clamp'] = clampNode;
 
-let smoothstepNode = new NodeType('smoothstep');
+const smoothstepNode = new NodeType('smoothstep');
 smoothstepNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
     (context, data, inputs, outputs) => {
-        let x = Math.max(Math.min(inputs[0] as number, inputs[2] as number), inputs[1] as number);
+        const x = Math.max(Math.min(inputs[0] as number, inputs[2] as number), inputs[1] as number);
         outputs[0] = x * x * (3 - 2 * x);
     }
 );
 NodeTypes['smoothstep'] = smoothstepNode;
 
-let randomNode = new NodeType('random');
+const randomNode = new NodeType('random');
 randomNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
@@ -546,7 +607,7 @@ randomNode.addSignature(
 );
 NodeTypes['random'] = randomNode;
 
-let vrandNode = new NodeType('vrand');
+const vrandNode = new NodeType('vrand');
 vrandNode.addSignature([], [NodeValueType.Vec2], (context, data, inputs, outputs) => {
     let x = normcdfInv(Math.random());
     let y = normcdfInv(Math.random());
@@ -569,3 +630,5 @@ vrandNode.addSignature([], [NodeValueType.Vec4], (context, data, inputs, outputs
     (outputs[0] as Vector4).set(x / mag, y / mag, z / mag, w / mag);
 });
 NodeTypes['vrand'] = vrandNode;
+
+export const OutputNodeTypeNames = new Set<string>(['output', 'particleProperty', 'graphProperty', 'emit']);

@@ -1,8 +1,37 @@
 import {VFXBatch, RenderMode, StoredBatchSettings} from './VFXBatch';
-import {ParticleSystem, VFXBatchSettings} from './ParticleSystem';
-import {Object3D} from 'three';
+import {BufferGeometry, Layers, Material, Object3D} from 'three';
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
+import {ParticleEmitter} from './ParticleEmitter';
+import {Particle} from './Particle';
+
+export interface VFXBatchSettings {
+    // 5 component x,y,z,u,v
+    instancingGeometry: BufferGeometry;
+    material: Material;
+    uTileCount: number;
+    vTileCount: number;
+    renderMode: RenderMode;
+    renderOrder: number;
+    layers: Layers;
+}
+export interface SerializationOptions {
+    useUrlForImage?: boolean;
+}
+export interface IParticleSystem {
+    speedFactor: number;
+    worldSpace: boolean;
+    particleNum: number;
+    particles: Array<Particle>;
+    emitter: ParticleEmitter<any>;
+    _renderer?: BatchedRenderer;
+
+    getRendererSettings(): VFXBatchSettings;
+
+    clone(): IParticleSystem;
+
+    toJSON(metaData: any, options: SerializationOptions): any;
+}
 
 /**
  * the class represents the batch renderer. a three.js scene should only have one batchedRenderer
@@ -11,7 +40,7 @@ import {TrailBatch} from './TrailBatch';
  */
 export class BatchedRenderer extends Object3D {
     batches: Array<VFXBatch> = [];
-    systemToBatchIndex: Map<ParticleSystem, number> = new Map<ParticleSystem, number>();
+    systemToBatchIndex: Map<IParticleSystem, number> = new Map<IParticleSystem, number>();
     type = 'BatchedRenderer';
 
     constructor() {
@@ -35,7 +64,7 @@ export class BatchedRenderer extends Object3D {
         );
     }
 
-    addSystem(system: ParticleSystem) {
+    addSystem(system: IParticleSystem) {
         system._renderer = this;
         const settings = system.getRendererSettings();
         for (let i = 0; i < this.batches.length; i++) {
@@ -64,7 +93,7 @@ export class BatchedRenderer extends Object3D {
         this.add(batch);
     }
 
-    deleteSystem(system: ParticleSystem) {
+    deleteSystem(system: IParticleSystem) {
         const batchIndex = this.systemToBatchIndex.get(system);
         if (batchIndex != undefined) {
             this.batches[batchIndex].removeSystem(system);
@@ -79,7 +108,7 @@ export class BatchedRenderer extends Object3D {
         }*/
     }
 
-    updateSystem(system: ParticleSystem) {
+    updateSystem(system: IParticleSystem) {
         this.deleteSystem(system);
         this.addSystem(system);
     }

@@ -1,4 +1,4 @@
-import {Gradient, ColorRange} from '../../src';
+import {Gradient} from '../../src';
 import {Vector3, Vector4} from 'three';
 
 describe('Gradient', () => {

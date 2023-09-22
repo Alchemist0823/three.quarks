@@ -1,4 +1,4 @@
-import {FunctionColorGenerator, MemorizedFunctionColorGenerator} from './ColorGenerator';
+import {MemorizedFunctionColorGenerator} from './ColorGenerator';
 import {Vector4} from 'three';
 import {FunctionJSON} from './FunctionJSON';
 import {Gradient} from './Gradient';

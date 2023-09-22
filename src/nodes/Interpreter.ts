@@ -78,7 +78,9 @@ export class Interpreter {
             this.visited.clear();
             for (let i = 0; i < graph.outputNodes.length; i++) {
                 const node = graph.outputNodes[i];
-                this.traverse(node);
+                if (node.inputs[0] !== undefined) {
+                    this.traverse(node);
+                }
             }
             graph.compiled = true;
         }

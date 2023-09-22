@@ -1,9 +1,5 @@
-import {PiecewiseFunction} from './PiecewiseFunction';
-import {FunctionColorGenerator} from './ColorGenerator';
-import {Vector4} from 'three';
-import {ColorRange} from './ColorRange';
 import {FunctionJSON} from './FunctionJSON';
-import {ColorToJSON, JSONToColor, JSONToValue, ValueToJSON} from '../util/JSONUtil';
+import {JSONToValue, ValueToJSON} from '../util/JSONUtil';
 
 interface ObjectValueType<T> {
     copy(value: T): ObjectValueType<T>;

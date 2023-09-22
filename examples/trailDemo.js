@@ -29,6 +29,7 @@ import {
     Gradient,
 } from './js/three.quarks.esm.js';
 import {Demo} from './demo.js';
+
 export class TrailDemo extends Demo {
     name = 'Trail Renderer and Physics';
 

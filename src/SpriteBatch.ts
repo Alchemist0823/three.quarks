@@ -23,7 +23,7 @@ import local_particle_physics_vert from './shaders/local_particle_physics_vert.g
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 import {VFXBatch, RenderMode} from './VFXBatch';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
-import {VFXBatchSettings} from './ParticleSystem';
+import {VFXBatchSettings} from './BatchedRenderer';
 
 const UP = new Vector3(0, 0, 1);
 

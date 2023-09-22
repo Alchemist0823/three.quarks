@@ -1,8 +1,8 @@
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './functions/ValueGenerator';
-import {Behavior, BehaviorFromJSON} from './behaviors/Behavior';
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './functions';
+import {Behavior, BehaviorFromJSON} from './behaviors';
 import {Particle, SpriteParticle, TrailParticle} from './Particle';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
-import {EmitterFromJSON, EmitterShape, ShapeJSON} from './shape/EmitterShape';
+import {EmitterFromJSON, EmitterShape, ShapeJSON} from './shape';
 import {
     AdditiveBlending,
     BaseEvent,
@@ -34,19 +34,8 @@ import {
     MemorizedFunctionColorGenerator,
 } from './functions';
 import {RenderMode} from './VFXBatch';
-import {BatchedRenderer} from './BatchedRenderer';
+import {BatchedRenderer, SerializationOptions, VFXBatchSettings} from './BatchedRenderer';
 import {RotationGenerator} from './functions/RotationGenerator';
-
-export interface VFXBatchSettings {
-    // 5 component x,y,z,u,v
-    instancingGeometry: BufferGeometry;
-    material: Material;
-    uTileCount: number;
-    vTileCount: number;
-    renderMode: RenderMode;
-    renderOrder: number;
-    layers: Layers;
-}
 export interface BurstParameters {
     time: number;
     count: number;
@@ -165,10 +154,6 @@ export interface EmissionState {
     burstWaveIndex: number;
     time: number;
     waitEmiting: number;
-}
-
-export interface SerializationOptions {
-    useUrlForImage?: boolean;
 }
 
 /**

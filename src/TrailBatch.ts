@@ -6,7 +6,6 @@ import {
     Uniform,
     Vector2,
     DynamicDrawUsage,
-    DoubleSide,
     BufferGeometry,
     Vector3,
     BufferAttribute,
@@ -17,7 +16,7 @@ import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
 import {VFXBatch, RenderMode} from './VFXBatch';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
-import {VFXBatchSettings} from './ParticleSystem';
+import {VFXBatchSettings} from './BatchedRenderer';
 
 const UP = new Vector3(0, 0, 1);
 

@@ -1,9 +1,7 @@
-import {PiecewiseFunction} from './PiecewiseFunction';
 import {FunctionColorGenerator} from './ColorGenerator';
 import {Vector3, Vector4} from 'three';
 import {ColorRange} from './ColorRange';
 import {FunctionJSON} from './FunctionJSON';
-import {ColorToJSON, JSONToColor} from '../util/JSONUtil';
 import {ContinuousLinearFunction} from './ContinuousLinearFunction';
 
 const tempVec3 = new Vector3();
@@ -43,7 +41,7 @@ export class Gradient implements FunctionColorGenerator {
     static fromJSON(json: FunctionJSON): Gradient {
         // compatibility
         if (json.functions) {
-            let keys = json.functions.map((func: any) => [ColorRange.fromJSON(func.function).a, func.start]);
+            const keys = json.functions.map((func: any) => [ColorRange.fromJSON(func.function).a, func.start]);
             if (json.functions.length > 0) {
                 keys.push([ColorRange.fromJSON(json.functions[json.functions.length - 1].function).b, 1]);
             }
@@ -52,7 +50,7 @@ export class Gradient implements FunctionColorGenerator {
                 keys.map((key: any) => [key[0].w, key[1]])
             );
         } else {
-            let gradient = new Gradient();
+            const gradient = new Gradient();
             gradient.alpha = ContinuousLinearFunction.fromJSON(json.alpha);
             gradient.color = ContinuousLinearFunction.fromJSON(json.color);
             return gradient;
@@ -60,7 +58,7 @@ export class Gradient implements FunctionColorGenerator {
     }
 
     clone(): FunctionColorGenerator {
-        let gradient = new Gradient();
+        const gradient = new Gradient();
         gradient.alpha = this.alpha.clone();
         gradient.color = this.color.clone();
         return gradient;

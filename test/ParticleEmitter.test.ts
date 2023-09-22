@@ -116,11 +116,12 @@ describe('ParticleEmitter', () => {
         // console.log(json);
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {}) as ParticleEmitter<Event>;
-        expect(emitter.system.rendererSettings.layers.mask).toBe(3);
-        expect(emitter.system.startTileIndex.type).toBe('value');
-        expect(emitter.system.rendererSettings.instancingGeometry).toBeDefined();
+        const system = emitter.system as ParticleSystem;
+        expect(system.rendererSettings.layers.mask).toBe(3);
+        expect(system.startTileIndex.type).toBe('value');
+        expect(system.rendererSettings.instancingGeometry).toBeDefined();
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        expect((emitter.system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe('value');
-        expect(emitter.system.behaviors.length).toBe(2);
+        expect((system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe('value');
+        expect(system.behaviors.length).toBe(2);
     });
 });

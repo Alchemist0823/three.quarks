@@ -1,5 +1,5 @@
 import {Node, Wire} from './Node';
-import {NodeTypes} from './NodeDefs';
+import {NodeTypes, OutputNodeTypeNames} from './NodeDefs';
 
 export class NodeGraph {
     id: string;
@@ -31,7 +31,7 @@ export class NodeGraph {
         this.allNodes.set(node.id, node);
         if (node.type === NodeTypes['input']) {
             this.inputNodes.push(node);
-        } else if (node.type === NodeTypes['output']) {
+        } else if (OutputNodeTypeNames.has(node.type.name)) {
             this.outputNodes.push(node);
         }
         this.revision++;

@@ -1,5 +1,5 @@
-import {ParticleSystem, VFXBatchSettings} from './ParticleSystem';
-import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Blending, Side, MeshBasicMaterial} from 'three';
+import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers} from 'three';
+import {IParticleSystem, VFXBatchSettings} from './BatchedRenderer';
 
 export interface StoredBatchSettings {
     // 5 component x,y,z,u,v
@@ -23,7 +23,7 @@ export enum RenderMode {
 
 export abstract class VFXBatch extends Mesh {
     type = 'VFXBatch';
-    systems: Set<ParticleSystem>;
+    systems: Set<IParticleSystem>;
     declare material: ShaderMaterial;
 
     settings: StoredBatchSettings;
@@ -32,7 +32,7 @@ export abstract class VFXBatch extends Mesh {
     protected constructor(settings: VFXBatchSettings) {
         super();
         this.maxParticles = 1000;
-        this.systems = new Set<ParticleSystem>();
+        this.systems = new Set<IParticleSystem>();
         const layers = new Layers();
         layers.mask = settings.layers.mask;
         this.settings = {
@@ -48,11 +48,11 @@ export abstract class VFXBatch extends Mesh {
         this.renderOrder = this.settings.renderOrder;
     }
 
-    addSystem(system: ParticleSystem) {
+    addSystem(system: IParticleSystem) {
         this.systems.add(system);
     }
 
-    removeSystem(system: ParticleSystem) {
+    removeSystem(system: IParticleSystem) {
         this.systems.delete(system);
     }
 

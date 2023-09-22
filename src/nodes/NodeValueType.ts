@@ -1,4 +1,4 @@
-import {Vector2, Vector3, Vector4} from "three";
+import {Vector2, Vector3, Vector4} from 'three';
 
 export enum NodeValueType {
     Number = 0,
@@ -7,6 +7,8 @@ export enum NodeValueType {
     Vec4 = 3,
     Boolean = 4,
     AnyType = 5,
+    NullableAnyType = 6,
+    EventStream = 7,
 }
 
 export const genDefaultForNodeValueType = (type: NodeValueType): any => {
@@ -23,5 +25,7 @@ export const genDefaultForNodeValueType = (type: NodeValueType): any => {
             return new Vector4();
         case NodeValueType.AnyType:
             return 0;
+        case NodeValueType.NullableAnyType:
+            return undefined;
     }
-}
+};

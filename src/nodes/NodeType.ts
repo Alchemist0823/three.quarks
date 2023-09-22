@@ -6,13 +6,13 @@ import {Vector2, Vector3, Vector4} from 'three';
 import {Node, NodeData} from './Node';
 
 export interface ExecutionContext {
-    inputs: NodeValue[];
-    outputs: NodeValue[];
+    inputs?: NodeValue[];
+    outputs?: NodeValue[];
     particle?: Particle;
-    delta?: number;
+    [key: string]: any;
 }
 
-type NodeValue = number | boolean | Vector2 | Vector3 | Vector4;
+type NodeValue = number | boolean | Vector2 | Vector3 | Vector4 | Array<any>;
 
 type NodeExecFunction = (context: ExecutionContext, data: NodeData, inputs: NodeValue[], outputs: NodeValue[]) => void;
 
