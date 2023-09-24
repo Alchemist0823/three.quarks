@@ -18,4 +18,5 @@ export * from './ApplyCollision';
 export * from './ColorBySpeed';
 export * from './SizeBySpeed';
 export * from './RotationBySpeed';
+export * from './LimitSpeedOverLife';
 export * from './Behavior';

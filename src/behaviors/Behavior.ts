@@ -19,6 +19,7 @@ import {TurbulenceField} from './TurbulenceField';
 import {Rotation3DOverLife} from './Rotation3DOverLife';
 import {ForceOverLife} from './ForceOverLife';
 import {Noise} from './Noise';
+import {LimitSpeedOverLife} from './LimitSpeedOverLife';
 
 export interface Behavior {
     type: string;
@@ -185,6 +186,15 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
             ['subParticleSystem', 'particleSystem'],
         ],
         loadJSON: EmitSubParticleSystem.fromJSON,
+    },
+    LimitSpeedOverLife: {
+        type: 'LimitSpeedOverLife',
+        constructor: LimitSpeedOverLife,
+        params: [
+            ['speed', 'valueFunc'],
+            ['dampen', 'number'],
+        ],
+        loadJSON: LimitSpeedOverLife.fromJSON,
     },
 };
 
