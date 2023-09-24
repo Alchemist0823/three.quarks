@@ -25,8 +25,14 @@ export interface IParticleSystem {
     particles: Array<IParticle>;
     emitter: ParticleEmitter<any>;
     _renderer?: BatchedRenderer;
+    instancingGeometry: BufferGeometry;
 
     getRendererSettings(): VFXBatchSettings;
+
+    paused: boolean;
+    pause(): void;
+    play(): void;
+    restart(): void;
 
     clone(): IParticleSystem;
 

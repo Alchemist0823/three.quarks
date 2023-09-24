@@ -550,6 +550,38 @@ outputNode.addSignature([NodeValueType.Boolean], [NodeValueType.Boolean], (conte
 NodeTypes['output'] = outputNode;
 
 // More math
+const lerpNode = new NodeType('lerp');
+lerpNode.addSignature(
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    [NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        outputs[0] =
+            (inputs[0] as number) * (1 - (inputs[2] as number)) + (inputs[1] as number) * (inputs[2] as number);
+    }
+);
+lerpNode.addSignature(
+    [NodeValueType.Vec2, NodeValueType.Vec2, NodeValueType.Number],
+    [NodeValueType.Vec2],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as Vector2).lerpVectors(inputs[0] as Vector2, inputs[1] as Vector2, inputs[2] as number);
+    }
+);
+lerpNode.addSignature(
+    [NodeValueType.Vec3, NodeValueType.Vec3, NodeValueType.Number],
+    [NodeValueType.Vec3],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as Vector3).lerpVectors(inputs[0] as Vector3, inputs[1] as Vector3, inputs[2] as number);
+    }
+);
+lerpNode.addSignature(
+    [NodeValueType.Vec4, NodeValueType.Vec4, NodeValueType.Number],
+    [NodeValueType.Vec4],
+    (context, data, inputs, outputs) => {
+        (outputs[0] as Vector4).lerpVectors(inputs[0] as Vector4, inputs[1] as Vector4, inputs[2] as number);
+    }
+);
+NodeTypes['lerp'] = lerpNode;
+
 const normalD = (x: number) => {
     return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(x * x * -0.5);
 };

@@ -1,8 +1,9 @@
 import {Node, Wire} from './Node';
 import {NodeTypes, OutputNodeTypeNames} from './NodeDefs';
+import {MathUtils} from 'three';
 
 export class NodeGraph {
-    id: string;
+    uuid: string;
     name: string;
     version: string;
     revision: number;
@@ -16,7 +17,7 @@ export class NodeGraph {
 
     constructor(name: string) {
         this.version = '1.0';
-        this.id = '' + Math.round(Math.random() * 100000); //TODO use real random
+        this.uuid = MathUtils.generateUUID();
         this.name = name;
         this.revision = 0;
     }
