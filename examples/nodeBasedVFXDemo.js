@@ -3,7 +3,7 @@ import {Demo} from './demo.js';
 import {AdditiveBlending, MeshBasicMaterial, NormalBlending, TextureLoader, Vector3, Vector4} from 'three';
 
 export class NodeBasedVFXDemo extends Demo {
-    name = 'Node Based VFX';
+    name = 'Node Based VFX (Experimental)';
     initScene() {
         super.initScene();
 

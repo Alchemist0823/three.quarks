@@ -105,6 +105,13 @@ export class TrailBatch extends VFXBatch {
             uniforms['mapTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
         }
 
+        if (
+            (this.settings.material as any).defines &&
+            (this.settings.material as any).defines['USE_COLOR_AS_ALPHA'] !== undefined
+        ) {
+            defines['USE_COLOR_AS_ALPHA'] = '';
+        }
+
         if (this.settings.renderMode === RenderMode.Trail) {
             this.material = new ShaderMaterial({
                 uniforms: uniforms,

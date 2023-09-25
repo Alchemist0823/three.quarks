@@ -1,0 +1,1464 @@
+{
+  "metadata": {
+    "version": 4.6,
+    "type": "Object",
+    "generator": "Object3D.toJSON"
+  },
+  "geometries": [
+    {
+      "uuid": "89a28a9d-2e5c-483c-b2f2-c698f48da05e",
+      "type": "PlaneGeometry",
+      "width": 1,
+      "height": 1,
+      "widthSegments": 1,
+      "heightSegments": 1
+    }, {
+      "uuid": "c717c4c3-7e0d-43ac-9bf4-2d61fe8bda32",
+      "type": "BufferGeometry",
+      "data": {
+        "attributes": {
+          "position": {
+            "isInterleavedBufferAttribute": true,
+            "itemSize": 3,
+            "data": "520f02fa-fd13-4436-a3f2-089e3446e3b2",
+            "offset": 0,
+            "normalized": false
+          },
+          "normal": {
+            "isInterleavedBufferAttribute": true,
+            "itemSize": 3,
+            "data": "520f02fa-fd13-4436-a3f2-089e3446e3b2",
+            "offset": 3,
+            "normalized": false
+          },
+          "uv": {
+            "isInterleavedBufferAttribute": true,
+            "itemSize": 2,
+            "data": "520f02fa-fd13-4436-a3f2-089e3446e3b2",
+            "offset": 6,
+            "normalized": false
+          }
+        },
+        "index": {
+          "type": "Uint16Array",
+          "array": [
+            94, 64, 65, 64, 94, 29, 94, 65, 90, 64, 29, 38, 29, 94, 2, 90, 65, 79, 64, 38, 51, 38, 29, 37, 29, 2, 10, 2,
+            94, 99, 90, 79, 84, 79, 65, 73, 64, 51, 57, 51, 38, 44, 37, 29, 31, 29, 10, 17, 10, 2, 8, 2, 99, 106, 90,
+            84, 89, 79, 73, 78, 64, 57, 63, 57, 51, 56, 51, 44, 50, 44, 38, 43, 37, 31, 36, 29, 17, 22, 17, 10, 16, 8,
+            2, 7, 106, 99, 103, 99, 94, 98, 89, 84, 88, 84, 79, 82, 78, 73, 77, 73, 65, 69, 63, 57, 61, 56, 51, 52, 50,
+            44, 48, 43, 38, 42, 36, 31, 35, 29, 22, 25, 22, 17, 18, 16, 10, 14, 7, 2, 3, 2, 106, 1, 106, 103, 105, 103,
+            99, 101, 98, 94, 96, 94, 90, 92, 88, 84, 86, 82, 79, 80, 77, 73, 75, 73, 69, 71, 69, 65, 67, 61, 57, 59, 56,
+            52, 54, 48, 44, 46, 42, 38, 40, 35, 31, 33, 29, 25, 27, 25, 22, 24, 22, 18, 20, 14, 10, 12, 7, 3, 5, 1, 106,
+            107, 105, 103, 104, 103, 101, 102, 101, 99, 100, 98, 96, 97, 96, 94, 95, 94, 92, 93, 92, 90, 91, 88, 86, 87,
+            86, 84, 85, 84, 82, 83, 82, 80, 81, 77, 75, 76, 75, 73, 74, 73, 71, 72, 71, 69, 70, 69, 67, 68, 67, 65, 66,
+            63, 61, 62, 61, 59, 60, 59, 57, 58, 56, 54, 55, 54, 52, 53, 50, 48, 49, 48, 46, 47, 46, 44, 45, 42, 40, 41,
+            40, 38, 39, 35, 33, 34, 33, 31, 32, 31, 29, 30, 29, 27, 28, 27, 25, 26, 24, 22, 23, 22, 20, 21, 20, 18, 19,
+            16, 14, 15, 14, 12, 13, 12, 10, 11, 10, 8, 9, 7, 5, 6, 5, 3, 4, 1, 107, 0
+          ]
+        },
+        "interleavedBuffers": {
+          "520f02fa-fd13-4436-a3f2-089e3446e3b2": {
+            "uuid": "520f02fa-fd13-4436-a3f2-089e3446e3b2",
+            "buffer": "5313fcda-d0e0-49aa-9684-933b45bb1733",
+            "type": "Float32Array",
+            "stride": 8
+          }
+        },
+        "arrayBuffers": {
+          "5313fcda-d0e0-49aa-9684-933b45bb1733": [
+            1042546688, 3198418944, 0, 0, 0, 3212836864, 1059651584, 1043857408, 1042546688, 3197763584, 0, 0, 0,
+            3212836864, 1059651584, 1045168128, 1040973824, 3192389632, 0, 0, 0, 3212836863, 1059258368, 1050411008,
+            1049362432, 3198025728, 0, 0, 0, 3212836864, 1061552128, 1044643840, 1054474240, 3202613248, 0, 0, 0,
+            3212836864, 1064108032, 1029701632, 1054867456, 3202613248, 0, 0, 0, 3212836864, 1064304640, 1029701632,
+            1054998528, 3202220032, 0, 0, 0, 3212836864, 1064370176, 1032323072, 1050935296, 3197632512, 0, 0, 0,
+            3212836864, 1062338560, 1045430272, 1048838144, 3194224640, 0, 0, 0, 3212836864, 1061289984, 1049493504,
+            1047789568, 3192127488, 0, 0, 0, 3212836864, 1060962304, 1050542080, 1043857408, 3185573888, 0, 0, 0,
+            3212836864, 1059979264, 1053294592, 1054474240, 3190292480, 0, 0, 0, 3212836864, 1064108032, 1051459584,
+            1055260672, 3190554624, 0, 0, 0, 3212836864, 1064501248, 1051328512, 1055522816, 3190030336, 0, 0, 0,
+            3212836864, 1064632320, 1051590656, 1055391744, 3189243904, 0, 0, 0, 3212836864, 1064566784, 1051983872,
+            1051459584, 3183476736, 0, 0, 0, 3212836864, 1062600704, 1053818880, 1049362432, 3179806720, 0, 0, 0,
+            3212836864, 1061552128, 1054736384, 1045954560, 3166699520, 0, 0, 0, 3212836864, 1060503552, 1056178176,
+            1050148864, 1010827264, 0, 0, 0, 3212836864, 1061945344, 1057161216, 1055129600, 1027604480, 0, 0, 0,
+            3212836864, 1064435712, 1057751040, 1055391744, 1029701632, 0, 0, 0, 3212836864, 1064566784, 1057882112,
+            1055260672, 1032323072, 0, 0, 0, 3212836864, 1064501248, 1058078720, 1046216704, 1032323072, 0, 0, 0,
+            3212836864, 1060569088, 1058078720, 1050411008, 1041235968, 0, 0, 0, 3212836864, 1062076416, 1059323904,
+            1050279936, 1042022400, 0, 0, 0, 3212836864, 1062010880, 1059520512, 1049886720, 1042284544, 0, 0, 0,
+            3212836864, 1061814272, 1059586048, 1050673152, 1044381696, 0, 0, 0, 3212836864, 1062207488, 1060110336,
+            1050542080, 1045430272, 0, 0, 0, 3212836864, 1062141952, 1060372480, 1049362432, 1044905984, 0, 0, 0,
+            3212836864, 1061552128, 1060241408, 1043333120, 1042284544, 0, 0, 0, 3212836864, 1059848192, 1059586048,
+            1045954560, 1048838144, 0, 0, 0, 3212836864, 1060503552, 1061289984, 1045168128, 1049755648, 0, 0, 0,
+            3212836863, 1060306944, 1061748736, 1048313856, 1052508160, 0, 0, 0, 3212836864, 1061093376, 1063124992,
+            1049493504, 1054867456, 0, 0, 0, 3212836864, 1061617664, 1064304640, 1049231360, 1055129600, 0, 0, 0,
+            3212836864, 1061486592, 1064435712, 1048838144, 1054998528, 0, 0, 0, 3212836864, 1061289984, 1064370176,
+            1046740992, 1053425664, 0, 0, 0, 3212836864, 1060700160, 1063583744, 1038614528, 1048576000, 0, 0, 0,
+            3212836864, 1058865152, 1061158912, 1030750208, 1046478848, 0, 0, 0, 3212836864, 1057947648, 1060634624,
+            1030750208, 1048313856, 0, 0, 0, 3212836864, 1057947648, 1061093376, 1029701632, 1051852800, 0, 0, 0,
+            3212836864, 1057882112, 1062797312, 1024458752, 1052901376, 0, 0, 0, 3212836864, 1057554432, 1063321600,
+            1017118720, 1052639232, 0, 0, 0, 3212836864, 1057292288, 1063190528, 3154116608, 1048576000, 0, 0, 0,
+            3212836864, 1056702464, 1061158912, 3170893824, 1047003136, 0, 0, 0, 3212836864, 1055916032, 1060765696,
+            3181903872, 1051328512, 0, 0, 0, 3212836864, 1054212096, 1062535168, 3184001024, 1051328512, 0, 0, 0,
+            3212836863, 1053687808, 1062535168, 3189243904, 1054605312, 0, 0, 0, 3212836864, 1051983872, 1064173568,
+            3190030336, 1054474240, 0, 0, 0, 3212836864, 1051590656, 1064108032, 3190030336, 1053949952, 0, 0, 0,
+            3212836864, 1051590656, 1063845888, 3186622464, 1045692416, 0, 0, 0, 3212836863, 1053032448, 1060438016,
+            3186622464, 1044119552, 0, 0, 0, 3212836864, 1053032448, 1060044800, 3191078912, 1045954560, 0, 0, 0,
+            3212836864, 1051066368, 1060503552, 3196321792, 1049755648, 0, 0, 0, 3212836864, 1048051712, 1061748736,
+            3197632512, 1050673152, 0, 0, 0, 3212836864, 1045430272, 1062207488, 3197501440, 1048838144, 0, 0, 0,
+            3212836864, 1045692416, 1061289984, 3193438208, 1043070976, 0, 0, 0, 3212836864, 1049886720, 1059782656,
+            3194224640, 1039138816, 0, 0, 0, 3212836864, 1049493504, 1058930688, 3197632512, 1040711680, 0, 0, 0,
+            3212836864, 1045430272, 1059192832, 3200909312, 1041760256, 0, 0, 0, 3212836864, 1037565952, 1059454976,
+            3201040384, 1041498112, 0, 0, 0, 3212836864, 1037041664, 1059389440, 3201040384, 1040449536, 0, 0, 0,
+            3212836864, 1037041664, 1059127296, 3200385024, 1038090240, 0, 0, 0, 3212836864, 1039663104, 1058799616,
+            3199991808, 1039138816, 0, 0, 0, 3212836864, 1040711680, 1058930688, 3196059648, 1028653056, 0, 0, 0,
+            3212836864, 1048576000, 1057816576, 3194486784, 1015021568, 0, 0, 0, 3212836863, 1049362432, 1057226752,
+            3198418944, 3162505216, 0, 0, 0, 3212836864, 1043857408, 1056440320, 3198812160, 3168796672, 0, 0, 0,
+            3212836864, 1043070976, 1056047104, 3198681088, 3172990976, 0, 0, 0, 3212836864, 1043333120, 1055653888,
+            3196715008, 3175088128, 0, 0, 0, 3212836864, 1047265280, 1055391744, 3197108224, 3177185280, 0, 0, 0,
+            3212836864, 1046478848, 1055129600, 3197370368, 3179282432, 0, 0, 0, 3212836864, 1045954560, 1054867456,
+            3197239296, 3181379584, 0, 0, 0, 3212836864, 1046216704, 1054343168, 3193700352, 3181903872, 0, 0, 0,
+            3212836864, 1049755648, 1054212096, 3199991808, 3193700352, 0, 0, 0, 3212836864, 1040711680, 1049755648,
+            3199991808, 3194224640, 0, 0, 0, 3212836864, 1040711680, 1049493504, 3199598592, 3194486784, 0, 0, 0,
+            3212836864, 1041498112, 1049362432, 3196715008, 3191865344, 0, 0, 0, 3212836864, 1047265280, 1050673152,
+            3193438208, 3190292480, 0, 0, 0, 3212836864, 1049886720, 1051459584, 3190030336, 3190816768, 0, 0, 0,
+            3212836864, 1051590656, 1051197440, 3192913920, 3196977152, 0, 0, 0, 3212836864, 1050148864, 1046740992,
+            3195797504, 3200122880, 0, 0, 0, 3212836864, 1048707072, 1040449536, 3195011072, 3200516096, 0, 0, 0,
+            3212836864, 1049100288, 1039138816, 3193438208, 3199598592, 0, 0, 0, 3212836864, 1049886720, 1041498112,
+            3185049600, 3193962496, 0, 0, 0, 3212836864, 1053425664, 1049624576, 3186622464, 3195535360, 0, 0, 0,
+            3212836864, 1053032448, 1048838144, 3190030336, 3198943232, 0, 0, 0, 3212836864, 1051590656, 1042808832,
+            3189243904, 3199336448, 0, 0, 0, 3212836864, 1051983872, 1042022400, 3187671040, 3198418944, 0, 0, 0,
+            3212836864, 1052770304, 1043857408, 3180855296, 3195797504, 0, 0, 0, 3212836864, 1054474240, 1048707072,
+            3178233856, 3195273216, 0, 0, 0, 3212836864, 1054998528, 1048969216, 3177185280, 3198025728, 0, 0, 0,
+            3212836864, 1055129600, 1044643840, 3174039552, 3198418944, 0, 0, 0, 3212836864, 1055522816, 1043857408,
+            3162505216, 3197370368, 0, 0, 0, 3212836864, 1056440320, 1045954560, 998244352, 3193962496, 0, 0, 0,
+            3212836864, 1057030144, 1049624576, 998244352, 3196321792, 0, 0, 0, 3212836864, 1057030144, 1048051712,
+            1006632960, 3197239296, 0, 0, 0, 3212836864, 1057095680, 1046216704, 1015021568, 3197501440, 0, 0, 0,
+            3212836864, 1057226752, 1045692416, 1021313024, 3197370368, 0, 0, 0, 3212836863, 1057423360, 1045954560,
+            1025507328, 3195011072, 0, 0, 0, 3212836864, 1057619968, 1049100288, 1036517376, 3199860736, 0, 0, 0,
+            3212836864, 1058603008, 1040973824, 1040711680, 3202088960, 0, 0, 0, 3212836864, 1059192832, 1032847360,
+            1042284544, 3203923968, 0, 0, 0, 3212836864, 1059586048, 1015021568, 1042808832, 3203923968, 0, 0, 0,
+            3212836864, 1059717120, 1015021568, 1043595264, 3203792896, 0, 0, 0, 3212836864, 1059913728, 1017118720,
+            1043070976, 3202220032, 0, 0, 0, 3212836864, 1059782656, 1032323072, 1039663104, 3196977152, 0, 0, 0,
+            3212836864, 1058996224, 1046740992, 1041760256, 3198550016, 0, 0, 0, 3212836864, 1059454976, 1043595264
+          ]
+        }
+      }
+    }, {
+      "uuid": "f909ba56-0a3d-4d19-950a-80447a0162e0",
+      "type": "BufferGeometry",
+      "data": {
+        "attributes": {
+          "position": {
+            "isInterleavedBufferAttribute": true,
+            "itemSize": 3,
+            "data": "a0515474-f6f7-4b6f-b85c-a92727dffbdb",
+            "offset": 0,
+            "normalized": false
+          },
+          "uv": {
+            "isInterleavedBufferAttribute": true,
+            "itemSize": 2,
+            "data": "a0515474-f6f7-4b6f-b85c-a92727dffbdb",
+            "offset": 3,
+            "normalized": false
+          },
+          "uv2": {
+            "isInterleavedBufferAttribute": true,
+            "itemSize": 2,
+            "data": "a0515474-f6f7-4b6f-b85c-a92727dffbdb",
+            "offset": 5,
+            "normalized": false
+          }
+        },
+        "index": {
+          "type": "Uint16Array",
+          "array": [
+            0, 1, 2, 1, 3, 2, 2, 3, 4, 3, 5, 4, 4, 5, 6, 5, 7, 6, 6, 7, 8, 7, 9, 8, 8, 9, 10, 9, 11, 10, 10, 11, 12, 11,
+            13, 12, 12, 13, 14, 13, 15, 14, 14, 15, 16, 15, 17, 16, 16, 17, 18, 17, 19, 18, 18, 19, 20, 19, 21, 20, 20,
+            21, 22, 21, 23, 22, 22, 23, 24, 23, 25, 24, 0, 0, 0, 0, 0, 0
+          ]
+        },
+        "interleavedBuffers": {
+          "a0515474-f6f7-4b6f-b85c-a92727dffbdb": {
+            "uuid": "a0515474-f6f7-4b6f-b85c-a92727dffbdb",
+            "buffer": "34f3fa92-5971-430d-8f2e-42b878a44e89",
+            "type": "Float32Array",
+            "stride": 7
+          }
+        },
+        "arrayBuffers": {
+          "34f3fa92-5971-430d-8f2e-42b878a44e89": [
+            1065353216, 0, 0, 0, 1065353216, 1065353216, 0, 1065353216, 0, 0, 0, 0, 1065353216, 0, 1063105495,
+            1056964608, 0, 1034594987, 1065353216, 1063105495, 1056964608, 1063105495, 1056964608, 0, 1034594987, 0,
+            1063105495, 1056964608, 1056964607, 1063105496, 0, 1042983595, 1065353216, 1056964607, 1063105496,
+            1056964607, 1063105496, 0, 1042983595, 0, 1056964607, 1063105496, 3007036718, 1065353216, 0, 1048576000,
+            1065353216, 3007036718, 1065353216, 3007036718, 1065353216, 0, 1048576000, 0, 3007036718, 1065353216,
+            3204448257, 1063105495, 0, 1051372203, 1065353216, 3204448257, 1063105495, 3204448257, 1063105495, 0,
+            1051372203, 0, 3204448257, 1063105495, 3210589143, 1056964609, 0, 1054168405, 1065353216, 3210589143,
+            1056964609, 3210589143, 1056964609, 0, 1054168405, 0, 3210589143, 1056964609, 3212836864, 3015425326, 0,
+            1056964608, 1065353216, 3212836864, 3015425326, 3212836864, 3015425326, 0, 1056964608, 0, 3212836864,
+            3015425326, 3210589141, 3204448259, 0, 1058362709, 1065353216, 3210589141, 3204448259, 3210589141,
+            3204448259, 0, 1058362709, 0, 3210589141, 3204448259, 3204448253, 3210589144, 0, 1059760811, 1065353216,
+            3204448253, 3210589144, 3204448253, 3210589144, 0, 1059760811, 0, 3204448253, 3210589144, 843898414,
+            3212836864, 0, 1061158912, 1065353216, 843898414, 3212836864, 843898414, 3212836864, 0, 1061158912, 0,
+            843898414, 3212836864, 1056964605, 3210589144, 0, 1062557013, 1065353216, 1056964605, 3210589144,
+            1056964605, 3210589144, 0, 1062557013, 0, 1056964605, 3210589144, 1063105498, 3204448248, 0, 1063955115,
+            1065353216, 1063105498, 3204448248, 1063105498, 3204448248, 0, 1063955115, 0, 1063105498, 3204448248,
+            1065353216, 876330286, 0, 1065353216, 1065353216, 1065353216, 876330286, 1065353216, 876330286, 0,
+            1065353216, 0, 1065353216, 876330286
+          ]
+        }
+      }
+    }
+  ],
+  "materials": [
+    {
+      "uuid": "dafb3263-5762-4610-a060-21630c842c75",
+      "type": "MeshBasicMaterial",
+      "color": 16777215,
+      "map": "015b9d57-946b-4b4d-b685-9e8115e5c446",
+      "reflectivity": 1,
+      "refractionRatio": 0.98,
+      "transparent": true,
+      "depthFunc": 3,
+      "depthTest": true,
+      "depthWrite": false,
+      "colorWrite": true,
+      "stencilWrite": false,
+      "stencilWriteMask": 255,
+      "stencilFunc": 519,
+      "stencilRef": 0,
+      "stencilFuncMask": 255,
+      "stencilFail": 7680,
+      "stencilZFail": 7680,
+      "stencilZPass": 7680,
+      "defines": {
+        "USE_COLOR_AS_ALPHA": ""
+      }
+    }, {
+      "uuid": "60ee330e-e76d-40c7-bca8-0df7bf43a9d0",
+      "type": "MeshBasicMaterial",
+      "color": 16777215,
+      "map": "81548362-6cd6-4b73-a19c-41014744ed51",
+      "reflectivity": 1,
+      "refractionRatio": 0.98,
+      "blending": 2,
+      "transparent": true,
+      "depthFunc": 3,
+      "depthTest": true,
+      "depthWrite": false,
+      "colorWrite": true,
+      "stencilWrite": false,
+      "stencilWriteMask": 255,
+      "stencilFunc": 519,
+      "stencilRef": 0,
+      "stencilFuncMask": 255,
+      "stencilFail": 7680,
+      "stencilZFail": 7680,
+      "stencilZPass": 7680,
+      "defines": {
+        "USE_COLOR_AS_ALPHA": ""
+      }
+    }, {
+      "uuid": "2e865abf-db48-45c5-a8b2-100ec55e6829",
+      "type": "MeshBasicMaterial",
+      "color": 16777215,
+      "map": "015b9d57-946b-4b4d-b685-9e8115e5c446",
+      "reflectivity": 1,
+      "refractionRatio": 0.98,
+      "transparent": true,
+      "depthFunc": 3,
+      "depthTest": true,
+      "depthWrite": false,
+      "colorWrite": true,
+      "stencilWrite": false,
+      "stencilWriteMask": 255,
+      "stencilFunc": 519,
+      "stencilRef": 0,
+      "stencilFuncMask": 255,
+      "stencilFail": 7680,
+      "stencilZFail": 7680,
+      "stencilZPass": 7680,
+      "defines": {
+        "USE_COLOR_AS_ALPHA": ""
+      }
+    }, {
+      "uuid": "ac039c89-95ff-4b03-be32-e1958e231a51",
+      "type": "MeshBasicMaterial",
+      "color": 16777215,
+      "map": "41fc8b56-1d10-4b84-a0de-f9c24d1cee61",
+      "reflectivity": 1,
+      "refractionRatio": 0.98,
+      "transparent": true,
+      "depthFunc": 3,
+      "depthTest": true,
+      "depthWrite": false,
+      "colorWrite": true,
+      "stencilWrite": false,
+      "stencilWriteMask": 255,
+      "stencilFunc": 519,
+      "stencilRef": 0,
+      "stencilFuncMask": 255,
+      "stencilFail": 7680,
+      "stencilZFail": 7680,
+      "stencilZPass": 7680
+    }, {
+      "uuid": "332a3d29-f93b-4bc6-9dd5-4561d94ed8ca",
+      "type": "MeshBasicMaterial",
+      "color": 16777215,
+      "reflectivity": 1,
+      "refractionRatio": 0.98,
+      "blending": 0,
+      "transparent": true,
+      "depthFunc": 3,
+      "depthTest": true,
+      "depthWrite": true,
+      "colorWrite": true,
+      "stencilWrite": false,
+      "stencilWriteMask": 255,
+      "stencilFunc": 519,
+      "stencilRef": 0,
+      "stencilFuncMask": 255,
+      "stencilFail": 7680,
+      "stencilZFail": 7680,
+      "stencilZPass": 7680
+    }, {
+      "uuid": "cf192a15-5740-455a-9603-b0e4ad8da999",
+      "type": "MeshBasicMaterial",
+      "color": 16777215,
+      "map": "81548362-6cd6-4b73-a19c-41014744ed51",
+      "reflectivity": 1,
+      "refractionRatio": 0.98,
+      "transparent": true,
+      "depthFunc": 3,
+      "depthTest": true,
+      "depthWrite": false,
+      "colorWrite": true,
+      "stencilWrite": false,
+      "stencilWriteMask": 255,
+      "stencilFunc": 519,
+      "stencilRef": 0,
+      "stencilFuncMask": 255,
+      "stencilFail": 7680,
+      "stencilZFail": 7680,
+      "stencilZPass": 7680,
+      "defines": {
+        "USE_COLOR_AS_ALPHA": ""
+      }
+    }
+  ],
+  "textures": [
+    {
+      "uuid": "015b9d57-946b-4b4d-b685-9e8115e5c446",
+      "name": "",
+      "image": "9aad610a-092f-4fc9-aab8-28d68de09758",
+      "mapping": 300,
+      "channel": 0,
+      "repeat": [1, 1],
+      "offset": [0, 0],
+      "center": [0, 0],
+      "rotation": 0,
+      "wrap": [1001, 1001],
+      "format": 1023,
+      "internalFormat": null,
+      "type": 1009,
+      "colorSpace": "",
+      "minFilter": 1008,
+      "magFilter": 1006,
+      "anisotropy": 1,
+      "flipY": true,
+      "generateMipmaps": true,
+      "premultiplyAlpha": false,
+      "unpackAlignment": 4
+    }, {
+      "uuid": "81548362-6cd6-4b73-a19c-41014744ed51",
+      "name": "",
+      "image": "a3706501-3e2d-46cf-9a77-d503e343c33d",
+      "mapping": 300,
+      "channel": 0,
+      "repeat": [1, 1],
+      "offset": [0, 0],
+      "center": [0, 0],
+      "rotation": 0,
+      "wrap": [1001, 1001],
+      "format": 1023,
+      "internalFormat": null,
+      "type": 1009,
+      "colorSpace": "",
+      "minFilter": 1008,
+      "magFilter": 1006,
+      "anisotropy": 1,
+      "flipY": true,
+      "generateMipmaps": true,
+      "premultiplyAlpha": false,
+      "unpackAlignment": 4
+    }, {
+      "uuid": "41fc8b56-1d10-4b84-a0de-f9c24d1cee61",
+      "name": "",
+      "image": "0d45e925-6266-4875-9f0a-2e1f55b8d740",
+      "mapping": 300,
+      "channel": 0,
+      "repeat": [1, 1],
+      "offset": [0, 0],
+      "center": [0, 0],
+      "rotation": 0,
+      "wrap": [1001, 1001],
+      "format": 1023,
+      "internalFormat": null,
+      "type": 1009,
+      "colorSpace": "",
+      "minFilter": 1008,
+      "magFilter": 1006,
+      "anisotropy": 1,
+      "flipY": true,
+      "generateMipmaps": true,
+      "premultiplyAlpha": false,
+      "unpackAlignment": 4
+    }
+  ],
+  "images": [
+    {
+      "uuid": "9aad610a-092f-4fc9-aab8-28d68de09758",
+      "url": "./textures/cfxr stretch trait.png"
+    }, {
+      "uuid": "a3706501-3e2d-46cf-9a77-d503e343c33d",
+      "url": "./textures/cfxr spikes impact.png"
+    }, {
+      "uuid": "0d45e925-6266-4875-9f0a-2e1f55b8d740",
+      "url": "./textures/cfxr smoke cloud x4.png"
+    }
+  ],
+  "object": {
+    "uuid": "d6a360ba-4b76-44c7-af01-21a5366839a5",
+    "type": "Group",
+    "name": "CFXR Explosion 1",
+    "layers": 1,
+    "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    "up": [0, 1, 0],
+    "children": [
+      {
+        "uuid": "e24c1f30-2c26-4e83-a975-0c07a85424d0",
+        "type": "Group",
+        "name": "Sparks",
+        "layers": 1,
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "up": [0, 1, 0],
+        "children": [
+          {
+            "uuid": "939ba281-4dd5-4db6-8e4d-d9901b8fe1a8",
+            "type": "ParticleEmitter",
+            "layers": 1,
+            "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "ps": {
+              "version": "2.0",
+              "autoDestroy": false,
+              "looping": false,
+              "prewarm": false,
+              "duration": 0.1,
+              "shape": {
+                "type": "sphere",
+                "radius": 2,
+                "arc": 6.283185307179586,
+                "thickness": 1
+              },
+              "startLife": {
+                "type": "IntervalValue",
+                "a": 0.3,
+                "b": 0.6
+              },
+              "startSpeed": {
+                "type": "IntervalValue",
+                "a": 5,
+                "b": 20
+              },
+              "startRotation": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "startSize": {
+                "type": "ConstantValue",
+                "value": 0.03
+              },
+              "startColor": {
+                "type": "ConstantColor",
+                "color": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1,
+                  "a": 1
+                }
+              },
+              "emissionOverTime": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionOverDistance": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionBursts": [
+                {
+                  "time": 0.05,
+                  "count": 50,
+                  "cycleCount": 1,
+                  "probability": 1
+                }
+              ],
+              "onlyUsedByOther": false,
+              "instancingGeometry": "89a28a9d-2e5c-483c-b2f2-c698f48da05e",
+              "renderOrder": 0,
+              "renderMode": 1,
+              "rendererEmitterSettings": {},
+              "speedFactor": 0.1,
+              "material": "dafb3263-5762-4610-a060-21630c842c75",
+              "layers": 1,
+              "startTileIndex": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "uTileCount": 1,
+              "vTileCount": 1,
+              "behaviors": [
+                {
+                  "type": "ColorOverLife",
+                  "color": {
+                    "type": "Gradient",
+                    "color": {
+                      "type": "CLinearFunction",
+                      "subType": "Color",
+                      "keys": [
+                        {
+                          "value": {
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
+                          },
+                          "pos": 0.10000762951094835
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.80811393,
+                            "b": 0
+                          },
+                          "pos": 0.30000762951094834
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.3792592,
+                            "b": 0.13333333
+                          },
+                          "pos": 0.5000076295109483
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.017601715,
+                            "b": 0
+                          },
+                          "pos": 0.7000076295109483
+                        }
+                      ]
+                    },
+                    "alpha": {
+                      "type": "CLinearFunction",
+                      "subType": "Number",
+                      "keys": [
+                        {
+                          "value": 1,
+                          "pos": 0.30000762951094834
+                        }, {
+                          "value": 0,
+                          "pos": 1
+                        }
+                      ]
+                    }
+                  }
+                }, {
+                  "type": "LimitSpeedOverLife",
+                  "speed": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "dampen": 0.3
+                }, {
+                  "type": "ForceOverLife",
+                  "x": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "y": {
+                    "type": "ConstantValue",
+                    "value": -1
+                  },
+                  "z": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  }
+                }
+              ],
+              "worldSpace": true
+            }
+          }
+        ]
+      }, {
+        "uuid": "88aa4f7c-1e3d-425b-868c-1b04f120ba27",
+        "type": "Group",
+        "name": "Impact small",
+        "layers": 1,
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "up": [0, 1, 0],
+        "children": [
+          {
+            "uuid": "a6abcabb-9e97-4826-af5c-d9a5dec675ec",
+            "type": "ParticleEmitter",
+            "layers": 1,
+            "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "ps": {
+              "version": "2.0",
+              "autoDestroy": false,
+              "looping": false,
+              "prewarm": false,
+              "duration": 2.5,
+              "shape": {
+                "type": "sphere",
+                "radius": 0.0001,
+                "arc": 6.283185307179586,
+                "thickness": 0
+              },
+              "startLife": {
+                "type": "ConstantValue",
+                "value": 0.25
+              },
+              "startSpeed": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "startRotation": {
+                "type": "IntervalValue",
+                "a": 0,
+                "b": 6.283185
+              },
+              "startSize": {
+                "type": "ConstantValue",
+                "value": 3
+              },
+              "startColor": {
+                "type": "ConstantColor",
+                "color": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1,
+                  "a": 1
+                }
+              },
+              "emissionOverTime": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionOverDistance": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionBursts": [
+                {
+                  "time": 0.1,
+                  "count": 1,
+                  "cycleCount": 1,
+                  "probability": 1
+                }
+              ],
+              "onlyUsedByOther": false,
+              "instancingGeometry": "c717c4c3-7e0d-43ac-9bf4-2d61fe8bda32",
+              "renderOrder": -0.5,
+              "renderMode": 2,
+              "rendererEmitterSettings": {},
+              "speedFactor": 0,
+              "material": "60ee330e-e76d-40c7-bca8-0df7bf43a9d0",
+              "layers": 1,
+              "startTileIndex": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "uTileCount": 1,
+              "vTileCount": 1,
+              "behaviors": [
+                {
+                  "type": "SizeOverLife",
+                  "size": {
+                    "type": "PiecewiseBezier",
+                    "functions": [
+                      {
+                        "function": {
+                          "p0": 0.5,
+                          "p1": 0.9288582000000001,
+                          "p2": 1,
+                          "p3": 1
+                        },
+                        "start": 0
+                      }
+                    ]
+                  }
+                }, {
+                  "type": "ColorOverLife",
+                  "color": {
+                    "type": "Gradient",
+                    "color": {
+                      "type": "CLinearFunction",
+                      "subType": "Color",
+                      "keys": [
+                        {
+                          "value": {
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
+                          },
+                          "pos": 0.14999618524452582
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.80811393,
+                            "b": 0
+                          },
+                          "pos": 0.30000762951094834
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.3792592,
+                            "b": 0.13333333
+                          },
+                          "pos": 0.5000076295109483
+                        }, {
+                          "value": {
+                            "r": 0.5188679,
+                            "g": 0.008139105,
+                            "b": 0
+                          },
+                          "pos": 1
+                        }
+                      ]
+                    },
+                    "alpha": {
+                      "type": "CLinearFunction",
+                      "subType": "Number",
+                      "keys": [
+                        {
+                          "value": 0.78431374,
+                          "pos": 0.5000076295109483
+                        }, {
+                          "value": 0,
+                          "pos": 1
+                        }
+                      ]
+                    }
+                  }
+                }, {
+                  "type": "ForceOverLife",
+                  "x": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "y": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "z": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  }
+                }
+              ],
+              "worldSpace": true
+            }
+          }
+        ]
+      }, {
+        "uuid": "47f4686a-c80a-41e2-a818-43bc957e6714",
+        "type": "Group",
+        "name": "Lines",
+        "layers": 1,
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "up": [0, 1, 0],
+        "children": [
+          {
+            "uuid": "47be8fa9-5a6f-4048-94a3-a00b2c6138d5",
+            "type": "ParticleEmitter",
+            "layers": 1,
+            "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "ps": {
+              "version": "2.0",
+              "autoDestroy": false,
+              "looping": false,
+              "prewarm": false,
+              "duration": 0.1,
+              "shape": {
+                "type": "sphere",
+                "radius": 2,
+                "arc": 6.283185307179586,
+                "thickness": 1
+              },
+              "startLife": {
+                "type": "IntervalValue",
+                "a": 0.1,
+                "b": 0.2
+              },
+              "startSpeed": {
+                "type": "IntervalValue",
+                "a": 50,
+                "b": 50
+              },
+              "startRotation": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "startSize": {
+                "type": "ConstantValue",
+                "value": 0.05
+              },
+              "startColor": {
+                "type": "ConstantColor",
+                "color": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1,
+                  "a": 0.69803923
+                }
+              },
+              "emissionOverTime": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionOverDistance": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionBursts": [
+                {
+                  "time": 0.05,
+                  "count": 10,
+                  "cycleCount": 1,
+                  "probability": 1
+                }
+              ],
+              "onlyUsedByOther": false,
+              "instancingGeometry": "89a28a9d-2e5c-483c-b2f2-c698f48da05e",
+              "renderOrder": 0,
+              "renderMode": 1,
+              "rendererEmitterSettings": {},
+              "speedFactor": 0.05,
+              "material": "2e865abf-db48-45c5-a8b2-100ec55e6829",
+              "layers": 1,
+              "startTileIndex": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "uTileCount": 1,
+              "vTileCount": 1,
+              "behaviors": [
+                {
+                  "type": "ColorOverLife",
+                  "color": {
+                    "type": "Gradient",
+                    "color": {
+                      "type": "CLinearFunction",
+                      "subType": "Color",
+                      "keys": [
+                        {
+                          "value": {
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
+                          },
+                          "pos": 0
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
+                          },
+                          "pos": 1
+                        }
+                      ]
+                    },
+                    "alpha": {
+                      "type": "CLinearFunction",
+                      "subType": "Number",
+                      "keys": [
+                        {
+                          "value": 1,
+                          "pos": 0.4
+                        }, {
+                          "value": 0,
+                          "pos": 1
+                        }
+                      ]
+                    }
+                  }
+                }, {
+                  "type": "LimitSpeedOverLife",
+                  "speed": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "dampen": 0.4
+                }, {
+                  "type": "ForceOverLife",
+                  "x": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "y": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "z": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  }
+                }
+              ],
+              "worldSpace": true
+            }
+          }
+        ]
+      }, {
+        "uuid": "d5cf3934-ce54-4f86-b058-02aae06555dc",
+        "type": "Group",
+        "name": "Smoke",
+        "layers": 1,
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "up": [0, 1, 0],
+        "children": [
+          {
+            "uuid": "ae6c1500-8f6a-46f2-af85-4c0503f12e76",
+            "type": "ParticleEmitter",
+            "layers": 1,
+            "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "ps": {
+              "version": "2.0",
+              "autoDestroy": false,
+              "looping": false,
+              "prewarm": false,
+              "duration": 0.2,
+              "shape": {
+                "type": "sphere",
+                "radius": 0.0001,
+                "arc": 6.283185307179586,
+                "thickness": 0
+              },
+              "startLife": {
+                "type": "IntervalValue",
+                "a": 0.8,
+                "b": 1.5
+              },
+              "startSpeed": {
+                "type": "IntervalValue",
+                "a": 5,
+                "b": 15
+              },
+              "startRotation": {
+                "type": "IntervalValue",
+                "a": -0.34906584,
+                "b": 0.34906584
+              },
+              "startSize": {
+                "type": "IntervalValue",
+                "a": 2,
+                "b": 4
+              },
+              "startColor": {
+                "type": "ConstantColor",
+                "color": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1,
+                  "a": 1
+                }
+              },
+              "emissionOverTime": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionOverDistance": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionBursts": [
+                {
+                  "time": 0.1,
+                  "count": 30,
+                  "cycleCount": 1,
+                  "probability": 1
+                }
+              ],
+              "onlyUsedByOther": false,
+              "instancingGeometry": "89a28a9d-2e5c-483c-b2f2-c698f48da05e",
+              "renderOrder": 1,
+              "renderMode": 0,
+              "rendererEmitterSettings": {},
+              "speedFactor": 0,
+              "material": "ac039c89-95ff-4b03-be32-e1958e231a51",
+              "layers": 1,
+              "startTileIndex": {
+                "type": "IntervalValue",
+                "a": 0,
+                "b": 4
+              },
+              "uTileCount": 2,
+              "vTileCount": 2,
+              "behaviors": [
+                {
+                  "type": "SizeOverLife",
+                  "size": {
+                    "type": "PiecewiseBezier",
+                    "functions": [
+                      {
+                        "function": {
+                          "p0": 0.0999939,
+                          "p1": 0.39861468,
+                          "p2": 1.0059392933333333,
+                          "p3": 1
+                        },
+                        "start": 0
+                      }
+                    ]
+                  }
+                }, {
+                  "type": "ColorOverLife",
+                  "color": {
+                    "type": "Gradient",
+                    "color": {
+                      "type": "CLinearFunction",
+                      "subType": "Color",
+                      "keys": [
+                        {
+                          "value": {
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
+                          },
+                          "pos": 0.029999237048905166
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.80811393,
+                            "b": 0
+                          },
+                          "pos": 0.10000762951094835
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.3792592,
+                            "b": 0.13333333
+                          },
+                          "pos": 0.17000076295109484
+                        }, {
+                          "value": {
+                            "r": 0.5283019,
+                            "g": 0.5283019,
+                            "b": 0.5283019
+                          },
+                          "pos": 0.3300068665598535
+                        }
+                      ]
+                    },
+                    "alpha": {
+                      "type": "CLinearFunction",
+                      "subType": "Number",
+                      "keys": [
+                        {
+                          "value": 1,
+                          "pos": 0.6
+                        }, {
+                          "value": 0,
+                          "pos": 1
+                        }
+                      ]
+                    }
+                  }
+                }, {
+                  "type": "FrameOverLife",
+                  "frame": {
+                    "type": "IntervalValue",
+                    "a": 0,
+                    "b": 0.9999
+                  }
+                }, {
+                  "type": "LimitSpeedOverLife",
+                  "speed": {
+                    "type": "ConstantValue",
+                    "value": 0.5
+                  },
+                  "dampen": 0.15
+                }, {
+                  "type": "ForceOverLife",
+                  "x": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "y": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "z": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  }
+                }
+              ],
+              "worldSpace": true
+            }
+          }
+        ]
+      }, {
+        "uuid": "695c7e46-629e-4a01-8aa2-71226370ac12",
+        "type": "Group",
+        "name": "Ring",
+        "layers": 1,
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "up": [0, 1, 0],
+        "children": [
+          {
+            "uuid": "7202d73b-9b3a-4951-997b-fec7b4050b4c",
+            "type": "ParticleEmitter",
+            "layers": 1,
+            "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "ps": {
+              "version": "2.0",
+              "autoDestroy": false,
+              "looping": false,
+              "prewarm": false,
+              "duration": 1,
+              "shape": {
+                "type": "cone",
+                "radius": 1,
+                "arc": 6.283185307179586,
+                "thickness": 1,
+                "angle": 0.4363323129985824
+              },
+              "startLife": {
+                "type": "ConstantValue",
+                "value": 0.4
+              },
+              "startSpeed": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "startRotation": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "startSize": {
+                "type": "ConstantValue",
+                "value": 2.5
+              },
+              "startColor": {
+                "type": "ConstantColor",
+                "color": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1,
+                  "a": 0.8
+                }
+              },
+              "emissionOverTime": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionOverDistance": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "emissionBursts": [
+                {
+                  "time": 0,
+                  "count": 1,
+                  "cycleCount": 1,
+                  "probability": 1
+                }
+              ],
+              "onlyUsedByOther": false,
+              "instancingGeometry": "f909ba56-0a3d-4d19-950a-80447a0162e0",
+              "renderOrder": 1.5,
+              "renderMode": 2,
+              "rendererEmitterSettings": {},
+              "speedFactor": 0,
+              "material": "332a3d29-f93b-4bc6-9dd5-4561d94ed8ca",
+              "layers": 1,
+              "startTileIndex": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "uTileCount": 1,
+              "vTileCount": 1,
+              "behaviors": [
+                {
+                  "type": "SizeOverLife",
+                  "size": {
+                    "type": "PiecewiseBezier",
+                    "functions": [
+                      {
+                        "function": {
+                          "p0": 0.3,
+                          "p1": 0.660643275,
+                          "p2": 1,
+                          "p3": 1
+                        },
+                        "start": 0
+                      }
+                    ]
+                  }
+                }, {
+                  "type": "ColorOverLife",
+                  "color": {
+                    "type": "Gradient",
+                    "color": {
+                      "type": "CLinearFunction",
+                      "subType": "Color",
+                      "keys": [
+                        {
+                          "value": {
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
+                          },
+                          "pos": 0.2
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.80811393,
+                            "b": 0
+                          },
+                          "pos": 0.4500038147554742
+                        }, {
+                          "value": {
+                            "r": 1,
+                            "g": 0.39275518,
+                            "b": 0.11764705
+                          },
+                          "pos": 0.7000076295109483
+                        }
+                      ]
+                    },
+                    "alpha": {
+                      "type": "CLinearFunction",
+                      "subType": "Number",
+                      "keys": [
+                        {
+                          "value": 1,
+                          "pos": 0.30000762951094834
+                        }, {
+                          "value": 0.23529412,
+                          "pos": 0.5000076295109483
+                        }, {
+                          "value": 0,
+                          "pos": 1
+                        }
+                      ]
+                    }
+                  }
+                }, {
+                  "type": "ForceOverLife",
+                  "x": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "y": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  },
+                  "z": {
+                    "type": "ConstantValue",
+                    "value": 0
+                  }
+                }
+              ],
+              "worldSpace": true
+            }
+          }
+        ]
+      }, {
+        "uuid": "cd63dd6c-6c4f-4a96-978e-9f96c92c2764",
+        "type": "Group",
+        "name": "Point Light",
+        "layers": 1,
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "up": [0, 1, 0]
+      }, {
+        "uuid": "b6ca3900-a3fe-4184-9779-4e68e9dd9f18",
+        "type": "ParticleEmitter",
+        "layers": 1,
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "ps": {
+          "version": "2.0",
+          "autoDestroy": false,
+          "looping": false,
+          "prewarm": false,
+          "duration": 2.5,
+          "shape": {
+            "type": "sphere",
+            "radius": 0.0001,
+            "arc": 6.283185307179586,
+            "thickness": 0
+          },
+          "startLife": {
+            "type": "IntervalValue",
+            "a": 0.2,
+            "b": 0.2
+          },
+          "startSpeed": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "startRotation": {
+            "type": "IntervalValue",
+            "a": 0,
+            "b": 6.283185
+          },
+          "startSize": {
+            "type": "ConstantValue",
+            "value": 5
+          },
+          "startColor": {
+            "type": "ConstantColor",
+            "color": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            }
+          },
+          "emissionOverTime": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "emissionOverDistance": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "emissionBursts": [
+            {
+              "time": 0.05,
+              "count": 1,
+              "cycleCount": 1,
+              "probability": 1
+            }
+          ],
+          "onlyUsedByOther": false,
+          "instancingGeometry": "c717c4c3-7e0d-43ac-9bf4-2d61fe8bda32",
+          "renderOrder": 0,
+          "renderMode": 2,
+          "rendererEmitterSettings": {},
+          "speedFactor": 0,
+          "material": "cf192a15-5740-455a-9603-b0e4ad8da999",
+          "layers": 1,
+          "startTileIndex": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "uTileCount": 1,
+          "vTileCount": 1,
+          "behaviors": [
+            {
+              "type": "SizeOverLife",
+              "size": {
+                "type": "PiecewiseBezier",
+                "functions": [
+                  {
+                    "function": {
+                      "p0": 0.6000061,
+                      "p1": null,
+                      "p2": null,
+                      "p3": 0.75
+                    },
+                    "start": 0
+                  }, {
+                    "function": {
+                      "p0": 0.75,
+                      "p1": null,
+                      "p2": null,
+                      "p3": 0.85000306
+                    },
+                    "start": 0.15
+                  }, {
+                    "function": {
+                      "p0": 0.85000306,
+                      "p1": 0.9852508836666667,
+                      "p2": 0.9833551783333333,
+                      "p3": 1
+                    },
+                    "start": 0.3
+                  }
+                ]
+              }
+            }, {
+              "type": "ColorOverLife",
+              "color": {
+                "type": "Gradient",
+                "color": {
+                  "type": "CLinearFunction",
+                  "subType": "Color",
+                  "keys": [
+                    {
+                      "value": {
+                        "r": 1,
+                        "g": 1,
+                        "b": 1
+                      },
+                      "pos": 0.05000381475547418
+                    }, {
+                      "value": {
+                        "r": 1,
+                        "g": 0.80811393,
+                        "b": 0
+                      },
+                      "pos": 0.2
+                    }, {
+                      "value": {
+                        "r": 1,
+                        "g": 0.39275518,
+                        "b": 0.11764705
+                      },
+                      "pos": 0.30000762951094834
+                    }, {
+                      "value": {
+                        "r": 1,
+                        "g": 0.03424205,
+                        "b": 0
+                      },
+                      "pos": 1
+                    }
+                  ]
+                },
+                "alpha": {
+                  "type": "CLinearFunction",
+                  "subType": "Number",
+                  "keys": [
+                    {
+                      "value": 1,
+                      "pos": 0.6
+                    }, {
+                      "value": 0,
+                      "pos": 1
+                    }
+                  ]
+                }
+              }
+            }, {
+              "type": "ForceOverLife",
+              "x": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "y": {
+                "type": "ConstantValue",
+                "value": 0
+              },
+              "z": {
+                "type": "ConstantValue",
+                "value": 0
+              }
+            }
+          ],
+          "worldSpace": true
+        }
+      }
+    ]
+  }
+}

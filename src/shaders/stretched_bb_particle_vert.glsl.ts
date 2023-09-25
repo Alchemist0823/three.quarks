@@ -27,7 +27,7 @@ void main() {
     vec3 viewVelocity = normalMatrix * velocity;
 
     vec3 scaledPos = vec3(position.xy * size, position.z);
-    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) * speedFactor;
+    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) / size * speedFactor;
 
 	vColor = color;
 

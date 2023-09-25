@@ -15,13 +15,13 @@ export class ForceOverLife implements Behavior {
         public z: FunctionValueGenerator | ValueGenerator
     ) {}
 
-    update(particle: Particle): void {
+    update(particle: Particle, delta: number): void {
         this._temp.set(
             this.x.genValue(particle.age / particle.life),
             this.y.genValue(particle.age / particle.life),
             this.z.genValue(particle.age / particle.life)
         );
-        particle.velocity.add(this._temp);
+        particle.velocity.addScaledVector(this._temp, delta);
     }
 
     toJSON(): any {

@@ -35,11 +35,14 @@ export abstract class VFXBatch extends Mesh {
         this.systems = new Set<IParticleSystem>();
         const layers = new Layers();
         layers.mask = settings.layers.mask;
+        const newMat = settings.material.clone();
+        newMat.defines = {};
+        Object.assign(newMat.defines, settings.material.defines);
         this.settings = {
             instancingGeometry: settings.instancingGeometry,
             renderMode: settings.renderMode,
             renderOrder: settings.renderOrder,
-            material: settings.material.clone(),
+            material: newMat,
             uTileCount: settings.uTileCount,
             vTileCount: settings.vTileCount,
             layers: layers,

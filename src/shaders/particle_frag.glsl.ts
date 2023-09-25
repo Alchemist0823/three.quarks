@@ -25,7 +25,12 @@ void main() {
 
     outgoingLight = diffuseColor.rgb;
     
+    #ifdef USE_COLOR_AS_ALPHA
+    gl_FragColor = vec4( outgoingLight, diffuseColor.r );
+    #else
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+    #endif
+    
     
     #include <tonemapping_fragment>
 

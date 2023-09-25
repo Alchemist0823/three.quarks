@@ -172,6 +172,10 @@ export class SpriteBatch extends VFXBatch {
             uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
         }
 
+        if ((this.settings.material as any).defines && (this.settings.material as any).defines['USE_COLOR_AS_ALPHA'] !== undefined) {
+            defines['USE_COLOR_AS_ALPHA'] = '';
+        }
+
         if ((this.settings.material as any).normalMap) {
             defines['USE_NORMALMAP'] = '';
             defines['NORMALMAP_UV'] = getMaterialUVChannelName((this.settings.material as any).normalMap.channel);
