@@ -1,5 +1,10 @@
 # Change Log
 
+## version 0.10.9
+- Add LimitSpeedOverLife behavior
+- Fix some behavior's configuration so it matches unity
+- update node graph demo and definitions
+
 ## version 0.10.8
 - Support horizontal and vertical billboard in shader
 
