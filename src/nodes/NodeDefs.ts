@@ -724,4 +724,12 @@ vrandNode.addSignature([], [NodeValueType.Vec4], (context, data, inputs, outputs
 });
 NodeTypes['vrand'] = vrandNode;
 
+const bsdfNode = new NodeType('bsdf');
+bsdfNode.addSignature(
+    [NodeValueType.Vec3, NodeValueType.Vec3, NodeValueType.Vec3, NodeValueType.Number],
+    [],
+    (context, data, inputs, outputs) => {}
+);
+
+NodeTypes['bsdf'] = bsdfNode;
 export const OutputNodeTypeNames = new Set<string>(['output', 'particleProperty', 'graphProperty', 'emit']);

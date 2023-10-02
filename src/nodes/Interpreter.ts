@@ -1,17 +1,15 @@
 import {NodeGraph} from './NodeGraph';
 import {ConstInput, Node, Wire} from './Node';
 import {ExecutionContext} from './NodeType';
+import { BaseCompiler } from "./BaseCompiler";
 
-export class Interpreter {
-    static Instance: Interpreter;
+export class Interpreter extends BaseCompiler {
 
     constructor() {
-        Interpreter.Instance = this;
+        super();
     }
 
-    visited: Set<string> = new Set<string>();
-
-    private traverse(node: Node, graph: NodeGraph, context: ExecutionContext) {
+    /*private traverse(node: Node, graph: NodeGraph, context: ExecutionContext) {
         this.visited.add(node.id);
         const inputValues = [];
         for (let i = 0; i < node.inputs.length; i++) {
@@ -22,9 +20,6 @@ export class Interpreter {
                     this.traverse(inputNode, graph, context);
                 }
                 inputValues.push(inputNode.outputValues[(node.inputs[i] as Wire).inputIndex]);
-                /*} else {
-                    throw new Error(`Node ${node.id} has not inputs`);
-                }*/
             } else if (node.inputs[i] !== undefined) {
                 inputValues.push((node.inputs[i] as ConstInput).getValue(context));
             } else {
@@ -34,7 +29,7 @@ export class Interpreter {
         // calculation
         node.func(context, inputValues, node.outputValues);
         graph.nodesInOrder.push(node);
-    }
+    }*/
 
     private executeCompiledGraph(graph: NodeGraph, context: ExecutionContext) {
         const nodes = graph.nodesInOrder;
@@ -55,18 +50,9 @@ export class Interpreter {
     }
 
     run(graph: NodeGraph, context: ExecutionContext) {
-        if (graph.compiled) {
-            this.executeCompiledGraph(graph, context);
-        } else {
-            graph.nodesInOrder.length = 0;
-            this.visited.clear();
-            for (let i = 0; i < graph.outputNodes.length; i++) {
-                const node = graph.outputNodes[i];
-                if (node.inputs[0] !== undefined) {
-                    this.traverse(node, graph, context);
-                }
-            }
-            graph.compiled = true;
+        if (!graph.compiled) {
+            this.buildExecutionOrder(graph, context);
         }
+        this.executeCompiledGraph(graph, context);
     }
 }
