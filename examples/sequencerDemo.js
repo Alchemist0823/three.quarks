@@ -50,7 +50,7 @@ export class SequencerDemo extends Demo {
             emissionBursts: [
                 {
                     time: 0,
-                    count: 1500,
+                    count: new ConstantValue(1500),
                     cycle: 1,
                     interval: 1,
                     probability: 1,

@@ -38,7 +38,7 @@ import {BatchedRenderer, SerializationOptions, VFXBatchSettings} from './Batched
 import {RotationGenerator} from './functions/RotationGenerator';
 export interface BurstParameters {
     time: number;
-    count: number;
+    count: ValueGenerator | FunctionValueGenerator;
     cycle: number;
     interval: number;
     probability: number;
@@ -50,6 +50,14 @@ const tempV = new Vector3();
 const tempV2 = new Vector3();
 const tempV3 = new Vector3();
 const PREWARM_FPS = 60;
+
+export interface BurstParametersJSON {
+    time: number;
+    count: FunctionJSON | number;
+    cycle: number;
+    interval: number;
+    probability: number;
+}
 
 export interface ParticleSystemParameters {
     // parameters
@@ -102,7 +110,7 @@ export interface ParticleSystemJSONParameters {
     startColor: FunctionJSON;
     emissionOverTime: FunctionJSON;
     emissionOverDistance: FunctionJSON;
-    emissionBursts?: Array<BurstParameters>;
+    emissionBursts?: Array<BurstParametersJSON>;
     onlyUsedByOther: boolean;
 
     rendererEmitterSettings: {
@@ -768,7 +776,7 @@ export class ParticleSystem {
             this.emissionBursts[emissionState.burstIndex].time <= emissionState.time
         ) {
             if (Math.random() < this.emissionBursts[emissionState.burstIndex].probability) {
-                const count = this.emissionBursts[emissionState.burstIndex].count;
+                const count = this.emissionBursts[emissionState.burstIndex].count.genValue(this.time);
                 this.spawn(count, emissionState, emitterMatrix);
             }
             emissionState.burstIndex++;
@@ -852,7 +860,13 @@ export class ParticleSystem {
             startColor: this.startColor.toJSON(),
             emissionOverTime: this.emissionOverTime.toJSON(),
             emissionOverDistance: this.emissionOverDistance.toJSON(),
-            emissionBursts: this.emissionBursts,
+            emissionBursts: this.emissionBursts.map((burst) => ({
+                time: burst.time,
+                count: burst.count.toJSON(),
+                probability: burst.probability,
+                interval: burst.interval,
+                cycle: burst.cycle,
+            })),
             onlyUsedByOther: this.onlyUsedByOther,
 
             instancingGeometry: this.rendererSettings.instancingGeometry.uuid, //Array.from(this.emitter.interleavedBuffer.array as Float32Array),
@@ -916,7 +930,17 @@ export class ParticleSystem {
             startColor: ColorGeneratorFromJSON(json.startColor) as ColorGenerator,
             emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),
-            emissionBursts: json.emissionBursts,
+            emissionBursts: json.emissionBursts?.map((burst) => ({
+                time: burst.time,
+                // backward compatibility
+                count:
+                    typeof burst.count === 'number'
+                        ? new ConstantValue(burst.count)
+                        : ValueGeneratorFromJSON(burst.count),
+                probability: burst.probability,
+                interval: burst.interval,
+                cycle: burst.cycle,
+            })),
             onlyUsedByOther: json.onlyUsedByOther,
 
             instancingGeometry: meta.geometries[json.instancingGeometry],

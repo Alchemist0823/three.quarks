@@ -1,22 +1,24 @@
-import {FunctionValueGenerator, ValueGenerator} from "./ValueGenerator";
-import {MathUtils} from "three";
-import {FunctionJSON} from "./FunctionJSON";
+import {ValueGenerator} from './ValueGenerator';
+import {MathUtils} from 'three';
+import {FunctionJSON} from './FunctionJSON';
 
-export class IntervalValue implements FunctionValueGenerator {
-
-    constructor(public a: number, public b: number) {
-        this.type = "function";
+export class IntervalValue implements ValueGenerator {
+    constructor(
+        public a: number,
+        public b: number
+    ) {
+        this.type = 'value';
     }
 
-    genValue(t?: number): number {
-        return MathUtils.lerp(this.a, this.b, t !== undefined ? t : Math.random());
+    genValue(): number {
+        return MathUtils.lerp(this.a, this.b, Math.random());
     }
 
-    type: "function";
+    type: 'value';
 
     toJSON(): FunctionJSON {
         return {
-            type: "IntervalValue",
+            type: 'IntervalValue',
             a: this.a,
             b: this.b,
         };
@@ -26,7 +28,7 @@ export class IntervalValue implements FunctionValueGenerator {
         return new IntervalValue(json.a, json.b);
     }
 
-    clone(): FunctionValueGenerator {
+    clone(): ValueGenerator {
         return new IntervalValue(this.a, this.b);
     }
 }

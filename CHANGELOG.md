@@ -1,5 +1,8 @@
 # Change Log
 
+## version 0.10.11
+- Add support for count function on burst emission 
+
 ## version 0.10.9
 - Add LimitSpeedOverLife behavior
 - Fix some behavior's configuration so it matches unity

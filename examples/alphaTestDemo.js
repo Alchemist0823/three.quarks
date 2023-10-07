@@ -46,7 +46,7 @@ export class AlphaTestDemo extends Demo {
                 emissionBursts: [
                     {
                         time: 0,
-                        count: 100,
+                        count: new ConstantValue(100),
                         cycle: 1,
                         interval: 0.01,
                         probability: 1,

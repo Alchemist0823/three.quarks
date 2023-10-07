@@ -92,7 +92,7 @@ const muzzle = {
     emissionOverTime: new ConstantValue(0),
     emissionBursts: [{
         time: 0,
-        count: 1,
+        count: new ConstantValue(1),
         cycle: 1,
         interval: 0.01,
         probability: 1,
@@ -139,11 +139,17 @@ const batchSystem = new BatchedRenderer();
 const loader = new QuarksLoader();
 loader.setCrossOrigin("");
 loader.load(jsonURL, (obj) => {
+    // the API uses manuel loading because users may need to 
+    // store the VFX somewhere to reuse it later.
     obj.traverse((child) => {
         if (child.type === "ParticleEmitter") {
+            // only if want to display the VFX
             batchRenderer.addSystem(child.system);
         }
     });
+    if (obj.type === "ParticleEmitter") {
+        batchRenderer.addSystem(obj.system);
+    }
     scene.add(obj);
 }, () => {
 }, () => {

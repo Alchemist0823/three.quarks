@@ -1,15 +1,8 @@
 import {
     BatchedParticleRenderer,
     QuarksLoader,
-    ParticleSystem,
-    IntervalValue,
-    ConstantValue,
-    PointEmitter,
-    ConstantColor,
-    RenderMode,
 } from 'three.quarks';
 import {Demo} from './demo.js';
-import {Mesh, MeshBasicMaterial, NormalBlending, TextureLoader, Vector4, DoubleSide} from 'three';
 
 export class ExplosionDemo extends Demo {
     name = 'explosion (Unity Exported)';

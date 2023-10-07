@@ -58,7 +58,7 @@ export class MuzzleFlashDemo extends Demo {
             emissionBursts: [
                 {
                     time: 0,
-                    count: 1,
+                    count: new ConstantValue(1),
                     cycle: 1,
                     interval: 0.01,
                     probability: 1,
@@ -96,7 +96,7 @@ export class MuzzleFlashDemo extends Demo {
             emissionBursts: [
                 {
                     time: 0,
-                    count: 1,
+                    count: new ConstantValue(1),
                     cycle: 1,
                     interval: 0.01,
                     probability: 1,
@@ -160,7 +160,7 @@ export class MuzzleFlashDemo extends Demo {
             emissionBursts: [
                 {
                     time: 0,
-                    count: 2,
+                    count: new ConstantValue(2),
                     cycle: 1,
                     interval: 0.01,
                     probability: 1,
@@ -203,7 +203,7 @@ export class MuzzleFlashDemo extends Demo {
             emissionBursts: [
                 {
                     time: 0,
-                    count: 5,
+                    count: new ConstantValue(5),
                     cycle: 1,
                     interval: 0.01,
                     probability: 1,
@@ -250,7 +250,7 @@ export class MuzzleFlashDemo extends Demo {
             emissionBursts: [
                 {
                     time: 0,
-                    count: 8,
+                    count: new ConstantValue(8),
                     cycle: 1,
                     interval: 0.01,
                     probability: 1,

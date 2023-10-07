@@ -102,7 +102,7 @@ export class CustomPluginDemo extends Demo {
             emissionBursts: [
                 {
                     time: 0,
-                    count: 2500,
+                    count: new ConstantValue(2500),
                     cycle: 1,
                     interval: 1,
                     probability: 1,
