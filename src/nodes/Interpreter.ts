@@ -1,10 +1,11 @@
 import {NodeGraph} from './NodeGraph';
-import {ConstInput, Node, Wire} from './Node';
+import {Adapter, ConstInput, Node, Wire} from './Node';
 import {ExecutionContext} from './NodeDef';
-import { BaseCompiler } from "./BaseCompiler";
+import {BaseCompiler} from './BaseCompiler';
+import {context} from 'three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements';
+import {genDefaultForNodeValueType} from './NodeValueType';
 
 export class Interpreter extends BaseCompiler {
-
     constructor() {
         super();
     }
@@ -38,11 +39,30 @@ export class Interpreter extends BaseCompiler {
             const node = nodes[i];
             for (let j = 0; j < node.inputs.length; j++) {
                 if (node.inputs[j] instanceof Wire) {
-                    inputValues.push((node.inputs[j] as Wire).input.outputValues[(node.inputs[j] as Wire).inputIndex]);
+                    if ((node.inputs[j] as Wire).input instanceof Node) {
+                        inputValues.push(
+                            ((node.inputs[j] as Wire).input as Node).outputValues[(node.inputs[j] as Wire).inputIndex]
+                        );
+                    } // TODO: handle adapter
+                } else if (node.inputs[j] instanceof Adapter) {
+                    // TODO: handle adapter
+                    //inputValues.push((node.inputs[j] as Adapter).input.outputValues[(node.inputs[j] as Wire).inputIndex]);
                 } else if (node.inputs[j] !== undefined) {
                     inputValues.push((node.inputs[j] as ConstInput).getValue(context));
                 } else {
                     inputValues.push(undefined);
+                }
+            }
+            if (node.outputValues.length === 0) {
+                for (let i = 0; i < node.definition.nodeTypeSignatures[node.signatureIndex].outputTypes.length; i++) {
+                    node.outputValues.push(
+                        genDefaultForNodeValueType(
+                            node.definition.nodeTypeSignatures[node.signatureIndex].outputTypes[i]
+                        )
+                    );
+                    if (node.outputValues[i] === undefined) {
+                        node.outputValues[i] = genDefaultForNodeValueType(node.data.type);
+                    }
                 }
             }
             node.func(context, inputValues, node.outputValues);
@@ -54,5 +74,9 @@ export class Interpreter extends BaseCompiler {
             this.buildExecutionOrder(graph, context);
         }
         this.executeCompiledGraph(graph, context);
+    }
+
+    build(graph: NodeGraph, context: ExecutionContext): string {
+        return '';
     }
 }

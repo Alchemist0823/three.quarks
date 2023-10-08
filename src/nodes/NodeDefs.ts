@@ -2,7 +2,7 @@ import {Vector2, Vector3, Vector4} from 'three';
 import {NodeValueType} from './NodeValueType';
 import {NodeDef, NodeType} from './NodeDef';
 
-export const NodeTypes: { [key: string]: NodeDef } = {};
+export const NodeTypes: {[key: string]: NodeDef} = {};
 
 // Math
 const addNode = new NodeDef('add', NodeType.Expression);
@@ -440,14 +440,14 @@ graphPropertyNode.addSignature(
     [NodeValueType.NullableAnyType],
     (context, data, inputs, outputs) => {
         if (inputs[0] !== undefined) {
-            if (typeof inputs[0] === 'object') {
+            if (data.type !== NodeValueType.Number) {
                 (context.graph as any)[data.property].copy(inputs[0]);
             } else {
                 (context.graph as any)[data.property] = inputs[0];
             }
         }
         if ((context.graph as any)[data.property] !== undefined) {
-            if (typeof outputs[0] === 'object') {
+            if (data.type !== NodeValueType.Number) {
                 (outputs[0] as any).copy((context.graph as any)[data.property]);
             } else {
                 outputs[0] = (context.graph as any)[data.property];
@@ -691,8 +691,7 @@ const bsdfNode = new NodeDef('bsdf', NodeType.Storage);
 bsdfNode.addSignature(
     [NodeValueType.Vec3, NodeValueType.Vec3, NodeValueType.Vec3, NodeValueType.Number],
     [],
-    (context, data, inputs, outputs) => {
-    }
+    (context, data, inputs, outputs) => {}
 );
 
 NodeTypes['bsdf'] = bsdfNode;

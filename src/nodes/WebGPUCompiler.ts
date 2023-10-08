@@ -2,8 +2,8 @@ import {BaseCompiler} from './BaseCompiler';
 import {ExecutionContext, NodeType} from './NodeDef';
 import {NodeGraph} from './NodeGraph';
 import {Adapter, ConstInput, Node, Wire} from './Node';
-import {Vector2, Vector3, Vector4} from "three";
-import {NodeValueType} from "./NodeValueType";
+import {Vector2, Vector3, Vector4} from 'three';
+import {NodeValueType} from './NodeValueType';
 
 type buildFunction = (node: Node, inputs: string[], context: ExecutionContext) => string;
 
@@ -11,7 +11,28 @@ interface NodeBuilder {
     buildBySigIndex: buildFunction[];
 }
 
-const nodeBuilders: { [key: string]: NodeBuilder } = {
+const nodeBuilders: {[key: string]: NodeBuilder} = {
+    vec2: {
+        buildBySigIndex: [
+            (node, inputs, context) => {
+                return `vec2<f32>(${inputs[0]}, ${inputs[1]})`;
+            },
+        ],
+    },
+    vec3: {
+        buildBySigIndex: [
+            (node, inputs, context) => {
+                return `vec3<f32>(${inputs[0]}, ${inputs[1]}, ${inputs[2]})`;
+            },
+        ],
+    },
+    vec4: {
+        buildBySigIndex: [
+            (node, inputs, context) => {
+                return `vec4<f32>(${inputs[0]}, ${inputs[1]}, ${inputs[2]}, ${inputs[3]})`;
+            },
+        ],
+    },
     add: {
         buildBySigIndex: [
             (node, inputs, context) => {
@@ -25,7 +46,7 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `(${inputs[0]} + ${inputs[1]})`;
-            }
+            },
         ],
     },
     subtract: {
@@ -41,7 +62,7 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `(${inputs[0]} - ${inputs[1]})`;
-            }
+            },
         ],
     },
     mul: {
@@ -57,7 +78,7 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `(${inputs[0]} * ${inputs[1]})`;
-            }
+            },
         ],
     },
     div: {
@@ -73,101 +94,100 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `(${inputs[0]} / ${inputs[1]})`;
-            }
+            },
         ],
     },
     power: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `pow(${inputs[0]}, ${inputs[1]})`;
-            }
-        ]
+            },
+        ],
     },
     sqrt: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `sqrt(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
     },
     sin: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `sin(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
     },
     cos: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `cos(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
     },
     tan: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `tan(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
     },
     asin: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `asin(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
     },
     acos: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `acos(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
     },
     atan: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `atan(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
     },
     atan2: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `atan(${inputs[0]}, ${inputs[1]})`;
-            }
-        ]
+            },
+        ],
     },
 
     abs: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `abs(${inputs[0]})`;
-            }
+            },
         ],
     },
     floor: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `floor(${inputs[0]})`;
-            }
+            },
         ],
     },
     ceil: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `ceil(${inputs[0]})`;
-            }
+            },
         ],
     },
     round: {
         buildBySigIndex: [
             (node, inputs, context) => {
                 return `round(${inputs[0]})`;
-            }
+            },
         ],
-
     },
     min: {
         buildBySigIndex: [
@@ -182,8 +202,8 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `min(${inputs[0]}, ${inputs[1]})`;
-            }
-        ]
+            },
+        ],
     },
     max: {
         buildBySigIndex: [
@@ -198,8 +218,8 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `max(${inputs[0]}, ${inputs[1]})`;
-            }
-        ]
+            },
+        ],
     },
     clamp: {
         buildBySigIndex: [
@@ -215,7 +235,7 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             (node, inputs, context) => {
                 return `clamp(${inputs[0]}, ${inputs[1]}, ${inputs[2]})`;
             },
-        ]
+        ],
     },
     mix: {
         buildBySigIndex: [
@@ -231,7 +251,7 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             (node, inputs, context) => {
                 return `mix(${inputs[0]}, ${inputs[1]}, ${inputs[2]})`;
             },
-        ]
+        ],
     },
     step: {
         buildBySigIndex: [
@@ -246,8 +266,8 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `step(${inputs[0]}, ${inputs[1]})`;
-            }
-        ]
+            },
+        ],
     },
     smoothstep: {
         buildBySigIndex: [
@@ -262,8 +282,8 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `smoothstep(${inputs[0]}, ${inputs[1]}, ${inputs[2]})`;
-            }
-        ]
+            },
+        ],
     },
     length: {
         buildBySigIndex: [
@@ -275,23 +295,30 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
             },
             (node, inputs, context) => {
                 return `length(${inputs[0]})`;
-            }
-        ]
+            },
+        ],
+    },
+    delta: {
+        buildBySigIndex: [
+            (node, inputs, context) => {
+                return `sim_params.delta`;
+            },
+        ],
     },
     particleProperty: {
         buildBySigIndex: [
             (node, inputs, context) => {
-                if (node.inputs[0] instanceof Wire) {
-                    return `particle.${node.data.property} = ` + inputs[0];
-                } else {
-                    return `particle.${node.data.property}`;
-                }
-            }
-        ]
-    }
-}
+                return `particle.${node.data.property}`;
+            },
+        ],
+    },
+};
 
-class WebGPUCompiler extends BaseCompiler {
+export class WebGPUCompiler extends BaseCompiler {
+    run(graph: NodeGraph, context: ExecutionContext): void {
+        throw new Error('Method not implemented.');
+    }
+
     constructor() {
         super();
     }
@@ -299,29 +326,31 @@ class WebGPUCompiler extends BaseCompiler {
     protected nodeResult = new Map<Node, string>();
 
     private buildPredefinedStructs(statements: string[], graph: NodeGraph, context: ExecutionContext) {
-        statements.push("struct SimulationParams {");
-        statements.push("    deltaTime : f32,");
-        statements.push("    seed : vec4<f32>,");
-        statements.push("}");
+        statements.push('struct SimulationParams {');
+        statements.push('    delta : f32,');
+        statements.push('    seed : vec4<f32>,');
+        statements.push('}');
 
-        statements.push("struct Particle {");
+        statements.push('struct Particle {');
         graph.outputNodes.forEach((node) => {
-          if (node.definition.name === "particleProperty"
-              && node.data.property !== "position"
-              && node.data.property !== "color"
-              && node.data.property !== "life"
-              && node.data.property !== "age") {
-            statements.push(`    ${node.data.property}: ${this.getTypeFromNodeType(node.data.type)},`);
-          }
-        })
-        statements.push("    position: vec3<f32>,");
-        statements.push("    color: vec3<f32>,");
-        statements.push("    life: f32,");
-        statements.push("    age: f32,");
-        statements.push("}");
-        statements.push("struct Particles {");
-        statements.push("    particles : array<Particle>,");
-        statements.push("}");
+            if (
+                node.definition.name === 'particleProperty' &&
+                node.data.property !== 'position' &&
+                node.data.property !== 'color' &&
+                node.data.property !== 'life' &&
+                node.data.property !== 'age'
+            ) {
+                statements.push(`    ${node.data.property}: ${this.getTypeFromNodeType(node.data.type)},`);
+            }
+        });
+        statements.push('    position: vec3<f32>,');
+        statements.push('    color: vec3<f32>,');
+        statements.push('    life: f32,');
+        statements.push('    age: f32,');
+        statements.push('}');
+        statements.push('struct Particles {');
+        statements.push('    particles : array<Particle>,');
+        statements.push('}');
     }
 
     private buildHeader(statements: string[], graph: NodeGraph, context: ExecutionContext) {
@@ -329,20 +358,35 @@ class WebGPUCompiler extends BaseCompiler {
 
         this.buildPredefinedStructs(statements, graph, context);
 
-        statements.push("@binding(0) @group(0) var<uniform> sim_params : SimulationParams;");
-        statements.push("@binding(1) @group(0) var<storage, read_write> data : Particles;");
+        statements.push('@binding(0) @group(0) var<uniform> sim_params : SimulationParams;');
+        statements.push('@binding(1) @group(0) var<storage, read_write> data : Particles;');
+        statements.push('@binding(2) @group(0) var<storage, read_write> indexList : array<i32>;');
 
-        statements.push("@compute @workgroup_size(64)");
-        statements.push("fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3<u32>) {");
-        statements.push("  let idx = global_invocation_id.x;");
-        statements.push("  init_rand(idx, sim_params.seed);");
+        statements.push('@compute @workgroup_size(64)');
+        statements.push('fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3<u32>) {');
+        statements.push('  let invo_id = global_invocation_id.x;');
+        statements.push('  init_rand(idx, sim_params.seed);');
+        statements.push('  let idx = indexList[invo_id];');
+        statements.push('  var particle = data.particles[idx];');
+    }
+
+    private buildFooter(statements: string[], graph: NodeGraph, context: ExecutionContext) {
+        statements.push('  particle.age += sim_params.delta;');
+        statements.push('  data.particles[idx] = particle;');
+        statements.push('}');
     }
 
     private buildWebGPUCode(graph: NodeGraph, context: ExecutionContext) {
         const statements: string[] = [];
 
         this.buildHeader(statements, graph, context);
+        this.buildDataFlow(graph, statements, context);
+        this.buildFooter(statements, graph, context);
 
+        return statements.join('\n');
+    }
+
+    private buildDataFlow(graph: NodeGraph, statements: string[], context: ExecutionContext) {
         for (let i = 0; i < graph.nodesInOrder.length; i++) {
             const currentNode = graph.nodesInOrder[i];
             let nodeBuilder = nodeBuilders[currentNode.definition.name].buildBySigIndex[currentNode.signatureIndex];
@@ -355,37 +399,48 @@ class WebGPUCompiler extends BaseCompiler {
                     } else {
                         inputs.push(this.buildFromAdapter(input, statements, context));
                     }
+                } else if (currentNode.inputs[j] instanceof Adapter) {
                 } else if (currentNode.inputs[j] !== undefined) {
                     inputs.push(this.buildFromValue((currentNode.inputs[j] as ConstInput).getValue(context)));
                 } else {
-                    throw new Error(`Node ${currentNode.id} misses input on index ${j}`);
+                    if (currentNode.definition.type !== NodeType.Storage) {
+                        throw new Error(`Node ${currentNode.id} misses input on index ${j}`);
+                    }
                 }
             }
             const result = nodeBuilder(currentNode, inputs, context);
             if (currentNode.outputs.length === 1) {
-                if (currentNode.outputs[0].length > 0) { // TODO: output is already stored in a variable
-                    const type = this.getTypeFromNodeType(currentNode.outputTypes[0]);
-                    statements.push(`${type} v${statements.length} = ${result};`);
-                    this.nodeResult.set(currentNode, "v" + (statements.length - 1));
-                } else {
+                if (currentNode.definition.type === NodeType.Storage) {
+                    if (inputs.length > 0) {
+                        statements.push(`${result} = ${inputs[0]};`);
+                    }
                     this.nodeResult.set(currentNode, result);
+                } else {
+                    if (currentNode.outputs[0].length > 1) {
+                        // TODO: output is already stored in a variable
+                        //const type = this.getTypeFromNodeType(currentNode.outputTypes[0]);
+                        statements.push(`let v${statements.length} = ${result};`);
+                        this.nodeResult.set(currentNode, 'v' + (statements.length - 1));
+                    } else if (currentNode.outputs[0].length > 0) {
+                        //statements.push(`let v${statements.length} = ${result};`);
+                        this.nodeResult.set(currentNode, result);
+                    }
                 }
             } else if (currentNode.outputs.length > 1) {
-
             }
         }
     }
 
-    run(graph: NodeGraph, context: ExecutionContext) {
+    build(graph: NodeGraph, context: ExecutionContext) {
         if (!graph.compiled) {
             this.buildExecutionOrder(graph, context);
         }
-        this.buildWebGPUCode(graph, context);
+        return this.buildWebGPUCode(graph, context);
     }
 
     private buildFromValue(input: any) {
-        if (typeof input === "number") {
-            return input.toString();
+        if (typeof input === 'number') {
+            return '' + input;
         } else if (input instanceof Vector2) {
             return `vec2<f32>(${input.x}, ${input.y})`;
         } else if (input instanceof Vector3) {
@@ -418,23 +473,26 @@ class WebGPUCompiler extends BaseCompiler {
                 case NodeType.Storage:
                     for (let i = 0; i < NodeTypeToComponents.get(adapter.type)!; i++) {
                         if (adapter.inputs[i] instanceof Wire) {
-                            const builder = nodeBuilders[adapter.node.definition.name].buildBySigIndex[adapter.node.signatureIndex];
+                            const builder =
+                                nodeBuilders[adapter.node.definition.name].buildBySigIndex[adapter.node.signatureIndex];
                             context.param = ComponentIndexToCode[i];
-                            statements.push(builder(adapter.node, [this.getResult(adapter.inputs[i] as Wire)], context));
+                            statements.push(
+                                builder(adapter.node, [this.getResult(adapter.inputs[i] as Wire)], context)
+                            );
                         }
                     }
                     break;
                 case NodeType.Variable:
                 case NodeType.Expression:
-                    let result = "";
+                    let result = '';
                     for (let i = 0; i < NodeTypeToComponents.get(adapter.type)! - 1; i++) {
-                        result = this.getResult(adapter.inputs[i] as Wire) + ", ";
+                        result = this.getResult(adapter.inputs[i] as Wire) + ', ';
                     }
                     result += this.getResult(adapter.inputs[NodeTypeToComponents.get(adapter.type)! - 1] as Wire);
                     statements.push(`${this.getTypeFromNodeType(adapter.type)}(${result})`);
             }
         }
-        return "";
+        return '';
     }
 
     private getResult(wire: Wire): string {
@@ -443,7 +501,11 @@ class WebGPUCompiler extends BaseCompiler {
             if (input.isInput) {
                 throw new Error(`node ${input.node.id}'s output adapter has to be output`);
             } else {
-                return this.nodeResult.get(input.node) + "." + ComponentIndexToCode[input.outputs.findIndex((wires) => wires.includes(wire))];
+                return (
+                    this.nodeResult.get(input.node) +
+                    '.' +
+                    ComponentIndexToCode[input.outputs.findIndex((wires) => wires.includes(wire))]
+                );
             }
         } else {
             return this.nodeResult.get(input)!;
@@ -456,7 +518,6 @@ const NodeTypeToComponents = new Map([
     [NodeValueType.Vec3, 3],
     [NodeValueType.Vec4, 4],
 ]);
-
 
 const ComponentIndexToCode = ['x', 'y', 'z', 'w'];
 
@@ -499,9 +560,11 @@ struct Particles {
 
 @compute @workgroup_size(64)
 fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3<u32>) {
-  let idx = global_invocation_id.x;
+  let invo_id = global_invocation_id.x;
 
   init_rand(idx, sim_params.seed);
+  
+  let idx = live[invo_id];
 
   var particle = data.particles[idx];
 

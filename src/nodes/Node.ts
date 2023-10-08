@@ -5,7 +5,7 @@ import {ExecutionContext, NodeDef} from './NodeDef';
 export type NodeData = {[key: string]: any};
 export class Node {
     id: string;
-    inputs: (Wire | ConstInput | undefined)[] = [];
+    inputs: (Wire | ConstInput | Adapter | undefined)[] = [];
     outputs: Wire[][] = [];
     definition: NodeDef;
     signatureIndex: number = -1;
@@ -28,7 +28,6 @@ export class Node {
         }
         for (let i = 0; i < definition.nodeTypeSignatures[realIndex].outputTypes.length; i++) {
             this.outputs.push([]);
-            this.outputValues.push(genDefaultForNodeValueType(definition.nodeTypeSignatures[realIndex].outputTypes[i]));
         }
     }
 
