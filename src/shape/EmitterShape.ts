@@ -1,18 +1,21 @@
-import {Particle} from "../Particle";
-import {ConeEmitter} from "./ConeEmitter";
-import {DonutEmitter} from "./DonutEmitter";
-import {PointEmitter} from "./PointEmitter";
-import {SphereEmitter} from "./SphereEmitter";
-import {MeshSurfaceEmitter} from "./MeshSurfaceEmitter";
-import {Constructable, ParameterPair} from "../TypeUtil";
-import { GridEmitter } from "./GridEmitter";
-import {JsonMetaData} from "../ParticleSystem";
+import {Particle} from '../Particle';
+import {ConeEmitter} from './ConeEmitter';
+import {DonutEmitter} from './DonutEmitter';
+import {PointEmitter} from './PointEmitter';
+import {SphereEmitter} from './SphereEmitter';
+import {MeshSurfaceEmitter} from './MeshSurfaceEmitter';
+import {Constructable, ParameterPair} from '../TypeUtil';
+import {GridEmitter} from './GridEmitter';
+import {JsonMetaData} from '../ParticleSystem';
+import {CircleEmitter} from './CircleEmitter';
+import { HemisphereEmitter } from "./HemisphereEmitter";
 
 export interface ShapeJSON {
     type: string;
     radius?: number;
     arc?: number;
     thickness?: number;
+    donutRadius?: number;
     angle?: number;
     width?: number;
     height?: number;
@@ -23,7 +26,6 @@ export interface ShapeJSON {
 }
 
 export interface EmitterShape {
-
     type: string;
     initialize(particle: Particle): void;
     toJSON(): ShapeJSON;
@@ -39,12 +41,78 @@ export interface EmitterShapePlugin {
 }
 
 export const EmitterShapes: {[key: string]: EmitterShapePlugin} = {
-    "cone": {type: "cone", params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]], constructor: ConeEmitter, loadJSON: ConeEmitter.fromJSON},
-    "donut": {type: "donut", params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]], constructor: DonutEmitter, loadJSON: DonutEmitter.fromJSON},
-    "point": {type: "point", params: [], constructor: PointEmitter, loadJSON: PointEmitter.fromJSON},
-    "sphere": {type: "sphere", params: [["radius", "number"], ["arc", "radian"], ["thickness", "number"], ["angle", "radian"]], constructor: SphereEmitter, loadJSON: SphereEmitter.fromJSON},
-    "grid": {type: "grid", params: [["width", "number"], ["height", "number"], ["rows", "number"], ["column", "number"]], constructor: GridEmitter, loadJSON: GridEmitter.fromJSON},
-    "mesh_surface": {type: "mesh_surface", params: [["geometry", "geometry"]], constructor: MeshSurfaceEmitter, loadJSON: MeshSurfaceEmitter.fromJSON},
+    circle: {
+        type: 'circle',
+        params: [
+            ['radius', 'number'],
+            ['arc', 'radian'],
+            ['thickness', 'number'],
+        ],
+        constructor: CircleEmitter,
+        loadJSON: CircleEmitter.fromJSON,
+    },
+    cone: {
+        type: 'cone',
+        params: [
+            ['radius', 'number'],
+            ['arc', 'radian'],
+            ['thickness', 'number'],
+            ['angle', 'radian'],
+        ],
+        constructor: ConeEmitter,
+        loadJSON: ConeEmitter.fromJSON,
+    },
+    donut: {
+        type: 'donut',
+        params: [
+            ['radius', 'number'],
+            ['arc', 'radian'],
+            ['thickness', 'number'],
+            ['donutRadius', 'number'],
+        ],
+        constructor: DonutEmitter,
+        loadJSON: DonutEmitter.fromJSON,
+    },
+    point: {type: 'point', params: [], constructor: PointEmitter, loadJSON: PointEmitter.fromJSON},
+    sphere: {
+        type: 'sphere',
+        params: [
+            ['radius', 'number'],
+            ['arc', 'radian'],
+            ['thickness', 'number'],
+            ['angle', 'radian'],
+        ],
+        constructor: SphereEmitter,
+        loadJSON: SphereEmitter.fromJSON,
+    },
+    hemisphere: {
+        type: 'hemisphere',
+        params: [
+            ['radius', 'number'],
+            ['arc', 'radian'],
+            ['thickness', 'number'],
+            ['angle', 'radian'],
+        ],
+        constructor: HemisphereEmitter,
+        loadJSON: HemisphereEmitter.fromJSON,
+    },
+    grid: {
+        type: 'grid',
+        params: [
+            ['width', 'number'],
+            ['height', 'number'],
+            ['rows', 'number'],
+            ['column', 'number'],
+        ],
+        constructor: GridEmitter,
+        loadJSON: GridEmitter.fromJSON,
+    },
+    mesh_surface: {
+        type: 'mesh_surface',
+        params: [['geometry', 'geometry']],
+        constructor: MeshSurfaceEmitter,
+        loadJSON: MeshSurfaceEmitter.fromJSON,
+    },
 };
 
 export function EmitterFromJSON(json: ShapeJSON, meta: JsonMetaData): EmitterShape {
