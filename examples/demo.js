@@ -20,13 +20,16 @@ export class Demo {
             })
         );
 
-        while (Math.floor(this.totalTime * this.groups.length) > this.refreshIndex) {
+        while (Math.floor((this.totalTime / this.refreshTime) * this.groups.length) >= this.refreshIndex) {
             if (this.refreshIndex < this.groups.length) {
                 this.groups[this.refreshIndex].traverse((object) => {
                     if (object instanceof ParticleEmitter) {
                         object.system.restart();
                     }
                 });
+                if (this.groups[this.refreshIndex] instanceof ParticleEmitter) {
+                    this.groups[this.refreshIndex].system.restart();
+                }
             }
             this.refreshIndex++;
         }

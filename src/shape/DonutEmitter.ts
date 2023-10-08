@@ -1,53 +1,63 @@
-import {EmitterShape, ShapeJSON} from "./EmitterShape";
-import {Particle} from "../Particle";
-import { MathUtils} from "three";
-
+import {EmitterShape, ShapeJSON} from './EmitterShape';
+import {Particle} from '../Particle';
+import {MathUtils} from 'three';
 
 export interface DonutEmitterParameters {
     radius?: number;
     arc?: number;
     thickness?: number;
-    angle?: number; // [0, Math.PI / 2]
+    donutRadius?: number;
 }
 
 export class DonutEmitter implements EmitterShape {
-    type = "donut";
+    type = 'donut';
     radius: number;
+    donutRadius: number;
     arc: number; // [0, Math.PI * 2]
     thickness: number;
-    angle: number; // [0, Math.PI / 2]
 
     constructor(parameters: DonutEmitterParameters = {}) {
         this.radius = parameters.radius ?? 10;
         this.arc = parameters.arc ?? 2.0 * Math.PI;
         this.thickness = parameters.thickness ?? 1;
-        this.angle = parameters.angle ?? Math.PI / 6;
+        this.donutRadius = parameters.donutRadius ?? this.radius * 0.2;
     }
 
     initialize(p: Particle) {
         const u = Math.random();
-        const rand = MathUtils.lerp(this.thickness, 1, Math.random());
+        const v = Math.random();
+        const rand = MathUtils.lerp(1 - this.thickness, 1, Math.random());
         const theta = u * this.arc;
-        const r = Math.sqrt(rand);
+        const phi = v * Math.PI * 2;
+        //const r = Math.sqrt(rand);
         const sinTheta = Math.sin(theta);
         const cosTheta = Math.cos(theta);
-        p.position.x = r * cosTheta;
-        p.position.y = r * sinTheta;
+        p.position.x = this.radius * cosTheta;
+        p.position.y = this.radius * sinTheta;
         p.position.z = 0;
 
-        const angle = this.angle * r;
-        p.velocity.set(0, 0, Math.cos(angle)).addScaledVector(p.position, Math.sin(angle)).multiplyScalar(p.startSpeed);
+        p.velocity.z = this.donutRadius * rand * Math.sin(phi);
+        p.velocity.x = this.donutRadius * rand * Math.cos(phi) * cosTheta;
+        p.velocity.y = this.donutRadius * rand * Math.cos(phi) * sinTheta;
+
+        p.position.add(p.velocity);
+
+        p.velocity.normalize().multiplyScalar(p.startSpeed);
+
+        //const angle = this.angle * r;
+        //p.velocity.set(0, 0, Math.cos(angle)).addScaledVector(p.position, Math.sin(angle)).multiplyScalar(p.startSpeed);
         //const v = Math.random();
-        p.position.multiplyScalar(this.radius);
+
+            //.multiplyScalar(this.radius);
     }
 
     toJSON(): ShapeJSON {
         return {
-            type: "donut",
+            type: 'donut',
             radius: this.radius,
             arc: this.arc,
             thickness: this.thickness,
-            angle: this.angle
+            donutRadius: this.donutRadius,
         };
     }
 
@@ -56,11 +66,11 @@ export class DonutEmitter implements EmitterShape {
     }
 
     clone(): EmitterShape {
-        return  new DonutEmitter({
+        return new DonutEmitter({
             radius: this.radius,
             arc: this.arc,
             thickness: this.thickness,
-            angle: this.angle,
+            donutRadius: this.donutRadius,
         });
     }
 }
