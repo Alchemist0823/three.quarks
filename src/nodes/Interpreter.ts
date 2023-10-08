@@ -1,6 +1,6 @@
 import {NodeGraph} from './NodeGraph';
 import {ConstInput, Node, Wire} from './Node';
-import {ExecutionContext} from './NodeType';
+import {ExecutionContext} from './NodeDef';
 import { BaseCompiler } from "./BaseCompiler";
 
 export class Interpreter extends BaseCompiler {

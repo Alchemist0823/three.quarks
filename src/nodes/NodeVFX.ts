@@ -17,7 +17,7 @@ import {RenderMode} from '../VFXBatch';
 import {BatchedRenderer, IParticleSystem, SerializationOptions, VFXBatchSettings} from '../BatchedRenderer';
 import {NodeGraph} from './NodeGraph';
 import {Interpreter} from './Interpreter';
-import {ExecutionContext} from './NodeType';
+import {ExecutionContext} from './NodeDef';
 import {BillBoardSettings, MeshSettings, TrailSettings} from '../ParticleSystem';
 
 const UP = new Vector3(0, 0, 1);

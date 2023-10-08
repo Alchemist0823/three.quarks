@@ -30,9 +30,9 @@ export class NodeGraph {
     addNode(node: Node): void {
         //this.nodes.push(node);
         this.allNodes.set(node.id, node);
-        if (node.type === NodeTypes['input']) {
+        if (node.definition === NodeTypes['input']) {
             this.inputNodes.push(node);
-        } else if (OutputNodeTypeNames.has(node.type.name)) {
+        } else if (OutputNodeTypeNames.has(node.definition.name)) {
             this.outputNodes.push(node);
         }
         this.revision++;

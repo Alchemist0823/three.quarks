@@ -1,6 +1,6 @@
 import {NodeGraph} from './NodeGraph';
 import {ConstInput, Node, Wire} from './Node';
-import {ExecutionContext} from './NodeType';
+import {ExecutionContext} from './NodeDef';
 
 export abstract class BaseCompiler {
     static Instance: BaseCompiler;
