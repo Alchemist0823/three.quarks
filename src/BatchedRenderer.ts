@@ -22,6 +22,8 @@ export interface IParticleSystem {
     speedFactor: number;
     worldSpace: boolean;
     particleNum: number;
+    duration: number;
+    looping: boolean;
     particles: Array<IParticle>;
     emitter: ParticleEmitter<any>;
     _renderer?: BatchedRenderer;

@@ -1,5 +1,11 @@
 # Change Log
 
+## version 0.10.13
+- Add support for more emitter shapes (circle, hemisphere) and shapes example
+
+## version 0.10.12
+- failed publish
+
 ## version 0.10.11
 - Add support for count function on burst emission 
 
