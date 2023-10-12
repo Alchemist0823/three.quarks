@@ -1,7 +1,7 @@
 import {IParticle, NodeParticle, Particle, SpriteParticle, TrailParticle} from '../Particle';
 import {ParticleEmitter} from '../ParticleEmitter';
 import {
-    BaseEvent,
+    Object3DEventMap,
     BufferGeometry,
     Layers,
     Material,
@@ -18,7 +18,7 @@ import {BatchedRenderer, IParticleSystem, SerializationOptions, VFXBatchSettings
 import {NodeGraph} from './NodeGraph';
 import {Interpreter} from './Interpreter';
 import {ExecutionContext} from './NodeDef';
-import {BillBoardSettings, MeshSettings, TrailSettings} from '../ParticleSystem';
+import {BillBoardSettings, MeshSettings, TrailSettings} from '../BatchedRenderer';
 
 const UP = new Vector3(0, 0, 1);
 const tempQ = new Quaternion();
@@ -114,9 +114,9 @@ export class NodeVFX implements IParticleSystem {
     /**
      * the emitter object that should be added in the scene.
      *
-     * @type {ParticleEmitter<BaseEvent>}
+     * @type {ParticleEmitter<Object3DEventMap>}
      */
-    emitter: ParticleEmitter<BaseEvent>;
+    emitter: ParticleEmitter<Object3DEventMap>;
 
     /**
      * the VFX renderer settings for the batch renderer

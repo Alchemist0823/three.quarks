@@ -7,6 +7,16 @@ import {ParticleEmitter} from '../ParticleEmitter';
 const VECTOR_ONE = new Vector3(1, 1, 1);
 const VECTOR_Z = new Vector3(0, 0, 1);
 
+export enum SubParticleEmitMode {
+    Death,
+    Birth,
+    Frame,
+}
+
+interface SubEmissionState extends EmissionState {
+    matrix: Matrix4;
+}
+
 export class EmitSubParticleSystem implements Behavior {
     type = 'EmitSubParticleSystem';
 
@@ -15,10 +25,14 @@ export class EmitSubParticleSystem implements Behavior {
     private v_ = new Vector3();
     private v2_ = new Vector3();
 
+    private subEmissions = new Array<SubEmissionState>();
+
     constructor(
         private particleSystem: ParticleSystem,
         public useVelocityAsBasis: boolean,
-        public subParticleSystem?: ParticleEmitter<BaseEvent>
+        public subParticleSystem: ParticleEmitter<BaseEvent> | undefined,
+        public mode: SubParticleEmitMode = SubParticleEmitMode.Frame,
+        public emitProbability: number = 1
     ) {
         if (this.subParticleSystem && this.subParticleSystem.system) {
             (this.subParticleSystem.system as ParticleSystem).onlyUsedByOther = true;
@@ -26,18 +40,31 @@ export class EmitSubParticleSystem implements Behavior {
     }
 
     initialize(particle: Particle): void {
-        particle.emissionState = {
+        /*particle.emissionState = {
             burstIndex: 0,
             burstWaveIndex: 0,
             time: 0,
             waitEmiting: 0,
             matrix: new Matrix4(),
-        } as EmissionState;
+        } as EmissionState;*/
     }
 
     update(particle: Particle, delta: number): void {
-        if (!this.subParticleSystem || !particle.emissionState) return;
-        const m = (particle.emissionState as any).matrix;
+        if (this.mode === SubParticleEmitMode.Frame) {
+            this.emit(particle, delta);
+        } else if (this.mode === SubParticleEmitMode.Birth && particle.age === 0) {
+            this.emit(particle, delta);
+        } else if (this.mode === SubParticleEmitMode.Death && particle.age + delta >= particle.life) {
+            this.emit(particle, delta);
+        }
+    }
+
+    private emit(particle: Particle, delta: number) {
+        if (!this.subParticleSystem) return;
+        if (Math.random() > this.emitProbability) {
+            return;
+        }
+        const m = new Matrix4();
         let rotation;
         if (particle.rotation === undefined || this.useVelocityAsBasis) {
             if (
@@ -99,25 +126,62 @@ export class EmitSubParticleSystem implements Behavior {
         if (!this.particleSystem.worldSpace) {
             m.multiplyMatrices(this.particleSystem.emitter.matrixWorld, m);
         }
-        (this.subParticleSystem.system as ParticleSystem).emit(delta, particle.emissionState, m);
+        this.subEmissions.push({
+            burstIndex: 0,
+            burstWaveIndex: 0,
+            time: 0,
+            waitEmiting: 0,
+            matrix: m,
+        });
+        //(this.subParticleSystem.system as ParticleSystem).emit(delta, particle.emissionState, m);
     }
 
-    frameUpdate(delta: number): void {}
+    frameUpdate(delta: number): void {
+        if (!this.subParticleSystem) return;
+        console.log(this.subEmissions.length, this.subParticleSystem.system.particleNum);
+        for (let i = 0; i < this.subEmissions.length; i++) {
+            if (this.subEmissions[i].time >= (this.subParticleSystem!.system as ParticleSystem).duration) {
+                this.subEmissions[i] = this.subEmissions[this.subEmissions.length - 1];
+                this.subEmissions.length = this.subEmissions.length - 1;
+                i--;
+            } else {
+                (this.subParticleSystem.system as ParticleSystem).emit(
+                    delta,
+                    this.subEmissions[i],
+                    this.subEmissions[i].matrix
+                );
+            }
+        }
+    }
 
     toJSON(): any {
         return {
             type: this.type,
             subParticleSystem: this.subParticleSystem ? this.subParticleSystem.uuid : '',
             useVelocityAsBasis: this.useVelocityAsBasis,
+            mode: this.mode,
+            emitProbability: this.emitProbability,
         };
     }
 
     static fromJSON(json: any, particleSystem: ParticleSystem): Behavior {
-        return new EmitSubParticleSystem(particleSystem, json.useVelocityAsBasis, json.subParticleSystem);
+        return new EmitSubParticleSystem(
+            particleSystem,
+            json.useVelocityAsBasis,
+            json.subParticleSystem,
+            json.mode,
+            json.emitProbability
+        );
     }
 
     clone(): Behavior {
-        return new EmitSubParticleSystem(this.particleSystem, this.useVelocityAsBasis, this.subParticleSystem);
+        return new EmitSubParticleSystem(
+            this.particleSystem,
+            this.useVelocityAsBasis,
+            this.subParticleSystem,
+            this.mode,
+            this.emitProbability
+        );
     }
     reset(): void {}
 }

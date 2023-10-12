@@ -1,9 +1,10 @@
 import {VFXBatch, RenderMode, StoredBatchSettings} from './VFXBatch';
-import {BufferGeometry, Layers, Material, Object3D} from 'three';
+import { BufferGeometry, Layers, Material, Object3D, Vector3 } from "three";
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
 import {ParticleEmitter} from './ParticleEmitter';
 import {IParticle, Particle} from './Particle';
+import { FunctionValueGenerator, ValueGenerator } from "./functions";
 
 export interface VFXBatchSettings {
     // 5 component x,y,z,u,v
@@ -18,8 +19,38 @@ export interface VFXBatchSettings {
 export interface SerializationOptions {
     useUrlForImage?: boolean;
 }
-export interface IParticleSystem {
+
+
+export type RendererEmitterSettings = TrailSettings | MeshSettings | BillBoardSettings | StretchedBillBoardSettings;
+
+export interface StretchedBillBoardSettings {
+    /**
+     * how stretched the particle is in the direction of the camera based on the speed of the particle.
+     * @type {number}
+     */
     speedFactor: number;
+    /**
+     * how stretched the particle is in the direction of the camera based on the size of the particle.
+     * @type {number}
+     */
+    lengthFactor: number;
+}
+
+export interface BillBoardSettings {}
+
+export interface TrailSettings {
+    startLength: ValueGenerator | FunctionValueGenerator;
+    followLocalOrigin: boolean;
+}
+
+export interface MeshSettings {
+    rotationAxis?: Vector3;
+    startRotationX: ValueGenerator | FunctionValueGenerator;
+    startRotationY: ValueGenerator | FunctionValueGenerator;
+    startRotationZ: ValueGenerator | FunctionValueGenerator;
+}
+
+export interface IParticleSystem {
     worldSpace: boolean;
     particleNum: number;
     duration: number;
@@ -28,6 +59,7 @@ export interface IParticleSystem {
     emitter: ParticleEmitter<any>;
     _renderer?: BatchedRenderer;
     instancingGeometry: BufferGeometry;
+    rendererEmitterSettings: RendererEmitterSettings;
 
     getRendererSettings(): VFXBatchSettings;
 

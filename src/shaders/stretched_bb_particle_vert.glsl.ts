@@ -10,7 +10,7 @@ export default /* glsl */ `
 attribute vec3 offset;
 attribute float rotation;
 attribute float size;
-attribute vec3 velocity;
+attribute vec4 velocity;
 attribute float uvTile;
 
 #ifdef UV_TILE
@@ -24,10 +24,13 @@ void main() {
     ${uv_vertex_tile}
 	
     vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
-    vec3 viewVelocity = normalMatrix * velocity;
+    vec3 viewVelocity = normalMatrix * velocity.xyz;
 
     vec3 scaledPos = vec3(position.xy * size, position.z);
-    mvPosition.xyz += scaledPos + dot(scaledPos, viewVelocity) * viewVelocity / length(viewVelocity) / size * speedFactor;
+    float vlength = length(viewVelocity);
+    float lengthFactor = velocity.w;
+    vec3 projVelocity =  dot(scaledPos, viewVelocity) * viewVelocity / vlength;
+    mvPosition.xyz += scaledPos + projVelocity * (speedFactor / size + lengthFactor / vlength);
 
 	vColor = color;
 
