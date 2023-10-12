@@ -12,7 +12,7 @@ export class SpeedOverLife implements Behavior {
     }
 
     update(particle: Particle): void {
-        particle.velocity.normalize().multiplyScalar(particle.startSpeed * this.speed.genValue(particle.age / particle.life));
+        (particle as any).speedModifier = this.speed.genValue(particle.age / particle.life);
     }
     toJSON(): any {
         return {

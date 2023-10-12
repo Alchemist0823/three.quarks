@@ -89,6 +89,7 @@
         import {CustomPluginDemo} from "./customPluginDemo.js";
         import {SequencerDemo} from "./sequencerDemo.js";
         import {MeshMaterialDemo} from "./meshMaterialDemo.js";
+        import {SubEmitterDemo} from "./subEmitterDemo.js";
         import {AlphaTestDemo} from "./alphaTestDemo.js";
         import {BillboardDemo} from "./billboardDemo.js";
         import {NodeBasedVFXDemo} from "./nodeBasedVFXDemo.js";
@@ -155,7 +156,7 @@
         let scene;
         let demo;
 
-        let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, NodeBasedVFXDemo];
+        let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, NodeBasedVFXDemo];
         let demoIndex = 0;
 
         function init() {
@@ -174,7 +175,7 @@
             clock = new Clock();
 
             camera = new PerspectiveCamera(60, width / height, 1, 1000);
-            camera.position.set(0, 16, 8);
+            camera.position.set(0, 10, 10);
 
             controls = new OrbitControls(camera, renderer.domElement);
             //controls.target = new Vector3(0, 0, 10);

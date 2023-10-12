@@ -18,7 +18,7 @@ import {BatchedRenderer, IParticleSystem, SerializationOptions, VFXBatchSettings
 import {NodeGraph} from './NodeGraph';
 import {Interpreter} from './Interpreter';
 import {ExecutionContext} from './NodeType';
-import {BillBoardSettings, MeshSettings, TrailSettings} from '../ParticleSystem';
+import {BillBoardSettings, MeshSettings, TrailSettings} from '../BatchedRenderer';
 
 const UP = new Vector3(0, 0, 1);
 const tempQ = new Quaternion();

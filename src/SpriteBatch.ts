@@ -23,7 +23,7 @@ import local_particle_physics_vert from './shaders/local_particle_physics_vert.g
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 import {VFXBatch, RenderMode} from './VFXBatch';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
-import {VFXBatchSettings} from './BatchedRenderer';
+import {StretchedBillBoardSettings, VFXBatchSettings} from './BatchedRenderer';
 
 const UP = new Vector3(0, 0, 1);
 
@@ -74,7 +74,7 @@ export class SpriteBatch extends VFXBatch {
         this.uvTileBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('uvTile', this.uvTileBuffer);
         if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
-            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 3), 3);
+            this.velocityBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 4), 4);
             this.velocityBuffer.setUsage(DynamicDrawUsage);
             this.geometry.setAttribute('velocity', this.velocityBuffer);
         }
@@ -172,7 +172,10 @@ export class SpriteBatch extends VFXBatch {
             uniforms['tileCount'] = new Uniform(new Vector2(uTileCount, vTileCount));
         }
 
-        if ((this.settings.material as any).defines && (this.settings.material as any).defines['USE_COLOR_AS_ALPHA'] !== undefined) {
+        if (
+            (this.settings.material as any).defines &&
+            (this.settings.material as any).defines['USE_COLOR_AS_ALPHA'] !== undefined
+        ) {
             defines['USE_COLOR_AS_ALPHA'] = '';
         }
 
@@ -338,7 +341,9 @@ export class SpriteBatch extends VFXBatch {
                 this.uvTileBuffer.setX(index, particle.uvTile);
 
                 if (this.settings.renderMode === RenderMode.StretchedBillBoard && this.velocityBuffer) {
-                    const speedFactor = system.speedFactor;
+                    let speedFactor = (system.rendererEmitterSettings as StretchedBillBoardSettings).speedFactor;
+                    if (speedFactor === 0) speedFactor = 0.001; // TODO: use an another buffer
+                    const lengthFactor = (system.rendererEmitterSettings as StretchedBillBoardSettings).lengthFactor;
                     let vec;
                     if (system.worldSpace) {
                         vec = particle.velocity;
@@ -351,7 +356,13 @@ export class SpriteBatch extends VFXBatch {
                             vec.copy(particle.velocity).applyMatrix3(this.rotationMat_);
                         }
                     }
-                    this.velocityBuffer.setXYZ(index, vec.x * speedFactor, vec.y * speedFactor, vec.z * speedFactor);
+                    this.velocityBuffer.setXYZW(
+                        index,
+                        vec.x * speedFactor,
+                        vec.y * speedFactor,
+                        vec.z * speedFactor,
+                        lengthFactor
+                    );
                 }
             }
         });
@@ -371,7 +382,7 @@ export class SpriteBatch extends VFXBatch {
             this.uvTileBuffer.needsUpdate = true;
 
             if (this.settings.renderMode === RenderMode.StretchedBillBoard && this.velocityBuffer) {
-                this.velocityBuffer.updateRange.count = index * 3;
+                this.velocityBuffer.updateRange.count = index * 4;
                 this.velocityBuffer.needsUpdate = true;
             }
 

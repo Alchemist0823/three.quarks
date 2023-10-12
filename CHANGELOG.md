@@ -1,5 +1,10 @@
 # Change Log
 
+## version 0.10.14
+- Add support for length scale for StretchedBillboard renderer
+- Fix EmitSubParticleSystem behavior's bug and support unity subEmitter module
+- Add sub emitter example
+
 ## version 0.10.13
 - Add support for more emitter shapes (circle, hemisphere) and shapes example
 

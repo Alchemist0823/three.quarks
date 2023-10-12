@@ -184,6 +184,8 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
             ['particleSystem', 'self'],
             ['useVelocityAsBasis', 'boolean'],
             ['subParticleSystem', 'particleSystem'],
+            ['mode', 'number'],
+            ['emitProbability', 'number'],
         ],
         loadJSON: EmitSubParticleSystem.fromJSON,
     },
