@@ -1,6 +1,6 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
-import {FunctionValueGenerator, ValueGeneratorFromJSON} from "../functions";
+import {FunctionValueGenerator, PiecewiseBezier, ValueGeneratorFromJSON} from "../functions";
 
 export class FrameOverLife implements Behavior {
 
@@ -9,10 +9,15 @@ export class FrameOverLife implements Behavior {
     }
 
     initialize(particle: Particle): void {
+        if (!(this.frame instanceof PiecewiseBezier)) {
+            particle.uvTile = this.frame.genValue(0);
+        }
     }
 
     update(particle: Particle, delta: number): void {
-        particle.uvTile = Math.floor(this.frame.genValue(particle.age / particle.life));
+        if (this.frame instanceof PiecewiseBezier) {
+            particle.uvTile = Math.floor(this.frame.genValue(particle.age / particle.life));
+        }
     }
 
     frameUpdate(delta: number): void {
