@@ -1,5 +1,9 @@
 # Change Log
 
+## version 0.10.15
+- Fix interval value on frame over life
+- Better support for noise generation
+
 ## version 0.10.14
 - Add support for length scale for StretchedBillboard renderer
 - Fix EmitSubParticleSystem behavior's bug and support unity subEmitter module
