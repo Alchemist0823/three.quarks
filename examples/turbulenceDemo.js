@@ -19,7 +19,7 @@ import {
     PiecewiseBezier,
     ColorOverLife,
     RenderMode,
-    SizeOverLife,
+    Noise,
     ParticleSystem,
     ParticleEmitter,
     BatchedParticleRenderer,
@@ -29,7 +29,7 @@ import {
 import {Demo} from './demo.js';
 
 export class TurbulenceDemo extends Demo {
-    name = 'Turbulence';
+    name = 'Noise';
     initDemo() {
         const ps = new ParticleSystem({
             duration: 1,
@@ -42,7 +42,7 @@ export class TurbulenceDemo extends Demo {
 
             emissionOverTime: new ConstantValue(500),
 
-            shape: new ConeEmitter({radius: 0.5, angle: 0}),
+            shape: new ConeEmitter({radius: 0.5, angle: 0.5}),
             material: new MeshBasicMaterial({
                 map: this.texture,
                 blending: AdditiveBlending,
@@ -56,7 +56,7 @@ export class TurbulenceDemo extends Demo {
             renderOrder: 0,
         });
         ps.emitter.name = 'ps';
-        ps.addBehavior(new TurbulenceField(new Vector3(10, 10, 10), 2, new Vector3(8, 8, 8), new Vector3(5, 5, 5)));
+        ps.addBehavior(new Noise(new ConstantValue(1), new ConstantValue(2)));
         ps.emitter.rotation.x = -Math.PI / 2;
         ps.emitter.position.y = -8;
         this.scene.add(ps.emitter);

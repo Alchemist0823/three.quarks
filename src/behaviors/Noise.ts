@@ -1,36 +1,104 @@
-import {Behavior} from "./Behavior";
-import {Particle} from "../Particle";
-import {Vector3} from "three";
-import SimplexNoise from "../util/simplex-noise";
+import {Behavior} from './Behavior';
+import {Particle} from '../Particle';
+import {Quaternion, Vector3} from 'three';
+import SimplexNoise from '../util/SimplexNoise';
+import {ConstantValue, FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
+import {randomInt} from '../util/MathUtil';
+
+const generators: Array<SimplexNoise> = [];
+const tempV = new Vector3();
+const tempQ = new Quaternion();
 
 export class Noise implements Behavior {
-
     type = 'Noise';
-    generator = new SimplexNoise();
     duration = 0;
-    temp = new Vector3();
 
-    constructor(public frequency: Vector3, public power: Vector3) {
+    constructor(
+        public frequency: FunctionValueGenerator | ValueGenerator,
+        public power: FunctionValueGenerator | ValueGenerator,
+        public positionAmount: FunctionValueGenerator | ValueGenerator = new ConstantValue(1),
+        public rotationAmount: FunctionValueGenerator | ValueGenerator = new ConstantValue(0)
+    ) {
+        if (generators.length === 0) {
+            for (let i = 0; i < 100; i++) {
+                generators.push(new SimplexNoise());
+            }
+        }
     }
 
     initialize(particle: Particle): void {
-        (particle as any).startTime = this.duration;
+        (particle as any).seed = Math.random() * 10;
+        (particle as any).lastPosNoise = new Vector3();
+        if (typeof particle.rotation === 'number') {
+            (particle as any).lastRotNoise = 0;
+        } else {
+            (particle as any).lastRotNoise = new Quaternion();
+        }
+        (particle as any).generatorIndex = [randomInt(0, 100), randomInt(0, 100), randomInt(0, 100), randomInt(0, 100)];
     }
 
-    update(particle: Particle, delta: number): void {
-        this.temp.set(
-            this.generator.noise2D((particle as any).startTime * this.frequency.x, particle.life / particle.age * this.frequency.x),
-            this.generator.noise2D((particle as any).startTime * this.frequency.y + 100.25, particle.life / particle.age * this.frequency.y + 100.154),
-            this.generator.noise2D((particle as any).startTime * this.frequency.z + 200.89, particle.life / particle.age * this.frequency.z + 200.1)
-        ).multiply(this.power);
-        particle.position.addScaledVector(this.temp, delta);
+    update(particle: Particle, _: number): void {
+        let frequency = this.frequency.genValue(particle.age / particle.life);
+        let power = this.power.genValue(particle.age / particle.life);
+        let positionAmount = this.positionAmount.genValue(particle.age / particle.life);
+        let rotationAmount = this.rotationAmount.genValue(particle.age / particle.life);
+        if (positionAmount > 0) {
+            particle.position.sub((particle as any).lastPosNoise);
+            tempV.set(
+                generators[(particle as any).generatorIndex[0]].noise2D(0, particle.age * frequency) *
+                    power *
+                    positionAmount,
+                generators[(particle as any).generatorIndex[1]].noise2D(0, particle.age * frequency) *
+                    power *
+                    positionAmount,
+                generators[(particle as any).generatorIndex[2]].noise2D(0, particle.age * frequency) *
+                    power *
+                    positionAmount
+            );
+            particle.position.add(tempV);
+            (particle as any).lastPosNoise.copy(tempV);
+        }
+
+        if (rotationAmount > 0) {
+            if (typeof particle.rotation === 'number') {
+                particle.rotation -= (particle as any).lastRotNoise;
+                particle.rotation +=
+                    generators[(particle as any).generatorIndex[3]].noise2D(0, particle.age * frequency) *
+                    Math.PI *
+                    power *
+                    rotationAmount;
+            } else {
+                ((particle as any).lastRotNoise as Quaternion).invert();
+                (particle.rotation as Quaternion).multiply((particle as any).lastRotNoise);
+                tempQ
+                    .set(
+                        generators[(particle as any).generatorIndex[0]].noise2D(0, particle.age * frequency) *
+                            power *
+                            rotationAmount,
+                        generators[(particle as any).generatorIndex[1]].noise2D(0, particle.age * frequency) *
+                            power *
+                            rotationAmount,
+                        generators[(particle as any).generatorIndex[2]].noise2D(0, particle.age * frequency) *
+                            power *
+                            rotationAmount,
+                        generators[(particle as any).generatorIndex[3]].noise2D(0, particle.age * frequency) *
+                            power *
+                            rotationAmount
+                    )
+                    .normalize();
+                (particle.rotation as Quaternion).multiply(tempQ);
+                (particle as any).lastRotNoise.copy(tempQ);
+            }
+        }
     }
 
     toJSON(): any {
         return {
             type: this.type,
-            frequency: [this.frequency.x, this.frequency.y, this.frequency.z],
-            power: [this.power.x, this.power.y, this.power.z],
+            frequency: this.frequency.toJSON(),
+            power: this.power.toJSON(),
+            positionAmount: this.positionAmount.toJSON(),
+            rotationAmount: this.rotationAmount.toJSON(),
         };
     }
 
@@ -38,17 +106,23 @@ export class Noise implements Behavior {
         this.duration += delta;
     }
 
-
     static fromJSON(json: any): Behavior {
         return new Noise(
-            new Vector3(json.frequency[0], json.frequency[1], json.frequency[2]),
-            new Vector3(json.power[0], json.power[1], json.power[2]),
+            ValueGeneratorFromJSON(json.frequency),
+            ValueGeneratorFromJSON(json.power),
+            ValueGeneratorFromJSON(json.positionAmount),
+            ValueGeneratorFromJSON(json.rotationAmount)
         );
     }
 
     clone(): Behavior {
-        return new Noise(this.frequency.clone(), this.power.clone());
+        return new Noise(
+            this.frequency.clone(),
+            this.power.clone(),
+            this.positionAmount.clone(),
+            this.rotationAmount.clone()
+        );
     }
-    reset(): void {
-    }
+
+    reset(): void {}
 }
