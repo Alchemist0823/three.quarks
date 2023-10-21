@@ -1,7 +1,7 @@
 import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
 import {Vector3} from "three";
-import SimplexNoise from "../util/simplex-noise";
+import SimplexNoise from "../util/SimplexNoise";
 
 export class TurbulenceField implements Behavior {
 

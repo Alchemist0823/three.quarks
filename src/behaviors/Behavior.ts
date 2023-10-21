@@ -52,8 +52,10 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
         type: 'Noise',
         constructor: Noise,
         params: [
-            ['frequency', 'vec3'],
-            ['power', 'vec3'],
+            ['frequency', 'value'],
+            ['power', 'value'],
+            ['positionAmount', 'value'],
+            ['rotationAmount', 'value'],
         ],
         loadJSON: Noise.fromJSON,
     },
