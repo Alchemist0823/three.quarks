@@ -1077,7 +1077,7 @@
                   "frame": {
                     "type": "IntervalValue",
                     "a": 0,
-                    "b": 0.9999
+                    "b": 4
                   }
                 }, {
                   "type": "LimitSpeedOverLife",
