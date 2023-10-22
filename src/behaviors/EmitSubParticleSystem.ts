@@ -138,7 +138,6 @@ export class EmitSubParticleSystem implements Behavior {
 
     frameUpdate(delta: number): void {
         if (!this.subParticleSystem) return;
-        console.log(this.subEmissions.length, this.subParticleSystem.system.particleNum);
         for (let i = 0; i < this.subEmissions.length; i++) {
             if (this.subEmissions[i].time >= (this.subParticleSystem!.system as ParticleSystem).duration) {
                 this.subEmissions[i] = this.subEmissions[this.subEmissions.length - 1];
