@@ -273,7 +273,7 @@ export class MuzzleFlashDemo extends Demo {
             uTileCount: 10,
             vTileCount: 10,
             renderMode: RenderMode.StretchedBillBoard,
-            speedFactor: 0.05,
+            speedFactor: 0.4,
             renderOrder: 1,
         });
         particles.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
