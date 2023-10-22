@@ -1,5 +1,13 @@
 # Change Log
 
+## version 0.10.17
+- Fix stretched Billboard shader so it rotates billboard correctly
+- Add euler order option in eular generator, because threejs uses intrinsic eular angles, and unity
+uses extrinsic eular angles.
+
+## version 0.10.16
+- Hot fix frame over life
+
 ## version 0.10.15
 - Fix interval value on frame over life
 - Better support for noise generation
