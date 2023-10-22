@@ -496,7 +496,7 @@ export class ParticleSystem implements IParticleSystem {
                 stretchedBillboardSettings.speedFactor = parameters.speedFactor;
             }
             stretchedBillboardSettings.speedFactor = stretchedBillboardSettings.speedFactor ?? 0;
-            stretchedBillboardSettings.lengthFactor = stretchedBillboardSettings.speedFactor ?? 0;
+            stretchedBillboardSettings.lengthFactor = stretchedBillboardSettings.lengthFactor ?? 0;
         }
 
         this.rendererSettings = {
