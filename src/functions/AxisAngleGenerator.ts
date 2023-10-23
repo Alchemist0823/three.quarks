@@ -1,13 +1,15 @@
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./ValueGenerator";
-import { Quaternion, Vector3} from "three";
-import {FunctionJSON} from "./FunctionJSON";
-import {RotationGenerator} from "./RotationGenerator";
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './ValueGenerator';
+import {Quaternion, Vector3} from 'three';
+import {FunctionJSON} from './FunctionJSON';
+import {RotationGenerator} from './RotationGenerator';
 
 export class AxisAngleGenerator implements RotationGenerator {
-
-    type: "rotation";
-    constructor(public axis: Vector3, public angle: FunctionValueGenerator | ValueGenerator) {
-        this.type = "rotation";
+    type: 'rotation';
+    constructor(
+        public axis: Vector3,
+        public angle: FunctionValueGenerator | ValueGenerator
+    ) {
+        this.type = 'rotation';
     }
 
     genValue(quat: Quaternion, t?: number): Quaternion {
@@ -17,14 +19,17 @@ export class AxisAngleGenerator implements RotationGenerator {
 
     toJSON(): FunctionJSON {
         return {
-            type: "AxisAngle",
+            type: 'AxisAngle',
             axis: {x: this.axis.x, y: this.axis.y, z: this.axis.z},
             angle: this.angle.toJSON(),
         };
     }
 
     static fromJSON(json: FunctionJSON): AxisAngleGenerator {
-        return new AxisAngleGenerator(json.axis, ValueGeneratorFromJSON(json.angle) as FunctionValueGenerator);
+        return new AxisAngleGenerator(
+            new Vector3(json.axis.x, json.axis.y, json.axis.z),
+            ValueGeneratorFromJSON(json.angle) as FunctionValueGenerator
+        );
     }
 
     clone(): RotationGenerator {
