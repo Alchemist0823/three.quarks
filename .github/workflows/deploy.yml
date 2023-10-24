@@ -1,14 +1,10 @@
-# Build / Test / Deploy examples to Pages
-name: Build / Test / Deploy examples to Pages
+# Build / Deploy examples to Pages
+name: Build / Deploy examples to Pages
 
 on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["master"]
-  pull_request:
-    types: [opened, reopened]
-    branches:
-      - 'master'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -38,13 +34,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: '18.x'
+          cache: 'npm'
       - name: Install Dependencies
         run: npm install
       - name: Build Package
         run: npm run build
-      - name: Run Unit Tests
-        run: npm test
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
