@@ -115,7 +115,7 @@ describe('ParticleEmitter', () => {
         const json = glowBeam.emitter.toJSON();
         // console.log(json);
         const loader = new QuarksLoader();
-        const emitter = loader.parse(json, () => {}) as ParticleEmitter<Event>;
+        const emitter = loader.parse(json, () => {}) as ParticleEmitter;
         const system = emitter.system as ParticleSystem;
         expect(system.rendererSettings.layers.mask).toBe(3);
         expect(system.startTileIndex.type).toBe('value');

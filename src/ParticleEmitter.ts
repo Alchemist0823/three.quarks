@@ -1,4 +1,4 @@
-import {Object3D, BaseEvent} from 'three';
+import {Object3D, Object3DEventMap} from 'three';
 import {IParticleSystem, SerializationOptions} from './BatchedRenderer';
 
 export interface MetaData {
@@ -12,7 +12,7 @@ export interface MetaData {
     nodes: {[key: string]: any};
 }
 
-export class ParticleEmitter<E extends BaseEvent> extends Object3D<E> {
+export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap> extends Object3D<E> {
     type = 'ParticleEmitter';
     system: IParticleSystem;
     //interleavedBuffer: InterleavedBuffer;
