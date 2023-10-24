@@ -155,6 +155,8 @@ export interface EmissionState {
     burstWaveIndex: number;
     time: number;
     waitEmiting: number;
+    travelDistance: number;
+    previousWorldPos?: Vector3;
 }
 
 /**
@@ -522,6 +524,7 @@ export class ParticleSystem implements IParticleSystem {
             burstWaveIndex: 0,
             time: 0,
             waitEmiting: 0,
+            travelDistance: 0,
         };
 
         this.emitEnded = false;
@@ -783,19 +786,23 @@ export class ParticleSystem implements IParticleSystem {
         if (!this.emitEnded) {
             emissionState.waitEmiting += delta * this.emissionOverTime.genValue(emissionState.time / this.duration);
 
-            if (this.previousWorldPos != undefined) {
-                this.emitter.getWorldPosition(this.temp);
-                this.travelDistance += this.previousWorldPos.distanceTo(this.temp);
+            if (emissionState.previousWorldPos != undefined) {
+                this.temp.set(emitterMatrix.elements[12], emitterMatrix.elements[13], emitterMatrix.elements[14]);
+                emissionState.travelDistance += emissionState.previousWorldPos.distanceTo(this.temp);
                 const emitPerMeter = this.emissionOverDistance.genValue(emissionState.time / this.duration);
-                if (this.travelDistance * emitPerMeter > 0) {
-                    const count = Math.floor(this.travelDistance * emitPerMeter);
-                    this.travelDistance -= count / emitPerMeter;
+                if (emissionState.travelDistance * emitPerMeter > 0) {
+                    const count = Math.floor(emissionState.travelDistance * emitPerMeter);
+                    emissionState.travelDistance -= count / emitPerMeter;
                     emissionState.waitEmiting += count;
                 }
             }
         }
-        if (this.previousWorldPos === undefined) this.previousWorldPos = new Vector3();
-        this.emitter.getWorldPosition(this.previousWorldPos);
+        if (emissionState.previousWorldPos === undefined) emissionState.previousWorldPos = new Vector3();
+        emissionState.previousWorldPos.set(
+            emitterMatrix.elements[12],
+            emitterMatrix.elements[13],
+            emitterMatrix.elements[14]
+        );
         emissionState.time += delta;
     }
 
