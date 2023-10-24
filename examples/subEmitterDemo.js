@@ -3,7 +3,7 @@ import {Demo} from './demo.js';
 
 export class SubEmitterDemo extends Demo {
     name = 'Sub Emitter';
-    //refreshTime = 0;
+    refreshTime = 2;
     initScene() {
         super.initScene();
 
@@ -11,6 +11,21 @@ export class SubEmitterDemo extends Demo {
         this.scene.add(this.batchRenderer);
 
         new QuarksLoader().load('AcidBoiling.json', (obj) => {
+            obj.traverse((child) => {
+                if (child.type === 'ParticleEmitter') {
+                    this.batchRenderer.addSystem(child.system);
+                }
+            });
+            if (obj.type === 'ParticleEmitter') {
+                this.batchRenderer.addSystem(obj.system);
+            }
+            obj.position.x = -5;
+            this.scene.add(obj);
+            this.groups.push(obj);
+        });
+
+        new QuarksLoader().load('subEmitter2.json', (obj) => {
+            obj.position.x = 5;
             obj.traverse((child) => {
                 if (child.type === 'ParticleEmitter') {
                     this.batchRenderer.addSystem(child.system);

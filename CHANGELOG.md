@@ -1,5 +1,8 @@
 # Change Log
 
+## version 0.10.18
+- Fix sub emitter emission over distance
+
 ## version 0.10.17
 - Fix stretched Billboard shader so it rotates billboard correctly
 - Add euler order option in eular generator, because threejs uses intrinsic eular angles, and unity
