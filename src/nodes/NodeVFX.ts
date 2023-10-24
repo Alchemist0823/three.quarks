@@ -1,7 +1,7 @@
 import {IParticle, NodeParticle, Particle, SpriteParticle, TrailParticle} from '../Particle';
 import {ParticleEmitter} from '../ParticleEmitter';
 import {
-    BaseEvent,
+    Object3DEventMap,
     BufferGeometry,
     Layers,
     Material,
@@ -114,9 +114,9 @@ export class NodeVFX implements IParticleSystem {
     /**
      * the emitter object that should be added in the scene.
      *
-     * @type {ParticleEmitter<BaseEvent>}
+     * @type {ParticleEmitter<Object3DEventMap>}
      */
-    emitter: ParticleEmitter<BaseEvent>;
+    emitter: ParticleEmitter<Object3DEventMap>;
 
     /**
      * the VFX renderer settings for the batch renderer
