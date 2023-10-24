@@ -31,6 +31,7 @@ import {
     Points,
     SpriteMaterial,
     Bone,
+    Object3DEventMap,
 } from 'three';
 import {ParticleSystem} from './ParticleSystem';
 import {Behavior, EmitSubParticleSystem} from './behaviors';
@@ -56,7 +57,7 @@ export class QuarksLoader extends ObjectLoader {
         });
         object.traverse(function (child) {
             if (child.type === 'ParticleEmitter') {
-                const system = (child as ParticleEmitter<Event>).system as ParticleSystem;
+                const system = (child as ParticleEmitter).system as ParticleSystem;
                 const shape = system.emitterShape;
                 /*if (shape instanceof MeshSurfaceEmitter) {
                     shape.geometry = objectsMap[shape.geometry as any] as Mesh;
@@ -65,7 +66,7 @@ export class QuarksLoader extends ObjectLoader {
                     if (system.behaviors[i] instanceof EmitSubParticleSystem) {
                         (system.behaviors[i] as EmitSubParticleSystem).subParticleSystem = objectsMap[
                             (system.behaviors[i] as EmitSubParticleSystem).subParticleSystem as any
-                        ] as ParticleEmitter<Event>;
+                        ] as ParticleEmitter;
                     }
                 }
             }
@@ -79,7 +80,7 @@ export class QuarksLoader extends ObjectLoader {
     }
 
     // @ts-ignore
-    parseObject<T extends Object3D<Event>>(
+    parseObject<T extends Object3D<Object3DEventMap>>(
         data: any,
         geometries: any,
         materials: Material[],

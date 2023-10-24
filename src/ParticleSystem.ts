@@ -18,7 +18,7 @@ import {MetaData, ParticleEmitter} from './ParticleEmitter';
 import {EmitterFromJSON, EmitterShape, ShapeJSON, SphereEmitter} from './shape';
 import {
     AdditiveBlending,
-    BaseEvent,
+    Object3DEventMap,
     Blending,
     BufferGeometry,
     DoubleSide,
@@ -308,9 +308,9 @@ export class ParticleSystem implements IParticleSystem {
     /**
      * the emitter object that should be added in the scene.
      *
-     * @type {ParticleEmitter<BaseEvent>}
+     * @type {ParticleEmitter<Object3DEventMap>}
      */
-    emitter: ParticleEmitter<BaseEvent>;
+    emitter: ParticleEmitter<Object3DEventMap>;
 
     /**
      * the VFX renderer settings for the batch renderer

@@ -1,7 +1,7 @@
 import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {EmissionState, ParticleSystem} from '../ParticleSystem';
-import {BaseEvent, Matrix4, Quaternion, Vector3} from 'three';
+import {Object3DEventMap, Matrix4, Quaternion, Vector3} from 'three';
 import {ParticleEmitter} from '../ParticleEmitter';
 
 const VECTOR_ONE = new Vector3(1, 1, 1);
@@ -31,7 +31,7 @@ export class EmitSubParticleSystem implements Behavior {
     constructor(
         private particleSystem: ParticleSystem,
         public useVelocityAsBasis: boolean,
-        public subParticleSystem: ParticleEmitter<BaseEvent> | undefined,
+        public subParticleSystem: ParticleEmitter<Object3DEventMap> | undefined,
         public mode: SubParticleEmitMode = SubParticleEmitMode.Frame,
         public emitProbability: number = 1
     ) {
