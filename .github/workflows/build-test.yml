@@ -1,0 +1,27 @@
+name: Build / Test CI
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["master"]
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - 'master'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build Package
+        run: npm run build
+      - name: Run test
+        run: npm run test
