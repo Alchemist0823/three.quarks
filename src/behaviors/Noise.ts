@@ -42,7 +42,6 @@ export class Noise implements Behavior {
         let positionAmount = this.positionAmount.genValue(particle.age / particle.life);
         let rotationAmount = this.rotationAmount.genValue(particle.age / particle.life);
         if (positionAmount > 0 && (particle as any).lastPosNoise !== undefined) {
-            console.log((particle as any).lastPosNoise);
             particle.position.sub((particle as any).lastPosNoise);
             tempV.set(
                 generators[(particle as any).generatorIndex[0]].noise2D(0, particle.age * frequency) *

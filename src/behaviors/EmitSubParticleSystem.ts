@@ -93,8 +93,6 @@ export class EmitSubParticleSystem implements Behavior {
                 } else {
                     subEmissionState.particle = undefined;
                 }
-                console.log(subEmissionState);
-                console.log((this.subParticleSystem.system as ParticleSystem).emissionOverDistance);
                 (this.subParticleSystem.system as ParticleSystem).emit(
                     delta,
                     subEmissionState,
