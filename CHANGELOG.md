@@ -1,5 +1,9 @@
 # Change Log
 
+## version 0.11.1
+- hotfix to support editors noise
+- hotfix on rotation over life on mesh emitter
+
 ## version 0.11.0
 - Make rotation over life auto-detect input function
 - Make color range matches unity random color

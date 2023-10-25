@@ -7,7 +7,6 @@ import {ConstantValue, IntervalValue} from '../functions';
 export class RotationOverLife implements Behavior {
     type = 'RotationOverLife';
     private dynamic: boolean;
-    private tempQuat = new Quaternion();
 
     constructor(public angularVelocity: ValueGenerator | FunctionValueGenerator) {
         this.dynamic = !(angularVelocity instanceof ConstantValue || angularVelocity instanceof IntervalValue);
@@ -17,18 +16,18 @@ export class RotationOverLife implements Behavior {
         this.dynamic = !(
             this.angularVelocity instanceof ConstantValue || this.angularVelocity instanceof IntervalValue
         );
-        if (!this.dynamic && particle instanceof SpriteParticle) {
-            particle.angularVelocity = (this.angularVelocity as ValueGenerator).genValue();
+        if (!this.dynamic && typeof particle.rotation === 'number') {
+            (particle as any).angularVelocity = (this.angularVelocity as ValueGenerator).genValue();
         }
     }
 
     update(particle: Particle, delta: number): void {
         if (!this.dynamic) {
-            if (particle instanceof SpriteParticle) {
-                (particle.rotation as number) += delta * (particle.angularVelocity as number);
+            if (typeof particle.rotation === 'number') {
+                (particle.rotation as number) += delta * ((particle as any).angularVelocity as number);
             }
         } else {
-            if (particle instanceof SpriteParticle) {
+            if (typeof particle.rotation === 'number') {
                 (particle.rotation as number) +=
                     delta * (this.angularVelocity as FunctionValueGenerator).genValue(particle.age / particle.life);
             }
