@@ -1,5 +1,10 @@
 # Change Log
 
+## version 0.11.0
+- Make rotation over life auto-detect input function
+- Make color range matches unity random color
+- Three js version update and type improvement
+
 ## version 0.10.18
 - Fix sub emitter emission over distance
 
