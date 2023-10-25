@@ -27,7 +27,6 @@ export class Noise implements Behavior {
     }
 
     initialize(particle: Particle): void {
-        (particle as any).seed = Math.random() * 10;
         (particle as any).lastPosNoise = new Vector3();
         if (typeof particle.rotation === 'number') {
             (particle as any).lastRotNoise = 0;
@@ -42,7 +41,8 @@ export class Noise implements Behavior {
         let power = this.power.genValue(particle.age / particle.life);
         let positionAmount = this.positionAmount.genValue(particle.age / particle.life);
         let rotationAmount = this.rotationAmount.genValue(particle.age / particle.life);
-        if (positionAmount > 0) {
+        if (positionAmount > 0 && (particle as any).lastPosNoise !== undefined) {
+            console.log((particle as any).lastPosNoise);
             particle.position.sub((particle as any).lastPosNoise);
             tempV.set(
                 generators[(particle as any).generatorIndex[0]].noise2D(0, particle.age * frequency) *
@@ -59,7 +59,7 @@ export class Noise implements Behavior {
             (particle as any).lastPosNoise.copy(tempV);
         }
 
-        if (rotationAmount > 0) {
+        if (rotationAmount > 0 && (particle as any).lastRotNoise !== undefined) {
             if (typeof particle.rotation === 'number') {
                 particle.rotation -= (particle as any).lastRotNoise;
                 particle.rotation +=
