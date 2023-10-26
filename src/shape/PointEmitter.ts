@@ -1,11 +1,13 @@
-import {EmitterShape, ShapeJSON} from "./EmitterShape";
-import {Particle} from "../Particle";
+import {EmitterShape, ShapeJSON} from './EmitterUtil';
+import {Particle} from '../Particle';
+import {ParticleSystem} from '../ParticleSystem';
 
 export class PointEmitter implements EmitterShape {
-    type = "point";
+    type = 'point';
 
-    constructor() {
-    }
+    constructor() {}
+
+    update(system: ParticleSystem, delta: number): void {}
 
     initialize(p: Particle) {
         const u = Math.random();
@@ -36,6 +38,6 @@ export class PointEmitter implements EmitterShape {
     }
 
     clone(): EmitterShape {
-        return  new PointEmitter();
+        return new PointEmitter();
     }
 }

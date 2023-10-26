@@ -1,10 +1,10 @@
-import {EmitterShape, ShapeJSON} from "./EmitterShape";
-import {Particle} from "../Particle";
-import {Vector3, Triangle, BufferGeometry} from "three";
-import {JsonMetaData} from "../ParticleSystem";
+import {EmitterShape, ShapeJSON} from './EmitterUtil';
+import {Particle} from '../Particle';
+import {Vector3, Triangle, BufferGeometry, ShapeUtils} from 'three';
+import {JsonMetaData, ParticleSystem} from '../ParticleSystem';
 
 export class MeshSurfaceEmitter implements EmitterShape {
-    type = "mesh_surface";
+    type = 'mesh_surface';
 
     private _triangleIndexToArea: number[] = [];
     private _geometry?: BufferGeometry;
@@ -17,7 +17,7 @@ export class MeshSurfaceEmitter implements EmitterShape {
         if (geometry === undefined) {
             return;
         }
-        if (typeof geometry === "string") {
+        if (typeof geometry === 'string') {
             return;
         }
         // optimization
@@ -35,12 +35,12 @@ export class MeshSurfaceEmitter implements EmitterShape {
         const array = geometry.getIndex()!.array;
         const triCount = array.length / 3;
         this._triangleIndexToArea.push(0);
-        for (let i = 0; i < triCount; i ++) {
+        for (let i = 0; i < triCount; i++) {
             tri.setFromAttributeAndIndices(
-                geometry.getAttribute("position"),
+                geometry.getAttribute('position'),
                 array[i * 3],
                 array[i * 3 + 1],
-                array[i * 3 + 2],
+                array[i * 3 + 2]
             );
             area += tri.getArea();
             this._triangleIndexToArea.push(area);
@@ -67,9 +67,10 @@ export class MeshSurfaceEmitter implements EmitterShape {
             return;
         }
         const triCount = this._triangleIndexToArea.length - 1;
-        let left = 0, right = triCount;
+        let left = 0,
+            right = triCount;
         const target = Math.random() * this._triangleIndexToArea[triCount];
-        while(left + 1 < right) {
+        while (left + 1 < right) {
             const mid = Math.floor((left + right) / 2);
             if (target < this._triangleIndexToArea[mid]) {
                 right = mid;
@@ -92,13 +93,13 @@ export class MeshSurfaceEmitter implements EmitterShape {
         const index2 = geometry.getIndex()!.array[left * 3 + 1];
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const index3 = geometry.getIndex()!.array[left * 3 + 2];
-        const positionBuffer = geometry.getAttribute("position");
+        const positionBuffer = geometry.getAttribute('position');
         this._tempA.fromBufferAttribute(positionBuffer, index1);
         this._tempB.fromBufferAttribute(positionBuffer, index2);
         this._tempC.fromBufferAttribute(positionBuffer, index3);
         this._tempB.sub(this._tempA);
         this._tempC.sub(this._tempA);
-        this._tempA.addScaledVector(this._tempB, u1).addScaledVector(this._tempC,  u2);
+        this._tempA.addScaledVector(this._tempB, u1).addScaledVector(this._tempC, u2);
         p.position.copy(this._tempA);
 
         // velocity based on tri normal
@@ -111,7 +112,7 @@ export class MeshSurfaceEmitter implements EmitterShape {
     toJSON(): ShapeJSON {
         return {
             type: 'mesh_surface',
-            mesh: this._geometry ? this._geometry.uuid : "",
+            mesh: this._geometry ? this._geometry.uuid : '',
         };
     }
 
@@ -122,4 +123,6 @@ export class MeshSurfaceEmitter implements EmitterShape {
     clone(): EmitterShape {
         return new MeshSurfaceEmitter(this._geometry);
     }
+
+    update(system: ParticleSystem, delta: number): void {}
 }

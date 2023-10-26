@@ -25,6 +25,7 @@ import {
     ParticleSystem,
     ParticleEmitter,
     BatchedParticleRenderer,
+    EmitterMode,
 } from 'three.quarks';
 import {Demo} from './demo.js';
 
@@ -152,6 +153,23 @@ export class EmitterShapeDemo extends Demo {
             this.groups.push(particles.emitter);
 
             particles = this.initParticleSystem();
+            particles.emitterShape = new ConeEmitter({
+                radius: 1,
+                thickness: 0.2,
+                arc: Math.PI * 2,
+                angle: 0,
+                mode: EmitterMode.Loop,
+                spread: 0,
+                speed: new ConstantValue(3),
+            });
+            particles.emitter.name = 'Loop';
+            //particles.emitter.rotation.y = Math.PI / 2;
+            particles.emitter.position.set(5, -5, 2);
+            this.batchRenderer.addSystem(particles);
+            this.scene.add(particles.emitter);
+            this.groups.push(particles.emitter);
+
+            particles = this.initParticleSystem();
             particles.emitterShape = new GridEmitter({
                 width: 2,
                 height: 2,
@@ -160,7 +178,7 @@ export class EmitterShapeDemo extends Demo {
             });
             particles.emitter.name = 'Grid';
             //particles.emitter.rotation.y = Math.PI / 2;
-            particles.emitter.position.set(5, -5, 2);
+            particles.emitter.position.set(5, 0, 2);
             this.batchRenderer.addSystem(particles);
             this.scene.add(particles.emitter);
             this.groups.push(particles.emitter);

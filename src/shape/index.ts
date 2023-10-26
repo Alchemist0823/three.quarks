@@ -1,3 +1,4 @@
+export * from './EmitterUtil';
 export * from './ConeEmitter';
 export * from './CircleEmitter';
 export * from './DonutEmitter';

@@ -170,7 +170,7 @@ export class TrailBatch extends VFXBatch {
             for (let j = 0; j < particleNum; j++) {
                 const particle = particles[j] as TrailParticle;
                 const col = particle.uvTile % vTileCount;
-                const row = Math.floor(particle.uvTile / vTileCount);
+                const row = Math.floor(particle.uvTile / vTileCount + 0.001);
 
                 const iter = particle.previous.values();
                 let curIter = iter.next();

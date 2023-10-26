@@ -1,9 +1,9 @@
-import { BehaviorPlugin, BehaviorTypes} from "./behaviors";
-import { EmitterShapePlugin, EmitterShapes} from "./shape";
+import {BehaviorPlugin, BehaviorTypes} from './behaviors';
+import {EmitterShapePlugin, EmitterShapes} from './shape';
 
 export interface Plugin {
     id: string;
-    initialize: ()=>void;
+    initialize: () => void;
     emitterShapes: Array<EmitterShapePlugin>;
     behaviors: Array<BehaviorPlugin>;
 }
@@ -11,7 +11,7 @@ export interface Plugin {
 export const Plugins: Array<Plugin> = [];
 
 export function loadPlugin(plugin: Plugin) {
-    const existing = Plugins.find(item => item.id === plugin.id);
+    const existing = Plugins.find((item) => item.id === plugin.id);
     if (!existing) {
         plugin.initialize();
         for (const emitterShape of plugin.emitterShapes) {
@@ -28,7 +28,7 @@ export function loadPlugin(plugin: Plugin) {
 }
 
 export function unloadPlugin(pluginId: string) {
-    const plugin = Plugins.find(item => item.id === pluginId);
+    const plugin = Plugins.find((item) => item.id === pluginId);
     if (plugin) {
         for (const emitterShape of plugin.emitterShapes) {
             if (EmitterShapes[emitterShape.type]) {
