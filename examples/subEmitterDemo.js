@@ -26,6 +26,8 @@ export class SubEmitterDemo extends Demo {
 
         new QuarksLoader().load('subEmitter2.json', (obj) => {
             obj.position.x = 5;
+            this.scene.add(obj);
+            this.groups.push(obj);
             obj.traverse((child) => {
                 if (child.type === 'ParticleEmitter') {
                     this.batchRenderer.addSystem(child.system);
@@ -34,8 +36,6 @@ export class SubEmitterDemo extends Demo {
             if (obj.type === 'ParticleEmitter') {
                 this.batchRenderer.addSystem(obj.system);
             }
-            this.scene.add(obj);
-            this.groups.push(obj);
         });
 
         return this.scene;
