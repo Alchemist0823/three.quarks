@@ -1,5 +1,9 @@
 # Change Log
 
+## version 0.11.2
+- Fix Major bug: particles are emitted at incorrect positions at first time
+- Support loop / ping-pong emitting mode from emitter shapes
+
 ## version 0.11.1
 - hotfix to support editors noise
 - hotfix on rotation over life on mesh emitter
