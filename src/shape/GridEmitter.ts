@@ -1,5 +1,7 @@
-import {EmitterShape, ShapeJSON} from "./EmitterShape";
-import {Particle} from "../Particle";
+import {EmitterShape, ShapeJSON} from './EmitterUtil';
+import {Particle} from '../Particle';
+import {ParticleSystem} from '../ParticleSystem';
+import {json} from 'stream/consumers';
 
 export interface GridEmitterParameters {
     width?: number;
@@ -9,8 +11,7 @@ export interface GridEmitterParameters {
 }
 
 export class GridEmitter implements EmitterShape {
-
-    type = "grid";
+    type = 'grid';
     width: number;
     height: number; // [0, Math.PI * 2]
     column: number; // [0, 1]
@@ -27,15 +28,15 @@ export class GridEmitter implements EmitterShape {
         const r = Math.floor(Math.random() * this.row);
         const c = Math.floor(Math.random() * this.column);
 
-        p.position.x = c * this.width / this.column - this.width / 2;
-        p.position.y = r * this.height / this.row - this.height / 2;
+        p.position.x = (c * this.width) / this.column - this.width / 2;
+        p.position.y = (r * this.height) / this.row - this.height / 2;
         p.position.z = 0;
         p.velocity.set(0, 0, p.startSpeed);
     }
 
     toJSON(): ShapeJSON {
         return {
-            type: "grid",
+            type: 'grid',
             width: this.width,
             height: this.height,
             column: this.column,
@@ -48,11 +49,13 @@ export class GridEmitter implements EmitterShape {
     }
 
     clone(): EmitterShape {
-        return  new GridEmitter({
+        return new GridEmitter({
             width: this.width,
             height: this.height,
             column: this.column,
             row: this.row,
         });
     }
+
+    update(system: ParticleSystem, delta: number): void {}
 }

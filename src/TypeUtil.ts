@@ -14,6 +14,7 @@ export type FieldType =
     | 'mesh'
     | 'particleSystem'
     | 'boolean'
-    | 'geometry';
+    | 'geometry'
+    | 'emitterMode';
 export type ParameterType = FieldType | 'self';
 export type ParameterPair = [string, ParameterType];

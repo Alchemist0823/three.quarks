@@ -333,8 +333,8 @@ export class ParticleSystem implements IParticleSystem {
      */
     behaviors: Array<Behavior>;
 
+    emissionState: EmissionState;
     private prewarmed: boolean;
-    private emissionState: EmissionState;
     private emitEnded: boolean;
     private markForDestroy: boolean;
     private previousWorldPos?: Vector3;
@@ -562,7 +562,7 @@ export class ParticleSystem implements IParticleSystem {
             particle.life = this.startLife.genValue(emissionState.time / this.duration);
             particle.age = 0;
             particle.startSize = this.startSize.genValue(emissionState.time / this.duration);
-            particle.uvTile = Math.floor(this.startTileIndex.genValue());
+            particle.uvTile = Math.floor(this.startTileIndex.genValue() + 0.001);
             particle.size = particle.startSize;
             if (
                 this.rendererSettings.renderMode === RenderMode.Mesh ||
@@ -702,6 +702,7 @@ export class ParticleSystem implements IParticleSystem {
         }
 
         // simulate
+        this.emitterShape.update(this, delta);
         for (let j = 0; j < this.behaviors.length; j++) {
             for (let i = 0; i < this.particleNum; i++) {
                 if (!this.particles[i].died) {
