@@ -94,10 +94,7 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
     Rotation3DOverLife: {
         type: 'Rotation3DOverLife',
         constructor: Rotation3DOverLife,
-        params: [
-            ['angularVelocity', 'rotationFunc'],
-            ['dynamic', 'boolean'],
-        ],
+        params: [['angularVelocity', 'rotationFunc']],
         loadJSON: Rotation3DOverLife.fromJSON,
     },
     SizeOverLife: {
