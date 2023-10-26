@@ -656,14 +656,9 @@ export class ParticleSystem implements IParticleSystem {
         this.prewarmed = false;
     }
 
-    //firstTimeUpdate = true;
+    private firstTimeUpdate = true;
 
     private update(delta: number) {
-        /*if (this.firstTimeUpdate) {
-        this.renderer.addSystem(this);
-        this.firstTimeUpdate = false;
-    }*/
-
         if (this.paused) return;
 
         let currentParent: Object3D = this.emitter;
@@ -673,6 +668,10 @@ export class ParticleSystem implements IParticleSystem {
         if (currentParent.type !== 'Scene') {
             this.dispose();
             return;
+        }
+        if (this.firstTimeUpdate) {
+            this.firstTimeUpdate = false;
+            this.emitter.updateWorldMatrix(true, false);
         }
 
         if (this.emitEnded && this.particleNum === 0) {
