@@ -556,6 +556,7 @@ export class ParticleSystem implements IParticleSystem {
                 }
             }
             const particle = this.particles[this.particleNum - 1];
+            particle.speedModifier = 1;
             this.startColor.genColor(particle.startColor, this.emissionState.time, {});
             particle.color.copy(particle.startColor);
             particle.startSpeed = this.startSpeed.genValue(emissionState.time / this.duration);
@@ -596,7 +597,6 @@ export class ParticleSystem implements IParticleSystem {
                 trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(
                     emissionState.time / this.duration
                 );
-                trail.reset();
             }
 
             this.emitterShape.initialize(particle);
@@ -724,8 +724,10 @@ export class ParticleSystem implements IParticleSystem {
                     this.particles[i].position.applyMatrix4(this.emitter.matrixWorld);
                 }
             } else {
-                const speedModifier = (this.particles[i] as any).speedModifier ?? 1;
-                this.particles[i].position.addScaledVector(this.particles[i].velocity, delta * speedModifier);
+                this.particles[i].position.addScaledVector(
+                    this.particles[i].velocity,
+                    delta * this.particles[i].speedModifier
+                );
             }
             this.particles[i].age += delta;
         }

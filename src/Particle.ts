@@ -16,6 +16,7 @@ export interface IParticle {
 }
 
 export interface Particle extends IParticle {
+    speedModifier: number;
     emissionState?: EmissionState;
     parentMatrix?: Matrix4;
     startSpeed: number;
@@ -65,6 +66,7 @@ export class SpriteParticle implements Particle {
     age = 0;
     life = 1;
     size = 1;
+    speedModifier = 1;
 
     // extra
     angularVelocity?: number | Quaternion;
@@ -100,6 +102,7 @@ export class TrailParticle implements Particle {
     life = 1;
     size = 1;
     length = 100;
+    speedModifier = 1;
 
     // GPU
     color: Vector4 = new Vector4();
