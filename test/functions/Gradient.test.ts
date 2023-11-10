@@ -7,14 +7,14 @@ describe('Gradient', () => {
     test('.genColor', () => {
         const gradient = new Gradient(
             [
-                [new Vector3(0, 0, 0), 0],
+                [new Vector3(0, 0, 0), 0.1],
                 [new Vector3(1, 1, 1), 0.2],
                 [new Vector3(1, 1, 1), 0.8],
-                [new Vector3(0, 0, 0), 1],
+                [new Vector3(0, 0, 0), 0.9],
             ],
             [
-                [0, 0],
-                [1, 1],
+                [0, 0.1],
+                [1, 0.9],
             ]
         );
         const color = new Vector4();
@@ -37,22 +37,22 @@ describe('Gradient', () => {
         expect(color.x).toEqual(1);
         expect(color.y).toEqual(1);
         expect(color.z).toEqual(1);
-        expect(color.w).toEqual(0.8);
+        expect(color.w).toEqual(0.875);
         gradient.genColor(color, 0.2);
         expect(color.x).toEqual(1);
         expect(color.y).toEqual(1);
         expect(color.z).toEqual(1);
-        expect(color.w).toEqual(0.2);
-        gradient.genColor(color, 0.1);
+        expect(color.w).toEqual(0.125);
+        gradient.genColor(color, 0.15);
         expect(color.x).toBeCloseTo(0.5);
         expect(color.y).toBeCloseTo(0.5);
         expect(color.z).toBeCloseTo(0.5);
-        expect(color.w).toEqual(0.1);
-        gradient.genColor(color, 0.9);
+        expect(color.w).toBeCloseTo(0.0625);
+        gradient.genColor(color, 0.85);
         expect(color.x).toBeCloseTo(0.5);
         expect(color.y).toBeCloseTo(0.5);
         expect(color.z).toBeCloseTo(0.5);
-        expect(color.w).toEqual(0.9);
+        expect(color.w).toBeCloseTo(0.9375);
     });
 
     test('.toJSON', () => {

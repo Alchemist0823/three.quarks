@@ -80,13 +80,13 @@ export class QuarksLoader extends ObjectLoader {
     }
 
     // @ts-ignore
-    parseObject<T extends Object3D<Object3DEventMap>>(
+    parseObject(
         data: any,
         geometries: any,
         materials: Material[],
         textures: Texture[],
         animations: AnimationClip[]
-    ): T {
+    ): Object3D {
         let object;
 
         function getGeometry(name: any) {
