@@ -1,6 +1,6 @@
 import {NodeGraph} from './NodeGraph';
-import {ConstInput, Node, Wire} from './Node';
-import {ExecutionContext} from './NodeType';
+import {Adapter, ConstInput, Node, Wire} from './Node';
+import {ExecutionContext} from './NodeDef';
 
 export abstract class BaseCompiler {
     static Instance: BaseCompiler;
@@ -10,6 +10,7 @@ export abstract class BaseCompiler {
     }
 
     visited: Set<string> = new Set<string>();
+    debug: boolean = false;
 
     protected buildExecutionOrder(graph: NodeGraph, context: ExecutionContext): void {
         graph.nodesInOrder.length = 0;
@@ -22,24 +23,43 @@ export abstract class BaseCompiler {
         }
         graph.compiled = true;
     }
+
+    private _traverseWire(wire: Wire, graph: NodeGraph, context: ExecutionContext) {
+
+    }
+
     private _traverse(node: Node, graph: NodeGraph, context: ExecutionContext) {
         this.visited.add(node.id);
         const inputValues = [];
         for (let i = 0; i < node.inputs.length; i++) {
             if (node.inputs[i] instanceof Wire) {
-                const inputNode = (node.inputs[i] as Wire).input;
-                //if (inputNode) {
-                if (!this.visited.has(inputNode.id)) {
-                    this._traverse(inputNode, graph, context);
+                const input = (node.inputs[i] as Wire).input;
+                //if (input) {
+                if (input instanceof Node) {
+                    if (!this.visited.has(input.id)) {
+                        this._traverse(input, graph, context);
+                    }
+                } else if (input instanceof Adapter) {
+                    if (!input.isInput) {
+                        this._traverse(input.node, graph, context);
+                    }
                 }
-                //inputValues.push(inputNode.outputValues[(node.inputs[i] as Wire).inputIndex]);
-                /*} else {
-                    throw new Error(`Node ${node.id} has not inputs`);
-                }*/
-            } else if (node.inputs[i] !== undefined) {
-                //inputValues.push((node.inputs[i] as ConstInput).getValue(context));
-            } else {
-                //inputValues.push(undefined);
+            } else if (node.inputs[i] instanceof Adapter) {
+                const input = node.inputs[i] as Adapter;
+                for (let j = 0; j < input.inputs.length; j++) {
+                    const wireOrNot = input.inputs[j];
+                    if (wireOrNot !== undefined) {
+                        if (wireOrNot.input instanceof Node) {
+                            if (!this.visited.has(wireOrNot.input.id)) {
+                                this._traverse(wireOrNot.input, graph, context);
+                            }
+                        } else {
+                            if (!this.visited.has(wireOrNot.input.node.id)) {
+                                this._traverse(wireOrNot.input.node, graph, context);
+                            }
+                        }
+                    }
+                }
             }
         }
         // calculation
@@ -48,4 +68,6 @@ export abstract class BaseCompiler {
     }
 
     abstract run(graph: NodeGraph, context: ExecutionContext): void;
+
+    abstract build(graph: NodeGraph, context: ExecutionContext): string;
 }

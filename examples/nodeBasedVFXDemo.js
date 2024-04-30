@@ -1,6 +1,7 @@
 import {BatchedParticleRenderer, Node, NodeGraph, NodeTypes, NodeVFX, RenderMode, Wire} from 'three.quarks';
 import {Demo} from './demo.js';
 import {AdditiveBlending, MeshBasicMaterial, NormalBlending, TextureLoader, Vector3, Vector4} from 'three';
+import {NodeValueType} from "./js/three.quarks.esm.js";
 
 export class NodeBasedVFXDemo extends Demo {
     name = 'Node Based VFX (Experimental)';
@@ -25,7 +26,7 @@ export class NodeBasedVFXDemo extends Demo {
         emissionGraph.addWire(new Wire(repeater, 0, emit, 0));
 
         const updateGraph = new NodeGraph('test');
-        const age = new Node(NodeTypes['particleProperty'], 0, {property: 'age'});
+        const age = new Node(NodeTypes['particleProperty'], 0, {property: 'age', type: NodeValueType.Number});
         const time = new Node(NodeTypes['time']);
         const add = new Node(NodeTypes['add'], 0);
         add.inputs[1] = {getValue: () => 1};
@@ -38,10 +39,10 @@ export class NodeBasedVFXDemo extends Demo {
         pos2.inputs[1] = {getValue: () => 1};
         pos2.inputs[2] = {getValue: () => 1};
 
-        const life = new Node(NodeTypes['particleProperty'], 0, {property: 'life'});
+        const life = new Node(NodeTypes['particleProperty'], 0, {property: 'life', type: NodeValueType.Number});
         life.inputs[0] = {getValue: () => 5};
-        const ppos = new Node(NodeTypes['particleProperty'], 0, {property: 'position'});
-        const pvel = new Node(NodeTypes['particleProperty'], 0, {property: 'velocity'});
+        const ppos = new Node(NodeTypes['particleProperty'], 0, {property: 'position', type: NodeValueType.Vec3});
+        const pvel = new Node(NodeTypes['particleProperty'], 0, {property: 'velocity', type: NodeValueType.Vec3});
 
         updateGraph.addNode(age);
         updateGraph.addNode(time);

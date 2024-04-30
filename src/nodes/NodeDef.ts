@@ -22,12 +22,21 @@ export interface NodeTypeSignature {
     func: NodeExecFunction;
 }
 
-export class NodeType {
+export enum NodeType {
+    Variable,
+    Expression,
+    Storage,
+    Function,
+}
+
+export class NodeDef {
     name: string;
+    type: NodeType;
     nodeTypeSignatures: NodeTypeSignature[] = [];
 
-    constructor(name: string) {
+    constructor(name: string, type: NodeType) {
         this.name = name;
+        this.type = type;
     }
 
     addSignature(inputTypes: NodeValueType[], outputTypes: NodeValueType[], func: NodeExecFunction) {
@@ -39,24 +48,24 @@ export class NodeType {
     }
 }
 
-export class GraphNodeType extends NodeType {
+export class GraphNodeType extends NodeDef {
     nodeGraph: NodeGraph;
 
     constructor(nodeGraph: NodeGraph) {
         const inputTypes = [];
         for (let i = 0; i < nodeGraph.inputNodes.length; i++) {
-            if (nodeGraph.inputNodes[i].type.name === 'input') {
+            if (nodeGraph.inputNodes[i].definition.name === 'input') {
                 inputTypes.push(nodeGraph.inputNodes[i].data.type);
             }
         }
         const outputTypes = [];
         for (let i = 0; i < nodeGraph.outputNodes.length; i++) {
-            if (nodeGraph.outputNodes[i].type.name === 'output') {
+            if (nodeGraph.outputNodes[i].definition.name === 'output') {
                 outputTypes.push(nodeGraph.outputNodes[i].data.type);
             }
         }
 
-        super(nodeGraph.name);
+        super(nodeGraph.name, NodeType.Expression);
         this.addSignature(inputTypes, outputTypes, (context: ExecutionContext, data, inputs, outputs) => {
             context.inputs = inputs;
             context.outputs = outputs;

@@ -2,7 +2,7 @@ import {Behavior} from "./Behavior";
 import {Particle} from "../Particle";
 import { NodeGraph } from "../nodes/NodeGraph";
 import {Interpreter} from "../nodes/Interpreter";
-import {ExecutionContext} from "../nodes/NodeType";
+import {ExecutionContext} from "../nodes/NodeDef";
 
 export class NodeGraphBehavior implements Behavior {
 
