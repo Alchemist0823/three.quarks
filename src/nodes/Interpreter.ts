@@ -37,6 +37,9 @@ export class Interpreter extends BaseCompiler {
         for (let i = 0; i < nodes.length; i++) {
             const inputValues = [];
             const node = nodes[i];
+            if (this.debug) {
+                console.log('Node:', node);
+            }
             for (let j = 0; j < node.inputs.length; j++) {
                 if (node.inputs[j] instanceof Wire) {
                     if ((node.inputs[j] as Wire).input instanceof Node) {
@@ -54,10 +57,11 @@ export class Interpreter extends BaseCompiler {
                 }
             }
             if (node.outputValues.length === 0) {
-                for (let i = 0; i < node.definition.nodeTypeSignatures[node.signatureIndex].outputTypes.length; i++) {
+                const signatureIndex = node.signatureIndex < 0 ? 0 : node.signatureIndex;
+                for (let i = 0; i < node.definition.nodeTypeSignatures[signatureIndex].outputTypes.length; i++) {
                     node.outputValues.push(
                         genDefaultForNodeValueType(
-                            node.definition.nodeTypeSignatures[node.signatureIndex].outputTypes[i]
+                            node.definition.nodeTypeSignatures[signatureIndex].outputTypes[i]
                         )
                     );
                     if (node.outputValues[i] === undefined) {

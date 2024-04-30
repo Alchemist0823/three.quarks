@@ -10,6 +10,7 @@ export abstract class BaseCompiler {
     }
 
     visited: Set<string> = new Set<string>();
+    debug: boolean = false;
 
     protected buildExecutionOrder(graph: NodeGraph, context: ExecutionContext): void {
         graph.nodesInOrder.length = 0;
