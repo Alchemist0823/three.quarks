@@ -3,7 +3,7 @@ import {ExecutionContext, NodeType} from './NodeDef';
 import {NodeGraph} from './NodeGraph';
 import {Adapter, ConstInput, Node, Wire} from './Node';
 import {Vector2, Vector3, Vector4} from 'three';
-import {NodeValueType} from './NodeValueType';
+import {getAlignOfNodeValueType, getSizeOfNodeValueType, NodeValueType} from './NodeValueType';
 
 type buildFunction = (node: Node, inputs: string[], context: ExecutionContext) => string;
 
@@ -11,7 +11,14 @@ interface NodeBuilder {
     buildBySigIndex: buildFunction[];
 }
 
-const nodeBuilders: {[key: string]: NodeBuilder} = {
+const nodeBuilders: { [key: string]: NodeBuilder } = {
+    number: {
+        buildBySigIndex: [
+            (node, inputs, context) => {
+                return `${inputs[0]}`;
+            },
+        ],
+    },
     vec2: {
         buildBySigIndex: [
             (node, inputs, context) => {
@@ -324,6 +331,22 @@ export class WebGPUCompiler extends BaseCompiler {
     }
 
     protected nodeResult = new Map<Node, string>();
+    particleInstanceByteSize: number = 0;
+    hasRandom = false;
+
+    private calculateMemoryLayout(types: NodeValueType[]) {
+        let offset = 0;
+
+        for (let i = 0; i < types.length; i++) {
+            const type = types[i];
+            const align = getAlignOfNodeValueType(type);
+            const size = getSizeOfNodeValueType(type);
+            offset = Math.ceil(offset / align) * align;
+            offset += size;
+        }
+        offset = Math.ceil(offset / 16) * 16;
+        return offset;
+    }
 
     private buildPredefinedStructs(statements: string[], graph: NodeGraph, context: ExecutionContext) {
         statements.push('struct SimulationParams {');
@@ -332,19 +355,31 @@ export class WebGPUCompiler extends BaseCompiler {
         statements.push('}');
 
         statements.push('struct Particle {');
-        graph.outputNodes.forEach((node) => {
-            if (
+        statements.push('    color: vec4<f32>,');
+        statements.push('    position: vec3<f32>,');
+        const nodes = graph.outputNodes
+            .filter((node) =>
                 node.definition.name === 'particleProperty' &&
                 node.data.property !== 'position' &&
                 node.data.property !== 'color' &&
                 node.data.property !== 'life' &&
-                node.data.property !== 'age'
-            ) {
-                statements.push(`    ${node.data.property}: ${this.getTypeFromNodeType(node.data.type)},`);
-            }
+                node.data.property !== 'size' &&
+                node.data.property !== 'rotation' &&
+                node.data.property !== 'age')
+            .sort((a, b) => getSizeOfNodeValueType(a.data.type) - getSizeOfNodeValueType(b.data.type));
+        this.particleInstanceByteSize = this.calculateMemoryLayout(
+            [NodeValueType.Vec4, NodeValueType.Vec3]
+                .concat(nodes.map((node) => node.data.type))
+                .concat([NodeValueType.Number, NodeValueType.Number, NodeValueType.Number, NodeValueType.Number])
+        );
+        //this.particleInstanceByteSize += getSizeOfNodeValueType(node.data.type);
+        //this.particleInstanceByteSize += 4 * 4 * 2 + 4 + 4;
+
+        nodes.forEach((node) => {
+            statements.push(`    ${node.data.property}: ${this.getTypeFromNodeType(node.data.type)},`);
         });
-        statements.push('    position: vec3<f32>,');
-        statements.push('    color: vec3<f32>,');
+        statements.push('    size: f32,');
+        statements.push('    rotation: f32,');
         statements.push('    life: f32,');
         statements.push('    age: f32,');
         statements.push('}');
@@ -360,13 +395,16 @@ export class WebGPUCompiler extends BaseCompiler {
 
         statements.push('@binding(0) @group(0) var<uniform> sim_params : SimulationParams;');
         statements.push('@binding(1) @group(0) var<storage, read_write> data : Particles;');
-        statements.push('@binding(2) @group(0) var<storage, read_write> indexList : array<i32>;');
+        statements.push('@binding(2) @group(0) var<storage, read_write> indexList : array<u32>;');
 
         statements.push('@compute @workgroup_size(64)');
         statements.push('fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3<u32>) {');
         statements.push('  let invo_id = global_invocation_id.x;');
-        statements.push('  init_rand(idx, sim_params.seed);');
         statements.push('  let idx = indexList[invo_id];');
+        //statements.push('  let idx = invo_id;');
+        if (this.hasRandom) {
+            statements.push('  init_rand(invo_id, sim_params.seed);');
+        }
         statements.push('  var particle = data.particles[idx];');
     }
 
@@ -389,7 +427,11 @@ export class WebGPUCompiler extends BaseCompiler {
     private buildDataFlow(graph: NodeGraph, statements: string[], context: ExecutionContext) {
         for (let i = 0; i < graph.nodesInOrder.length; i++) {
             const currentNode = graph.nodesInOrder[i];
-            let nodeBuilder = nodeBuilders[currentNode.definition.name].buildBySigIndex[currentNode.signatureIndex];
+            const nodeBuilder = nodeBuilders[currentNode.definition.name];
+            if (nodeBuilder === undefined) {
+                throw new Error(`Node ${currentNode.id} ${currentNode.definition.name} has no builder`);
+            }
+            let nodeBuilderFunc = nodeBuilder.buildBySigIndex[currentNode.signatureIndex];
             const inputs: string[] = [];
             for (let j = 0; j < currentNode.inputs.length; j++) {
                 if (currentNode.inputs[j] instanceof Wire) {
@@ -408,7 +450,7 @@ export class WebGPUCompiler extends BaseCompiler {
                     }
                 }
             }
-            const result = nodeBuilder(currentNode, inputs, context);
+            const result = nodeBuilderFunc(currentNode, inputs, context);
             if (currentNode.outputs.length === 1) {
                 if (currentNode.definition.type === NodeType.Storage) {
                     if (inputs.length > 0) {

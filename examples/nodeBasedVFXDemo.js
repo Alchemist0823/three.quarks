@@ -1,7 +1,6 @@
-import {BatchedParticleRenderer, Node, NodeGraph, NodeTypes, NodeVFX, RenderMode, Wire} from 'three.quarks';
+import {BatchedParticleRenderer, Node, NodeGraph, NodeTypes, NodeVFX, RenderMode, Wire, NodeValueType} from 'three.quarks';
 import {Demo} from './demo.js';
 import {AdditiveBlending, MeshBasicMaterial, NormalBlending, TextureLoader, Vector3, Vector4} from 'three';
-import {NodeValueType} from "./js/three.quarks.esm.js";
 
 export class NodeBasedVFXDemo extends Demo {
     name = 'Node Based VFX (Experimental)';

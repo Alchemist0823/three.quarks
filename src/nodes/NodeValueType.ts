@@ -11,6 +11,48 @@ export enum NodeValueType {
     EventStream = 7,
 }
 
+export const getAlignOfNodeValueType = (type: NodeValueType): number => {
+    switch (type) {
+        case NodeValueType.Boolean:
+            return 4;
+        case NodeValueType.Number:
+            return 4;
+        case NodeValueType.Vec2:
+            return 8;
+        case NodeValueType.Vec3:
+            return 16;
+        case NodeValueType.Vec4:
+            return 16;
+        case NodeValueType.AnyType:
+            return 0;
+        case NodeValueType.NullableAnyType:
+            return 0;
+        default:
+            return 0;
+    }
+};
+
+export const getSizeOfNodeValueType = (type: NodeValueType): number => {
+    switch (type) {
+        case NodeValueType.Boolean:
+            return 1;
+        case NodeValueType.Number:
+            return 4;
+        case NodeValueType.Vec2:
+            return 8;
+        case NodeValueType.Vec3:
+            return 12;
+        case NodeValueType.Vec4:
+            return 16;
+        case NodeValueType.AnyType:
+            return 0;
+        case NodeValueType.NullableAnyType:
+            return 0;
+        default:
+            return 0;
+    }
+};
+
 export const genDefaultForNodeValueType = (type: NodeValueType): any => {
     switch (type) {
         case NodeValueType.Boolean:

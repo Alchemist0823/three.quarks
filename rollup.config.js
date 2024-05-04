@@ -16,11 +16,25 @@ const production = process.env.NODE_ENV === 'production';
 const globals = {three: 'THREE'};
 const extensions = ['.js', '.jsx', '.ts', '.tsx'];
 
+function wgslPlugin() {
+    return {
+        name: 'wgsl-plugin',
+        transform(code, id) {
+            if (id.endsWith('.wgsl')) {
+                return {
+                    code: `export default \`${code}\`;`,
+                    map: { mappings: '' },
+                };
+            }
+        },
+    };
+}
 export const lib = {
     main: {
         input: 'src/index.ts',
         external: Object.keys(globals),
         plugins: [
+            //wgslPlugin(),
             resolve({
                 extensions: extensions,
                 customResolveOptions: {

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>three.quarks – particle system / VFX library for three.js</title>
+    <link rel="shortcut icon" href="./favicon.png"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" content="#000000"/>
+    <link rel="manifest" href="./manifest.json"/>
+    <title>Three.quarks Particle System WebGPU Examples</title>
+    <meta name="description" content="A ThreeJS / WebGL Particle System for Creators.">
+    <meta name="og:title" property="og:title" content="Three.quarks Particle System - WebGPU Demo">
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "./js/three.module.js",
+            "three.quarks": "./js/three.quarks.esm.js"
+          }
+        }
+    </script>
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #demo-name {
+            font-weight: bold;
+            font-family: sans-serif;
+            color: white;
+            z-index: 10;
+            position: relative;
+            text-align: center;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        #renderer-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .btn {
+            color: white;
+            border: white 1px;
+            font-size: 3em;
+            cursor: pointer;
+        }
+
+        .next {
+            position: absolute;
+            top: 50%;
+            right: 0;
+        }
+
+        .previous {
+            position: absolute;
+            top: 50%;
+        }
+    </style>
+    <script defer src="webgpu.js" type="module"></script>
+</head>
+<body id="home">
+<canvas id="renderer-canvas"></canvas>
+</body>
+</html>

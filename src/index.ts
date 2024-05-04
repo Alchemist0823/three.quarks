@@ -6,6 +6,7 @@ export * from './SpriteBatch';
 export * from './TrailBatch';
 export * from './BatchedRenderer';
 export * from './BatchedParticleRenderer';
+export * from './WebGPURenderer';
 export * from './QuarksLoader';
 export * from './TypeUtil';
 export * from './Plugin';

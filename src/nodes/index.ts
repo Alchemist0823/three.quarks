@@ -5,3 +5,4 @@ export * from './NodeGraph';
 export * from './NodeDef';
 export * from './NodeValueType';
 export * from './NodeVFX';
+export * from './WebGPUCompiler';

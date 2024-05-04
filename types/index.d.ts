@@ -1019,7 +1019,7 @@ interface GPURenderPassDescriptor extends GPUObjectDescriptorBase {
      * Due to compatible usage list|usage compatibility, no color attachment
      * may alias another attachment or any resource used inside the render pass.
      */
-    colorAttachments: Iterable<GPURenderPassColorAttachment | null>;
+    colorAttachments: ArrayLike<GPURenderPassColorAttachment | null>;
     /**
      * The {@link GPURenderPassDepthStencilAttachment} value that defines the depth/stencil
      * attachment that will be output to and tested against when executing this render pass.
