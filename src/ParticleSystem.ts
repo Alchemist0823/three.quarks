@@ -23,16 +23,14 @@ import {
     BufferGeometry,
     DoubleSide,
     Layers,
-    Material,
     Matrix3,
     Matrix4,
-    MeshBasicMaterial,
     Object3D,
     PlaneGeometry,
     Quaternion,
     Texture,
     Vector3,
-    Vector4,
+    Vector4, Material, MeshBasicMaterial,
 } from 'three';
 import {RenderMode} from './VFXBatch';
 import {
@@ -44,7 +42,7 @@ import {
     TrailSettings,
     VFXBatchSettings,
 } from './BatchedRenderer';
-import {RotationGenerator} from './functions/RotationGenerator';
+import {RotationGenerator} from './functions';
 
 export interface BurstParameters {
     time: number;
@@ -99,6 +97,10 @@ export interface ParticleSystemParameters {
     startTileIndex?: ValueGenerator;
     uTileCount?: number;
     vTileCount?: number;
+    blendTiles?: boolean;
+    softParticles?: boolean;
+    softFarFade?: number;
+    softNearFade?: number;
     renderOrder?: number;
 
     worldSpace?: boolean;
@@ -135,6 +137,10 @@ export interface ParticleSystemJSONParameters {
     startTileIndex: FunctionJSON | number;
     uTileCount: number;
     vTileCount: number;
+    blendTiles?: boolean;
+    softParticles?: boolean;
+    softFarFade?: number;
+    softNearFade?: number;
     blending?: Blending; // deprecated
     transparent?: boolean; // deprecated
 
@@ -311,7 +317,6 @@ export class ParticleSystem implements IParticleSystem {
      * @type {ParticleEmitter<Object3DEventMap>}
      */
     emitter: ParticleEmitter<Object3DEventMap>;
-
     /**
      * the VFX renderer settings for the batch renderer
      *
@@ -362,7 +367,7 @@ export class ParticleSystem implements IParticleSystem {
         return (this.rendererSettings.material as any).map;
     }
 
-    set texture(texture: Texture) {
+    set texture(texture: Texture | null) {
         (this.rendererSettings.material as any).map = texture;
         this.neededToUpdateRender = true;
         //this.emitter.material.uniforms.map.value = texture;
@@ -384,7 +389,6 @@ export class ParticleSystem implements IParticleSystem {
     set uTileCount(u: number) {
         this.rendererSettings.uTileCount = u;
         this.neededToUpdateRender = true;
-        //this.emitter.material.uniforms.tileCount.value.x = u;
     }
 
     get vTileCount() {
@@ -393,6 +397,42 @@ export class ParticleSystem implements IParticleSystem {
 
     set vTileCount(v: number) {
         this.rendererSettings.vTileCount = v;
+        this.neededToUpdateRender = true;
+    }
+
+    get blendTiles() {
+        return this.rendererSettings.blendTiles;
+    }
+
+    set blendTiles(v: boolean) {
+        this.rendererSettings.blendTiles = v;
+        this.neededToUpdateRender = true;
+    }
+
+    get softParticles() {
+        return this.rendererSettings.softParticles;
+    }
+
+    set softParticles(v: boolean) {
+        this.rendererSettings.softParticles = v;
+        this.neededToUpdateRender = true;
+    }
+
+    get softNearFade() {
+        return this.rendererSettings.softNearFade;
+    }
+
+    set softNearFade(v: number) {
+        this.rendererSettings.softNearFade = v;
+        this.neededToUpdateRender = true;
+    }
+
+    get softFarFade() {
+        return this.rendererSettings.softFarFade;
+    }
+
+    set softFarFade(v: number) {
+        this.rendererSettings.softFarFade = v;
         this.neededToUpdateRender = true;
     }
 
@@ -508,6 +548,10 @@ export class ParticleSystem implements IParticleSystem {
             material: parameters.material,
             uTileCount: parameters.uTileCount ?? 1,
             vTileCount: parameters.vTileCount ?? 1,
+            blendTiles: parameters.blendTiles ?? false,
+            softParticles: parameters.softParticles ?? false,
+            softNearFade: parameters.softNearFade ?? 0,
+            softFarFade: parameters.softFarFade ?? 0,
             layers: parameters.layers ?? new Layers(),
         };
         this.neededToUpdateRender = true;
@@ -563,7 +607,7 @@ export class ParticleSystem implements IParticleSystem {
             particle.life = this.startLife.genValue(emissionState.time / this.duration);
             particle.age = 0;
             particle.startSize = this.startSize.genValue(emissionState.time / this.duration);
-            particle.uvTile = Math.floor(this.startTileIndex.genValue() + 0.001);
+            particle.uvTile = this.startTileIndex.genValue();
             particle.size = particle.startSize;
             if (
                 this.rendererSettings.renderMode === RenderMode.Mesh ||
@@ -827,7 +871,7 @@ export class ParticleSystem implements IParticleSystem {
         meta.materials[this.rendererSettings.material.uuid] = this.rendererSettings.material.toJSON(meta);
 
         if (options.useUrlForImage) {
-            if (this.texture.source !== undefined) {
+            if (this.texture?.source !== undefined) {
                 const image = this.texture.source;
                 meta.images[image.uuid] = {
                     uuid: image.uuid,
@@ -858,7 +902,7 @@ export class ParticleSystem implements IParticleSystem {
             meta.geometries[geometry.uuid] = geometry.toJSON();
         }
         return {
-            version: '2.0',
+            version: '3.0',
             autoDestroy: this.autoDestroy,
             looping: this.looping,
             prewarm: this.prewarm,
@@ -892,6 +936,10 @@ export class ParticleSystem implements IParticleSystem {
             startTileIndex: this.startTileIndex.toJSON(),
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
+            blendTiles: this.blendTiles,
+            softParticles: this.rendererSettings.softParticles,
+            softFarFade: this.rendererSettings.softFarFade,
+            softNearFade: this.rendererSettings.softNearFade,
 
             behaviors: this.behaviors.map((behavior) => behavior.toJSON()),
 
@@ -987,6 +1035,10 @@ export class ParticleSystem implements IParticleSystem {
                     : (ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator),
             uTileCount: json.uTileCount,
             vTileCount: json.vTileCount,
+            blendTiles: json.blendTiles,
+            softParticles: json.softParticles,
+            softFarFade: json.softFarFade,
+            softNearFade: json.softNearFade,
 
             behaviors: [],
 
@@ -1060,6 +1112,10 @@ export class ParticleSystem implements IParticleSystem {
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
+            blendTiles: this.blendTiles,
+            softParticles: this.softParticles,
+            softFarFade: this.softFarFade,
+            softNearFade: this.softNearFade,
 
             behaviors: newBehaviors,
 

@@ -8,8 +8,15 @@ export class Demo {
     refreshIndex = 0;
     refreshTime = 2;
     texture;
+    camera;
+    renderer;
 
     name = 'Unname';
+
+    constructor(camera, renderer) {
+        this.camera = camera;
+        this.renderer = renderer;
+    }
 
     render(delta) {
         this.groups.forEach((group) =>

@@ -32,10 +32,10 @@ import {
     SpriteMaterial,
     Bone,
     Object3DEventMap,
-} from 'three';
-import {ParticleSystem} from './ParticleSystem';
-import {Behavior, EmitSubParticleSystem} from './behaviors';
-import {ParticleEmitter} from './ParticleEmitter';
+} from "three";
+import {ParticleSystem} from "./ParticleSystem";
+import {Behavior, EmitSubParticleSystem} from "./behaviors";
+import {ParticleEmitter} from "./ParticleEmitter";
 
 export class QuarksLoader extends ObjectLoader {
     /*manager: LoadingManager;

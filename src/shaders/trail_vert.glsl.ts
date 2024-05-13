@@ -1,8 +1,6 @@
-import uv_vertex_tile from './chunks/uv_vertex_tile.glsl';
-
 export default /* glsl */ `
 #include <common>
-#include <uv_pars_vertex>
+#include <tile_pars_vertex>
 #include <color_pars_vertex>
 #include <clipping_planes_pars_vertex>
 #include <logdepthbuf_pars_vertex>
@@ -25,7 +23,7 @@ vec2 fix(vec4 i, float aspect) {
     
 void main() {
 
-    ${uv_vertex_tile}
+    #include <tile_vertex>
     
     float aspect = resolution.x / resolution.y;
 

@@ -91,6 +91,7 @@
         import {AlphaTestDemo} from "./alphaTestDemo.js";
         import {BillboardDemo} from "./billboardDemo.js";
         import {NodeBasedVFXDemo} from "./nodeBasedVFXDemo.js";
+        import {SoftParticleDemo} from "./softParticleDemo.js";
 
         const WEBGL = {
             isWebGLAvailable: function () {
@@ -154,7 +155,7 @@
         let scene;
         let demo;
 
-        let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, NodeBasedVFXDemo];
+        let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, SoftParticleDemo, NodeBasedVFXDemo];
         let demoIndex = 0;
 
         function init() {
@@ -194,20 +195,22 @@
             stats.dom.style.right = "0";
             container.appendChild(stats.dom);
 
-            window.addEventListener('resize', onReize, false);
+            window.addEventListener('resize', onResize, false);
 
             demoIndex = 0;
-            demo = new demos[demoIndex]();
+            demo = new demos[demoIndex](camera, renderer);
             document.querySelector("#demo-name").innerText = demo.name;
             scene = demo.initScene();
 
             document.getElementById("nextBtn").addEventListener("click", nextDemo, false);
             document.getElementById("previousBtn").addEventListener("click", previousDemo, false);
 
-            onReize();
+            onResize();
         }
 
-        function onReize() {
+        function onResize() {
+            if (demo.onWindowResize)
+                demo.onWindowResize();
 
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -217,7 +220,7 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            onReize(null);
+            onResize(null);
             render();
             stats.update();
         }
@@ -235,7 +238,10 @@
             if (demoIndex >= demos.length) {
                 demoIndex = 0;
             }
-            demo = new demos[demoIndex]();
+            if (demo && demo.deinitScene) {
+                demo.deinitScene();
+            }
+            demo = new demos[demoIndex](camera, renderer);
             document.querySelector("#demo-name").innerText = demo.name;
             scene = demo.initScene();
         }
@@ -245,7 +251,10 @@
             if (demoIndex < 0) {
                 demoIndex = demos.length - 1;
             }
-            demo = new demos[demoIndex]();
+            if (demo && demo.deinitScene) {
+                demo.deinitScene();
+            }
+            demo = new demos[demoIndex](camera, renderer);
             document.querySelector("#demo-name").innerText = demo.name;
             scene = demo.initScene();
         }

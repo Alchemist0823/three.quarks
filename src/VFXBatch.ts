@@ -7,8 +7,12 @@ export interface StoredBatchSettings {
     material: Material;
     uTileCount: number;
     vTileCount: number;
-    renderMode: RenderMode;
-    renderOrder: number;
+    blendTiles: boolean;
+    softParticles: boolean;
+    softNearFade: number;
+    softFarFade: number;
+    renderMode : RenderMode;
+    renderOrder : number;
     layers: Layers;
 }
 
@@ -45,6 +49,10 @@ export abstract class VFXBatch extends Mesh {
             material: newMat,
             uTileCount: settings.uTileCount,
             vTileCount: settings.vTileCount,
+            blendTiles: settings.blendTiles,
+            softParticles: settings.softParticles,
+            softNearFade: settings.softNearFade,
+            softFarFade: settings.softFarFade,
             layers: layers,
         };
         this.frustumCulled = false;
@@ -57,6 +65,16 @@ export abstract class VFXBatch extends Mesh {
 
     removeSystem(system: IParticleSystem) {
         this.systems.delete(system);
+    }
+
+    applyDepthTexture(depthTexture: THREE.Texture | null): void {
+        const uniform = this.material.uniforms['depthTexture'];
+        if (uniform) {
+            if(uniform.value !==depthTexture) {
+                uniform.value = depthTexture;
+                this.material.needsUpdate = true;
+            }
+        }
     }
 
     abstract setupBuffers(): void;

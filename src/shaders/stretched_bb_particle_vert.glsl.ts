@@ -1,28 +1,20 @@
-import uv_vertex_tile from './chunks/uv_vertex_tile.glsl';
-
 export default /* glsl */ `
 #include <common>
-#include <uv_pars_vertex>
 #include <color_pars_vertex>
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
+
+#include <tile_pars_vertex>
+#include <soft_pars_vertex>
 
 attribute vec3 offset;
 attribute float rotation;
 attribute float size;
 attribute vec4 velocity;
-attribute float uvTile;
-
-#ifdef UV_TILE
-uniform vec2 tileCount;
-#endif
 
 uniform float speedFactor;
 
 void main() {
-
-    ${uv_vertex_tile}
-    
     float lengthFactor = velocity.w;
 #ifdef USE_SKEW
     vec4 mvPosition = modelViewMatrix * vec4( offset, 1.0 );
@@ -43,6 +35,8 @@ void main() {
 	gl_Position = projectionMatrix * mvPosition;
 	#include <logdepthbuf_vertex>
 	#include <clipping_planes_vertex>
+	#include <tile_vertex>
+	#include <soft_vertex>
 }
 `;
 /*

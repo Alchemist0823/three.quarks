@@ -1,23 +1,17 @@
-import uv_vertex_tile from './chunks/uv_vertex_tile.glsl';
 export default /* glsl */ `
 #include <common>
 #include <color_pars_vertex>
-#include <uv_pars_vertex>
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
+
+#include <tile_pars_vertex>
+#include <soft_pars_vertex>
 
 attribute vec3 offset;
 attribute float rotation;
 attribute float size;
-attribute float uvTile;
-
-#ifdef UV_TILE
-uniform vec2 tileCount;
-#endif
 
 void main() {
-
-    ${uv_vertex_tile}
 	
     vec2 alignedPosition = ( position.xy ) * size;
     
@@ -44,8 +38,11 @@ void main() {
 	gl_Position = projectionMatrix * mvPosition;
 
 	#include <logdepthbuf_vertex>
+
 	#include <clipping_planes_vertex>
 
+	#include <tile_vertex>
+	#include <soft_vertex>
 }
 `;
 /*

@@ -266,6 +266,10 @@ export class NodeVFX implements IParticleSystem {
             layers: parameters.layers ?? new Layers(),
             uTileCount: 1,
             vTileCount: 1,
+            blendTiles: false,
+            softParticles: false,
+            softNearFade: 0,
+            softFarFade: 0,
         };
         this.neededToUpdateRender = true;
 

@@ -1,12 +1,14 @@
 export default /* glsl */ `
 
 #include <common>
-#include <uv_pars_fragment>
 #include <color_pars_fragment>
 #include <map_pars_fragment>
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
 #include <alphatest_pars_fragment>
+
+#include <tile_pars_fragment>
+#include <soft_pars_fragment>
 
 void main() {
 
@@ -17,10 +19,7 @@ void main() {
     
     #include <logdepthbuf_fragment>
     
-    #ifdef USE_MAP
-    diffuseColor *= texture2D( map, vMapUv);
-    #endif
-    
+    #include <tile_fragment>
     #include <alphatest_fragment>
 
     outgoingLight = diffuseColor.rgb;
@@ -31,9 +30,8 @@ void main() {
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );
     #endif
     
-    
+    #include <soft_fragment>
     #include <tonemapping_fragment>
-
 }
 `;
 /*
