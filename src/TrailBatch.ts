@@ -91,7 +91,7 @@ export class TrailBatch extends VFXBatch {
             sizeAttenuation: {value: 1},
             visibility: {value: 1},
             alphaTest: {value: 0},
-            repeat: {value: new Vector2(1, 1)},
+            //repeat: {value: new Vector2(1, 1)},
         };
         const defines: {[b: string]: string} = {};
 

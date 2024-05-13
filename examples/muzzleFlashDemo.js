@@ -26,7 +26,6 @@ import {
     RotationOverLife,
     SizeOverLife,
     ParticleSystem,
-    ParticleEmitter,
     BatchedParticleRenderer,
 } from 'three.quarks';
 import {Demo} from './demo.js';

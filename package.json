@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.11.2",
+  "version": "0.12.0",
   "description": "A General-Purpose Particle System for three.js",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -14,6 +14,8 @@
     }
   },
   "files": [
+    "dist",
+    "src",
     "dist",
     "README.md",
     "LICENSE"

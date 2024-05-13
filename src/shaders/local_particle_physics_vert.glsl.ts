@@ -1,4 +1,3 @@
-import uv_vertex_tile from './chunks/uv_vertex_tile.glsl';
 
 export default /* glsl */ `
 #define STANDARD
@@ -7,17 +6,11 @@ varying vec3 vViewPosition;
 	varying vec3 vWorldPosition;
 #endif
 #include <common>
-#include <uv_pars_vertex>
 
 attribute vec3 offset;
 attribute vec4 rotation;
 attribute float size;
-attribute float uvTile;
-
-#ifdef UV_TILE
-uniform vec2 tileCount;
-#endif
-
+#include <tile_pars_vertex>
 #include <displacementmap_pars_vertex>
 #include <color_pars_vertex>
 #include <fog_pars_vertex>
@@ -29,8 +22,8 @@ uniform vec2 tileCount;
 #include <clipping_planes_pars_vertex>
 
 void main() {
-    ${uv_vertex_tile}
 
+    #include <tile_vertex>
     float x2 = rotation.x + rotation.x, y2 = rotation.y + rotation.y, z2 = rotation.z + rotation.z;
     float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;
     float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;

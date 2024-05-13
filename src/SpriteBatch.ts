@@ -1,19 +1,12 @@
-import {SpriteParticle} from './Particle';
 import {
+    DynamicDrawUsage,
     InstancedBufferAttribute,
     InstancedBufferGeometry,
-    Matrix3,
-    ShaderMaterial,
-    Uniform,
-    Vector2,
-    DynamicDrawUsage,
-    Vector3,
-    Quaternion,
-    UniformsLib,
-    Color,
-    UniformsUtils,
-    MeshStandardMaterial,
+    Matrix3, WebGLRenderer,
+    Quaternion, Uniform, Vector2,
+    Vector3, MeshStandardMaterial, UniformsLib, UniformsUtils, ShaderMaterial, Color, Vector4, Scene, PerspectiveCamera
 } from 'three';
+import { SpriteParticle } from './Particle';
 
 import particle_frag from './shaders/particle_frag.glsl';
 import particle_physics_frag from './shaders/particle_physics_frag.glsl';
@@ -21,9 +14,9 @@ import particle_vert from './shaders/particle_vert.glsl';
 import local_particle_vert from './shaders/local_particle_vert.glsl';
 import local_particle_physics_vert from './shaders/local_particle_physics_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
-import {VFXBatch, RenderMode} from './VFXBatch';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
-import {StretchedBillBoardSettings, VFXBatchSettings} from './BatchedRenderer';
+import {StretchedBillBoardSettings, VFXBatchSettings } from './BatchedRenderer';
+import { RenderMode, VFXBatch} from './VFXBatch';
 
 const UP = new Vector3(0, 0, 1);
 
@@ -189,10 +182,27 @@ export class SpriteBatch extends VFXBatch {
 
         if ((this.settings.material as any).map) {
             defines['USE_MAP'] = '';
+            if(this.settings.blendTiles) defines['TILE_BLEND'] = '';
             defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
             uniforms['mapTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
         }
         defines['USE_COLOR_ALPHA'] = '';
+
+        let onBeforeRender;
+        if (this.settings.softParticles) {
+            defines['SOFT_PARTICLES'] = '';
+
+            const nearFade = this.settings.softNearFade;
+            const invFadeDistance = 1.0 / (this.settings.softFarFade - this.settings.softNearFade);
+
+            uniforms['softParams'] = new Uniform(new Vector2(nearFade, invFadeDistance));
+            uniforms['depthTexture'] = new Uniform(null);
+            const projParams = uniforms['projParams'] = new Uniform(new Vector4());
+
+            onBeforeRender = (_renderer: WebGLRenderer, _scene: Scene, camera: PerspectiveCamera) => {
+                projParams.value.set(camera.near, camera.far, 0, 0);
+            }
+        }
 
         let needLights = false;
         if (
@@ -252,6 +262,9 @@ export class SpriteBatch extends VFXBatch {
             });
         } else {
             throw new Error('render mode unavailable');
+        }
+        if (this.material && onBeforeRender) {
+            (this.material as any).onBeforeRender = onBeforeRender;
         }
     }
 

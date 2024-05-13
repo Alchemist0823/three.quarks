@@ -12,6 +12,10 @@ export interface VFXBatchSettings {
     material: Material;
     uTileCount: number;
     vTileCount: number;
+    blendTiles: boolean;
+    softParticles: boolean;
+    softNearFade: number;
+    softFarFade: number;
     renderMode: RenderMode;
     renderOrder: number;
     layers: Layers;
@@ -83,6 +87,8 @@ export class BatchedRenderer extends Object3D {
     systemToBatchIndex: Map<IParticleSystem, number> = new Map<IParticleSystem, number>();
     type = 'BatchedRenderer';
 
+    depthTexture: THREE.Texture | null = null;
+
     constructor() {
         super();
     }
@@ -96,6 +102,10 @@ export class BatchedRenderer extends Object3D {
             a.material.alphaTest === b.material.alphaTest &&
             (a.material as any).map === (b.material as any).map &&
             a.renderMode === b.renderMode &&
+            a.blendTiles === b.blendTiles &&
+            a.softParticles === b.softParticles &&
+            a.softFarFade === b.softFarFade &&
+            a.softNearFade === b.softNearFade &&
             a.uTileCount === b.uTileCount &&
             a.vTileCount === b.vTileCount &&
             a.instancingGeometry === b.instancingGeometry &&
@@ -127,6 +137,9 @@ export class BatchedRenderer extends Object3D {
                 batch = new SpriteBatch(settings);
                 break;
         }
+        if (this.depthTexture) {
+            batch.applyDepthTexture(this.depthTexture);
+        }
         batch.addSystem(system);
         this.batches.push(batch);
         this.systemToBatchIndex.set(system, this.batches.length - 1);
@@ -146,6 +159,13 @@ export class BatchedRenderer extends Object3D {
                 return;
             }
         }*/
+    }
+
+    setDepthTexture(depthTexture: THREE.Texture | null) {
+        this.depthTexture = depthTexture;
+        for (const batch of this.batches) {
+            batch.applyDepthTexture(depthTexture);
+        }
     }
 
     updateSystem(system: IParticleSystem) {

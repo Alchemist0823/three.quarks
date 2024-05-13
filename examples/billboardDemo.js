@@ -104,8 +104,6 @@ export class BillboardDemo extends Demo {
         this.scene.add(billboard1.emitter);
         this.scene.add(billboard2.emitter);
         this.scene.add(billboard3.emitter);
-        this.scene.add(this.batchRenderer);
-
         return this.scene;
     }
 }

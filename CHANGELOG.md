@@ -1,4 +1,7 @@
 # Change Log
+## version 0.12.0
+- Support soft particles
+- Support uv blend tiles.
 
 ## version 0.11.2
 - Fix Major bug: particles are emitted at incorrect positions at first time

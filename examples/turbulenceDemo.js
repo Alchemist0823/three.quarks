@@ -41,7 +41,6 @@ export class TurbulenceDemo extends Demo {
             worldSpace: true,
 
             emissionOverTime: new ConstantValue(500),
-
             shape: new ConeEmitter({radius: 0.5, angle: 0.5}),
             material: new MeshBasicMaterial({
                 map: this.texture,

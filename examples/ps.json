@@ -942,6 +942,7 @@
                 "arc": 6.283185307179586,
                 "thickness": 0
               },
+              "blendTiles": true,
               "startLife": {
                 "type": "IntervalValue",
                 "a": 0.8,

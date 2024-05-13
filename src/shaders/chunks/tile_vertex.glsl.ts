@@ -1,31 +1,34 @@
 export default /* glsl */ `
-
-    #ifdef UV_TILE
-        float col = mod(uvTile, tileCount.x);
-        float row = (tileCount.y - floor(uvTile / tileCount.x) - 1.0);
-        
-        mat3 tileTransform = mat3(
-          1.0 / tileCount.x, 0.0, 0.0,
-          0.0, 1.0 / tileCount.y, 0.0, 
-          col / tileCount.x, row / tileCount.y, 1.0);
-    #else
-        mat3 tileTransform = mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+#ifdef UV_TILE
+    mat3 tileTransform = makeTileTransform(floor(uvTile));
+    #ifdef TILE_BLEND
+        mat3 nextTileTransform = makeTileTransform(ceil(uvTile));
+        vUvBlend = fract(uvTile);
     #endif
+#else
+    mat3 tileTransform = makeTileTransform(0.0);
+#endif
 
 #if defined( USE_UV ) || defined( USE_ANISOTROPY )
 
 vUv = (tileTransform *vec3( uv, 1 )).xy;
+#ifdef TILE_BLEND
+    vUvNext = (nextTileTransform *vec3( uv, 1 )).xy;
+#endif
 
 #endif
 #ifdef USE_MAP
 
 vMapUv = ( tileTransform * (mapTransform * vec3( MAP_UV, 1 ) )).xy;
+#ifdef TILE_BLEND
+    vMapUvNext = (nextTileTransform * (mapTransform * vec3( MAP_UV, 1 ))).xy;
+#endif
 
 #endif
 #ifdef USE_ALPHAMAP
 
 vAlphaMapUv = ( tileTransform * (alphaMapTransform * vec3( ALPHAMAP_UV, 1 ) )).xy;
-
+    
 #endif
 #ifdef USE_LIGHTMAP
 
@@ -132,4 +135,5 @@ vTransmissionMapUv = ( tileTransform * transmissionMapTransform * vec3( TRANSMIS
 vThicknessMapUv = ( tileTransform * thicknessMapTransform * vec3( THICKNESSMAP_UV, 1 ) )).xy;
 
 #endif
-`;
+
+`
