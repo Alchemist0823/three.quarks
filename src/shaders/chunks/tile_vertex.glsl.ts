@@ -12,7 +12,7 @@ export default /* glsl */ `
 #if defined( USE_UV ) || defined( USE_ANISOTROPY )
 
 vUv = (tileTransform *vec3( uv, 1 )).xy;
-#ifdef TILE_BLEND
+#if defined( TILE_BLEND ) && defined( UV_TILE )
     vUvNext = (nextTileTransform *vec3( uv, 1 )).xy;
 #endif
 
@@ -20,7 +20,7 @@ vUv = (tileTransform *vec3( uv, 1 )).xy;
 #ifdef USE_MAP
 
 vMapUv = ( tileTransform * (mapTransform * vec3( MAP_UV, 1 ) )).xy;
-#ifdef TILE_BLEND
+#if defined( TILE_BLEND ) && defined( UV_TILE )
     vMapUvNext = (nextTileTransform * (mapTransform * vec3( MAP_UV, 1 ))).xy;
 #endif
 

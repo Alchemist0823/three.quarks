@@ -45,8 +45,6 @@ export class SoftParticleDemo extends Demo {
 
         this.batchRenderer.setDepthTexture(this.target.depthTexture);
 
-        // Our scene
-        this.setupScene();
 
         // Setup post-processing step
         this.texture = new TextureLoader().load('textures/cfxr smoke cloud x4.png', (texture) => {

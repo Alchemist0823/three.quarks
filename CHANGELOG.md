@@ -1,4 +1,8 @@
 # Change Log
+## version 0.12.1
+- Fix bug on blend tile shader when uv tile is not used
+- Fix soft particle example bug
+
 ## version 0.12.0
 - Support soft particles
 - Support uv blend tiles.
