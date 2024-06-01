@@ -1,4 +1,4 @@
-import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers} from 'three';
+import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Texture} from 'three';
 import {IParticleSystem, VFXBatchSettings} from './BatchedRenderer';
 
 export interface StoredBatchSettings {
@@ -11,8 +11,8 @@ export interface StoredBatchSettings {
     softParticles: boolean;
     softNearFade: number;
     softFarFade: number;
-    renderMode : RenderMode;
-    renderOrder : number;
+    renderMode: RenderMode;
+    renderOrder: number;
     layers: Layers;
 }
 
@@ -67,10 +67,10 @@ export abstract class VFXBatch extends Mesh {
         this.systems.delete(system);
     }
 
-    applyDepthTexture(depthTexture: THREE.Texture | null): void {
+    applyDepthTexture(depthTexture: Texture | null): void {
         const uniform = this.material.uniforms['depthTexture'];
         if (uniform) {
-            if(uniform.value !==depthTexture) {
+            if (uniform.value !== depthTexture) {
                 uniform.value = depthTexture;
                 this.material.needsUpdate = true;
             }

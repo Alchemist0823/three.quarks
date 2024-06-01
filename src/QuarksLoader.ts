@@ -32,10 +32,15 @@ import {
     SpriteMaterial,
     Bone,
     Object3DEventMap,
-} from "three";
-import {ParticleSystem} from "./ParticleSystem";
-import {Behavior, EmitSubParticleSystem} from "./behaviors";
-import {ParticleEmitter} from "./ParticleEmitter";
+    BufferGeometry,
+    BatchedMesh,
+    Sphere,
+    Box3,
+} from 'three';
+import {ParticleSystem} from './ParticleSystem';
+import {Behavior, EmitSubParticleSystem} from './behaviors';
+import {ParticleEmitter} from './ParticleEmitter';
+import {Geometry} from 'three/examples/jsm/deprecated/Geometry';
 
 export class QuarksLoader extends ObjectLoader {
     /*manager: LoadingManager;
@@ -82,21 +87,20 @@ export class QuarksLoader extends ObjectLoader {
     // @ts-ignore
     parseObject(
         data: any,
-        geometries: any,
-        materials: Material[],
-        textures: Texture[],
+        geometries: {[uuid: string]: BufferGeometry},
+        materials: {[uuid: string]: Material},
+        textures: {[uuid: string]: Texture},
         animations: AnimationClip[]
     ): Object3D {
         let object;
-
-        function getGeometry(name: any) {
+        function getGeometry(name: string) {
             if (geometries[name] === undefined) {
                 console.warn('THREE.ObjectLoader: Undefined geometry', name);
             }
             return geometries[name];
         }
 
-        function getMaterial(name: any) {
+        function getMaterial(name: string | string[] | undefined) {
             if (name === undefined) return undefined;
             if (Array.isArray(name)) {
                 const array = [];
@@ -107,7 +111,6 @@ export class QuarksLoader extends ObjectLoader {
                     }
                     array.push(materials[uuid]);
                 }
-
                 return array;
             }
 
@@ -118,7 +121,7 @@ export class QuarksLoader extends ObjectLoader {
             return materials[name];
         }
 
-        function getTexture(uuid: number) {
+        function getTexture(uuid: string) {
             if (textures[uuid] === undefined) {
                 console.warn('THREE.ObjectLoader: Undefined texture', uuid);
             }
@@ -126,7 +129,6 @@ export class QuarksLoader extends ObjectLoader {
         }
 
         let geometry, material;
-
         const meta = {
             textures: textures,
             geometries: geometries,
@@ -138,7 +140,6 @@ export class QuarksLoader extends ObjectLoader {
             case 'ParticleEmitter':
                 object = ParticleSystem.fromJSON(data.ps, meta as any, dependencies).emitter;
                 break;
-
             case 'Scene':
                 object = new Scene();
                 if (data.background !== undefined) {
@@ -159,9 +160,18 @@ export class QuarksLoader extends ObjectLoader {
                     } else if (data.fog.type === 'FogExp2') {
                         object.fog = new FogExp2(data.fog.color, data.fog.density);
                     }
+                    if (data.fog.name !== '') {
+                        object.fog!.name = data.fog.name;
+                    }
                 }
 
                 if (data.backgroundBlurriness !== undefined) object.backgroundBlurriness = data.backgroundBlurriness;
+                if (data.backgroundIntensity !== undefined) object.backgroundIntensity = data.backgroundIntensity;
+                if (data.backgroundRotation !== undefined) object.backgroundRotation.fromArray(data.backgroundRotation);
+
+                if (data.environmentIntensity !== undefined) object.environmentIntensity = data.environmentIntensity;
+                if (data.environmentRotation !== undefined)
+                    object.environmentRotation.fromArray(data.environmentRotation);
 
                 break;
 
@@ -246,7 +256,7 @@ export class QuarksLoader extends ObjectLoader {
 
                 break;
 
-            case 'InstancedMesh': {
+            case 'InstancedMesh':
                 geometry = getGeometry(data.geometry);
                 material = getMaterial(data.material);
                 const count = data.count;
@@ -260,9 +270,55 @@ export class QuarksLoader extends ObjectLoader {
                         new Float32Array(instanceColor.array),
                         instanceColor.itemSize
                     );
+                break;
+
+            case 'BatchedMesh':
+                geometry = getGeometry(data.geometry);
+                material = getMaterial(data.material);
+
+                object = new BatchedMesh(
+                    data.maxGeometryCount,
+                    data.maxVertexCount,
+                    data.maxIndexCount,
+                    material as Material
+                );
+                object.geometry = geometry;
+                object.perObjectFrustumCulled = data.perObjectFrustumCulled;
+                object.sortObjects = data.sortObjects;
+
+                (object as any)._drawRanges = data.drawRanges;
+                (object as any)._reservedRanges = data.reservedRanges;
+
+                (object as any)._visibility = data.visibility;
+                (object as any)._active = data.active;
+                (object as any)._bounds = data.bounds.map((bound: any) => {
+                    const box = new Box3();
+                    box.min.fromArray(bound.boxMin);
+                    box.max.fromArray(bound.boxMax);
+
+                    const sphere = new Sphere();
+                    sphere.radius = bound.sphereRadius;
+                    sphere.center.fromArray(bound.sphereCenter);
+
+                    return {
+                        boxInitialized: bound.boxInitialized,
+                        box: box,
+
+                        sphereInitialized: bound.sphereInitialized,
+                        sphere: sphere,
+                    };
+                });
+
+                (object as any)._maxGeometryCount = data.maxGeometryCount;
+                (object as any)._maxVertexCount = data.maxVertexCount;
+                (object as any)._maxIndexCount = data.maxIndexCount;
+
+                (object as any)._geometryInitialized = data.geometryInitialized;
+                (object as any)._geometryCount = data.geometryCount;
+
+                (object as any)._matricesTexture = getTexture(data.matricesTexture.uuid);
 
                 break;
-            }
 
             case 'LOD':
                 object = new LOD();
@@ -316,14 +372,19 @@ export class QuarksLoader extends ObjectLoader {
         if (data.matrix !== undefined) {
             object.matrix.fromArray(data.matrix);
             if (data.matrixAutoUpdate !== undefined) object.matrixAutoUpdate = data.matrixAutoUpdate;
-            if (object.matrixAutoUpdate) object.matrix.decompose(object.position, object.quaternion, object.scale);
+            if (object.matrixAutoUpdate) {
+                object.matrix.decompose(object.position, object.quaternion, object.scale);
+                if (isNaN(object.quaternion.x)) {
+                    object.quaternion.set(0, 0, 0, 1);
+                }
+            }
         } else {
             if (data.position !== undefined) object.position.fromArray(data.position);
             if (data.rotation !== undefined) object.rotation.fromArray(data.rotation);
             if (data.quaternion !== undefined) object.quaternion.fromArray(data.quaternion);
             if (data.scale !== undefined) object.scale.fromArray(data.scale);
         }
-
+        if (data.up !== undefined) object.up.fromArray(data.up);
         if (data.castShadow !== undefined) object.castShadow = data.castShadow;
         if (data.receiveShadow !== undefined) object.receiveShadow = data.receiveShadow;
 
@@ -354,7 +415,6 @@ export class QuarksLoader extends ObjectLoader {
 
         if (data.animations !== undefined) {
             const objectAnimations = data.animations;
-
             for (let i = 0; i < objectAnimations.length; i++) {
                 const uuid = objectAnimations[i];
 
@@ -366,7 +426,6 @@ export class QuarksLoader extends ObjectLoader {
             if (data.autoUpdate !== undefined) (object as any).autoUpdate = data.autoUpdate;
 
             const levels = data.levels;
-
             for (let l = 0; l < levels.length; l++) {
                 const level = levels[l];
                 const child = object.getObjectByProperty('uuid', level.object);
@@ -378,7 +437,6 @@ export class QuarksLoader extends ObjectLoader {
             }
         }
 
-        // @ts-ignore
         return object;
     }
 }

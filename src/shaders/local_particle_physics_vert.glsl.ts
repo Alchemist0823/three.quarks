@@ -1,4 +1,3 @@
-
 export default /* glsl */ `
 #define STANDARD
 varying vec3 vViewPosition;
@@ -35,12 +34,15 @@ void main() {
                       ( xz + wy ) * sz, ( yz - wx ) * sz, ( 1.0 - ( xx + yy ) ) * sz, 0.0,  // 3. column
                       offset.x, offset.y, offset.z, 1.0);
 
-	#include <color_vertex>
-	#include <morphcolor_vertex>
-	#include <beginnormal_vertex>
-	#include <morphnormal_vertex>
-	#include <skinbase_vertex>
-	#include <skinnormal_vertex>
+#include <color_vertex>
+#include <morphinstance_vertex>
+#include <morphcolor_vertex>
+#include <batching_vertex>
+
+#include <beginnormal_vertex>
+#include <morphnormal_vertex>
+#include <skinbase_vertex>
+#include <skinnormal_vertex>
 
 	// replace defaultnormal_vertex
 	vec3 transformedNormal = objectNormal;
@@ -78,7 +80,7 @@ void main() {
 	#include <shadowmap_vertex>
 	#include <fog_vertex>
 #ifdef USE_TRANSMISSION
-	vWorldPosition = worldPosition.xyz;
+    vWorldPosition = worldPosition.xyz;
 #endif
 }
 `;

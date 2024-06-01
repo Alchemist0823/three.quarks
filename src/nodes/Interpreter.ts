@@ -2,7 +2,6 @@ import {NodeGraph} from './NodeGraph';
 import {Adapter, ConstInput, Node, Wire} from './Node';
 import {ExecutionContext} from './NodeDef';
 import {BaseCompiler} from './BaseCompiler';
-import {context} from 'three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements';
 import {genDefaultForNodeValueType} from './NodeValueType';
 
 export class Interpreter extends BaseCompiler {
@@ -60,9 +59,7 @@ export class Interpreter extends BaseCompiler {
                 const signatureIndex = node.signatureIndex < 0 ? 0 : node.signatureIndex;
                 for (let i = 0; i < node.definition.nodeTypeSignatures[signatureIndex].outputTypes.length; i++) {
                     node.outputValues.push(
-                        genDefaultForNodeValueType(
-                            node.definition.nodeTypeSignatures[signatureIndex].outputTypes[i]
-                        )
+                        genDefaultForNodeValueType(node.definition.nodeTypeSignatures[signatureIndex].outputTypes[i])
                     );
                     if (node.outputValues[i] === undefined) {
                         node.outputValues[i] = genDefaultForNodeValueType(node.data.type);

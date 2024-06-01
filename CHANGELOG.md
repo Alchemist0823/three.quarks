@@ -1,4 +1,10 @@
 # Change Log
+## version 0.12.2
+- Support burst emission on emitter shape
+- Upgrade three.js to 0.165.0
+- Fix the ForceOverLife behavior doesn't apply global force when particles are in local space.
+- Fix mesh render mode quaternion multiplication order
+
 ## version 0.12.1
 - Fix bug on blend tile shader when uv tile is not used
 - Fix soft particle example bug

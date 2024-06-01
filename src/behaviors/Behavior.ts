@@ -20,10 +20,11 @@ import {Rotation3DOverLife} from './Rotation3DOverLife';
 import {ForceOverLife} from './ForceOverLife';
 import {Noise} from './Noise';
 import {LimitSpeedOverLife} from './LimitSpeedOverLife';
+import {IParticleSystem} from '../BatchedRenderer';
 
 export interface Behavior {
     type: string;
-    initialize(particle: Particle): void;
+    initialize(particle: Particle, particleSystem: IParticleSystem): void;
     update(particle: Particle, delta: number): void;
     frameUpdate(delta: number): void;
     toJSON(): any;

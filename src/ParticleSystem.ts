@@ -30,7 +30,9 @@ import {
     Quaternion,
     Texture,
     Vector3,
-    Vector4, Material, MeshBasicMaterial,
+    Vector4,
+    Material,
+    MeshBasicMaterial,
 } from 'three';
 import {RenderMode} from './VFXBatch';
 import {
@@ -159,6 +161,9 @@ const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
 export interface EmissionState {
     burstIndex: number;
     burstWaveIndex: number;
+    burstParticleIndex: number;
+    burstParticleCount: number;
+    isBursting: boolean;
     time: number;
     waitEmiting: number;
     travelDistance: number;
@@ -564,6 +569,9 @@ export class ParticleSystem implements IParticleSystem {
         this.paused = false;
         this.particleNum = 0;
         this.emissionState = {
+            isBursting: false,
+            burstParticleIndex: 0,
+            burstParticleCount: 0,
             burstIndex: 0,
             burstWaveIndex: 0,
             time: 0,
@@ -591,6 +599,7 @@ export class ParticleSystem implements IParticleSystem {
         const scale = tempV2;
         matrix.decompose(translation, quaternion, scale);
         for (let i = 0; i < count; i++) {
+            emissionState.burstParticleIndex = i;
             this.particleNum++;
             while (this.particles.length < this.particleNum) {
                 if (this.rendererSettings.renderMode === RenderMode.Trail) {
@@ -643,7 +652,7 @@ export class ParticleSystem implements IParticleSystem {
                 );
             }
 
-            this.emitterShape.initialize(particle);
+            this.emitterShape.initialize(particle, emissionState);
             if (
                 this.rendererSettings.renderMode === RenderMode.Trail &&
                 (this.rendererEmitterSettings as TrailSettings).followLocalOrigin
@@ -667,7 +676,7 @@ export class ParticleSystem implements IParticleSystem {
             }
 
             for (let j = 0; j < this.behaviors.length; j++) {
-                this.behaviors[j].initialize(particle);
+                this.behaviors[j].initialize(particle, this);
             }
         }
     }
@@ -688,6 +697,7 @@ export class ParticleSystem implements IParticleSystem {
     restart() {
         this.paused = false;
         this.particleNum = 0;
+        this.emissionState.isBursting = false;
         this.emissionState.burstIndex = 0;
         this.emissionState.burstWaveIndex = 0;
         this.emissionState.time = 0;
@@ -747,12 +757,12 @@ export class ParticleSystem implements IParticleSystem {
         // simulate
         this.emitterShape.update(this, delta);
         for (let j = 0; j < this.behaviors.length; j++) {
+            this.behaviors[j].frameUpdate(delta);
             for (let i = 0; i < this.particleNum; i++) {
                 if (!this.particles[i].died) {
                     this.behaviors[j].update(this.particles[i], delta);
                 }
             }
-            this.behaviors[j].frameUpdate(delta);
         }
         for (let i = 0; i < this.particleNum; i++) {
             if (
@@ -824,7 +834,10 @@ export class ParticleSystem implements IParticleSystem {
         ) {
             if (Math.random() < this.emissionBursts[emissionState.burstIndex].probability) {
                 const count = this.emissionBursts[emissionState.burstIndex].count.genValue(this.time);
+                emissionState.isBursting = true;
+                emissionState.burstParticleCount = count;
                 this.spawn(count, emissionState, emitterMatrix);
+                emissionState.isBursting = false;
             }
             emissionState.burstIndex++;
         }
@@ -1017,18 +1030,18 @@ export class ParticleSystem implements IParticleSystem {
             material: json.material
                 ? meta.materials[json.material]
                 : json.texture
-                ? new MeshBasicMaterial({
-                      map: meta.textures[json.texture],
-                      transparent: json.transparent ?? true,
-                      blending: json.blending,
-                      side: DoubleSide,
-                  })
-                : new MeshBasicMaterial({
-                      color: 0xffffff,
-                      transparent: true,
-                      blending: AdditiveBlending,
-                      side: DoubleSide,
-                  }),
+                  ? new MeshBasicMaterial({
+                        map: meta.textures[json.texture],
+                        transparent: json.transparent ?? true,
+                        blending: json.blending,
+                        side: DoubleSide,
+                    })
+                  : new MeshBasicMaterial({
+                        color: 0xffffff,
+                        transparent: true,
+                        blending: AdditiveBlending,
+                        side: DoubleSide,
+                    }),
             startTileIndex:
                 typeof json.startTileIndex === 'number'
                     ? new ConstantValue(json.startTileIndex)

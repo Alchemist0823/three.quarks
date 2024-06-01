@@ -1,4 +1,15 @@
-import {Group, Scene, MeshStandardMaterial, PlaneGeometry, PointLight, DoubleSide, Mesh, Vector3, Color} from 'three';
+import {
+    Group,
+    Scene,
+    MeshStandardMaterial,
+    PlaneGeometry,
+    PointLight,
+    DoubleSide,
+    Mesh,
+    Vector3,
+    Color,
+    MeshBasicMaterial,
+} from 'three';
 import {ParticleEmitter} from 'three.quarks';
 
 export class Demo {
@@ -59,7 +70,7 @@ export class Demo {
         plane.position.set(0, -10, 0);
         plane.lookAt(new Vector3(0, 1, 0));
 
-        const light = new PointLight(0xffffff, 1, 300);
+        const light = new PointLight(0xffffff, 1000, 300);
         light.position.set(0, 5, 0);
         this.scene.add(light);
         return this.scene;

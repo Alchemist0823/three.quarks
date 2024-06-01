@@ -1,14 +1,5 @@
 import {Particle} from '../Particle';
-import {ConeEmitter} from './ConeEmitter';
-import {DonutEmitter} from './DonutEmitter';
-import {PointEmitter} from './PointEmitter';
-import {SphereEmitter} from './SphereEmitter';
-import {MeshSurfaceEmitter} from './MeshSurfaceEmitter';
-import {Constructable, ParameterPair} from '../TypeUtil';
-import {GridEmitter} from './GridEmitter';
-import {JsonMetaData, ParticleSystem} from '../ParticleSystem';
-import {CircleEmitter} from './CircleEmitter';
-import {HemisphereEmitter} from './HemisphereEmitter';
+import {EmissionState, JsonMetaData, ParticleSystem} from '../ParticleSystem';
 
 export interface ShapeJSON {
     type: string;
@@ -35,10 +26,17 @@ export enum EmitterMode {
     Burst,
 }
 
-export function getValueFromEmitterMode(mode: EmitterMode, currentValue: number, spread: number): number {
+export function getValueFromEmitterMode(
+    mode: EmitterMode,
+    currentValue: number,
+    spread: number,
+    emissionState: EmissionState
+): number {
     let u;
     if (EmitterMode.Random === mode) {
         currentValue = Math.random();
+    } else if (EmitterMode.Burst === mode && emissionState.isBursting) {
+        currentValue = emissionState.burstParticleIndex / emissionState.burstParticleCount;
     }
     if (spread > 0) {
         u = Math.floor(currentValue / spread) * spread;
@@ -58,7 +56,7 @@ export function getValueFromEmitterMode(mode: EmitterMode, currentValue: number,
 
 export interface EmitterShape {
     type: string;
-    initialize(particle: Particle): void;
+    initialize(particle: Particle, emissionState: EmissionState): void;
     toJSON(): ShapeJSON;
     update(system: ParticleSystem, delta: number): void;
     clone(): EmitterShape;

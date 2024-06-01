@@ -1,10 +1,10 @@
 import {VFXBatch, RenderMode, StoredBatchSettings} from './VFXBatch';
-import { BufferGeometry, Layers, Material, Object3D, Vector3 } from "three";
+import {BufferGeometry, Layers, Material, Matrix3, Object3D, Texture, Vector3} from 'three';
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
 import {ParticleEmitter} from './ParticleEmitter';
 import {IParticle, Particle} from './Particle';
-import { FunctionValueGenerator, ValueGenerator } from "./functions";
+import {FunctionValueGenerator, ValueGenerator} from './functions';
 
 export interface VFXBatchSettings {
     // 5 component x,y,z,u,v
@@ -23,7 +23,6 @@ export interface VFXBatchSettings {
 export interface SerializationOptions {
     useUrlForImage?: boolean;
 }
-
 
 export type RendererEmitterSettings = TrailSettings | MeshSettings | BillBoardSettings | StretchedBillBoardSettings;
 
@@ -87,7 +86,7 @@ export class BatchedRenderer extends Object3D {
     systemToBatchIndex: Map<IParticleSystem, number> = new Map<IParticleSystem, number>();
     type = 'BatchedRenderer';
 
-    depthTexture: THREE.Texture | null = null;
+    depthTexture: Texture | null = null;
 
     constructor() {
         super();
@@ -161,7 +160,7 @@ export class BatchedRenderer extends Object3D {
         }*/
     }
 
-    setDepthTexture(depthTexture: THREE.Texture | null) {
+    setDepthTexture(depthTexture: Texture | null) {
         this.depthTexture = depthTexture;
         for (const batch of this.batches) {
             batch.applyDepthTexture(depthTexture);

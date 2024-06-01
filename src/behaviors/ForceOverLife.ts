@@ -1,13 +1,18 @@
 import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
-import {Vector3} from 'three';
+import {Quaternion, Vector3} from 'three';
+import {ParticleSystem} from '../ParticleSystem';
+import {IParticleSystem} from '../BatchedRenderer';
 
 export class ForceOverLife implements Behavior {
     type = 'ForceOverLife';
     _temp = new Vector3();
+    ps!: IParticleSystem;
 
-    initialize(particle: Particle): void {}
+    initialize(particle: Particle, particleSystem: ParticleSystem): void {
+        this.ps = particleSystem;
+    }
 
     constructor(
         public x: FunctionValueGenerator | ValueGenerator,
@@ -21,7 +26,12 @@ export class ForceOverLife implements Behavior {
             this.y.genValue(particle.age / particle.life),
             this.z.genValue(particle.age / particle.life)
         );
-        particle.velocity.addScaledVector(this._temp, delta);
+        if (this.ps.worldSpace) {
+            particle.velocity.addScaledVector(this._temp, delta);
+        } else {
+            this._temp.multiply(this._tempScale).applyQuaternion(this._tempQ);
+            particle.velocity.addScaledVector(this._temp, delta);
+        }
     }
 
     toJSON(): any {
@@ -41,7 +51,19 @@ export class ForceOverLife implements Behavior {
         );
     }
 
-    frameUpdate(delta: number): void {}
+    _tempScale = new Vector3();
+    _tempQ = new Quaternion();
+
+    frameUpdate(delta: number): void {
+        if (this.ps && !this.ps.worldSpace) {
+            const translation = this._temp;
+            const quaternion = this._tempQ;
+            const scale = this._tempScale;
+            this.ps.emitter.matrixWorld.decompose(translation, quaternion, scale);
+            quaternion.invert();
+            scale.set(1 / scale.x, 1 / scale.y, 1 / scale.z);
+        }
+    }
 
     clone(): Behavior {
         return new ForceOverLife(this.x.clone(), this.y.clone(), this.z.clone());

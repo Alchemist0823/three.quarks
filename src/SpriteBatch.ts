@@ -2,11 +2,22 @@ import {
     DynamicDrawUsage,
     InstancedBufferAttribute,
     InstancedBufferGeometry,
-    Matrix3, WebGLRenderer,
-    Quaternion, Uniform, Vector2,
-    Vector3, MeshStandardMaterial, UniformsLib, UniformsUtils, ShaderMaterial, Color, Vector4, Scene, PerspectiveCamera
+    Matrix3,
+    WebGLRenderer,
+    Quaternion,
+    Uniform,
+    Vector2,
+    Vector3,
+    MeshStandardMaterial,
+    UniformsLib,
+    UniformsUtils,
+    ShaderMaterial,
+    Color,
+    Vector4,
+    Scene,
+    PerspectiveCamera,
 } from 'three';
-import { SpriteParticle } from './Particle';
+import {SpriteParticle} from './Particle';
 
 import particle_frag from './shaders/particle_frag.glsl';
 import particle_physics_frag from './shaders/particle_physics_frag.glsl';
@@ -15,8 +26,8 @@ import local_particle_vert from './shaders/local_particle_vert.glsl';
 import local_particle_physics_vert from './shaders/local_particle_physics_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
-import {StretchedBillBoardSettings, VFXBatchSettings } from './BatchedRenderer';
-import { RenderMode, VFXBatch} from './VFXBatch';
+import {StretchedBillBoardSettings, VFXBatchSettings} from './BatchedRenderer';
+import {RenderMode, VFXBatch} from './VFXBatch';
 
 const UP = new Vector3(0, 0, 1);
 
@@ -123,7 +134,7 @@ export class SpriteBatch extends VFXBatch {
                     metalness: {value: 0.0},
                     envMapIntensity: {value: 1}, // temporary
                 },
-            ]);
+            ]) as {[a: string]: Uniform};
             uniforms['diffuse'].value = mat.color;
             uniforms['opacity'].value = mat.opacity;
             uniforms['emissive'].value = mat.emissive;
@@ -182,7 +193,7 @@ export class SpriteBatch extends VFXBatch {
 
         if ((this.settings.material as any).map) {
             defines['USE_MAP'] = '';
-            if(this.settings.blendTiles) defines['TILE_BLEND'] = '';
+            if (this.settings.blendTiles) defines['TILE_BLEND'] = '';
             defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
             uniforms['mapTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
         }
@@ -197,11 +208,11 @@ export class SpriteBatch extends VFXBatch {
 
             uniforms['softParams'] = new Uniform(new Vector2(nearFade, invFadeDistance));
             uniforms['depthTexture'] = new Uniform(null);
-            const projParams = uniforms['projParams'] = new Uniform(new Vector4());
+            const projParams = (uniforms['projParams'] = new Uniform(new Vector4()));
 
             onBeforeRender = (_renderer: WebGLRenderer, _scene: Scene, camera: PerspectiveCamera) => {
                 projParams.value.set(camera.near, camera.far, 0, 0);
-            }
+            };
         }
 
         let needLights = false;
@@ -313,7 +324,7 @@ export class SpriteBatch extends VFXBatch {
                             parentQ = rotation;
                         }
                         q = this.quaternion_;
-                        q.copy(particle.rotation as Quaternion).multiply(parentQ);
+                        q.copy(parentQ).multiply(particle.rotation as Quaternion);
                     }
                     this.rotationBuffer.setXYZW(index, q.x, q.y, q.z, q.w);
                 } else if (

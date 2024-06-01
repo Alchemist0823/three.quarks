@@ -2,7 +2,7 @@ import {EmitterMode, EmitterShape, getValueFromEmitterMode, ShapeJSON} from './E
 import {Particle} from '../Particle';
 import {MathUtils} from 'three';
 import {ConstantValue, FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
-import {ParticleSystem} from '../ParticleSystem';
+import {EmissionState, ParticleSystem} from '../ParticleSystem';
 
 export interface SphereEmitterParameters {
     radius?: number;
@@ -39,8 +39,8 @@ export class SphereEmitter implements EmitterShape {
         }
     }
 
-    initialize(p: Particle) {
-        const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread);
+    initialize(p: Particle, emissionState: EmissionState) {
+        const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread, emissionState);
         const v = Math.random();
         const rand = MathUtils.lerp(1 - this.thickness, 1, Math.random());
         const theta = u * this.arc;

@@ -2,8 +2,7 @@ import {EmitterMode, EmitterShape, getValueFromEmitterMode, ShapeJSON} from './E
 import {Particle} from '../Particle';
 import {MathUtils} from 'three';
 import {ConstantValue, FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
-import {ParticleSystem} from '../ParticleSystem';
-import {IParticleSystem} from '../BatchedRenderer';
+import {EmissionState, ParticleSystem} from '../ParticleSystem';
 
 export interface CircleEmitterParameters {
     radius?: number;
@@ -38,8 +37,8 @@ export class CircleEmitter implements EmitterShape {
         this.currentValue += this.speed.genValue(system.emissionState.time / system.duration) * delta;
     }
 
-    initialize(p: Particle) {
-        const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread);
+    initialize(p: Particle, emissionState: EmissionState) {
+        const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread, emissionState);
         const r = MathUtils.lerp(1 - this.thickness, 1, Math.random());
         const theta = u * this.arc;
         p.position.x = Math.cos(theta);

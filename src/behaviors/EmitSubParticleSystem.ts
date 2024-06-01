@@ -68,6 +68,9 @@ export class EmitSubParticleSystem implements Behavior {
         const m = new Matrix4();
         this.setMatrixFromParticle(m, particle);
         this.subEmissions.push({
+            burstParticleCount: 0,
+            burstParticleIndex: 0,
+            isBursting: false,
             burstIndex: 0,
             burstWaveIndex: 0,
             time: 0,
