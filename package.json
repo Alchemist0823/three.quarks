@@ -10,7 +10,8 @@
   "exports": {
     ".": {
       "import": "./dist/three.quarks.esm.js",
-      "require": "./dist/three.quarks.cjs"
+      "require": "./dist/three.quarks.cjs",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "files": [
