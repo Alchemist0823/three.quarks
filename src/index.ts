@@ -1,4 +1,4 @@
-import registerShaderChunks from "./shaders/chunks/register-shader-chunks";
+import {registerShaderChunks} from './shaders';
 
 export * from './ParticleEmitter';
 export * from './Particle';
@@ -18,7 +18,8 @@ export * from './functions/';
 export * from './behaviors/';
 export * from './sequencers/';
 export * from './nodes/';
+export * from './shaders/';
 
 registerShaderChunks();
 // remove this line if you have pro license
-console.log('%c Particle system powered by three.quarks. https://quarks.art/', 'font-size: 16px; font-weight: bold;');
+console.log('%c Particle system powered by three.quarks. https://quarks.art/', 'font-size: 14px; font-weight: bold;');
