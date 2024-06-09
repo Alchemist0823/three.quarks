@@ -1,4 +1,8 @@
 # Change Log
+
+## version 0.12.3
+- Fix package json exports field
+
 ## version 0.12.2
 - Support burst emission on emitter shape
 - Upgrade three.js to 0.165.0
