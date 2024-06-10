@@ -15,7 +15,7 @@ import {
     SphereEmitter,
     TrailSettings,
 } from '../src';
-import {Layers, MeshBasicMaterial, NormalBlending, Texture, Vector3, Vector4} from 'three';
+import {Layers, MeshBasicMaterial, NormalBlending, Object3D, Texture, Vector3, Vector4} from 'three';
 import {QuarksLoader} from '../src';
 import {BatchedRenderer} from '../src';
 
@@ -116,6 +116,23 @@ describe('ParticleEmitter', () => {
         // console.log(json);
         const loader = new QuarksLoader();
         const emitter = loader.parse(json, () => {}) as ParticleEmitter;
+        const system = emitter.system as ParticleSystem;
+        expect(system.rendererSettings.layers.mask).toBe(3);
+        expect(system.startTileIndex.type).toBe('value');
+        expect(system.rendererSettings.instancingGeometry).toBeDefined();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        expect((system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe('value');
+        expect(system.behaviors.length).toBe(2);
+    });
+
+    test('.fromJSON parent', () => {
+        // const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
+        const parent = new Object3D();
+        parent.add(glowBeam.emitter);
+        const json = parent.toJSON();
+        // console.log(json);
+        const loader = new QuarksLoader();
+        const emitter = loader.parse(json, () => {}).children[0] as ParticleEmitter;
         const system = emitter.system as ParticleSystem;
         expect(system.rendererSettings.layers.mask).toBe(3);
         expect(system.startTileIndex.type).toBe('value');
