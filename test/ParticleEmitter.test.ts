@@ -129,6 +129,8 @@ describe('ParticleEmitter', () => {
         // const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
         const parent = new Object3D();
         parent.add(glowBeam.emitter);
+        const parentUUID = parent.uuid;
+        const emitterUUID = glowBeam.emitter.uuid;
         const json = parent.toJSON();
         // console.log(json);
         const loader = new QuarksLoader();
@@ -140,5 +142,7 @@ describe('ParticleEmitter', () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         expect((system.rendererEmitterSettings as TrailSettings).startLength!.type).toBe('value');
         expect(system.behaviors.length).toBe(2);
+        expect(emitter.parent!.uuid).toBe(parentUUID);
+        expect(emitter.uuid).toBe(emitterUUID);
     });
 });

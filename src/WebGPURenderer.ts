@@ -1,6 +1,5 @@
-import {ParticleSystem} from "./ParticleSystem";
-import {Camera, Matrix4, PerspectiveCamera} from "three";
-import particleWGSL from "./shaders/wgsl/particle.wgsl";
+import {Camera, Matrix4, PerspectiveCamera} from 'three';
+import particleWGSL from './shaders/wgsl/particle.wgsl';
 
 interface WebGPUDeviceContext {
     adapter: GPUAdapter;
@@ -9,9 +8,7 @@ interface WebGPUDeviceContext {
 
 export async function initWebGPU(): Promise<WebGPUDeviceContext> {
     const adapter = await navigator.gpu?.requestAdapter();
-    if (!
-        adapter
-    ) {
+    if (!adapter) {
         throw 'need a browser that supports WebGPU';
     }
     const device = await adapter?.requestDevice();
@@ -21,18 +18,17 @@ export async function initWebGPU(): Promise<WebGPUDeviceContext> {
     return {
         adapter,
         device,
-    }
+    };
 }
 
 export class WebGPURenderer {
-
     // simulation
     private numLiveParticles: number = 0;
     simulationUBOBuffer!: GPUBuffer;
     simulationParams!: {
-        simulate: boolean,
-        deltaTime: number,
-    }
+        simulate: boolean;
+        deltaTime: number;
+    };
     private particlesBuffer!: GPUBuffer;
     private particleIndexBuffer!: GPUBuffer;
     private computeBindGroup!: GPUBindGroup;
@@ -50,7 +46,6 @@ export class WebGPURenderer {
     // cpu staging buffer
     public cpuReadableBuffer!: GPUBuffer;
 
-
     constructor(
         public deviceContext: WebGPUDeviceContext,
         public canvas: HTMLCanvasElement,
@@ -58,14 +53,14 @@ export class WebGPURenderer {
         public particleInstanceByteSize: number,
         code: string,
         public debug: boolean = false,
-        public renderCode: string = '') {
+        public renderCode: string = ''
+    ) {
         this.initBuffers();
         this.initRenderPipeline();
         this.initSimulationPipeline(code);
     }
 
     initBuffers() {
-
         this.numLiveParticles = this.numParticles;
         this.particlesBuffer = this.deviceContext.device.createBuffer({
             size: this.numParticles * this.particleInstanceByteSize,
@@ -75,7 +70,7 @@ export class WebGPURenderer {
         this.particleIndexBuffer = this.deviceContext.device.createBuffer({
             size: this.numParticles * 4,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        })
+        });
 
         if (this.debug) {
             this.cpuReadableBuffer = this.deviceContext.device.createBuffer({
@@ -88,7 +83,7 @@ export class WebGPURenderer {
         for (let i = 0; i < this.numParticles; i++) {
             particleIndexArr[i] = i;
         }
-        if(this.debug) {
+        if (this.debug) {
             console.log(particleIndexArr);
         }
         this.deviceContext.device.queue.writeBuffer(this.particleIndexBuffer, 0, particleIndexArr);
@@ -190,7 +185,7 @@ export class WebGPURenderer {
 
         const uniformBufferSize =
             4 * 4 * 4 + // modelViewMatrix : mat4x4f
-            4 * 4 * 4 // ProjectionMatrix : mat4x4f;
+            4 * 4 * 4; // ProjectionMatrix : mat4x4f;
         this.uniformBuffer = this.deviceContext.device.createBuffer({
             size: uniformBufferSize,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -253,7 +248,6 @@ export class WebGPURenderer {
         new Float32Array(this.quadVertexBuffer.getMappedRange()).set(vertexData);
         this.quadVertexBuffer.unmap();
 
-
         //////////////////////////////////////////////////////////////////////////////
         // Texture
         //////////////////////////////////////////////////////////////////////////////
@@ -292,9 +286,7 @@ export class WebGPURenderer {
         }*/
     }
 
-
     private initSimulationPipeline(code: string) {
-
         const simulationUBOBufferSize =
             1 * 4 + // deltaTime
             3 * 4 + // padding
@@ -351,7 +343,6 @@ export class WebGPURenderer {
     }
 
     frame = async (camera: Camera) => {
-
         this.deviceContext.device.queue.writeBuffer(
             this.simulationUBOBuffer,
             0,
@@ -406,13 +397,18 @@ export class WebGPURenderer {
             passEncoder.setVertexBuffer(0, this.quadVertexBuffer);
             passEncoder.draw(6, this.numLiveParticles, 0, 0);
 
-
             passEncoder.end();
         }
         if (this.debug) {
-            commandEncoder.copyBufferToBuffer(this.particlesBuffer, 0, this.cpuReadableBuffer, 0, this.numParticles * this.particleInstanceByteSize);
+            commandEncoder.copyBufferToBuffer(
+                this.particlesBuffer,
+                0,
+                this.cpuReadableBuffer,
+                0,
+                this.numParticles * this.particleInstanceByteSize
+            );
         }
 
         this.deviceContext.device.queue.submit([commandEncoder.finish()]);
-    }
+    };
 }

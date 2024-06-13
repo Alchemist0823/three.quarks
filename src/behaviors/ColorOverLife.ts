@@ -2,6 +2,9 @@ import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {ColorGeneratorFromJSON, FunctionColorGenerator, MemorizedFunctionColorGenerator} from '../functions';
 
+/**
+ * Color particles by their life.
+ */
 export class ColorOverLife implements Behavior {
     type = 'ColorOverLife';
 

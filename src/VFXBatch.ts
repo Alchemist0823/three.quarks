@@ -15,16 +15,39 @@ export interface StoredBatchSettings {
     renderOrder: number;
     layers: Layers;
 }
-
+/**
+ * Enum representing the render modes for particles.
+ */
 export enum RenderMode {
+    /**
+     * Renders particles as billboards facing the camera.
+     */
     BillBoard = 0,
+    /**
+     * Renders particles as billboards that stretches towards the direction the particle is moving to.
+     */
     StretchedBillBoard = 1,
+    /**
+     * Renders particles as meshes.
+     */
     Mesh = 2,
+    /**
+     * Renders particles as trails.
+     */
     Trail = 3,
+    /**
+     * Renders particles as horizontal billboards.
+     */
     HorizontalBillBoard = 4,
+    /**
+     * Renders particles as vertical billboards.
+     */
     VerticalBillBoard = 5,
 }
 
+/**
+ * Base class for VFX batches.
+ */
 export abstract class VFXBatch extends Mesh {
     type = 'VFXBatch';
     systems: Set<IParticleSystem>;

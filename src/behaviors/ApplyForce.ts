@@ -1,19 +1,23 @@
-import {Behavior} from "./Behavior";
-import {Particle} from "../Particle";
-import { ValueGenerator, ValueGeneratorFromJSON} from "../functions";
-import {Vector3} from "three";
+import {Behavior} from './Behavior';
+import {Particle} from '../Particle';
+import {ValueGenerator, ValueGeneratorFromJSON} from '../functions';
+import {Vector3} from 'three';
 
+/**
+ * Apply a global force to particles.
+ */
 export class ApplyForce implements Behavior {
-
     type = 'ApplyForce';
     magnitudeValue: number;
 
-    constructor(public direction: Vector3, public magnitude: ValueGenerator) {
+    constructor(
+        public direction: Vector3,
+        public magnitude: ValueGenerator
+    ) {
         this.magnitudeValue = this.magnitude.genValue();
     }
 
-    initialize(particle: Particle): void {
-    }
+    initialize(particle: Particle): void {}
 
     update(particle: Particle, delta: number): void {
         particle.velocity.addScaledVector(this.direction, this.magnitudeValue * delta);
@@ -32,13 +36,15 @@ export class ApplyForce implements Behavior {
     }
 
     static fromJSON(json: any): Behavior {
-        return new ApplyForce(new Vector3(json.direction[0], json.direction[1],json.direction[2]), ValueGeneratorFromJSON(json.magnitude ?? json.force) as ValueGenerator);
+        return new ApplyForce(
+            new Vector3(json.direction[0], json.direction[1], json.direction[2]),
+            ValueGeneratorFromJSON(json.magnitude ?? json.force) as ValueGenerator
+        );
     }
 
     clone(): Behavior {
         return new ApplyForce(this.direction.clone(), this.magnitude.clone());
     }
 
-    reset(): void {
-    }
+    reset(): void {}
 }

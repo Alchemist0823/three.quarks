@@ -2,6 +2,9 @@ import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {FunctionValueGenerator, IntervalValue, ValueGeneratorFromJSON} from '../functions';
 
+/**
+ * Apply size to particles based on their speed.
+ */
 export class SizeBySpeed implements Behavior {
     type = 'SizeBySpeed';
 

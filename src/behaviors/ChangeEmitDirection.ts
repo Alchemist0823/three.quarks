@@ -1,23 +1,23 @@
-import {Behavior} from "./Behavior";
-import {Particle} from "../Particle";
-import { ValueGenerator, ValueGeneratorFromJSON} from "../functions/ValueGenerator";
-import { Quaternion, Vector3} from "three";
+import {Behavior} from './Behavior';
+import {Particle} from '../Particle';
+import {ValueGenerator, ValueGeneratorFromJSON} from '../functions/ValueGenerator';
+import {Quaternion, Vector3} from 'three';
 
 const V3_Z = new Vector3(0, 0, 1);
 
+/**
+ * Change the emit direction of particles.
+ */
 export class ChangeEmitDirection implements Behavior {
-
     type = 'ChangeEmitDirection';
     _temp: Vector3 = new Vector3();
     _q: Quaternion = new Quaternion();
 
-    constructor(public angle: ValueGenerator) {
-    }
+    constructor(public angle: ValueGenerator) {}
 
     initialize(particle: Particle): void {
         const len = particle.velocity.length();
-        if (len == 0)
-            return;
+        if (len == 0) return;
         particle.velocity.normalize();
         if (particle.velocity.x === 0 && particle.velocity.y === 0) {
             this._temp.set(0, particle.velocity.z, 0);
@@ -32,12 +32,9 @@ export class ChangeEmitDirection implements Behavior {
         particle.velocity.setLength(len);
     }
 
-    update(particle: Particle, delta: number): void {
-    }
+    update(particle: Particle, delta: number): void {}
 
-    frameUpdate(delta: number): void {
-    }
-
+    frameUpdate(delta: number): void {}
 
     toJSON(): any {
         return {
@@ -53,6 +50,5 @@ export class ChangeEmitDirection implements Behavior {
     clone(): Behavior {
         return new ChangeEmitDirection(this.angle);
     }
-    reset(): void {
-    }
+    reset(): void {}
 }

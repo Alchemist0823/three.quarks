@@ -6,6 +6,9 @@ import {ConstantValue, IntervalValue, RandomQuatGenerator} from '../functions';
 
 const IdentityQuaternion = new Quaternion();
 
+/**
+ * Apply rotation to particles over their life.
+ */
 export class Rotation3DOverLife implements Behavior {
     type = 'Rotation3DOverLife';
     private tempQuat = new Quaternion();

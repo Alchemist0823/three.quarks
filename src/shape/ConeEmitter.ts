@@ -4,13 +4,40 @@ import {MathUtils} from 'three';
 import {ConstantValue, FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
 import {EmissionState, ParticleSystem} from '../ParticleSystem';
 
+/**
+ * Interface representing the parameters for a cone emitter.
+ */
 export interface ConeEmitterParameters {
+    /**
+     * The radius of the cone base.
+     */
     radius?: number;
+    /**
+     * The arc of the cone.
+     */
     arc?: number;
+    /**
+     * The thickness of the cone. 1 is a full cone, 0 is a cone with 0 thickness.
+     */
     thickness?: number;
+    /**
+     * The angle of the cone, ranging from 0 to Math.PI / 2.
+     */
     angle?: number; // [0, Math.PI / 2]
+    /**
+     * The mode of the emitter.
+     * {@link EmitterMode}
+     */
     mode?: EmitterMode;
+    /**
+     * The length of the segment at which the emitter point converges at the start and end, when mode is EmitterMode.Loop or EmitterMode.PingPong.
+     * {@link EmitterMode}
+     */
     spread?: number;
+    /**
+     * The speed of the emitter start point when mode is EmitterMode.Loop or EmitterMode.PingPong.
+     * {@link EmitterMode}
+     */
     speed?: ValueGenerator | FunctionValueGenerator;
 }
 

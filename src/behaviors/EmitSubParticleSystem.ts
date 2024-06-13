@@ -18,6 +18,9 @@ interface SubEmissionState extends EmissionState {
     particle: undefined | Particle;
 }
 
+/**
+ * Emit a sub particle system from particles.
+ */
 export class EmitSubParticleSystem implements Behavior {
     type = 'EmitSubParticleSystem';
 

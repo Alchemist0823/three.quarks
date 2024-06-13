@@ -3,6 +3,9 @@ import {Particle} from '../Particle';
 import {Vector3, Triangle, BufferGeometry, ShapeUtils} from 'three';
 import {JsonMetaData, ParticleSystem} from '../ParticleSystem';
 
+/**
+ * A particle emitter that emits particles from the surface of a mesh uniformly.
+ */
 export class MeshSurfaceEmitter implements EmitterShape {
     type = 'mesh_surface';
 

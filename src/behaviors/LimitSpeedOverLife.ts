@@ -2,6 +2,9 @@ import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {FunctionValueGenerator, ValueGeneratorFromJSON} from '../functions';
 
+/**
+ * Limit the speed of particles over their life.
+ */
 export class LimitSpeedOverLife implements Behavior {
     type = 'LimitSpeedOverLife';
 

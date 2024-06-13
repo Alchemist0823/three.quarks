@@ -5,6 +5,9 @@ import {Quaternion, Vector3} from 'three';
 import {ParticleSystem} from '../ParticleSystem';
 import {IParticleSystem} from '../BatchedRenderer';
 
+/**
+ * Apply a force to particles over their life.
+ */
 export class ForceOverLife implements Behavior {
     type = 'ForceOverLife';
     _temp = new Vector3();

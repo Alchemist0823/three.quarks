@@ -19,10 +19,25 @@ export interface ShapeJSON {
     speed?: any;
 }
 
+/**
+ * Enum representing the emitter modes for particles.
+ */
 export enum EmitterMode {
+    /**
+     * Emit particles randomly over the specified duration.
+     */
     Random,
+    /**
+     * Emit particles in a continuous loop.
+     */
     Loop,
+    /**
+     * Emit particles back and forth in a ping-pong manner.
+     */
     PingPong,
+    /**
+     * Emit particles in bursts.
+     */
     Burst,
 }
 

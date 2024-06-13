@@ -9,6 +9,9 @@ const generators: Array<SimplexNoise> = [];
 const tempV = new Vector3();
 const tempQ = new Quaternion();
 
+/**
+ * Apply noise to particles.
+ */
 export class Noise implements Behavior {
     type = 'Noise';
     duration = 0;

@@ -4,6 +4,9 @@ import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '..
 import {Quaternion} from 'three';
 import {ConstantValue, IntervalValue} from '../functions';
 
+/**
+ * Apply rotation to particles over their life.
+ */
 export class RotationOverLife implements Behavior {
     type = 'RotationOverLife';
     private dynamic: boolean;

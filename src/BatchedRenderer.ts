@@ -6,21 +6,74 @@ import {ParticleEmitter} from './ParticleEmitter';
 import {IParticle, Particle} from './Particle';
 import {FunctionValueGenerator, ValueGenerator} from './functions';
 
+/**
+ * the settings for rendering a batch of VFX system.
+ */
 export interface VFXBatchSettings {
-    // 5 component x,y,z,u,v
+    /**
+     * Geometry for instancing.
+     * @type {BufferGeometry}
+     */
     instancingGeometry: BufferGeometry;
+    /**
+     * Material for rendering.
+     * @type {Material}
+     */
     material: Material;
+    /**
+     * Number of horizontal tiles in the texture.
+     * @type {number}
+     */
     uTileCount: number;
+    /**
+     * Number of vertical tiles in the texture.
+     * @type {number}
+     */
     vTileCount: number;
+    /**
+     * Whether to blend tiles.
+     * @type {boolean}
+     */
     blendTiles: boolean;
+    /**
+     * Enable soft particles.
+     * @type {boolean}
+     */
     softParticles: boolean;
+    /**
+     * Near fade distance for soft particles.
+     * @type {number}
+     */
     softNearFade: number;
+    /**
+     * Far fade distance for soft particles.
+     * @type {number}
+     */
     softFarFade: number;
+    /**
+     * Render mode.
+     * @type {RenderMode}
+     */
     renderMode: RenderMode;
+    /**
+     * Render order.
+     * @type {number}
+     */
     renderOrder: number;
+    /**
+     * layers control visibility of the object.
+     * @type {Layers}
+     * @see {@link https://threejs.org/docs/index.html#api/en/core/Layers | Official Documentation}
+     * @see {@link https://github.com/mrdoob/three.js/blob/master/src/core/Layers.js | Source}
+     */
     layers: Layers;
 }
+
 export interface SerializationOptions {
+    /**
+     * Use URL for image.
+     * @type {boolean}
+     */
     useUrlForImage?: boolean;
 }
 
@@ -42,24 +95,76 @@ export interface StretchedBillBoardSettings {
 export interface BillBoardSettings {}
 
 export interface TrailSettings {
+    /**
+     * Start length of the trail.
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     startLength: ValueGenerator | FunctionValueGenerator;
+    /**
+     * Whether to follow the local origin.
+     * @type {boolean}
+     */
     followLocalOrigin: boolean;
 }
 
 export interface MeshSettings {
+    /**
+     * Rotation axis.
+     * @type {Vector3}
+     */
     rotationAxis?: Vector3;
+    /**
+     * Initial rotation around the X-axis.
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     startRotationX: ValueGenerator | FunctionValueGenerator;
+    /**
+     * Initial rotation around the Y-axis.
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     startRotationY: ValueGenerator | FunctionValueGenerator;
+    /**
+     * Initial rotation around the Z-axis.
+     * @type {ValueGenerator | FunctionValueGenerator}
+     */
     startRotationZ: ValueGenerator | FunctionValueGenerator;
 }
 
 export interface IParticleSystem {
+    /**
+     * Whether the system is in world space.
+     * @type {boolean}
+     */
     worldSpace: boolean;
+    /**
+     * Number of particles.
+     * @type {number}
+     */
     particleNum: number;
+    /**
+     * Duration of the system.
+     * @type {number}
+     */
     duration: number;
+    /**
+     * Whether the system is looping.
+     * @type {boolean}
+     */
     looping: boolean;
+    /**
+     * Array of particles.
+     * @type {Array<IParticle>}
+     */
     particles: Array<IParticle>;
+    /**
+     * Emitter for the particles.
+     * @type {ParticleEmitter<any>}
+     */
     emitter: ParticleEmitter<any>;
+    /**
+     * Optional renderer.
+     * @type {BatchedRenderer}
+     */
     _renderer?: BatchedRenderer;
     instancingGeometry: BufferGeometry;
     rendererEmitterSettings: RendererEmitterSettings;
@@ -82,10 +187,22 @@ export interface IParticleSystem {
  * It batches all particle systems that has the same rendering pipeline to a single VFXBatch.
  */
 export class BatchedRenderer extends Object3D {
+    /**
+     * Batches for rendering.
+     * @type {Array<VFXBatch>}
+     */
     batches: Array<VFXBatch> = [];
+    /**
+     * Map of systems to batch indices.
+     * @type {Map<IParticleSystem, number>}
+     */
     systemToBatchIndex: Map<IParticleSystem, number> = new Map<IParticleSystem, number>();
     type = 'BatchedRenderer';
 
+    /**
+     * Depth texture.
+     * @type {Texture | null}
+     */
     depthTexture: Texture | null = null;
 
     constructor() {
@@ -113,6 +230,10 @@ export class BatchedRenderer extends Object3D {
         );
     }
 
+    /**
+     * Adds a particle system to a batch.
+     * @param {IParticleSystem} system - The particle system to add.
+     */
     addSystem(system: IParticleSystem) {
         system._renderer = this;
         const settings = system.getRendererSettings();
@@ -145,6 +266,10 @@ export class BatchedRenderer extends Object3D {
         this.add(batch);
     }
 
+    /**
+     * Deletes a particle system from its batch.
+     * @param {IParticleSystem} system - The particle system to delete.
+     */
     deleteSystem(system: IParticleSystem) {
         const batchIndex = this.systemToBatchIndex.get(system);
         if (batchIndex != undefined) {
@@ -160,6 +285,10 @@ export class BatchedRenderer extends Object3D {
         }*/
     }
 
+    /**
+     * Sets the depth texture for all batches. it will be used for soft particles.
+     * @param {Texture | null} depthTexture - The depth texture to set.
+     */
     setDepthTexture(depthTexture: Texture | null) {
         this.depthTexture = depthTexture;
         for (const batch of this.batches) {
@@ -167,11 +296,19 @@ export class BatchedRenderer extends Object3D {
         }
     }
 
+    /**
+     * Updates a particle system when the particle system has changed requires reloading.
+     * @param {IParticleSystem} system - The particle system to update.
+     */
     updateSystem(system: IParticleSystem) {
         this.deleteSystem(system);
         this.addSystem(system);
     }
 
+    /**
+     * Updates all batches.
+     * @param {number} delta - The time delta for the update.
+     */
     update(delta: number) {
         this.systemToBatchIndex.forEach((value, ps) => {
             (ps as any).update(delta);

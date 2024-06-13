@@ -20,6 +20,9 @@ import {VFXBatchSettings} from './BatchedRenderer';
 
 const UP = new Vector3(0, 0, 1);
 
+/**
+ * A VFX batch that render trails in a batch.
+ */
 export class TrailBatch extends VFXBatch {
     declare geometry: BufferGeometry;
 

@@ -4,12 +4,36 @@ import {MathUtils} from 'three';
 import {ConstantValue, FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
 import {EmissionState, ParticleSystem} from '../ParticleSystem';
 
+/**
+ * Interface representing the parameters for a sphere emitter.
+ */
 export interface SphereEmitterParameters {
+    /**
+     * The radius of the sphere.
+     */
     radius?: number;
+    /**
+     * The arc of the sphere.
+     */
     arc?: number;
+    /**
+     * The thickness of the sphere. 1 is a full sphere, 0 is a thin shell.
+     */
     thickness?: number;
+    /**
+     * The mode of the emitter.
+     * {@link EmitterMode}
+     */
     mode?: EmitterMode;
+    /**
+     * The length of the segment at which the emitter point converges at the start and end, when mode is EmitterMode.Loop or EmitterMode.PingPong.
+     * {@link EmitterMode}
+     */
     spread?: number;
+    /**
+     * The speed of the emitter start point when mode is EmitterMode.Loop or EmitterMode.PingPong.
+     * {@link EmitterMode}
+     */
     speed?: ValueGenerator | FunctionValueGenerator;
 }
 

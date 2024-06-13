@@ -22,6 +22,10 @@ import {Noise} from './Noise';
 import {LimitSpeedOverLife} from './LimitSpeedOverLife';
 import {IParticleSystem} from '../BatchedRenderer';
 
+/**
+ * Interface for particle behaviors.
+ * a behavior is a function that modifies a particle's properties over time.
+ */
 export interface Behavior {
     type: string;
     initialize(particle: Particle, particleSystem: IParticleSystem): void;

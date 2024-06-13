@@ -1,0 +1,19 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "includeVersion": true,
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "readme": "./README.md",
+  "scriptSrc": "https://github.com/Alchemist0823/three.quarks/",
+  "plugin": ["typedoc-plugin-script-inject", "typedoc-plugin-extra-footer", "typedoc-google-tag-manager-plugin"],
+  "customCss": "./assets/custom.css",
+  "navigationLinks": {
+    "GitHub": "https://github.com/Alchemist0823/three.quarks"
+  },
+  "extraFooter": "<div class=\"copyright\">&copy; 2024 <a href=\"https://quarks.art/\">Quarks VFX, LLC</a></div>",
+  "extraFooterNoDefaultWrapper": true,
+  "hideGenerator": true,
+  "gtmWorkspaceId": "G-Q0RV7V5Y83"
+}

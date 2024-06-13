@@ -7,6 +7,9 @@ import {
     MemorizedFunctionColorGenerator,
 } from '../functions';
 
+/**
+ * Color particles by their speed.
+ */
 export class ColorBySpeed implements Behavior {
     type = 'ColorBySpeed';
     constructor(

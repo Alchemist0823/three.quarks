@@ -60,51 +60,163 @@ const tempV = new Vector3();
 const tempV2 = new Vector3();
 const tempV3 = new Vector3();
 const PREWARM_FPS = 60;
-
+/**
+ * Interface representing the JSON parameters for a burst.
+ */
 export interface BurstParametersJSON {
+    /**
+     * The time of the burst.
+     */
     time: number;
+    /**
+     * The count of particles to emit, can be a number or a function.
+     */
     count: FunctionJSON | number;
+    /**
+     * The cycle of the burst.
+     */
     cycle: number;
+    /**
+     * The interval between bursts.
+     */
     interval: number;
+    /**
+     * The probability of the burst occurring.
+     */
     probability: number;
 }
 
+/**
+ * Interface representing the parameters for a particle system.
+ */
 export interface ParticleSystemParameters {
-    // parameters
+    /**
+     * Whether the particle system auto-destroys.
+     */
     autoDestroy?: boolean;
+    /**
+     * Whether the particle system loops.
+     */
     looping?: boolean;
+    /**
+     * Whether the particle system prewarms.
+     */
     prewarm?: boolean;
+    /**
+     * The duration of the particle system.
+     */
     duration?: number;
 
+    /**
+     * The shape of the emitter.
+     */
     shape?: EmitterShape;
+    /**
+     * The initial life of particles.
+     */
     startLife?: ValueGenerator | FunctionValueGenerator;
+    /**
+     * The initial speed of particles.
+     */
     startSpeed?: ValueGenerator | FunctionValueGenerator;
+    /**
+     * The initial rotation of particles.
+     */
     startRotation?: ValueGenerator | FunctionValueGenerator | RotationGenerator;
+    /**
+     * The initial size of particles.
+     */
     startSize?: ValueGenerator | FunctionValueGenerator;
+    /**
+     * The initial length of particles.
+     */
     startLength?: ValueGenerator | FunctionValueGenerator;
+    /**
+     * The initial color of particles.
+     */
     startColor?: ColorGenerator | FunctionColorGenerator | MemorizedFunctionColorGenerator;
+    /**
+     * The emission rate over time.
+     */
     emissionOverTime?: ValueGenerator | FunctionValueGenerator;
+    /**
+     * The emission rate over distance.
+     */
     emissionOverDistance?: ValueGenerator | FunctionValueGenerator;
+    /**
+     * The burst parameters for emission.
+     */
     emissionBursts?: Array<BurstParameters>;
+    /**
+     * Whether the particle system is only used by others.
+     */
     onlyUsedByOther?: boolean;
 
+    /**
+     * The behaviors of the particle system.
+     */
     behaviors?: Array<Behavior>;
 
+    /**
+     * The instancing geometry of the particle system.
+     */
     instancingGeometry?: BufferGeometry;
+    /**
+     * The render mode of the particle system.
+     */
     renderMode?: RenderMode;
+    /**
+     * The renderer emitter settings.
+     */
     rendererEmitterSettings?: RendererEmitterSettings;
+    /**
+     * The speed factor of the particle system.
+     */
     speedFactor?: number;
+    /**
+     * The material of the particle system.
+     */
     material: Material;
+    /**
+     * The layers of the particle system.
+     */
     layers?: Layers;
+    /**
+     * The initial tile index for particles.
+     */
     startTileIndex?: ValueGenerator;
+    /**
+     * The number of tiles in the u direction.
+     */
     uTileCount?: number;
+    /**
+     * The number of tiles in the v direction.
+     */
     vTileCount?: number;
+    /**
+     * Whether to blend tiles.
+     */
     blendTiles?: boolean;
+    /**
+     * Whether to use soft particles.
+     */
     softParticles?: boolean;
+    /**
+     * The far fade distance for soft particles.
+     */
     softFarFade?: number;
+    /**
+     * The near fade distance for soft particles.
+     */
     softNearFade?: number;
+    /**
+     * The render order of the particle system.
+     */
     renderOrder?: number;
 
+    /**
+     * Whether the particle system uses world space.
+     */
     worldSpace?: boolean;
 }
 
@@ -355,69 +467,126 @@ export class ParticleSystem implements IParticleSystem {
     /** @internal **/
     _renderer?: BatchedRenderer;
 
+    /**
+     * set the time of the playback of the particle system
+     * @param time
+     */
     set time(time: number) {
         this.emissionState.time = time;
     }
 
+    /**
+     * get the current time of the playback of the particle system
+     */
     get time(): number {
         return this.emissionState.time;
     }
 
-    // currently if you change the layers setting, you need manually set this.neededToUpdateRender = true;
+    /**
+     * layers control visibility of the object.
+     * currently if you change the layers setting, you need manually set this.neededToUpdateRender = true;
+     * @type {Layers}
+     * @see {@link https://threejs.org/docs/index.html#api/en/core/Layers | Official Documentation}
+     * @see {@link https://github.com/mrdoob/three.js/blob/master/src/core/Layers.js | Source}
+     */
     get layers() {
         return this.rendererSettings.layers;
     }
 
+    /**
+     * get the texture of the particle system
+     */
     get texture() {
         return (this.rendererSettings.material as any).map;
     }
 
+    /**
+     * Set the texture of the particle system
+     * It will rebuild the material
+     */
     set texture(texture: Texture | null) {
         (this.rendererSettings.material as any).map = texture;
         this.neededToUpdateRender = true;
         //this.emitter.material.uniforms.map.value = texture;
     }
 
+    /**
+     * Get the material of the particle system
+     */
     get material() {
         return this.rendererSettings.material;
     }
 
+    /**
+     * Set the material of the particle system
+     * It will rebuild the material
+     */
     set material(material: Material) {
         this.rendererSettings.material = material;
         this.neededToUpdateRender = true;
     }
 
+    /**
+     * Get the number of horizontal tiles in the texture.
+     */
     get uTileCount() {
         return this.rendererSettings.uTileCount;
     }
 
+    /**
+     * Set the number of horizontal tiles in the texture.
+     * @param u
+     */
     set uTileCount(u: number) {
         this.rendererSettings.uTileCount = u;
         this.neededToUpdateRender = true;
     }
 
+    /**
+     * Get the number of vertical tiles in the texture.
+     */
     get vTileCount() {
         return this.rendererSettings.vTileCount;
     }
 
+    /**
+     * Set the number of vertical tiles in the texture.
+     * @param v
+     */
     set vTileCount(v: number) {
         this.rendererSettings.vTileCount = v;
         this.neededToUpdateRender = true;
     }
 
+    /**
+     * get whether the particle texture blends tile transitions
+     */
     get blendTiles() {
         return this.rendererSettings.blendTiles;
     }
 
+    /**
+     * Set whether the particle texture blends tile transitions
+     * @param v
+     */
     set blendTiles(v: boolean) {
         this.rendererSettings.blendTiles = v;
         this.neededToUpdateRender = true;
     }
 
+    /**
+     * Get whether the particle system uses soft particles.
+     * Soft particles are particles that fade out when they are close to geometry.
+     */
     get softParticles() {
         return this.rendererSettings.softParticles;
     }
 
+    /**
+     * Set whether the particle system uses soft particles.
+     * Soft particles are particles that fade out when they are close to geometry.
+     * @param v
+     */
     set softParticles(v: boolean) {
         this.rendererSettings.softParticles = v;
         this.neededToUpdateRender = true;
@@ -441,10 +610,18 @@ export class ParticleSystem implements IParticleSystem {
         this.neededToUpdateRender = true;
     }
 
+    /**
+     * Get the instancing geometry of the particle system.
+     * @param geometry
+     */
     get instancingGeometry(): BufferGeometry {
         return this.rendererSettings.instancingGeometry;
     }
 
+    /**
+     * Set the instancing geometry of the particle system.
+     * @param geometry
+     */
     set instancingGeometry(geometry: BufferGeometry) {
         this.restart();
         this.particles.length = 0;
@@ -452,10 +629,18 @@ export class ParticleSystem implements IParticleSystem {
         this.neededToUpdateRender = true;
     }
 
+    /**
+     * Get the render mode of the particle system.
+     * {@link RenderMode}
+     */
     get renderMode(): RenderMode {
         return this.rendererSettings.renderMode;
     }
 
+    /**
+     * Set the render mode of the particle system.
+     * {@link RenderMode}
+     */
     set renderMode(renderMode: RenderMode) {
         if (
             (this.rendererSettings.renderMode != RenderMode.Trail && renderMode === RenderMode.Trail) ||
@@ -499,20 +684,36 @@ export class ParticleSystem implements IParticleSystem {
         //this.emitter.rebuildMaterial();
     }
 
+    /**
+     * get the render order of the particle system in render pipeline.
+     * the higher the value, the later the particle system is rendered.
+     */
     get renderOrder(): number {
         return this.rendererSettings.renderOrder;
     }
 
+    /**
+     * set the render order of the particle system in render pipeline.
+     * the higher the value, the later the particle system is rendered.
+     */
     set renderOrder(renderOrder: number) {
         this.rendererSettings.renderOrder = renderOrder;
         this.neededToUpdateRender = true;
         //this.emitter.rebuildMaterial();
     }
 
+    /**
+     * get which blending to use.
+     * @default THREE.NormalBlending
+     */
     get blending() {
         return this.rendererSettings.material.blending;
     }
 
+    /**
+     * Set which blending to use.
+     * @default THREE.NormalBlending
+     */
     set blending(blending) {
         this.rendererSettings.material.blending = blending;
         this.neededToUpdateRender = true;
@@ -681,6 +882,9 @@ export class ParticleSystem implements IParticleSystem {
         }
     }
 
+    /**
+     * Stops emitting particles
+     */
     endEmit() {
         this.emitEnded = true;
         if (this.autoDestroy) {
@@ -688,6 +892,9 @@ export class ParticleSystem implements IParticleSystem {
         }
     }
 
+    /**
+     * remove the particle system's emitter from the scene
+     */
     dispose() {
         if (this._renderer) this._renderer.deleteSystem(this);
         this.emitter.dispose();
@@ -712,6 +919,11 @@ export class ParticleSystem implements IParticleSystem {
 
     private firstTimeUpdate = true;
 
+    /**
+     * Update the particle system per frame
+     * @param delta
+     * @private
+     */
     private update(delta: number) {
         if (this.paused) return;
 
@@ -805,6 +1017,12 @@ export class ParticleSystem implements IParticleSystem {
         }
     }
 
+    /**
+     * Emit particles
+     * @param delta the duration of the frame
+     * @param emissionState the state of the emission
+     * @param emitterMatrix the matrix of the emitter
+     */
     public emit(delta: number, emissionState: EmissionState, emitterMatrix: Matrix4) {
         if (emissionState.time > this.duration) {
             if (this.looping) {
@@ -865,6 +1083,11 @@ export class ParticleSystem implements IParticleSystem {
         emissionState.time += delta;
     }
 
+    /**
+     * output the particle system to JSON
+     * @param meta serialization meta data
+     * @param options serialization options
+     */
     toJSON(meta: MetaData, options: SerializationOptions = {}): ParticleSystemJSONParameters {
         const isRootObject = meta === undefined || typeof meta === 'string';
         if (isRootObject) {
@@ -960,6 +1183,12 @@ export class ParticleSystem implements IParticleSystem {
         };
     }
 
+    /**
+     * Create a ParticleSystem from JSON
+     * @param json the JSON data
+     * @param meta serialization meta data
+     * @param dependencies the dependencies of the particle system
+     */
     static fromJSON(
         json: ParticleSystemJSONParameters,
         meta: {
@@ -1067,14 +1296,24 @@ export class ParticleSystem implements IParticleSystem {
         return ps;
     }
 
+    /**
+     * Add a behavior to the particle system
+     * @param behavior
+     */
     addBehavior(behavior: Behavior) {
         this.behaviors.push(behavior);
     }
 
+    /**
+     * Remove a behavior from the particle system
+     */
     getRendererSettings() {
         return this.rendererSettings;
     }
 
+    /**
+     * Clone the particle system
+     */
     clone() {
         const newEmissionBursts: Array<BurstParameters> = [];
         for (const emissionBurst of this.emissionBursts) {

@@ -2,6 +2,9 @@ import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {FunctionValueGenerator, PiecewiseBezier, ValueGeneratorFromJSON} from '../functions';
 
+/**
+ * apply tile number of particle texture by particles' life.
+ */
 export class FrameOverLife implements Behavior {
     type = 'FrameOverLife';
     constructor(public frame: FunctionValueGenerator) {}

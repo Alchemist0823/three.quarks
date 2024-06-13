@@ -2,6 +2,9 @@ import {EmitterShape, ShapeJSON} from './EmitterUtil';
 import {Particle} from '../Particle';
 import {ParticleSystem} from '../ParticleSystem';
 
+/**
+ * A point emitter emits particles from a single point.
+ */
 export class PointEmitter implements EmitterShape {
     type = 'point';
 

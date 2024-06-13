@@ -1,13 +1,27 @@
 import {EmitterShape, ShapeJSON} from './EmitterUtil';
 import {Particle} from '../Particle';
 import {ParticleSystem} from '../ParticleSystem';
-import {json} from 'stream/consumers';
 
+/**
+ * Interface representing the parameters for a grid emitter.
+ */
 export interface GridEmitterParameters {
+    /**
+     * The width of the grid.
+     */
     width?: number;
+    /**
+     * The height of the grid.
+     */
     height?: number;
+    /**
+     * The number of columns in the grid.
+     */
     column?: number;
-    row?: number; // [0, Math.PI / 2]
+    /**
+     * The number of rows in the grid.
+     */
+    row?: number;
 }
 
 export class GridEmitter implements EmitterShape {

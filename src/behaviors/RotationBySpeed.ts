@@ -4,6 +4,9 @@ import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '..
 import {Quaternion} from 'three';
 import {IntervalValue} from '../functions';
 
+/**
+ * Apply rotation to particles based on their speed.
+ */
 export class RotationBySpeed implements Behavior {
     type = 'RotationBySpeed';
     private tempQuat = new Quaternion();

@@ -4,13 +4,40 @@ import {MathUtils} from 'three';
 import {ConstantValue, FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
 import {EmissionState, ParticleSystem} from '../ParticleSystem';
 
+/**
+ * Interface representing the parameters for a donut emitter.
+ */
 export interface DonutEmitterParameters {
+    /**
+     * The radius of the donut.
+     */
     radius?: number;
+    /**
+     * The arc of the donut.
+     */
     arc?: number;
+    /**
+     * The thickness of the ring. 1 is a full donut, 0 is a ring with 0 radius.
+     */
     thickness?: number;
+    /**
+     * The radius of the hole in the center of the donut.
+     */
     donutRadius?: number;
+    /**
+     * The mode of the emitter.
+     * {@link EmitterMode}
+     */
     mode?: EmitterMode;
+    /**
+     * The length of the segment at which the emitter point converges at the start and end, when mode is EmitterMode.Loop or EmitterMode.PingPong.
+     * {@link EmitterMode}
+     */
     spread?: number;
+    /**
+     * The speed of the emitter start point when mode is EmitterMode.Loop or EmitterMode.PingPong.
+     * {@link EmitterMode}
+     */
     speed?: ValueGenerator | FunctionValueGenerator;
 }
 

@@ -31,6 +31,9 @@ import {RenderMode, VFXBatch} from './VFXBatch';
 
 const UP = new Vector3(0, 0, 1);
 
+/**
+ * A VFX batch that render sprites in a batch.
+ */
 export class SpriteBatch extends VFXBatch {
     declare geometry: InstancedBufferGeometry;
 

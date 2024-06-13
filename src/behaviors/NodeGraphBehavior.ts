@@ -1,24 +1,24 @@
-import {Behavior} from "./Behavior";
-import {Particle} from "../Particle";
-import { NodeGraph } from "../nodes/NodeGraph";
-import {Interpreter} from "../nodes/Interpreter";
-import {ExecutionContext} from "../nodes/NodeDef";
+import {Behavior} from './Behavior';
+import {Particle} from '../Particle';
+import {NodeGraph} from '../nodes/NodeGraph';
+import {Interpreter} from '../nodes/Interpreter';
+import {ExecutionContext} from '../nodes/NodeDef';
 
+/**
+ * Behavior that runs a node graph.
+ */
 export class NodeGraphBehavior implements Behavior {
-
     type = 'NodeGraphBehavior';
     context: ExecutionContext = {
         particle: undefined,
         delta: 0,
         inputs: [],
-        outputs: []
-    }
+        outputs: [],
+    };
 
-    constructor(public nodeGraph: NodeGraph) {
-    }
+    constructor(public nodeGraph: NodeGraph) {}
 
-    initialize(particle: Particle): void {
-    }
+    initialize(particle: Particle): void {}
 
     update(particle: Particle, delta: number): void {
         this.context.particle = particle;
@@ -32,17 +32,14 @@ export class NodeGraphBehavior implements Behavior {
         };
     }
 
-    frameUpdate(delta: number): void {
-    }
-
+    frameUpdate(delta: number): void {}
 
     static fromJSON(json: any): Behavior {
-        return new NodeGraphBehavior(new NodeGraph("xxx"));
+        return new NodeGraphBehavior(new NodeGraph('xxx'));
     }
 
     clone(): Behavior {
         return new NodeGraphBehavior(this.nodeGraph);
     }
-    reset(): void {
-    }
+    reset(): void {}
 }

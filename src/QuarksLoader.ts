@@ -42,19 +42,19 @@ import {Behavior, EmitSubParticleSystem} from './behaviors';
 import {ParticleEmitter} from './ParticleEmitter';
 import {Geometry} from 'three/examples/jsm/deprecated/Geometry';
 
+/**
+ * Loader for quarks particle system.
+ */
 export class QuarksLoader extends ObjectLoader {
-    /*manager: LoadingManager;
-    crossOrigin: string = "anonymous";
-    path?: string;
-    resourcePath: string;
-*/
-
     constructor(manager?: LoadingManager) {
         super(manager);
-        //this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
-        //this.resourcePath = '';
     }
 
+    /**
+     * Links the references of the particle system.
+     * It's used to link the references of sub particle systems.
+     * @param object the target object to link the references.
+     */
     linkReference(object: Object3D) {
         const objectsMap: {[uuid: string]: Object3D} = {};
         object.traverse(function (child) {
@@ -78,6 +78,11 @@ export class QuarksLoader extends ObjectLoader {
         });
     }
 
+    /**
+     * Parses the json data to create a quarks particle system.
+     * @param json the json data to parse.
+     * @param onLoad the callback function to be called after the object is loaded.
+     */
     parse<T extends Object3D>(json: any, onLoad?: (object: Object3D) => void): T {
         const object = super.parse(json, onLoad);
         this.linkReference(object);
