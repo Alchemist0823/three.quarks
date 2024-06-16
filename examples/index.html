@@ -19,7 +19,8 @@
         {
           "imports": {
             "three": "./js/three.module.js",
-            "three.quarks": "./js/three.quarks.esm.js"
+            "three.quarks": "./js/three.quarks.esm.js",
+            "three/examples/": "./js/examples/"
           }
         }
     </script>
@@ -75,7 +76,6 @@
             PerspectiveCamera,
             WebGLRenderer,
         } from "three";
-        import {OrbitControls} from "./js/OrbitControls.js";
         import Stats from "./js/Stats.min.js";
         import {
             MuzzleFlashDemo,
@@ -92,6 +92,7 @@
         import {BillboardDemo} from "./billboardDemo.js";
         import {NodeBasedVFXDemo} from "./nodeBasedVFXDemo.js";
         import {SoftParticleDemo} from "./softParticleDemo.js";
+        import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 
         const WEBGL = {
             isWebGLAvailable: function () {

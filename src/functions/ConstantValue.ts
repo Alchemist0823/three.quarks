@@ -1,8 +1,8 @@
-import {ValueGenerator} from "./ValueGenerator";
-import {FunctionJSON} from "./FunctionJSON";
+import {ValueGenerator} from './ValueGenerator';
+import {FunctionJSON} from './FunctionJSON';
 
 export class ConstantValue implements ValueGenerator {
-    type: "value";
+    type: 'value';
     constructor(public value: number) {
         this.type = 'value';
     }
@@ -11,11 +11,10 @@ export class ConstantValue implements ValueGenerator {
         return this.value;
     }
 
-
     toJSON(): FunctionJSON {
         return {
-            type: "ConstantValue",
-            value: this.value
+            type: 'ConstantValue',
+            value: this.value,
         };
     }
 
@@ -26,4 +25,6 @@ export class ConstantValue implements ValueGenerator {
     clone(): ValueGenerator {
         return new ConstantValue(this.value);
     }
+
+    startGen(): void {}
 }

@@ -8,12 +8,14 @@ import {FunctionValueGenerator, ValueGeneratorFromJSON} from '../functions/Value
 export class SizeOverLife implements Behavior {
     type = 'SizeOverLife';
 
-    initialize(particle: Particle): void {}
+    initialize(particle: Particle): void {
+        this.size.startGen(particle.memory);
+    }
 
     constructor(public size: FunctionValueGenerator) {}
 
     update(particle: Particle): void {
-        particle.size = particle.startSize * this.size.genValue(particle.age / particle.life);
+        particle.size = particle.startSize * this.size.genValue(particle.memory, particle.age / particle.life);
     }
     toJSON(): any {
         return {

@@ -8,7 +8,9 @@ import {FunctionValueGenerator, ValueGeneratorFromJSON} from '../functions/Value
 export class WidthOverLength implements Behavior {
     type = 'WidthOverLength';
 
-    initialize(particle: Particle): void {}
+    initialize(particle: Particle): void {
+        this.width.startGen(particle.memory);
+    }
 
     constructor(public width: FunctionValueGenerator) {}
 
@@ -17,7 +19,10 @@ export class WidthOverLength implements Behavior {
             const iter = particle.previous.values();
             for (let i = 0; i < particle.previous.length; i++) {
                 const cur = iter.next();
-                (cur.value as RecordState).size = this.width.genValue((particle.previous.length - i) / particle.length);
+                (cur.value as RecordState).size = this.width.genValue(
+                    particle.memory,
+                    (particle.previous.length - i) / particle.length
+                );
             }
         }
     }

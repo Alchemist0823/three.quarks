@@ -17,7 +17,7 @@ import {
 } from 'three.quarks';
 import {MeshBasicMaterial, NormalBlending, AdditiveBlending, TextureLoader, Vector4, Vector3} from 'three';
 import {Demo} from './demo.js';
-import {GLTFLoader} from './js/GLTFLoader.js';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export class AlphaTestDemo extends Demo {
     name = 'AlphaTest';

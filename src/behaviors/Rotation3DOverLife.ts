@@ -12,36 +12,26 @@ const IdentityQuaternion = new Quaternion();
 export class Rotation3DOverLife implements Behavior {
     type = 'Rotation3DOverLife';
     private tempQuat = new Quaternion();
-    private dynamic: boolean;
+    private tempQuat2 = new Quaternion();
 
-    constructor(public angularVelocity: RotationGenerator) {
-        this.dynamic = !(angularVelocity instanceof RandomQuatGenerator);
-    }
+    constructor(public angularVelocity: RotationGenerator) {}
 
     initialize(particle: Particle): void {
-        this.dynamic = !(this.angularVelocity instanceof RandomQuatGenerator);
         if (particle.rotation instanceof Quaternion) {
             (particle as SpriteParticle).angularVelocity = new Quaternion();
-            (this.angularVelocity as RotationGenerator).genValue(
-                (particle as SpriteParticle).angularVelocity as Quaternion
-            );
+            (this.angularVelocity as RotationGenerator).startGen(particle.memory);
         }
     }
 
     update(particle: Particle, delta: number): void {
         if (particle.rotation instanceof Quaternion) {
-            if (!this.dynamic) {
-                this.tempQuat.slerpQuaternions(
-                    IdentityQuaternion,
-                    (particle as SpriteParticle).angularVelocity as Quaternion,
-                    delta
-                );
-                (particle.rotation as Quaternion).multiply(this.tempQuat);
-            } else {
-                (this.angularVelocity as RotationGenerator).genValue(this.tempQuat, particle.age / particle.life);
-                this.tempQuat.slerpQuaternions(IdentityQuaternion, this.tempQuat, delta);
-                ((particle as SpriteParticle).rotation as Quaternion).multiply(this.tempQuat);
-            }
+            (this.angularVelocity as RotationGenerator).genValue(
+                particle.memory,
+                this.tempQuat,
+                particle.age / particle.life
+            );
+            this.tempQuat2.slerpQuaternions(IdentityQuaternion, this.tempQuat, delta);
+            ((particle as SpriteParticle).rotation as Quaternion).multiply(this.tempQuat2);
         }
     }
     toJSON(): any {

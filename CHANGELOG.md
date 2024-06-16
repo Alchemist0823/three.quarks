@@ -1,5 +1,9 @@
 # Change Log
 
+## version 0.13.0
+- Fix the Rotation3dOverLife behavior doesn't work on mesh particle bug
+- Refactor function/value generator system to support memorization
+
 ## version 0.12.3
 - Fix package json exports field
 

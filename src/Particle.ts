@@ -44,6 +44,10 @@ export interface IParticle {
      */
     color: Vector4;
     /**
+     * the memory of the particle.
+     */
+    memory: GeneratorMemory;
+    /**
      * Indicates if the particle has died.
      * @type {boolean}
      */
@@ -81,6 +85,8 @@ export interface Particle extends IParticle {
      * @type {number}
      */
     startSize: number;
+
+    reset(): void;
 }
 
 /**
@@ -145,6 +151,7 @@ export class NodeParticle implements IParticle {
      * Resets the particle properties to initial values.
      */
     reset() {
+        this.memory.length = 0;
         this.position.set(0, 0, 0);
         this.velocity.set(0, 0, 0);
         this.age = 0;
@@ -154,6 +161,8 @@ export class NodeParticle implements IParticle {
         this.color.set(1, 1, 1, 1);
         this.uvTile = 0;
     }
+
+    memory = [];
 }
 
 /**
@@ -240,6 +249,12 @@ export class SpriteParticle implements Particle {
     get died() {
         return this.age >= this.life;
     }
+
+    reset() {
+        this.memory.length = 0;
+    }
+
+    memory = [];
 }
 
 export class RecordState {
@@ -366,6 +381,9 @@ export class TrailParticle implements Particle {
      * Resets the particle properties and clears the previous states.
      */
     reset() {
+        this.memory.length = 0;
         this.previous.clear();
     }
+
+    memory = [];
 }

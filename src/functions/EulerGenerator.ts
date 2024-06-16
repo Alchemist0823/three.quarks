@@ -3,6 +3,7 @@ import {Euler, Quaternion} from 'three';
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './ValueGenerator';
 import {FunctionJSON} from './FunctionJSON';
 import {EulerOrder} from 'three/src/math/Euler';
+import {Particle} from '../Particle';
 
 export class EulerGenerator implements RotationGenerator {
     type: 'rotation';
@@ -18,8 +19,18 @@ export class EulerGenerator implements RotationGenerator {
         this.eular = new Euler(0, 0, 0, eulerOrder);
     }
 
-    genValue(quat: Quaternion, t?: number): Quaternion {
-        this.eular.set(this.angleX.genValue(t!), this.angleY.genValue(t!), this.angleZ.genValue(t!));
+    startGen(memory: GeneratorMemory): void {
+        this.angleX.startGen(memory);
+        this.angleY.startGen(memory);
+        this.angleZ.startGen(memory);
+    }
+
+    genValue(memory: GeneratorMemory, quat: Quaternion, t?: number): Quaternion {
+        this.eular.set(
+            this.angleX.genValue(memory, t!),
+            this.angleY.genValue(memory, t!),
+            this.angleZ.genValue(memory, t!)
+        );
         return quat.setFromEuler(this.eular);
     }
 

@@ -3,6 +3,7 @@ import {Vector3, Vector4} from 'three';
 import {ColorRange} from './ColorRange';
 import {FunctionJSON} from './FunctionJSON';
 import {ContinuousLinearFunction} from './ContinuousLinearFunction';
+import {color} from 'three/examples/jsm/nodes/shadernode/ShaderNode';
 
 const tempVec3 = new Vector3();
 export class Gradient implements FunctionColorGenerator {
@@ -25,7 +26,7 @@ export class Gradient implements FunctionColorGenerator {
         this.alpha = new ContinuousLinearFunction<number>(alpha, 'Number');
     }
 
-    genColor(color: Vector4, t: number): Vector4 {
+    genColor(memory: GeneratorMemory, color: Vector4, t: number): Vector4 {
         this.color.genValue(tempVec3, t);
         return color.set(tempVec3.x, tempVec3.y, tempVec3.z, this.alpha.genValue(1, t));
     }
@@ -63,4 +64,6 @@ export class Gradient implements FunctionColorGenerator {
         gradient.color = this.color.clone();
         return gradient;
     }
+
+    startGen(memory: GeneratorMemory): void {}
 }

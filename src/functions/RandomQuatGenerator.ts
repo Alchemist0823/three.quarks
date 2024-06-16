@@ -1,16 +1,19 @@
-import { Quaternion} from "three";
-import {FunctionJSON} from "./FunctionJSON";
-import {RotationGenerator} from "./RotationGenerator";
+import {Quaternion} from 'three';
+import {FunctionJSON} from './FunctionJSON';
+import {RotationGenerator} from './RotationGenerator';
 
 export class RandomQuatGenerator implements RotationGenerator {
-
-    type: "rotation";
+    type: 'rotation';
 
     constructor() {
-        this.type = "rotation";
+        this.type = 'rotation';
     }
 
-    genValue(quat: Quaternion, t: number): Quaternion {
+    indexCount = 0;
+
+    startGen(memory: GeneratorMemory): void {
+        this.indexCount = memory.length;
+        memory.push(new Quaternion());
         let x, y, z, u, v, w;
         do {
             x = Math.random() * 2 - 1;
@@ -23,13 +26,20 @@ export class RandomQuatGenerator implements RotationGenerator {
             w = u * u + v * v;
         } while (w > 1);
         const s = Math.sqrt((1 - z) / w);
-        quat.set(x, y, s * u, s * v);
+        memory[this.indexCount].set(x, y, s * u, s * v);
+    }
+
+    genValue(memory: GeneratorMemory, quat: Quaternion, t: number): Quaternion {
+        if (this.indexCount === -1) {
+            this.startGen(memory);
+        }
+        quat.copy(memory[this.indexCount] as Quaternion);
         return quat;
     }
 
     toJSON(): FunctionJSON {
         return {
-            type: "RandomQuat"
+            type: 'RandomQuat',
         };
     }
 

@@ -1,6 +1,6 @@
 import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
-import {ValueGenerator, ValueGeneratorFromJSON} from '../functions';
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
 import {Vector3} from 'three';
 
 /**
@@ -9,12 +9,16 @@ import {Vector3} from 'three';
 export class ApplyForce implements Behavior {
     type = 'ApplyForce';
     magnitudeValue: number;
+    memory = {
+        data: [],
+        dataCount: 0,
+    };
 
     constructor(
         public direction: Vector3,
         public magnitude: ValueGenerator
     ) {
-        this.magnitudeValue = this.magnitude.genValue();
+        this.magnitudeValue = this.magnitude.genValue(this.memory);
     }
 
     initialize(particle: Particle): void {}
@@ -24,7 +28,7 @@ export class ApplyForce implements Behavior {
     }
 
     frameUpdate(delta: number): void {
-        this.magnitudeValue = this.magnitude.genValue();
+        this.magnitudeValue = this.magnitude.genValue(this.memory);
     }
 
     toJSON(): any {

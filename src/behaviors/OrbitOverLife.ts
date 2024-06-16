@@ -22,12 +22,17 @@ export class OrbitOverLife implements Behavior {
         this.line = new Line3();
     }
 
-    initialize(particle: Particle): void {}
+    initialize(particle: Particle): void {
+        this.orbitSpeed.startGen((particle as any).orbitOverLifeSpeed);
+    }
 
     update(particle: Particle, delta: number): void {
         this.line.set(new Vector3(0, 0, 0), this.axis);
         this.line.closestPointToPoint(particle.position, false, this.temp);
-        this.rotation.setFromAxisAngle(this.axis, this.orbitSpeed.genValue(particle.age / particle.life) * delta);
+        this.rotation.setFromAxisAngle(
+            this.axis,
+            this.orbitSpeed.genValue((particle as any).orbitOverLifeSpeed, particle.age / particle.life) * delta
+        );
         particle.position.sub(this.temp);
         particle.position.applyQuaternion(this.rotation);
         particle.position.add(this.temp);

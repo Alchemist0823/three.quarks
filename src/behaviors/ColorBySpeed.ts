@@ -1,11 +1,6 @@
 import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
-import {
-    ColorGeneratorFromJSON,
-    FunctionColorGenerator,
-    IntervalValue,
-    MemorizedFunctionColorGenerator,
-} from '../functions';
+import {ColorGeneratorFromJSON, FunctionColorGenerator, IntervalValue} from '../functions';
 
 /**
  * Color particles by their speed.
@@ -13,28 +8,17 @@ import {
 export class ColorBySpeed implements Behavior {
     type = 'ColorBySpeed';
     constructor(
-        public color: FunctionColorGenerator | MemorizedFunctionColorGenerator,
+        public color: FunctionColorGenerator,
         public speedRange: IntervalValue
     ) {}
 
     initialize(particle: Particle): void {
-        if (this.color.type === 'memorizedFunction') {
-            (particle as any).colorOverLifeMemory = {};
-            (this.color as MemorizedFunctionColorGenerator).startGen((particle as any).colorOverLifeMemory);
-        }
+        this.color.startGen(particle.memory);
     }
 
     update(particle: Particle, delta: number): void {
         const t = (particle.startSpeed - this.speedRange.a) / (this.speedRange.b - this.speedRange.a);
-        if (this.color.type === 'memorizedFunction') {
-            (this.color as MemorizedFunctionColorGenerator).genColor(
-                particle.color,
-                t,
-                (particle as any).colorOverLifeMemory
-            );
-        } else {
-            (this.color as FunctionColorGenerator).genColor(particle.color, t);
-        }
+        (this.color as FunctionColorGenerator).genColor(particle.memory, particle.color, t);
         particle.color.x *= particle.startColor.x;
         particle.color.y *= particle.startColor.y;
         particle.color.z *= particle.startColor.z;

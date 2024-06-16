@@ -1,6 +1,6 @@
 import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
-import {ColorGeneratorFromJSON, FunctionColorGenerator, MemorizedFunctionColorGenerator} from '../functions';
+import {ColorGeneratorFromJSON, FunctionColorGenerator} from '../functions';
 
 /**
  * Color particles by their life.
@@ -8,25 +8,14 @@ import {ColorGeneratorFromJSON, FunctionColorGenerator, MemorizedFunctionColorGe
 export class ColorOverLife implements Behavior {
     type = 'ColorOverLife';
 
-    constructor(public color: FunctionColorGenerator | MemorizedFunctionColorGenerator) {}
+    constructor(public color: FunctionColorGenerator) {}
 
     initialize(particle: Particle): void {
-        if (this.color.type === 'memorizedFunction') {
-            (particle as any).colorOverLifeMemory = {};
-            (this.color as MemorizedFunctionColorGenerator).startGen((particle as any).colorOverLifeMemory);
-        }
+        this.color.startGen(particle.memory);
     }
 
     update(particle: Particle, delta: number): void {
-        if (this.color.type === 'memorizedFunction') {
-            (this.color as MemorizedFunctionColorGenerator).genColor(
-                particle.color,
-                particle.age / particle.life,
-                (particle as any).colorOverLifeMemory
-            );
-        } else {
-            (this.color as FunctionColorGenerator).genColor(particle.color, particle.age / particle.life);
-        }
+        this.color.genColor(particle.memory, particle.color, particle.age / particle.life);
         particle.color.x *= particle.startColor.x;
         particle.color.y *= particle.startColor.y;
         particle.color.z *= particle.startColor.z;

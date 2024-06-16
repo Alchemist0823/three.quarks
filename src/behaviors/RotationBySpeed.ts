@@ -16,11 +16,18 @@ export class RotationBySpeed implements Behavior {
         public speedRange: IntervalValue
     ) {}
 
-    initialize(particle: Particle): void {}
+    initialize(particle: Particle): void {
+        if (typeof particle.rotation === 'number') {
+            (this.angularVelocity as ValueGenerator).startGen(particle.memory);
+        }
+    }
 
     update(particle: Particle, delta: number): void {
-        const t = (particle.startSpeed - this.speedRange.a) / (this.speedRange.b - this.speedRange.a);
-        (particle.rotation as number) += delta * (this.angularVelocity as FunctionValueGenerator).genValue(t);
+        if (typeof particle.rotation === 'number') {
+            const t = (particle.startSpeed - this.speedRange.a) / (this.speedRange.b - this.speedRange.a);
+            (particle.rotation as number) +=
+                delta * (this.angularVelocity as FunctionValueGenerator).genValue(particle.memory, t);
+        }
     }
 
     toJSON(): any {

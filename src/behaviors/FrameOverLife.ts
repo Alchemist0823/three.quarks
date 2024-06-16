@@ -10,14 +10,12 @@ export class FrameOverLife implements Behavior {
     constructor(public frame: FunctionValueGenerator) {}
 
     initialize(particle: Particle): void {
-        if (!(this.frame instanceof PiecewiseBezier)) {
-            particle.uvTile = this.frame.genValue(0);
-        }
+        this.frame.startGen(particle.memory);
     }
 
     update(particle: Particle, delta: number): void {
         if (this.frame instanceof PiecewiseBezier) {
-            particle.uvTile = this.frame.genValue(particle.age / particle.life);
+            particle.uvTile = this.frame.genValue(particle.memory, particle.age / particle.life);
         }
     }
 

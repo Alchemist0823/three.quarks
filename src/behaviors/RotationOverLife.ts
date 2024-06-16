@@ -9,31 +9,23 @@ import {ConstantValue, IntervalValue} from '../functions';
  */
 export class RotationOverLife implements Behavior {
     type = 'RotationOverLife';
-    private dynamic: boolean;
 
-    constructor(public angularVelocity: ValueGenerator | FunctionValueGenerator) {
-        this.dynamic = !(angularVelocity instanceof ConstantValue || angularVelocity instanceof IntervalValue);
-    }
+    constructor(public angularVelocity: ValueGenerator | FunctionValueGenerator) {}
 
     initialize(particle: Particle): void {
-        this.dynamic = !(
-            this.angularVelocity instanceof ConstantValue || this.angularVelocity instanceof IntervalValue
-        );
-        if (!this.dynamic && typeof particle.rotation === 'number') {
-            (particle as any).angularVelocity = (this.angularVelocity as ValueGenerator).genValue();
+        if (typeof particle.rotation === 'number') {
+            (this.angularVelocity as ValueGenerator).startGen(particle.memory);
         }
     }
 
     update(particle: Particle, delta: number): void {
-        if (!this.dynamic) {
-            if (typeof particle.rotation === 'number') {
-                (particle.rotation as number) += delta * ((particle as any).angularVelocity as number);
-            }
-        } else {
-            if (typeof particle.rotation === 'number') {
-                (particle.rotation as number) +=
-                    delta * (this.angularVelocity as FunctionValueGenerator).genValue(particle.age / particle.life);
-            }
+        if (typeof particle.rotation === 'number') {
+            (particle.rotation as number) +=
+                delta *
+                (this.angularVelocity as FunctionValueGenerator).genValue(
+                    particle.memory,
+                    particle.age / particle.life
+                );
         }
     }
 

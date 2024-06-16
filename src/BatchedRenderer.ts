@@ -1,10 +1,25 @@
 import {VFXBatch, RenderMode, StoredBatchSettings} from './VFXBatch';
-import {BufferGeometry, Layers, Material, Matrix3, Object3D, Texture, Vector3} from 'three';
+import {
+    BufferGeometry,
+    Camera,
+    Group,
+    Layers,
+    Material,
+    Matrix3,
+    Object3D,
+    Scene,
+    Texture,
+    Vector3,
+    WebGLRenderer,
+} from 'three';
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
 import {ParticleEmitter} from './ParticleEmitter';
 import {IParticle, Particle} from './Particle';
 import {FunctionValueGenerator, ValueGenerator} from './functions';
+import {settings} from 'typedoc/dist/lib/output/themes/default/partials/navigation';
+import {batch} from 'three/examples/jsm/nodes/accessors/BatchNode';
+import {depthTexture} from 'three/examples/jsm/nodes/display/ViewportDepthNode';
 
 /**
  * the settings for rendering a batch of VFX system.

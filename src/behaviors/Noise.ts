@@ -37,13 +37,17 @@ export class Noise implements Behavior {
             (particle as any).lastRotNoise = new Quaternion();
         }
         (particle as any).generatorIndex = [randomInt(0, 100), randomInt(0, 100), randomInt(0, 100), randomInt(0, 100)];
+        this.positionAmount.startGen(particle.memory);
+        this.rotationAmount.startGen(particle.memory);
+        this.frequency.startGen(particle.memory);
+        this.power.startGen(particle.memory);
     }
 
     update(particle: Particle, _: number): void {
-        let frequency = this.frequency.genValue(particle.age / particle.life);
-        let power = this.power.genValue(particle.age / particle.life);
-        let positionAmount = this.positionAmount.genValue(particle.age / particle.life);
-        let rotationAmount = this.rotationAmount.genValue(particle.age / particle.life);
+        let frequency = this.frequency.genValue(particle.memory, particle.age / particle.life);
+        let power = this.power.genValue(particle.memory, particle.age / particle.life);
+        let positionAmount = this.positionAmount.genValue(particle.memory, particle.age / particle.life);
+        let rotationAmount = this.rotationAmount.genValue(particle.memory, particle.age / particle.life);
         if (positionAmount > 0 && (particle as any).lastPosNoise !== undefined) {
             particle.position.sub((particle as any).lastPosNoise);
             tempV.set(

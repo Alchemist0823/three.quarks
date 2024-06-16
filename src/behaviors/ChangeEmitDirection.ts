@@ -12,6 +12,7 @@ export class ChangeEmitDirection implements Behavior {
     type = 'ChangeEmitDirection';
     _temp: Vector3 = new Vector3();
     _q: Quaternion = new Quaternion();
+    memory = {data: [], dataCount: 0};
 
     constructor(public angle: ValueGenerator) {}
 
@@ -24,7 +25,8 @@ export class ChangeEmitDirection implements Behavior {
         } else {
             this._temp.set(-particle.velocity.y, particle.velocity.x, 0);
         }
-        this._q.setFromAxisAngle(this._temp.normalize(), this.angle.genValue());
+        this.angle.startGen(this.memory);
+        this._q.setFromAxisAngle(this._temp.normalize(), this.angle.genValue(this.memory));
         this._temp.copy(particle.velocity);
         particle.velocity.applyQuaternion(this._q);
         this._q.setFromAxisAngle(this._temp, Math.random() * Math.PI * 2);

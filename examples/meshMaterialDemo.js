@@ -1,15 +1,15 @@
-import {Group, MeshStandardMaterial, BoxGeometry, Vector4, Color, AdditiveBlending} from 'three';
+import {Group, MeshStandardMaterial, BoxGeometry, Vector4, Color} from 'three';
 import {
     BatchedParticleRenderer,
     RandomQuatGenerator,
-    QuarksLoader,
-    ParticleEmitter,
     ParticleSystem,
     ConeEmitter,
     ConstantValue,
     ConstantColor,
     RenderMode,
     IntervalValue,
+    EulerGenerator,
+    Rotation3DOverLife
 } from 'three.quarks';
 import {Demo} from './demo.js';
 
@@ -52,6 +52,7 @@ export class MeshMaterialDemo extends Demo {
             vTileCount: 10,
             renderOrder: 0,
         });
+        ps.addBehavior(new Rotation3DOverLife(new EulerGenerator(new ConstantValue(0), new IntervalValue(0, Math.PI), new ConstantValue(0))));
         this.batchRenderer.addSystem(ps);
         this.scene.add(ps.emitter);
 

@@ -10,8 +10,18 @@ export class IntervalValue implements ValueGenerator {
         this.type = 'value';
     }
 
-    genValue(): number {
-        return MathUtils.lerp(this.a, this.b, Math.random());
+    indexCount = -1;
+
+    startGen(memory: GeneratorMemory) {
+        this.indexCount = memory.length;
+        memory.push(Math.random());
+    }
+
+    genValue(memory: GeneratorMemory): number {
+        if (this.indexCount === -1) {
+            this.startGen(memory);
+        }
+        return MathUtils.lerp(this.a, this.b, memory[this.indexCount]);
     }
 
     type: 'value';

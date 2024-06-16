@@ -8,7 +8,9 @@ import {FunctionValueGenerator, IntervalValue, ValueGeneratorFromJSON} from '../
 export class SizeBySpeed implements Behavior {
     type = 'SizeBySpeed';
 
-    initialize(particle: Particle): void {}
+    initialize(particle: Particle): void {
+        this.size.startGen(particle.memory);
+    }
 
     constructor(
         public size: FunctionValueGenerator,
@@ -17,7 +19,7 @@ export class SizeBySpeed implements Behavior {
 
     update(particle: Particle): void {
         const t = (particle.startSpeed - this.speedRange.a) / (this.speedRange.b - this.speedRange.a);
-        particle.size = particle.startSize * this.size.genValue(t);
+        particle.size = particle.startSize * this.size.genValue(particle.memory, t);
     }
 
     toJSON(): any {

@@ -50,6 +50,7 @@ export class DonutEmitter implements EmitterShape {
     mode: EmitterMode;
     spread: number;
     speed: ValueGenerator | FunctionValueGenerator;
+    memory: GeneratorMemory;
 
     constructor(parameters: DonutEmitterParameters = {}) {
         this.radius = parameters.radius ?? 10;
@@ -59,13 +60,14 @@ export class DonutEmitter implements EmitterShape {
         this.mode = parameters.mode ?? EmitterMode.Random;
         this.spread = parameters.spread ?? 0;
         this.speed = parameters.speed ?? new ConstantValue(1);
+        this.memory = [];
     }
 
     private currentValue = 0;
 
     update(system: ParticleSystem, delta: number): void {
         if (EmitterMode.Random != this.mode) {
-            this.currentValue += this.speed.genValue(system.emissionState.time / system.duration) * delta;
+            this.currentValue += this.speed.genValue(this.memory, system.emissionState.time / system.duration) * delta;
         }
     }
 

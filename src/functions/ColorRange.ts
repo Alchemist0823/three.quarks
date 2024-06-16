@@ -11,8 +11,17 @@ export class ColorRange implements ColorGenerator {
         this.type = 'value';
     }
 
-    genColor(color: Vector4, t?: number): Vector4 {
-        return color.copy(this.a).lerp(this.b, Math.random());
+    indexCount = -1;
+
+    startGen(memory: GeneratorMemory): void {
+        this.indexCount = memory.length;
+        memory.push(Math.random());
+    }
+    genColor(memory: GeneratorMemory, color: Vector4): Vector4 {
+        if (this.indexCount === -1) {
+            this.startGen(memory);
+        }
+        return color.copy(this.a).lerp(this.b, memory[this.indexCount]);
     }
 
     type: 'value';

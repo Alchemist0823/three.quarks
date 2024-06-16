@@ -5,7 +5,10 @@ describe('ColorRange', () => {
     test('.genColor', () => {
         const colorRange = new ColorRange(new Vector4(0, 0.25, 0.75, 1), new Vector4(1, 0.75, 0.25, 0));
         const color = new Vector4();
-        colorRange.genColor(color, 10);
+
+        let memory: never[] = [];
+        colorRange.startGen(memory);
+        colorRange.genColor(memory, color);
         expect(color.x).toBeGreaterThanOrEqual(0);
         expect(color.x).toBeLessThanOrEqual(1);
         expect(color.y).toBeGreaterThanOrEqual(0.25);

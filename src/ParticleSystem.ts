@@ -8,12 +8,11 @@ import {
     FunctionJSON,
     FunctionValueGenerator,
     GeneratorFromJSON,
-    MemorizedFunctionColorGenerator,
     ValueGenerator,
     ValueGeneratorFromJSON,
 } from './functions';
 import {Behavior, BehaviorFromJSON} from './behaviors';
-import {Particle, SpriteParticle, TrailParticle} from './Particle';
+import {NodeParticle, Particle, SpriteParticle, TrailParticle} from './Particle';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
 import {EmitterFromJSON, EmitterShape, ShapeJSON, SphereEmitter} from './shape';
 import {
@@ -134,7 +133,7 @@ export interface ParticleSystemParameters {
     /**
      * The initial color of particles.
      */
-    startColor?: ColorGenerator | FunctionColorGenerator | MemorizedFunctionColorGenerator;
+    startColor?: ColorGenerator | FunctionColorGenerator;
     /**
      * The emission rate over time.
      */
@@ -349,7 +348,7 @@ export class ParticleSystem implements IParticleSystem {
      *
      * @type {ColorGenerator | FunctionColorGenerator}
      */
-    startColor: ColorGenerator | FunctionColorGenerator | MemorizedFunctionColorGenerator;
+    startColor: ColorGenerator | FunctionColorGenerator;
 
     /**
      * The value generator for the starting tile index of particles.
@@ -464,6 +463,7 @@ export class ParticleSystem implements IParticleSystem {
     private travelDistance = 0;
 
     private normalMatrix: Matrix3 = new Matrix3();
+    private memory: GeneratorMemory = [];
     /** @internal **/
     _renderer?: BatchedRenderer;
 
@@ -780,6 +780,9 @@ export class ParticleSystem implements IParticleSystem {
             travelDistance: 0,
         };
 
+        this.emissionBursts.forEach((burst) => burst.count.startGen(this.memory));
+        this.emissionOverDistance.startGen(this.memory);
+
         this.emitEnded = false;
         this.markForDestroy = false;
         this.prewarmed = false;
@@ -810,14 +813,20 @@ export class ParticleSystem implements IParticleSystem {
                 }
             }
             const particle = this.particles[this.particleNum - 1];
+            particle.reset();
             particle.speedModifier = 1;
-            this.startColor.genColor(particle.startColor, this.emissionState.time, {});
+            this.startColor.startGen(particle.memory);
+            this.startColor.genColor(particle.memory, particle.startColor, this.emissionState.time);
             particle.color.copy(particle.startColor);
-            particle.startSpeed = this.startSpeed.genValue(emissionState.time / this.duration);
-            particle.life = this.startLife.genValue(emissionState.time / this.duration);
+            this.startSpeed.startGen(particle.memory);
+            particle.startSpeed = this.startSpeed.genValue(particle.memory, emissionState.time / this.duration);
+            this.startLife.startGen(particle.memory);
+            particle.life = this.startLife.genValue(particle.memory, emissionState.time / this.duration);
             particle.age = 0;
-            particle.startSize = this.startSize.genValue(emissionState.time / this.duration);
-            particle.uvTile = this.startTileIndex.genValue();
+            this.startSize.startGen(particle.memory);
+            particle.startSize = this.startSize.genValue(particle.memory, emissionState.time / this.duration);
+            this.startTileIndex.startGen(particle.memory);
+            particle.uvTile = this.startTileIndex.genValue(particle.memory);
             particle.size = particle.startSize;
             if (
                 this.rendererSettings.renderMode === RenderMode.Mesh ||
@@ -827,28 +836,38 @@ export class ParticleSystem implements IParticleSystem {
                 this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
             ) {
                 const sprite = particle as SpriteParticle;
+                this.startRotation.startGen(particle.memory);
                 if (this.rendererSettings.renderMode === RenderMode.Mesh) {
                     if (!(sprite.rotation instanceof Quaternion)) {
                         sprite.rotation = new Quaternion();
                     }
                     if (this.startRotation.type === 'rotation') {
-                        this.startRotation.genValue(sprite.rotation as Quaternion, emissionState.time / this.duration);
+                        this.startRotation.genValue(
+                            particle.memory,
+                            sprite.rotation as Quaternion,
+                            emissionState.time / this.duration
+                        );
                     } else {
                         (sprite.rotation as Quaternion).setFromAxisAngle(
                             UP,
-                            this.startRotation.genValue((emissionState.time / this.duration) as number)
+                            this.startRotation.genValue(sprite.memory, (emissionState.time / this.duration) as number)
                         );
                     }
                 } else {
                     if (this.startRotation.type === 'rotation') {
                         sprite.rotation = 0;
                     } else {
-                        sprite.rotation = this.startRotation.genValue(emissionState.time / this.duration);
+                        sprite.rotation = this.startRotation.genValue(
+                            sprite.memory,
+                            emissionState.time / this.duration
+                        );
                     }
                 }
             } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
                 const trail = particle as TrailParticle;
+                (this.rendererEmitterSettings as TrailSettings).startLength.startGen(trail.memory);
                 trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(
+                    trail.memory,
                     emissionState.time / this.duration
                 );
             }
@@ -902,6 +921,7 @@ export class ParticleSystem implements IParticleSystem {
     }
 
     restart() {
+        this.memory.length = 0;
         this.paused = false;
         this.particleNum = 0;
         this.emissionState.isBursting = false;
@@ -915,6 +935,9 @@ export class ParticleSystem implements IParticleSystem {
         this.emitEnded = false;
         this.markForDestroy = false;
         this.prewarmed = false;
+
+        this.emissionBursts.forEach((burst) => burst.count.startGen(this.memory));
+        this.emissionOverDistance.startGen(this.memory);
     }
 
     private firstTimeUpdate = true;
@@ -1051,7 +1074,7 @@ export class ParticleSystem implements IParticleSystem {
             this.emissionBursts[emissionState.burstIndex].time <= emissionState.time
         ) {
             if (Math.random() < this.emissionBursts[emissionState.burstIndex].probability) {
-                const count = this.emissionBursts[emissionState.burstIndex].count.genValue(this.time);
+                const count = this.emissionBursts[emissionState.burstIndex].count.genValue(this.memory, this.time);
                 emissionState.isBursting = true;
                 emissionState.burstParticleCount = count;
                 this.spawn(count, emissionState, emitterMatrix);
@@ -1061,12 +1084,16 @@ export class ParticleSystem implements IParticleSystem {
         }
 
         if (!this.emitEnded) {
-            emissionState.waitEmiting += delta * this.emissionOverTime.genValue(emissionState.time / this.duration);
+            emissionState.waitEmiting +=
+                delta * this.emissionOverTime.genValue(this.memory, emissionState.time / this.duration);
 
             if (emissionState.previousWorldPos != undefined) {
                 this.temp.set(emitterMatrix.elements[12], emitterMatrix.elements[13], emitterMatrix.elements[14]);
                 emissionState.travelDistance += emissionState.previousWorldPos.distanceTo(this.temp);
-                const emitPerMeter = this.emissionOverDistance.genValue(emissionState.time / this.duration);
+                const emitPerMeter = this.emissionOverDistance.genValue(
+                    this.memory,
+                    emissionState.time / this.duration
+                );
                 if (emissionState.travelDistance * emitPerMeter > 0) {
                     const count = Math.floor(emissionState.travelDistance * emitPerMeter);
                     emissionState.travelDistance -= count / emitPerMeter;

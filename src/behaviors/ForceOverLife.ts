@@ -15,6 +15,9 @@ export class ForceOverLife implements Behavior {
 
     initialize(particle: Particle, particleSystem: ParticleSystem): void {
         this.ps = particleSystem;
+        this.x.startGen(particle.memory);
+        this.y.startGen(particle.memory);
+        this.z.startGen(particle.memory);
     }
 
     constructor(
@@ -25,9 +28,9 @@ export class ForceOverLife implements Behavior {
 
     update(particle: Particle, delta: number): void {
         this._temp.set(
-            this.x.genValue(particle.age / particle.life),
-            this.y.genValue(particle.age / particle.life),
-            this.z.genValue(particle.age / particle.life)
+            this.x.genValue(particle.memory, particle.age / particle.life),
+            this.y.genValue(particle.memory, particle.age / particle.life),
+            this.z.genValue(particle.memory, particle.age / particle.life)
         );
         if (this.ps.worldSpace) {
             particle.velocity.addScaledVector(this._temp, delta);

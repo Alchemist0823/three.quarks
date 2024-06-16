@@ -8,12 +8,14 @@ import {FunctionValueGenerator, ValueGeneratorFromJSON} from '../functions/Value
 export class SpeedOverLife implements Behavior {
     type = 'SpeedOverLife';
 
-    initialize(particle: Particle): void {}
+    initialize(particle: Particle): void {
+        this.speed.startGen(particle.memory);
+    }
 
     constructor(public speed: FunctionValueGenerator) {}
 
     update(particle: Particle): void {
-        (particle as any).speedModifier = this.speed.genValue(particle.age / particle.life);
+        (particle as any).speedModifier = this.speed.genValue(particle.memory, particle.age / particle.life);
     }
     toJSON(): any {
         return {

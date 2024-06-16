@@ -1,23 +1,28 @@
-import { Vector4} from "three";
-import {ColorGenerator} from "./ColorGenerator";
-import {FunctionJSON} from "./FunctionJSON";
-import {ColorToJSON, JSONToColor} from "../util/JSONUtil";
+import {Vector4} from 'three';
+import {ColorGenerator} from './ColorGenerator';
+import {FunctionJSON} from './FunctionJSON';
+import {ColorToJSON, JSONToColor} from '../util/JSONUtil';
 
 export class RandomColor implements ColorGenerator {
-    constructor(public a: Vector4, public b: Vector4) {
-        this.type = "value";
+    constructor(
+        public a: Vector4,
+        public b: Vector4
+    ) {
+        this.type = 'value';
     }
 
-    genColor(color: Vector4): Vector4 {
+    startGen(memory: GeneratorMemory): void {}
+
+    genColor(memory: GeneratorMemory, color: Vector4): Vector4 {
         const rand = Math.random();
         return color.copy(this.a).lerp(this.b, rand);
     }
 
-    type: "value";
+    type: 'value';
 
     toJSON(): FunctionJSON {
         return {
-            type: "RandomColor",
+            type: 'RandomColor',
             a: ColorToJSON(this.a),
             b: ColorToJSON(this.b),
         };

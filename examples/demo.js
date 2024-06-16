@@ -70,8 +70,8 @@ export class Demo {
         plane.position.set(0, -10, 0);
         plane.lookAt(new Vector3(0, 1, 0));
 
-        const light = new PointLight(0xffffff, 1000, 300);
-        light.position.set(0, 5, 0);
+        const light = new PointLight(0xffffff, 500, 1000);
+        light.position.set(0, 5, 5);
         this.scene.add(light);
         return this.scene;
     }

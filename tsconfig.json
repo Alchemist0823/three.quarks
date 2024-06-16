@@ -12,8 +12,8 @@
     "noImplicitAny": true,
     "declarationDir": "dist/types",
     "declaration": true,
-    "target": "es2015",
-    "module": "es2015",
+    "target": "ES2017",
+    "module": "ES2015",
     "strict": true,
     "typeRoots": [ "./node_modules/@webgpu/types", "./node_modules/@types", "./types"]
   },

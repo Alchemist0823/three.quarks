@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.12.4",
+  "version": "0.13.0",
   "description": "A General-Purpose Particle System for three.js",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -26,7 +26,8 @@
     "dev": "rollup -c -w",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build:production": "npm run build:types && cross-env NODE_ENV=production npm run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/",
+    "build:examples": "cpx ./node_modules/three/examples/**/*.* ./examples/js/examples && cpx ./node_modules/three/build/three.module.js ./examples/js/",
+    "build:production": "npm run build:types && npm run build:examples && cross-env NODE_ENV=production npm run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/",
     "build": "npm run build:production",
     "lint": "eslint . --ext .ts",
     "prepublishOnly": "npm run build:production",
@@ -98,7 +99,7 @@
     "typedoc-plugin-extra-footer": "^1.0.1",
     "typedoc-plugin-markdown": "^4.0.3",
     "typedoc-plugin-script-inject": "^2.0.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.4.5"
   },
   "lint-staged": {
     "**/*.ts": "prettier --write --ignore-unknown"

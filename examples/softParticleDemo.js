@@ -11,12 +11,20 @@ import {BatchedParticleRenderer,
 import {
     DepthTexture,
     FloatType,
-    Mesh, MeshBasicMaterial,
+    Mesh,
+    MeshBasicMaterial,
     NearestFilter,
     TorusKnotGeometry,
     WebGLRenderTarget,
-    RGBAFormat, MeshStandardMaterial, Vector4, DoubleSide, TextureLoader, NormalBlending
-} from "three";
+    RGBAFormat,
+    MeshStandardMaterial,
+    Vector4,
+    DoubleSide,
+    TextureLoader,
+    NormalBlending,
+    DepthFormat,
+    UnsignedShortType,
+} from 'three';
 
 export class SoftParticleDemo extends Demo {
     name = 'Soft Particle & Blend Tiles Demo';
@@ -38,10 +46,12 @@ export class SoftParticleDemo extends Demo {
         this.target.texture.minFilter = NearestFilter;
         this.target.texture.magFilter = NearestFilter;
         this.target.texture.generateMipmaps = false;
+        this.target.samples = 0;
         this.target.stencilBuffer = false;
         this.target.depthBuffer = true;
         this.target.depthTexture = new DepthTexture();
-        this.target.depthTexture.type = FloatType;
+        this.target.depthTexture.type = UnsignedShortType;
+        this.target.depthTexture.format = DepthFormat;
 
         this.batchRenderer.setDepthTexture(this.target.depthTexture);
 
@@ -104,10 +114,11 @@ export class SoftParticleDemo extends Demo {
 
     render(delta) {
         super.render(delta);
-
         // render scene into target
         this.renderer.setRenderTarget( this.target );
+        this.batchRenderer.visible = false;
         this.renderer.render( this.scene, this.camera);
+        this.batchRenderer.visible = true;
         this.renderer.setRenderTarget( null );
     }
 }
