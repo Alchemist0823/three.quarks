@@ -26,7 +26,7 @@
     "dev": "rollup -c -w",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build:examples": "cpx ./node_modules/three/examples/**/*.* ./examples/js/examples && cpx ./node_modules/three/build/three.module.js ./examples/js/",
+    "build:examples": "cpx \"./node_modules/three/examples/**/*.*\" ./examples/js/examples && cpx ./node_modules/three/build/three.module.js ./examples/js/",
     "build:production": "npm run build:types && npm run build:examples && cross-env NODE_ENV=production npm run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/",
     "build": "npm run build:production",
     "lint": "eslint . --ext .ts",
