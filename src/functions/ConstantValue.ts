@@ -7,7 +7,9 @@ export class ConstantValue implements ValueGenerator {
         this.type = 'value';
     }
 
-    genValue(): number {
+    startGen(memory: GeneratorMemory): void {}
+
+    genValue(memory: GeneratorMemory): number {
         return this.value;
     }
 
@@ -25,6 +27,4 @@ export class ConstantValue implements ValueGenerator {
     clone(): ValueGenerator {
         return new ConstantValue(this.value);
     }
-
-    startGen(): void {}
 }

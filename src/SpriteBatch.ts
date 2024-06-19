@@ -16,6 +16,7 @@ import {
     Vector4,
     Scene,
     PerspectiveCamera,
+    MeshPhysicalMaterial,
 } from 'three';
 import {SpriteParticle} from './Particle';
 
@@ -28,6 +29,8 @@ import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.gls
 import {getMaterialUVChannelName} from './util/ThreeUtil';
 import {StretchedBillBoardSettings, VFXBatchSettings} from './BatchedRenderer';
 import {RenderMode, VFXBatch} from './VFXBatch';
+import {IUniform} from 'three/src/renderers/shaders/UniformsLib';
+import {ParticleMeshPhysicsMaterial, ParticleMeshStandardMaterial} from './materials/ParticleMaterials';
 
 const UP = new Vector3(0, 0, 1);
 
@@ -110,59 +113,13 @@ export class SpriteBatch extends VFXBatch {
     rebuildMaterial() {
         this.layers.mask = this.settings.layers.mask;
 
-        let uniforms: {[a: string]: Uniform};
+        let uniforms: {[a: string]: Uniform} = {};
         const defines: {[b: string]: string} = {};
 
         if (
-            this.settings.material.type === 'MeshStandardMaterial' ||
-            this.settings.material.type === 'MeshPhysicalMaterial'
+            this.settings.material.type !== 'MeshStandardMaterial' &&
+            this.settings.material.type !== 'MeshPhysicalMaterial'
         ) {
-            const mat = this.settings.material as MeshStandardMaterial;
-            uniforms = UniformsUtils.merge([
-                UniformsLib.common,
-                UniformsLib.envmap,
-                UniformsLib.aomap,
-                UniformsLib.lightmap,
-                UniformsLib.emissivemap,
-                UniformsLib.bumpmap,
-                UniformsLib.normalmap,
-                UniformsLib.displacementmap,
-                UniformsLib.roughnessmap,
-                UniformsLib.metalnessmap,
-                UniformsLib.fog,
-                UniformsLib.lights,
-                {
-                    emissive: {value: /*@__PURE__*/ new Color(0x000000)},
-                    roughness: {value: 1.0},
-                    metalness: {value: 0.0},
-                    envMapIntensity: {value: 1}, // temporary
-                },
-            ]) as {[a: string]: Uniform};
-            uniforms['diffuse'].value = mat.color;
-            uniforms['opacity'].value = mat.opacity;
-            uniforms['emissive'].value = mat.emissive;
-            uniforms['roughness'].value = mat.roughness;
-            uniforms['metalness'].value = mat.metalness;
-
-            if (mat.envMap) {
-                uniforms['envMap'].value = mat.envMap;
-                uniforms['envMapIntensity'].value = mat.envMapIntensity;
-            }
-            if (mat.normalMap) {
-                uniforms['normalMap'].value = mat.normalMap;
-                uniforms['normalScale'].value = mat.normalScale;
-            }
-            if (mat.roughnessMap) {
-                uniforms['roughnessMap'].value = mat.roughnessMap;
-            }
-            if (mat.metalnessMap) {
-                uniforms['metalnessMap'].value = mat.metalnessMap;
-            }
-            if (mat.map) {
-                uniforms['map'] = new Uniform(mat.map);
-            }
-        } else {
-            uniforms = {};
             uniforms['map'] = new Uniform((this.settings.material as any).map);
         }
 
@@ -249,18 +206,38 @@ export class SpriteBatch extends VFXBatch {
             } else if (this.settings.renderMode === RenderMode.HorizontalBillBoard) {
                 defines['HORIZONTAL'] = '';
             }
-            this.material = new ShaderMaterial({
-                uniforms: uniforms,
-                defines: defines,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
-                transparent: this.settings.material.transparent,
-                depthWrite: !this.settings.material.transparent,
-                blending: this.settings.material.blending,
-                side: this.settings.material.side,
-                alphaTest: this.settings.material.alphaTest,
-                lights: needLights,
-            });
+
+            let specialMats = false;
+            if (this.settings.renderMode === RenderMode.Mesh) {
+                //const mat = this.settings.material as MeshStandardMaterial;
+                if (this.settings.material.type === 'MeshStandardMaterial') {
+                    this.material = new ParticleMeshStandardMaterial({});
+                    this.material.copy(this.settings.material as MeshStandardMaterial);
+                    (this.material as any).uniforms = uniforms;
+                    (this.material as any).defines = defines;
+                    specialMats = true;
+                } else if (this.settings.material.type === 'MeshPhysicalMaterial') {
+                    this.material = new ParticleMeshPhysicsMaterial({});
+                    this.material.copy(this.settings.material as MeshPhysicalMaterial);
+                    (this.material as any).uniforms = uniforms;
+                    (this.material as any).defines = defines;
+                    specialMats = true;
+                }
+            }
+            if (!specialMats) {
+                this.material = new ShaderMaterial({
+                    uniforms: uniforms,
+                    defines: defines,
+                    vertexShader: vertexShader,
+                    fragmentShader: fragmentShader,
+                    transparent: this.settings.material.transparent,
+                    depthWrite: !this.settings.material.transparent,
+                    blending: this.settings.material.blending,
+                    side: this.settings.material.side,
+                    alphaTest: this.settings.material.alphaTest,
+                    lights: needLights,
+                });
+            }
         } else if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
             uniforms['speedFactor'] = new Uniform(1.0);
             this.material = new ShaderMaterial({

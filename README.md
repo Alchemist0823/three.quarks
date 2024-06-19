@@ -1,7 +1,9 @@
 # three.quarks
-![npm](https://img.shields.io/npm/v/three.quarks.svg)
-![Github Star](https://img.shields.io/github/stars/Alchemist0823/three.quarks.svg?style=social)
-[![Discord](https://img.shields.io/discord/1042342883056963664?color=%235865f2&label=Discord)](https://discord.gg/5Tv3kJCrQZ)
+[![][npm]][npm-url]
+[![][github-star]][github-url]
+[![][build-size]][build-size-url]
+[![][npm-downloads]][npmtrends-url]
+[![][discord]][discord-url]
 
 [**three.quarks**](https://quarks.art/) is a high-performance javascript particle system based visual effect library for threejs
  written in modern **TypeScript**.
@@ -196,3 +198,13 @@ If you want the best performance please consider `yarn link` [https://github.com
 This version of three.js performs much better than official release, because it avoids unnecessary `getProgramCachedKey()` calls and material updates.
 </s>
 
+[github-star]: https://img.shields.io/github/stars/Alchemist0823/three.quarks.svg?style=social
+[github-url]: https://github.com/Alchemist0823/three.quarks
+[npm]: https://img.shields.io/npm/v/three.quarks
+[npm-url]: https://www.npmjs.com/package/three.quarks
+[build-size]: https://badgen.net/bundlephobia/minzip/three.quarks
+[build-size-url]: https://bundlephobia.com/result?p=three.quarks
+[npm-downloads]: https://img.shields.io/npm/dw/three.quarks
+[npmtrends-url]: https://www.npmtrends.com/three.quarks
+[discord]: https://img.shields.io/discord/1042342883056963664
+[discord-url]: https://discord.gg/5Tv3kJCrQZ

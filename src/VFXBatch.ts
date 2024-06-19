@@ -51,7 +51,6 @@ export enum RenderMode {
 export abstract class VFXBatch extends Mesh {
     type = 'VFXBatch';
     systems: Set<IParticleSystem>;
-    declare material: ShaderMaterial;
 
     settings: StoredBatchSettings;
     protected maxParticles;
@@ -91,11 +90,11 @@ export abstract class VFXBatch extends Mesh {
     }
 
     applyDepthTexture(depthTexture: Texture | null): void {
-        const uniform = this.material.uniforms['depthTexture'];
+        const uniform = (this.material as ShaderMaterial).uniforms['depthTexture'];
         if (uniform) {
             if (uniform.value !== depthTexture) {
                 uniform.value = depthTexture;
-                this.material.needsUpdate = true;
+                (this.material as ShaderMaterial).needsUpdate = true;
             }
         }
     }

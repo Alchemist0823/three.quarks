@@ -199,6 +199,15 @@
             window.addEventListener('resize', onResize, false);
 
             demoIndex = 0;
+            if (window.location.hash) {
+                let hash = window.location.hash.substring(1);
+                for (let i = 0; i < demos.length; i++) {
+                    if (demos[i].name === hash) {
+                        demoIndex = i;
+                        break;
+                    }
+                }
+            }
             demo = new demos[demoIndex](camera, renderer);
             document.querySelector("#demo-name").innerText = demo.name;
             scene = demo.initScene();
@@ -237,6 +246,7 @@
             if (demoIndex >= demos.length) {
                 demoIndex = 0;
             }
+            window.location.hash = '#' + demos[demoIndex].name;
             if (demo && demo.deinitScene) {
                 demo.deinitScene();
             }

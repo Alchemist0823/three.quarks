@@ -1,4 +1,6 @@
 # Change Log
+## Version 0.13.1
+- Fully support MeshStandardMaterial's properties such as envMap on particles.
 
 ## version 0.13.0
 - Fix the Rotation3dOverLife behavior doesn't work on mesh particle bug

@@ -1,4 +1,14 @@
-import {Group, MeshStandardMaterial, BoxGeometry, Vector4, Color} from 'three';
+import {
+    Group,
+    MeshStandardMaterial,
+    BoxGeometry,
+    Vector4,
+    Color,
+    CubeTextureLoader,
+    SphereGeometry,
+    Mesh,
+    CapsuleGeometry,
+} from 'three';
 import {
     BatchedParticleRenderer,
     RandomQuatGenerator,
@@ -14,20 +24,25 @@ import {
 import {Demo} from './demo.js';
 
 export class MeshMaterialDemo extends Demo {
-    name = 'Mesh Standard Material';
+    name = 'Mesh Standard Material with Environment Map';
     initScene() {
         super.initScene();
 
         this.batchRenderer = new BatchedParticleRenderer();
         this.scene.add(this.batchRenderer);
 
-        const geo = new BoxGeometry(1.0, 2.0, 1.0);
+        const loader = new CubeTextureLoader();
+        loader.setPath( 'textures/cube/' );
+        let  textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+
+        const geo = new CapsuleGeometry(1.0, 3.0);
         const mat = new MeshStandardMaterial({
-            color: new Color(1.0, 1.0, 1.0),
-            roughness: 1.0,
-            metalness: 0.5,
+            color: new Color(0.5, 0.5, 0.5),
+            roughness: 0.2,
+            metalness: 1.0,
+            envMap: textureCube,
+            envMapIntensity: 1.0,
         });
-        //this.scene.add(new Mesh(geo, mat));
 
         let ps = new ParticleSystem({
             duration: 1,
@@ -37,7 +52,7 @@ export class MeshMaterialDemo extends Demo {
             startLife: new IntervalValue(2.0, 3.0),
             startSpeed: new ConstantValue(1),
             startSize: new ConstantValue(0.1),
-            startColor: new ConstantColor(new Vector4(1, 0.585716, 0.1691176, 1)),
+            startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
             startRotation: new RandomQuatGenerator(),
             worldSpace: true,
 
@@ -52,7 +67,7 @@ export class MeshMaterialDemo extends Demo {
             vTileCount: 10,
             renderOrder: 0,
         });
-        ps.addBehavior(new Rotation3DOverLife(new EulerGenerator(new ConstantValue(0), new IntervalValue(0, Math.PI), new ConstantValue(0))));
+        ps.addBehavior(new Rotation3DOverLife(new EulerGenerator(new IntervalValue(0, Math.PI), new ConstantValue(0), new ConstantValue(0))));
         this.batchRenderer.addSystem(ps);
         this.scene.add(ps.emitter);
 
