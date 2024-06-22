@@ -1,5 +1,6 @@
 import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Texture} from 'three';
-import {IParticleSystem, VFXBatchSettings} from './BatchedRenderer';
+import {VFXBatchSettings} from './BatchedRenderer';
+import {IParticleSystem} from 'quarks.core';
 
 export interface StoredBatchSettings {
     // 5 component x,y,z,u,v

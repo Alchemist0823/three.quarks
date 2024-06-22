@@ -10,7 +10,8 @@ import {
     SizeOverLife,
     SphereEmitter,
 } from '../src';
-import {MeshBasicMaterial, NormalBlending, Scene, Texture, Vector3, Vector4} from 'three';
+import {Vector3, Vector4} from 'quarks.core';
+import {MeshBasicMaterial, NormalBlending, Scene, Texture} from 'three';
 
 describe('BatchedRenderer', () => {
     test('texture swap', () => {

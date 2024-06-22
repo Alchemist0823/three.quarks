@@ -1,0 +1,49 @@
+{
+  "name": "quarks.nodes",
+  "version": "0.1.0",
+  "description": "nodes for quarks",
+  "type": "module",
+  "dependencies": {
+    "three.quarks": "^0.13.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.165.0",
+    "@types/webxr": "^0.5.16",
+    "three": "^0.165.0"
+  },
+  "types": "./dist/types/index.d.ts",
+  "main": "./dist/quarks.nodes.cjs",
+  "module": "./dist/quarks.nodes.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/quarks.nodes.esm.js",
+      "require": "./dist/quarks.nodes.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "cross-env NODE_ENV=production rollup -c",
+    "build": "npm run build:types && npm run build:js",
+    "test": "jest",
+    "prettier": "prettier --write --ignore-unknown **/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alchemist0823/three.quarks.git"
+  },
+  "keywords": [
+    "particle",
+    "library",
+    "3d",
+    "game",
+    "performance",
+    "math"
+  ],
+  "author": "Alchemist0823 <the.forrest.sun@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Alchemist0823/three.quarks/issues"
+  },
+  "homepage": "https://github.com/Alchemist0823/three.quarks#readme"
+}

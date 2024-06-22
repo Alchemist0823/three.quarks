@@ -1,0 +1,41 @@
+{
+  "name": "quarks.core",
+  "version": "0.13.1",
+  "description": "Core library for quarks VFX Engine",
+  "type": "module",
+  "types": "./dist/types/index.d.ts",
+  "main": "./dist/quarks.core.cjs",
+  "module": "./dist/quarks.core.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/quarks.core.esm.js",
+      "require": "./dist/quarks.core.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "cross-env NODE_ENV=production rollup -c",
+    "build": "npm run build:types && npm run build:js && cpx ./dist/quarks.core.esm.js ../three.quarks/examples/js/",
+    "test": "jest",
+    "prettier": "prettier --write --ignore-unknown **/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alchemist0823/three.quarks.git"
+  },
+  "keywords": [
+    "particle",
+    "library",
+    "3d",
+    "game",
+    "performance",
+    "math"
+  ],
+  "author": "Alchemist0823 <the.forrest.sun@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Alchemist0823/three.quarks/issues"
+  },
+  "homepage": "https://github.com/Alchemist0823/three.quarks#readme"
+}

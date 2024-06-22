@@ -2,24 +2,21 @@ import {
     DynamicDrawUsage,
     InstancedBufferAttribute,
     InstancedBufferGeometry,
-    Matrix3,
     WebGLRenderer,
-    Quaternion,
     Uniform,
-    Vector2,
-    Vector3,
     MeshStandardMaterial,
-    UniformsLib,
-    UniformsUtils,
     ShaderMaterial,
-    Color,
-    Vector4,
     Scene,
     PerspectiveCamera,
     MeshPhysicalMaterial,
 } from 'three';
-import {SpriteParticle} from './Particle';
-
+import {
+    Vector2,
+    Vector3,
+    Vector4,
+    Quaternion,
+    Matrix3,
+    SpriteParticle, StretchedBillBoardSettings} from 'quarks.core';
 import particle_frag from './shaders/particle_frag.glsl';
 import particle_physics_frag from './shaders/particle_physics_frag.glsl';
 import particle_vert from './shaders/particle_vert.glsl';
@@ -27,9 +24,8 @@ import local_particle_vert from './shaders/local_particle_vert.glsl';
 import local_particle_physics_vert from './shaders/local_particle_physics_vert.glsl';
 import stretched_bb_particle_vert from './shaders/stretched_bb_particle_vert.glsl';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
-import {StretchedBillBoardSettings, VFXBatchSettings} from './BatchedRenderer';
+import {VFXBatchSettings} from './BatchedRenderer';
 import {RenderMode, VFXBatch} from './VFXBatch';
-import {IUniform} from 'three/src/renderers/shaders/UniformsLib';
 import {ParticleMeshPhysicsMaterial, ParticleMeshStandardMaterial} from './materials/ParticleMaterials';
 
 const UP = new Vector3(0, 0, 1);
@@ -113,7 +109,7 @@ export class SpriteBatch extends VFXBatch {
     rebuildMaterial() {
         this.layers.mask = this.settings.layers.mask;
 
-        let uniforms: {[a: string]: Uniform} = {};
+        const uniforms: {[a: string]: Uniform} = {};
         const defines: {[b: string]: string} = {};
 
         if (

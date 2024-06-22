@@ -1,7 +1,9 @@
-import resolve from '@rollup/plugin-node-resolve';
-//import commonjs from '@rollup/plugin-commonjs'
+import {nodeResolve} from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import babel from '@rollup/plugin-babel';
 import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
+import ts from 'typescript';
 import pkg from './package.json' assert {type: 'json'};
 
 const date = new Date().toDateString();
@@ -13,7 +15,7 @@ const banner = `/**
  */`;
 
 const production = process.env.NODE_ENV === 'production';
-const globals = {three: 'THREE'};
+const globals = {three: 'THREE', 'three.quarks': 'THREE.QUARKS'};
 const extensions = ['.js', '.jsx', '.ts', '.tsx'];
 
 function wgslPlugin() {
@@ -23,29 +25,29 @@ function wgslPlugin() {
             if (id.endsWith('.wgsl')) {
                 return {
                     code: `export default \`${code}\`;`,
-                    map: { mappings: '' },
+                    map: {mappings: ''},
                 };
             }
         },
     };
 }
+
 export const lib = {
     main: {
-        input: 'src/index.ts',
-        external: Object.keys(globals),
+        input: './src/index.ts',
+        external: ['three', 'quarks.core'],
         plugins: [
             //wgslPlugin(),
-            resolve({
+            nodeResolve({
                 extensions: extensions,
-                customResolveOptions: {
-                    moduleDirectories: ['src'],
-                },
             }),
-            babel({
-                extensions,
-                include: ['src/**/*'],
-                babelHelpers: 'bundled',
-                //runtimeHelpers: true,
+            commonjs({
+                include: 'node_modules/**',
+                ignoreGlobal: false,
+            }),
+            typescript({
+                typescript: ts,
+                declaration: true,
             }),
         ],
         output: [
@@ -58,10 +60,32 @@ export const lib = {
             },
             {
                 file: pkg.module,
-                format: 'esm',
+                format: 'es',
+                name: pkg.name,
                 globals,
                 banner,
             },
+        ],
+    },
+    browser: {
+        input: './src/index.ts',
+        external: Object.keys(globals),
+        plugins: [
+            //wgslPlugin(),
+            nodeResolve({
+                extensions: extensions,
+            }),
+            commonjs({
+                include: 'node_modules/**',
+                ignoreGlobal: false,
+            }),
+            babel({
+                extensions,
+                include: ['src/**/*'],
+                babelHelpers: 'bundled',
+            }),
+        ],
+        output: [
             {
                 file: pkg.main,
                 format: 'umd',
@@ -71,7 +95,6 @@ export const lib = {
             },
         ],
     },
-
     min: {
         input: pkg.main,
         external: Object.keys(globals),
@@ -98,4 +121,4 @@ export const lib = {
         ],
     },
 };
-export default production ? [lib.main, lib.min] : [lib.main];
+export default production ? [lib.main, lib.browser, lib.min] : [lib.main];

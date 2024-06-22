@@ -10,11 +10,28 @@ import {
     GeneratorFromJSON,
     ValueGenerator,
     ValueGeneratorFromJSON,
-} from './functions';
-import {Behavior, BehaviorFromJSON} from './behaviors';
-import {NodeParticle, Particle, SpriteParticle, TrailParticle} from './Particle';
+    Behavior,
+    BehaviorFromJSON,
+    Particle,
+    SpriteParticle,
+    TrailParticle,
+    EmitterFromJSON,
+    EmitterShape,
+    ShapeJSON,
+    SphereEmitter,
+    RendererEmitterSettings,
+    RotationGenerator,
+    IParticleSystem,
+    EmissionState,
+    GeneratorMemory,
+    TrailSettings, SerializationOptions, StretchedBillBoardSettings,
+    Vector3,
+    Vector4,
+    Matrix3,
+    Matrix4,
+    Quaternion,
+} from 'quarks.core';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
-import {EmitterFromJSON, EmitterShape, ShapeJSON, SphereEmitter} from './shape';
 import {
     AdditiveBlending,
     Object3DEventMap,
@@ -22,28 +39,17 @@ import {
     BufferGeometry,
     DoubleSide,
     Layers,
-    Matrix3,
-    Matrix4,
     Object3D,
     PlaneGeometry,
-    Quaternion,
     Texture,
-    Vector3,
-    Vector4,
     Material,
     MeshBasicMaterial,
 } from 'three';
 import {RenderMode} from './VFXBatch';
 import {
     BatchedRenderer,
-    IParticleSystem,
-    RendererEmitterSettings,
-    SerializationOptions,
-    StretchedBillBoardSettings,
-    TrailSettings,
     VFXBatchSettings,
 } from './BatchedRenderer';
-import {RotationGenerator} from './functions';
 
 export interface BurstParameters {
     time: number;
@@ -59,6 +65,7 @@ const tempV = new Vector3();
 const tempV2 = new Vector3();
 const tempV3 = new Vector3();
 const PREWARM_FPS = 60;
+
 /**
  * Interface representing the JSON parameters for a burst.
  */
@@ -262,24 +269,7 @@ export interface ParticleSystemJSONParameters {
     worldSpace: boolean;
 }
 
-export interface JsonMetaData {
-    textures: {[uuid: string]: Texture};
-    geometries: {[uuid: string]: BufferGeometry};
-}
-
 const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
-
-export interface EmissionState {
-    burstIndex: number;
-    burstWaveIndex: number;
-    burstParticleIndex: number;
-    burstParticleCount: number;
-    isBursting: boolean;
-    time: number;
-    waitEmiting: number;
-    travelDistance: number;
-    previousWorldPos?: Vector3;
-}
 
 /**
  * ParticleSystem represents a system that generates and controls particles with similar attributes.
@@ -797,7 +787,7 @@ export class ParticleSystem implements IParticleSystem {
     }
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
-        tempQ.setFromRotationMatrix(matrix);
+        tempQ.setFromRotationMatrix(matrix as unknown as Matrix4);
         const translation = tempV;
         const quaternion = tempQ;
         const scale = tempV2;
@@ -845,12 +835,12 @@ export class ParticleSystem implements IParticleSystem {
                         this.startRotation.genValue(
                             particle.memory,
                             sprite.rotation as Quaternion,
-                            emissionState.time / this.duration
+                            emissionState.time / this.duration,
                         );
                     } else {
                         (sprite.rotation as Quaternion).setFromAxisAngle(
                             UP,
-                            this.startRotation.genValue(sprite.memory, (emissionState.time / this.duration) as number)
+                            this.startRotation.genValue(sprite.memory, (emissionState.time / this.duration) as number),
                         );
                     }
                 } else {
@@ -859,7 +849,7 @@ export class ParticleSystem implements IParticleSystem {
                     } else {
                         sprite.rotation = this.startRotation.genValue(
                             sprite.memory,
-                            emissionState.time / this.duration
+                            emissionState.time / this.duration,
                         );
                     }
                 }
@@ -868,7 +858,7 @@ export class ParticleSystem implements IParticleSystem {
                 (this.rendererEmitterSettings as TrailSettings).startLength.startGen(trail.memory);
                 trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(
                     trail.memory,
-                    emissionState.time / this.duration
+                    emissionState.time / this.duration,
                 );
             }
 
@@ -986,7 +976,7 @@ export class ParticleSystem implements IParticleSystem {
         }
 
         if (!this.onlyUsedByOther) {
-            this.emit(delta, this.emissionState, this.emitter.matrixWorld);
+            this.emit(delta, this.emissionState, this.emitter.matrixWorld as unknown as Matrix4);
         }
 
         // simulate
@@ -1010,12 +1000,12 @@ export class ParticleSystem implements IParticleSystem {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     this.particles[i].position.applyMatrix4(this.particles[i].parentMatrix!);
                 } else {
-                    this.particles[i].position.applyMatrix4(this.emitter.matrixWorld);
+                    this.particles[i].position.applyMatrix4(this.emitter.matrixWorld as unknown as Matrix4);
                 }
             } else {
                 this.particles[i].position.addScaledVector(
                     this.particles[i].velocity,
-                    delta * this.particles[i].speedModifier
+                    delta * this.particles[i].speedModifier,
                 );
             }
             this.particles[i].age += delta;
@@ -1072,7 +1062,7 @@ export class ParticleSystem implements IParticleSystem {
         while (
             emissionState.burstIndex < this.emissionBursts.length &&
             this.emissionBursts[emissionState.burstIndex].time <= emissionState.time
-        ) {
+            ) {
             if (Math.random() < this.emissionBursts[emissionState.burstIndex].probability) {
                 const count = this.emissionBursts[emissionState.burstIndex].count.genValue(this.memory, this.time);
                 emissionState.isBursting = true;
@@ -1092,7 +1082,7 @@ export class ParticleSystem implements IParticleSystem {
                 emissionState.travelDistance += emissionState.previousWorldPos.distanceTo(this.temp);
                 const emitPerMeter = this.emissionOverDistance.genValue(
                     this.memory,
-                    emissionState.time / this.duration
+                    emissionState.time / this.duration,
                 );
                 if (emissionState.travelDistance * emitPerMeter > 0) {
                     const count = Math.floor(emissionState.travelDistance * emitPerMeter);
@@ -1105,7 +1095,7 @@ export class ParticleSystem implements IParticleSystem {
         emissionState.previousWorldPos.set(
             emitterMatrix.elements[12],
             emitterMatrix.elements[13],
-            emitterMatrix.elements[14]
+            emitterMatrix.elements[14],
         );
         emissionState.time += delta;
     }
@@ -1223,12 +1213,12 @@ export class ParticleSystem implements IParticleSystem {
             materials: {[uuoid: string]: Material};
             geometries: {[uuid: string]: BufferGeometry};
         },
-        dependencies: {[uuid: string]: Behavior}
+        dependencies: {[uuid: string]: Behavior},
     ): ParticleSystem {
         const shape = EmitterFromJSON(json.shape, meta);
         let rendererEmitterSettings;
         if (json.renderMode === RenderMode.Trail) {
-            let trailSettings = json.rendererEmitterSettings as TrailSettings;
+            const trailSettings = json.rendererEmitterSettings as TrailSettings;
             rendererEmitterSettings = {
                 startLength:
                     trailSettings.startLength != undefined
@@ -1286,13 +1276,13 @@ export class ParticleSystem implements IParticleSystem {
             material: json.material
                 ? meta.materials[json.material]
                 : json.texture
-                  ? new MeshBasicMaterial({
+                    ? new MeshBasicMaterial({
                         map: meta.textures[json.texture],
                         transparent: json.transparent ?? true,
                         blending: json.blending,
                         side: DoubleSide,
                     })
-                  : new MeshBasicMaterial({
+                    : new MeshBasicMaterial({
                         color: 0xffffff,
                         transparent: true,
                         blending: AdditiveBlending,

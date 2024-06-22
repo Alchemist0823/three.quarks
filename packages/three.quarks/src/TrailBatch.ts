@@ -1,15 +1,11 @@
-import {RecordState, TrailParticle} from './Particle';
+import {Matrix4, Quaternion, RecordState, Matrix3,TrailParticle, Vector3,Vector2} from 'quarks.core';
 import {
     AdditiveBlending,
-    Matrix3,
     ShaderMaterial,
     Uniform,
-    Vector2,
     DynamicDrawUsage,
     BufferGeometry,
-    Vector3,
     BufferAttribute,
-    Quaternion,
 } from 'three';
 
 import trail_frag from './shaders/trail_frag.glsl';
@@ -200,7 +196,7 @@ export class TrailBatch extends VFXBatch {
                         );
                     } else {
                         if (particle.parentMatrix) {
-                            this.vector_.copy(current.position).applyMatrix4(particle.parentMatrix);
+                            this.vector_.copy(current.position).applyMatrix4(particle.parentMatrix as unknown as Matrix4);
                         } else {
                             this.vector_.copy(current.position).applyMatrix4(system.emitter.matrixWorld);
                         }

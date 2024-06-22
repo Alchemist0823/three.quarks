@@ -1,25 +1,15 @@
 import {VFXBatch, RenderMode, StoredBatchSettings} from './VFXBatch';
 import {
     BufferGeometry,
-    Camera,
-    Group,
     Layers,
     Material,
-    Matrix3,
     Object3D,
-    Scene,
     Texture,
-    Vector3,
-    WebGLRenderer,
 } from 'three';
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
-import {ParticleEmitter} from './ParticleEmitter';
-import {IParticle, Particle} from './Particle';
-import {FunctionValueGenerator, ValueGenerator} from './functions';
-import {settings} from 'typedoc/dist/lib/output/themes/default/partials/navigation';
-import {batch} from 'three/examples/jsm/nodes/accessors/BatchNode';
-import {depthTexture} from 'three/examples/jsm/nodes/display/ViewportDepthNode';
+import {IParticleSystem} from 'quarks.core';
+import {ParticleSystem} from './ParticleSystem';
 
 /**
  * the settings for rendering a batch of VFX system.
@@ -84,117 +74,6 @@ export interface VFXBatchSettings {
     layers: Layers;
 }
 
-export interface SerializationOptions {
-    /**
-     * Use URL for image.
-     * @type {boolean}
-     */
-    useUrlForImage?: boolean;
-}
-
-export type RendererEmitterSettings = TrailSettings | MeshSettings | BillBoardSettings | StretchedBillBoardSettings;
-
-export interface StretchedBillBoardSettings {
-    /**
-     * how stretched the particle is in the direction of the camera based on the speed of the particle.
-     * @type {number}
-     */
-    speedFactor: number;
-    /**
-     * how stretched the particle is in the direction of the camera based on the size of the particle.
-     * @type {number}
-     */
-    lengthFactor: number;
-}
-
-export interface BillBoardSettings {}
-
-export interface TrailSettings {
-    /**
-     * Start length of the trail.
-     * @type {ValueGenerator | FunctionValueGenerator}
-     */
-    startLength: ValueGenerator | FunctionValueGenerator;
-    /**
-     * Whether to follow the local origin.
-     * @type {boolean}
-     */
-    followLocalOrigin: boolean;
-}
-
-export interface MeshSettings {
-    /**
-     * Rotation axis.
-     * @type {Vector3}
-     */
-    rotationAxis?: Vector3;
-    /**
-     * Initial rotation around the X-axis.
-     * @type {ValueGenerator | FunctionValueGenerator}
-     */
-    startRotationX: ValueGenerator | FunctionValueGenerator;
-    /**
-     * Initial rotation around the Y-axis.
-     * @type {ValueGenerator | FunctionValueGenerator}
-     */
-    startRotationY: ValueGenerator | FunctionValueGenerator;
-    /**
-     * Initial rotation around the Z-axis.
-     * @type {ValueGenerator | FunctionValueGenerator}
-     */
-    startRotationZ: ValueGenerator | FunctionValueGenerator;
-}
-
-export interface IParticleSystem {
-    /**
-     * Whether the system is in world space.
-     * @type {boolean}
-     */
-    worldSpace: boolean;
-    /**
-     * Number of particles.
-     * @type {number}
-     */
-    particleNum: number;
-    /**
-     * Duration of the system.
-     * @type {number}
-     */
-    duration: number;
-    /**
-     * Whether the system is looping.
-     * @type {boolean}
-     */
-    looping: boolean;
-    /**
-     * Array of particles.
-     * @type {Array<IParticle>}
-     */
-    particles: Array<IParticle>;
-    /**
-     * Emitter for the particles.
-     * @type {ParticleEmitter<any>}
-     */
-    emitter: ParticleEmitter<any>;
-    /**
-     * Optional renderer.
-     * @type {BatchedRenderer}
-     */
-    _renderer?: BatchedRenderer;
-    instancingGeometry: BufferGeometry;
-    rendererEmitterSettings: RendererEmitterSettings;
-
-    getRendererSettings(): VFXBatchSettings;
-
-    paused: boolean;
-    pause(): void;
-    play(): void;
-    restart(): void;
-
-    clone(): IParticleSystem;
-
-    toJSON(metaData: any, options: SerializationOptions): any;
-}
 
 /**
  * the class represents the batch renderer. a three.js scene should only have one batchedRenderer
@@ -250,8 +129,8 @@ export class BatchedRenderer extends Object3D {
      * @param {IParticleSystem} system - The particle system to add.
      */
     addSystem(system: IParticleSystem) {
-        system._renderer = this;
-        const settings = system.getRendererSettings();
+        (system as unknown as ParticleSystem)._renderer = this;
+        const settings = (system as unknown as ParticleSystem).getRendererSettings();
         for (let i = 0; i < this.batches.length; i++) {
             if (BatchedRenderer.equals(this.batches[i].settings, settings)) {
                 this.batches[i].addSystem(system);

@@ -31,16 +31,14 @@ import {
     Points,
     SpriteMaterial,
     Bone,
-    Object3DEventMap,
     BufferGeometry,
     BatchedMesh,
     Sphere,
     Box3,
 } from 'three';
 import {ParticleSystem} from './ParticleSystem';
-import {Behavior, EmitSubParticleSystem} from './behaviors';
+import {Behavior, EmitSubParticleSystem} from 'quarks.core';
 import {ParticleEmitter} from './ParticleEmitter';
-import {Geometry} from 'three/examples/jsm/deprecated/Geometry';
 
 /**
  * Loader for quarks particle system.
@@ -95,7 +93,7 @@ export class QuarksLoader extends ObjectLoader {
         geometries: {[uuid: string]: BufferGeometry},
         materials: {[uuid: string]: Material},
         textures: {[uuid: string]: Texture},
-        animations: AnimationClip[]
+        animations: {[uuid: string]: AnimationClip}
     ): Object3D {
         let object;
         function getGeometry(name: string) {
@@ -261,7 +259,7 @@ export class QuarksLoader extends ObjectLoader {
 
                 break;
 
-            case 'InstancedMesh':
+            case 'InstancedMesh': {
                 geometry = getGeometry(data.geometry);
                 material = getMaterial(data.material);
                 const count = data.count;
@@ -276,7 +274,7 @@ export class QuarksLoader extends ObjectLoader {
                         instanceColor.itemSize
                     );
                 break;
-
+            }
             case 'BatchedMesh':
                 geometry = getGeometry(data.geometry);
                 material = getMaterial(data.material);

@@ -15,7 +15,8 @@ import {
     SphereEmitter,
     TrailSettings,
 } from '../src';
-import {Layers, MeshBasicMaterial, NormalBlending, Object3D, Texture, Vector3, Vector4} from 'three';
+import {Vector3, Vector4} from 'quarks.core';
+import {Layers, MeshBasicMaterial, NormalBlending, Object3D, Texture} from 'three';
 import {QuarksLoader} from '../src';
 import {BatchedRenderer} from '../src';
 

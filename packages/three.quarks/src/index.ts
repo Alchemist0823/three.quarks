@@ -1,24 +1,17 @@
 import {registerShaderChunks} from './shaders';
 
 export * from './ParticleEmitter';
-export * from './Particle';
 export * from './ParticleSystem';
 export * from './VFXBatch';
 export * from './SpriteBatch';
 export * from './TrailBatch';
+export * from './MeshSurfaceEmitter';
 export * from './BatchedRenderer';
 export * from './BatchedParticleRenderer';
-export * from './WebGPURenderer';
 export * from './QuarksLoader';
-export * from './TypeUtil';
-export * from './Plugin';
-
-export * from './shape/';
-export * from './functions/';
-export * from './behaviors/';
-export * from './sequencers/';
-export * from './nodes/';
 export * from './shaders/';
+export * from './materials/';
+export * from 'quarks.core';
 
 registerShaderChunks();
 // remove this line if you have pro license

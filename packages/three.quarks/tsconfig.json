@@ -1,21 +1,8 @@
 {
+  "extends": ["../../tsconfig.package.json"],
   "compilerOptions": {
-    //"noUnusedParameters": true,
-    //"noUnusedLocals": true,
-    "allowSyntheticDefaultImports": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "removeComments": true,
-    "esModuleInterop": true,
-    "noImplicitAny": true,
-    "declarationDir": "dist/types",
-    "declaration": true,
-    "target": "ES2017",
-    "module": "ES2015",
-    "strict": true,
-    "typeRoots": [ "./node_modules/@webgpu/types", "./node_modules/@types", "./types"]
+    "declarationDir": "./dist/types",
+    "typeRoots": ["./types", "./node_modules/@types", "../../node_modules/@types"]
   },
   "include": ["src", "types"],
   "exclude": ["node_modules", "test", "dist"]

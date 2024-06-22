@@ -1,5 +1,5 @@
 import {Object3D, Object3DEventMap} from 'three';
-import {IParticleSystem, SerializationOptions} from './BatchedRenderer';
+import {IParticleSystem, IEmitter, SerializationOptions} from 'quarks.core';
 
 /**
  * Interface representing metadata used in Threejs object toJSON method.
@@ -22,7 +22,7 @@ export interface MetaData {
  * @extends Object3D
  * @template E - Type of the event map.
  */
-export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap> extends Object3D<E> {
+export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap>extends Object3D<E> implements IEmitter {
     type = 'ParticleEmitter';
     system: IParticleSystem;
 
@@ -41,7 +41,7 @@ export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap> exte
      */
     clone() {
         const system = this.system.clone();
-        system.emitter.copy(this, true);
+        (system.emitter as unknown as ParticleEmitter).copy(this, true);
         return system.emitter as any;
     }
 

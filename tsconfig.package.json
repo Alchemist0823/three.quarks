@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    //"noUnusedParameters": true,
+    //"noUnusedLocals": true,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "target": "ES2017",
+    "module": "ES2015",
+    "strict": true
+  }
+}

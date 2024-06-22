@@ -19,6 +19,7 @@
         {
           "imports": {
             "three": "./js/three.module.js",
+            "quarks.core": "./js/quarks.core.esm.js",
             "three.quarks": "./js/three.quarks.esm.js",
             "three/examples/": "./js/examples/"
           }
@@ -90,7 +91,6 @@
         import {SubEmitterDemo} from "./subEmitterDemo.js";
         import {AlphaTestDemo} from "./alphaTestDemo.js";
         import {BillboardDemo} from "./billboardDemo.js";
-        import {NodeBasedVFXDemo} from "./nodeBasedVFXDemo.js";
         import {SoftParticleDemo} from "./softParticleDemo.js";
         import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -156,7 +156,7 @@
         let scene;
         let demo;
 
-        let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, SoftParticleDemo, NodeBasedVFXDemo];
+        let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, SoftParticleDemo];
         let demoIndex = 0;
 
         function init() {
