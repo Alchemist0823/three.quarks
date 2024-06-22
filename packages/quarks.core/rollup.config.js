@@ -51,24 +51,5 @@ export const lib = {
             },
         ],
     },
-
-    min: {
-        input: pkg.main,
-        external: Object.keys(globals),
-        plugins: [
-            terser({
-                keep_classnames: true,
-                keep_fnames: true,
-            }),
-        ],
-        output: [
-            {
-                file: pkg.module.replace('.js', '.min.js'),
-                format: 'esm',
-                globals,
-                banner,
-            },
-        ],
-    },
 };
-export default production ? [lib.main, lib.min] : [lib.main];
+export default [lib.main];
