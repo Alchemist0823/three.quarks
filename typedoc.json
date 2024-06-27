@@ -14,8 +14,8 @@
     "GitHub": "https://github.com/Alchemist0823/three.quarks",
     "Quarks VFX": "https://quarks.art/"
   },
-  "extraFooter": "<div class=\"copyright\">&copy; 2024 <a href=\"https://quarks.art/\">Quarks VFX, LLC</a></div>",
-  "extraFooterNoDefaultWrapper": true,
+  "customFooterHtml": "<div class=\"copyright\">&copy; 2024 <a href=\"https://quarks.art/\">Quarks VFX, LLC</a></div>",
+  "customFooterHtmlDisableWrapper": true,
   "hideGenerator": true,
   "useHostedBaseUrlForAbsoluteLinks": true,
   "hostedBaseUrl": "https://quarks.art/runtime/docs/",

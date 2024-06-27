@@ -46,9 +46,16 @@
     "tslib": "^2.6.3",
     "typedoc": "^0.26.2",
     "typedoc-google-tag-manager-plugin": "^1.0.5",
-    "typedoc-plugin-extra-footer": "^1.0.1",
-    "typedoc-plugin-markdown": "^4.0.3",
+    "typedoc-plugin-markdown": "^4.1.0",
     "typedoc-plugin-script-inject": "^2.0.0",
     "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "typedoc-google-tag-manager-plugin": {
+      "typedoc": "$typedoc"
+    },
+    "typedoc-plugin-script-inject": {
+      "typedoc": "$typedoc"
+    }
   }
 }
