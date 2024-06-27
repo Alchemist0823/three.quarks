@@ -231,6 +231,7 @@ export class SpriteBatch extends VFXBatch {
                     blending: this.settings.material.blending,
                     side: this.settings.material.side,
                     alphaTest: this.settings.material.alphaTest,
+                    depthTest: this.settings.material.depthTest,
                     lights: needLights,
                 });
             }
@@ -246,6 +247,7 @@ export class SpriteBatch extends VFXBatch {
                 blending: this.settings.material.blending,
                 side: this.settings.material.side,
                 alphaTest: this.settings.material.alphaTest,
+                depthTest: this.settings.material.depthTest,
             });
         } else {
             throw new Error('render mode unavailable');
