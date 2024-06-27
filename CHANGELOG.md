@@ -1,4 +1,11 @@
 # Change Log
+## Version 0.14.0
+- Split Three.quarks package to quarks.core, quarks.nodes, three.quarks
+  - quarks.core: It's decoupled from three.js. it includes math library, core classes, functions, emitter and behaviors
+  - quarks.nodes: It includes the next-gen node-based VFX system and WebGPU renderer
+  - three.quarks: It integrates the core library with three.js renderer
+- Add support for depthTest in Material
+
 ## Version 0.13.1
 - Fully support MeshStandardMaterial's properties such as envMap on particles.
 
