@@ -7,10 +7,12 @@
   "scripts": {
     "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
     "dev": "npm run dev --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
-    "test": "npm run test  --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes ",
+    "test": "npm run test  --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
     "example": "npm run example --workspace=three.quarks",
     "prettier": "npm run prettier --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
-    "docs": "npm run docs --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes"
+    "publish": "npm run publish --workspace=quarks.core --workspace=three.quarks",
+    "docs": "typedoc",
+    "docs-dev": "http-server ./docs -c-1 -p 8001"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
@@ -42,7 +44,7 @@
     "rollup": "^3.29.4",
     "ts-jest": "^29.1.4",
     "tslib": "^2.6.3",
-    "typedoc": "^0.25.13",
+    "typedoc": "^0.26.2",
     "typedoc-google-tag-manager-plugin": "^1.0.5",
     "typedoc-plugin-extra-footer": "^1.0.1",
     "typedoc-plugin-markdown": "^4.0.3",

@@ -10,9 +10,13 @@
     "removeComments": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "declaration": true,
     "target": "ES2017",
     "module": "ES2015",
-    "strict": true
+    "strict": true,
+
+    // These options are necessary so that TypeDoc can resolve references across packages
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true
   }
 }

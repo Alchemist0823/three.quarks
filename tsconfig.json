@@ -1,0 +1,6 @@
+{
+  "references": [
+    { "path": "packages/three.quarks" },
+    { "path": "packages/quarks.core" }
+  ]
+}

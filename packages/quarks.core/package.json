@@ -1,7 +1,7 @@
 {
   "name": "quarks.core",
   "version": "0.13.1",
-  "description": "Core library for quarks VFX Engine",
+  "description": "Core library for Quarks VFX / Particle System Library",
   "type": "module",
   "types": "./dist/types/index.d.ts",
   "main": "./dist/quarks.core.cjs",
@@ -13,6 +13,11 @@
       "types": "./dist/types/index.d.ts"
     }
   },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE"
+  ],
   "scripts": {
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "cross-env NODE_ENV=production rollup -c",
@@ -37,5 +42,5 @@
   "bugs": {
     "url": "https://github.com/Alchemist0823/three.quarks/issues"
   },
-  "homepage": "https://github.com/Alchemist0823/three.quarks#readme"
+  "homepage": "https://quarks.art"
 }

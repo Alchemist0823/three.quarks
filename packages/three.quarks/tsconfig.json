@@ -2,8 +2,11 @@
   "extends": ["../../tsconfig.package.json"],
   "compilerOptions": {
     "declarationDir": "./dist/types",
-    "typeRoots": ["./types", "./node_modules/@types", "../../node_modules/@types"]
+    "rootDir": "src",
+    "outDir": "dist",
+    "typeRoots": ["./types", "./node_modules/@types", "../../node_modules/@types"],
+    "skipLibCheck": true
   },
   "include": ["src", "types"],
-  "exclude": ["node_modules", "test", "dist"]
+  "exclude": ["node_modules/", "test/", "dist/"]
 }

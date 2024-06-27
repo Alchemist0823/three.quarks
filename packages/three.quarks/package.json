@@ -17,7 +17,6 @@
   "files": [
     "dist",
     "src",
-    "README.md",
     "LICENSE"
   ],
   "scripts": {
@@ -32,8 +31,6 @@
     "lint": "eslint . --ext .ts",
     "prepublishOnly": "npm run build:production",
     "deploy": "gh-pages -d examples",
-    "docs": "typedoc",
-    "docs-dev": "http-server ./docs -c-1 -p 8001",
     "example": "http-server ./examples -c-1 -p 8000",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -58,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/Alchemist0823/three.quarks/issues"
   },
-  "homepage": "https://github.com/Alchemist0823/three.quarks#readme",
+  "homepage": "https://quarks.art",
   "peerDependencies": {
     "three": ">=0.165.0"
   },

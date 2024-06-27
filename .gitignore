@@ -6,3 +6,8 @@ dist/
 
 # Dependency directories
 node_modules/
+docs/
+
+**/tsconfig.tsbuildinfo
+
+*.cache
