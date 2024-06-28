@@ -1,9 +1,20 @@
 import {
-    IParticle, NodeParticle, Particle, SpriteParticle, TrailParticle,
+    IParticle,
+    NodeParticle,
+    Particle,
+    SpriteParticle,
+    TrailParticle,
     Matrix3,
     Matrix4,
     Quaternion,
-    Vector3, SerializationOptions, IParticleSystem, BillBoardSettings, MeshSettings, TrailSettings, EmissionState,
+    Vector3,
+    SerializationOptions,
+    IParticleSystem,
+    BillBoardSettings,
+    MeshSettings,
+    TrailSettings,
+    EmissionState,
+    IEmitter,
 } from 'quarks.core';
 import {ParticleEmitter, RenderMode, BatchedRenderer, VFXBatchSettings} from 'three.quarks';
 import {
@@ -109,9 +120,9 @@ export class NodeVFX implements IParticleSystem {
     /**
      * the emitter object that should be added in the scene.
      *
-     * @type {ParticleEmitter<Object3DEventMap>}
+     * @type {IEmitter}
      */
-    emitter: ParticleEmitter<Object3DEventMap>;
+    emitter: IEmitter;
 
     /**
      * the VFX renderer settings for the batch renderer
@@ -344,8 +355,10 @@ export class NodeVFX implements IParticleSystem {
 
     dispose() {
         if (this._renderer) this._renderer.deleteSystem(this);
-        this.emitter.dispose();
-        if (this.emitter.parent) this.emitter.parent.remove(this.emitter);
+        const emitter = this.emitter as unknown as ParticleEmitter;
+        emitter.dispose();
+        if (emitter.parent)
+            emitter.parent!.remove(emitter);
     }
 
     restart() {
@@ -362,7 +375,8 @@ export class NodeVFX implements IParticleSystem {
     private update(delta: number) {
         if (this.paused) return;
 
-        let currentParent: Object3D = this.emitter;
+        let emitter = this.emitter as unknown as Object3D;
+        let currentParent: Object3D = emitter;
         while (currentParent.parent) {
             currentParent = currentParent.parent;
         }
@@ -372,7 +386,7 @@ export class NodeVFX implements IParticleSystem {
         }
 
         if (this.emitEnded && this.particleNum === 0) {
-            if (this.markForDestroy && this.emitter.parent) this.dispose();
+            if (this.markForDestroy && emitter.parent) this.dispose();
             return;
         }
 
@@ -393,7 +407,7 @@ export class NodeVFX implements IParticleSystem {
             this.neededToUpdateRender = false;
         }
 
-        this.emit(delta, this.emissionState, this.emitter.matrixWorld as unknown as Matrix4);
+        this.emit(delta, this.emissionState, emitter.matrixWorld as unknown as Matrix4);
 
         // simulate
 
@@ -414,7 +428,7 @@ export class NodeVFX implements IParticleSystem {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     this.particles[i].position.applyMatrix4((this.particles[i] as Particle).parentMatrix!);
                 } else {
-                    this.particles[i].position.applyMatrix4(this.emitter.matrixWorld as unknown as Matrix4);
+                    this.particles[i].position.applyMatrix4(emitter.matrixWorld as unknown as Matrix4);
                 }
             } else {
                 this.particles[i].position.addScaledVector(this.particles[i].velocity, delta);
@@ -466,7 +480,7 @@ export class NodeVFX implements IParticleSystem {
             this.interpreter.run(this.emissionGraph, context);
         }
         if (this.previousWorldPos === undefined) this.previousWorldPos = new Vector3();
-        this.emitter.getWorldPosition(this.previousWorldPos as any);
+        (this.emitter as unknown as Object3D).getWorldPosition(this.previousWorldPos as any);
         emissionState.time += delta;
     }
 

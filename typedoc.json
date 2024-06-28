@@ -8,7 +8,7 @@
   "excludePrivate": true,
   "readme": "./README.md",
   "scriptSrc": "https://github.com/Alchemist0823/three.quarks/",
-  "plugin": ["typedoc-plugin-script-inject", "typedoc-plugin-extra-footer", "typedoc-google-tag-manager-plugin"],
+  "plugin": ["typedoc-plugin-script-inject", "typedoc-google-tag-manager-plugin"],
   "customCss": "./assets/custom.css",
   "navigationLinks": {
     "GitHub": "https://github.com/Alchemist0823/three.quarks",
