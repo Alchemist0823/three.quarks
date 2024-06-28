@@ -2,7 +2,6 @@ import {
     IParticle,
     NodeParticle,
     Particle,
-    SpriteParticle,
     TrailParticle,
     Matrix3,
     Matrix4,
@@ -18,7 +17,6 @@ import {
 } from 'quarks.core';
 import {ParticleEmitter, RenderMode, BatchedRenderer, VFXBatchSettings} from 'three.quarks';
 import {
-    Object3DEventMap,
     BufferGeometry,
     Layers,
     Material,
