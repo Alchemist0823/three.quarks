@@ -1,7 +1,7 @@
 {
   "name": "quarks.nodes",
-  "version": "0.1.0",
-  "description": "nodes for quarks",
+  "version": "0.14.0",
+  "description": "node based behavior and render system for quarks engine",
   "type": "module",
   "dependencies": {
     "three.quarks": "^0.14.0"
@@ -21,6 +21,11 @@
       "types": "./dist/types/index.d.ts"
     }
   },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE"
+  ],
   "scripts": {
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "cross-env NODE_ENV=production rollup -c",
@@ -35,9 +40,10 @@
   "keywords": [
     "particle",
     "library",
+    "nodes",
+    "graph",
     "3d",
-    "game",
-    "performance",
+    "effect",
     "math"
   ],
   "author": "Alchemist0823 <the.forrest.sun@gmail.com>",

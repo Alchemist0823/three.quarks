@@ -136,7 +136,7 @@ export class NodeVFX implements IParticleSystem {
      */
     neededToUpdateRender: boolean;
 
-    rendererEmitterSettings: {};
+    rendererEmitterSettings: NonNullable<unknown>;
     worldSpace: boolean;
 
     private prewarmed: boolean;
