@@ -298,6 +298,11 @@ export class NodeVFX implements IParticleSystem {
         this.prewarmed = false;
     }
 
+    stop(): void {
+        this.restart();
+        this.pause();
+    }
+
     pause() {
         this.paused = true;
     }

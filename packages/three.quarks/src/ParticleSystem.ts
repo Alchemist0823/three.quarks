@@ -778,12 +778,27 @@ export class ParticleSystem implements IParticleSystem {
         this.prewarmed = false;
     }
 
+    /**
+     * Pause the simulation of the particle system
+     */
     pause() {
         this.paused = true;
     }
 
+    /**
+     * Unpause the simulation of the particle system
+     */
     play() {
         this.paused = false;
+    }
+
+    /**
+     * remove all existing particles, reset the particle system
+     * and pause at the beginning
+     */
+    stop() {
+        this.restart();
+        this.pause();
     }
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
@@ -910,6 +925,10 @@ export class ParticleSystem implements IParticleSystem {
         if (this.emitter.parent) this.emitter.parent.remove(this.emitter);
     }
 
+    /**
+     * remove all existing particles, reset the particle system
+     * and restart the particle system
+     */
     restart() {
         this.memory.length = 0;
         this.paused = false;

@@ -135,6 +135,7 @@ export interface IParticleSystem {
 
     paused: boolean;
     pause(): void;
+    stop(): void;
     play(): void;
     restart(): void;
 
