@@ -1,4 +1,7 @@
 # Change Log
+## Version 0.14.1
+- Fix OrbitOverLife behavior fails on memorization
+
 ## Version 0.14.0
 - Split Three.quarks package to quarks.core, quarks.nodes, three.quarks
   - quarks.core: It's decoupled from three.js. it includes math library, core classes, functions, emitter and behaviors
