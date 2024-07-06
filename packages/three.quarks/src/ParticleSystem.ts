@@ -1281,9 +1281,9 @@ export class ParticleSystem implements IParticleSystem {
                     typeof burst.count === 'number'
                         ? new ConstantValue(burst.count)
                         : ValueGeneratorFromJSON(burst.count),
-                probability: burst.probability,
-                interval: burst.interval,
-                cycle: burst.cycle,
+                probability: burst.probability ?? 1,
+                interval: burst.interval ?? 0.1,
+                cycle: burst.cycle ?? 1,
             })),
             onlyUsedByOther: json.onlyUsedByOther,
 
