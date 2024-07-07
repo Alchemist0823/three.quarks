@@ -1,4 +1,9 @@
 # Change Log
+## Version 0.15.0
+- Support Vector3Generator
+- Support 3d Start Size, 3d Particle Size.
+- Support Rotation over 180 degrees per second.
+
 ## Version 0.14.1
 - Fix OrbitOverLife behavior fails on memorization
 

@@ -10,7 +10,7 @@
     "test": "npm run test  --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
     "example": "npm run example --workspace=three.quarks",
     "prettier": "npm run prettier --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
-    "publish": "npm run publish --workspace=quarks.core --workspace=three.quarks",
+    "publish": "npm publish --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
     "docs": "typedoc",
     "docs-dev": "http-server ./docs -c-1 -p 8001"
   },
