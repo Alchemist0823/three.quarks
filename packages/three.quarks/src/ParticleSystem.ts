@@ -30,6 +30,7 @@ import {
     Matrix3,
     Matrix4,
     Quaternion,
+    Vector3Generator,
 } from 'quarks.core';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
 import {
@@ -132,7 +133,7 @@ export interface ParticleSystemParameters {
     /**
      * The initial size of particles.
      */
-    startSize?: ValueGenerator | FunctionValueGenerator;
+    startSize?: ValueGenerator | FunctionValueGenerator | Vector3Generator;
     /**
      * The initial length of particles.
      */
@@ -331,7 +332,7 @@ export class ParticleSystem implements IParticleSystem {
      *
      * @type {ValueGenerator | FunctionValueGenerator}
      */
-    startSize: ValueGenerator | FunctionValueGenerator;
+    startSize: ValueGenerator | FunctionValueGenerator | Vector3Generator;
 
     /**
      * The color generator or function color generator for the starting color of particles.
@@ -829,10 +830,15 @@ export class ParticleSystem implements IParticleSystem {
             particle.life = this.startLife.genValue(particle.memory, emissionState.time / this.duration);
             particle.age = 0;
             this.startSize.startGen(particle.memory);
-            particle.startSize = this.startSize.genValue(particle.memory, emissionState.time / this.duration);
+            if (this.startSize.type === "vec3function") {
+                (this.startSize as Vector3Generator).genValue(particle.memory, particle.startSize, emissionState.time / this.duration);
+            } else {
+                const size = (this.startSize as FunctionValueGenerator).genValue(particle.memory, emissionState.time / this.duration);
+                particle.startSize.set(size, size, size);
+            }
             this.startTileIndex.startGen(particle.memory);
             particle.uvTile = this.startTileIndex.genValue(particle.memory);
-            particle.size = particle.startSize;
+            particle.size.copy(particle.startSize);
             if (
                 this.rendererSettings.renderMode === RenderMode.Mesh ||
                 this.rendererSettings.renderMode === RenderMode.BillBoard ||
@@ -850,6 +856,7 @@ export class ParticleSystem implements IParticleSystem {
                         this.startRotation.genValue(
                             particle.memory,
                             sprite.rotation as Quaternion,
+                            1,
                             emissionState.time / this.duration,
                         );
                     } else {
@@ -887,9 +894,8 @@ export class ParticleSystem implements IParticleSystem {
             }
             if (this.worldSpace) {
                 particle.position.applyMatrix4(matrix);
-                particle.startSize =
-                    (particle.startSize * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3;
-                particle.size = particle.startSize;
+                particle.startSize.multiply(scale).abs();
+                particle.size.copy(particle.startSize);
                 particle.velocity.multiply(scale).applyMatrix3(this.normalMatrix);
                 if (particle.rotation && particle.rotation instanceof Quaternion) {
                     particle.rotation.multiplyQuaternions(tempQ, particle.rotation);
@@ -1269,8 +1275,8 @@ export class ParticleSystem implements IParticleSystem {
             shape: shape,
             startLife: ValueGeneratorFromJSON(json.startLife),
             startSpeed: ValueGeneratorFromJSON(json.startSpeed),
-            startRotation: GeneratorFromJSON(json.startRotation),
-            startSize: ValueGeneratorFromJSON(json.startSize),
+            startRotation: GeneratorFromJSON(json.startRotation) as (RotationGenerator | ValueGenerator | FunctionValueGenerator),
+            startSize: GeneratorFromJSON(json.startSize) as (Vector3Generator | ValueGenerator | FunctionValueGenerator),
             startColor: ColorGeneratorFromJSON(json.startColor) as ColorGenerator,
             emissionOverTime: ValueGeneratorFromJSON(json.emissionOverTime),
             emissionOverDistance: ValueGeneratorFromJSON(json.emissionOverDistance),

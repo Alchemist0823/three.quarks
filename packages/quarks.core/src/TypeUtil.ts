@@ -15,6 +15,7 @@ export type FieldType =
     | 'particleSystem'
     | 'boolean'
     | 'geometry'
-    | 'emitterMode';
+    | 'emitterMode'
+    | 'vec3Func';
 export type ParameterType = FieldType | 'self';
-export type ParameterPair = [string, ParameterType];
+export type ParameterPair = [string, Array<ParameterType>];

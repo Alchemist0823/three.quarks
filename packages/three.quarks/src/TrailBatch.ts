@@ -298,28 +298,36 @@ export class TrailBatch extends VFXBatch {
                 }
             }
         });
-        this.positionBuffer.updateRange.count = index * 3;
+        this.positionBuffer.clearUpdateRanges();
+        this.positionBuffer.addUpdateRange(0, index * 3);
         this.positionBuffer.needsUpdate = true;
 
-        this.previousBuffer.updateRange.count = index * 3;
+        this.previousBuffer.clearUpdateRanges();
+        this.previousBuffer.addUpdateRange(0, index * 3);
         this.previousBuffer.needsUpdate = true;
 
-        this.nextBuffer.updateRange.count = index * 3;
+        this.nextBuffer.clearUpdateRanges();
+        this.nextBuffer.addUpdateRange(0, index * 3);
         this.nextBuffer.needsUpdate = true;
 
-        this.sideBuffer.updateRange.count = index;
+        this.sideBuffer.clearUpdateRanges();
+        this.sideBuffer.addUpdateRange(0, index);
         this.sideBuffer.needsUpdate = true;
 
-        this.widthBuffer.updateRange.count = index;
+        this.widthBuffer.clearUpdateRanges();
+        this.widthBuffer.addUpdateRange(0, index);
         this.widthBuffer.needsUpdate = true;
 
-        this.uvBuffer.updateRange.count = index * 2;
+        this.uvBuffer.clearUpdateRanges();
+        this.uvBuffer.addUpdateRange(0, index * 2);
         this.uvBuffer.needsUpdate = true;
 
-        this.colorBuffer.updateRange.count = index * 4;
+        this.colorBuffer.clearUpdateRanges();
+        this.colorBuffer.addUpdateRange(0, index * 4);
         this.colorBuffer.needsUpdate = true;
 
-        this.indexBuffer.updateRange.count = triangles * 3;
+        this.indexBuffer.clearUpdateRanges();
+        this.indexBuffer.addUpdateRange(0, triangles * 3);
         this.indexBuffer.needsUpdate = true;
 
         this.geometry.setDrawRange(0, triangles * 3);

@@ -9,11 +9,11 @@ export default /* glsl */ `
 
 attribute vec3 offset;
 attribute float rotation;
-attribute float size;
+attribute vec3 size;
 
 void main() {
 	
-    vec2 alignedPosition = ( position.xy ) * size;
+    vec2 alignedPosition = position.xy * size.xy;
     
     vec2 rotatedPosition;
     rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;

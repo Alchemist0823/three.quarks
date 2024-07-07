@@ -73,7 +73,7 @@ export class SpriteBatch extends VFXBatch {
             this.rotationBuffer.setUsage(DynamicDrawUsage);
             this.geometry.setAttribute('rotation', this.rotationBuffer);
         }
-        this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles), 1);
+        this.sizeBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles * 3), 3);
         this.sizeBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setAttribute('size', this.sizeBuffer);
         this.uvTileBuffer = new InstancedBufferAttribute(new Float32Array(this.maxParticles), 1);
@@ -329,14 +329,16 @@ export class SpriteBatch extends VFXBatch {
                 this.colorBuffer.setXYZW(index, particle.color.x, particle.color.y, particle.color.z, particle.color.w);
 
                 if (system.worldSpace) {
-                    this.sizeBuffer.setX(index, particle.size);
+                    this.sizeBuffer.setXYZ(index, particle.size.x, particle.size.y, particle.size.z);
                 } else {
                     if (particle.parentMatrix) {
-                        this.sizeBuffer.setX(index, particle.size);
+                        this.sizeBuffer.setXYZ(index, particle.size.x, particle.size.y, particle.size.z);
                     } else {
-                        this.sizeBuffer.setX(
+                        this.sizeBuffer.setXYZ(
                             index,
-                            (particle.size * (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z))) / 3
+                            particle.size.x * Math.abs(scale.x),
+                            particle.size.y * Math.abs(scale.y),
+                            particle.size.z * Math.abs(scale.z),
                         );
                     }
                 }
@@ -371,25 +373,31 @@ export class SpriteBatch extends VFXBatch {
         this.geometry.instanceCount = index;
 
         if (index > 0) {
-            this.offsetBuffer.updateRange.count = index * 3;
+            this.offsetBuffer.clearUpdateRanges();
+            this.offsetBuffer.addUpdateRange(0, index * 3);
             this.offsetBuffer.needsUpdate = true;
 
-            this.sizeBuffer.updateRange.count = index;
+            this.sizeBuffer.clearUpdateRanges();
+            this.sizeBuffer.addUpdateRange(0, index * 3);
             this.sizeBuffer.needsUpdate = true;
 
-            this.colorBuffer.updateRange.count = index * 4;
+            this.colorBuffer.clearUpdateRanges();
+            this.colorBuffer.addUpdateRange(0, index * 4);
             this.colorBuffer.needsUpdate = true;
 
-            this.uvTileBuffer.updateRange.count = index;
+            this.uvTileBuffer.clearUpdateRanges();
+            this.uvTileBuffer.addUpdateRange(0, index);
             this.uvTileBuffer.needsUpdate = true;
 
             if (this.settings.renderMode === RenderMode.StretchedBillBoard && this.velocityBuffer) {
-                this.velocityBuffer.updateRange.count = index * 4;
+                this.velocityBuffer.clearUpdateRanges();
+                this.velocityBuffer.addUpdateRange(0, index * 4);
                 this.velocityBuffer.needsUpdate = true;
             }
 
             if (this.settings.renderMode === RenderMode.Mesh) {
-                this.rotationBuffer.updateRange.count = index * 4;
+                this.rotationBuffer.clearUpdateRanges();
+                this.rotationBuffer.addUpdateRange(0, index * 4);
                 this.rotationBuffer.needsUpdate = true;
             } else if (
                 this.settings.renderMode === RenderMode.StretchedBillBoard ||
@@ -397,7 +405,8 @@ export class SpriteBatch extends VFXBatch {
                 this.settings.renderMode === RenderMode.VerticalBillBoard ||
                 this.settings.renderMode === RenderMode.BillBoard
             ) {
-                this.rotationBuffer.updateRange.count = index;
+                this.rotationBuffer.clearUpdateRanges();
+                this.rotationBuffer.addUpdateRange(0, index);
                 this.rotationBuffer.needsUpdate = true;
             }
         }

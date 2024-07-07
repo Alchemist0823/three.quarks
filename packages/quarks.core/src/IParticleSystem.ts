@@ -1,4 +1,4 @@
-import {Matrix4, Quaternion, Vector3} from './math';
+import {Matrix4, Vector3} from './math';
 import {IParticle} from './Particle';
 import {FunctionValueGenerator, ValueGenerator} from './functions';
 

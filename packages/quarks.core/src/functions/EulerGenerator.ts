@@ -25,11 +25,11 @@ export class EulerGenerator implements RotationGenerator {
         this.angleZ.startGen(memory);
     }
 
-    genValue(memory: GeneratorMemory, quat: Quaternion, t?: number): Quaternion {
+    genValue(memory: GeneratorMemory, quat: Quaternion, delta: number, t?: number): Quaternion {
         this.eular.set(
-            this.angleX.genValue(memory, t!),
-            this.angleY.genValue(memory, t!),
-            this.angleZ.genValue(memory, t!)
+            this.angleX.genValue(memory, t!) * delta,
+            this.angleY.genValue(memory, t!) * delta,
+            this.angleZ.genValue(memory, t!) * delta
         );
         return quat.setFromEuler(this.eular);
     }

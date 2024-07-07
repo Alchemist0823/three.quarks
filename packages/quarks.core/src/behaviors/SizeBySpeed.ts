@@ -1,6 +1,12 @@
 import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
-import {FunctionValueGenerator, IntervalValue, ValueGeneratorFromJSON} from '../functions';
+import {
+    FunctionValueGenerator, GeneratorFromJSON,
+    IntervalValue,
+    ValueGeneratorFromJSON,
+    Vector3Function,
+    Vector3Generator,
+} from '../functions';
 
 /**
  * Apply size to particles based on their speed.
@@ -13,13 +19,17 @@ export class SizeBySpeed implements Behavior {
     }
 
     constructor(
-        public size: FunctionValueGenerator,
+        public size: FunctionValueGenerator | Vector3Generator,
         public speedRange: IntervalValue
     ) {}
 
     update(particle: Particle): void {
         const t = (particle.startSpeed - this.speedRange.a) / (this.speedRange.b - this.speedRange.a);
-        particle.size = particle.startSize * this.size.genValue(particle.memory, t);
+        if (this.size instanceof Vector3Function) {
+            this.size.genValue(particle.memory, particle.size, t).multiply(particle.startSize);
+        } else {
+            particle.size.copy(particle.startSize).multiplyScalar((this.size as FunctionValueGenerator).genValue(particle.memory, t));
+        }
     }
 
     toJSON(): any {
@@ -32,7 +42,7 @@ export class SizeBySpeed implements Behavior {
 
     static fromJSON(json: any): Behavior {
         return new SizeBySpeed(
-            ValueGeneratorFromJSON(json.size) as FunctionValueGenerator,
+            GeneratorFromJSON(json.size) as FunctionValueGenerator,
             IntervalValue.fromJSON(json.speedRange)
         );
     }

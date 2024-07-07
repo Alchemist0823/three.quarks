@@ -143,7 +143,7 @@ loadPlugin({
     initialize: () => {},
     emitterShapes: [{
         type: 'mesh_surface',
-        params: [['geometry', 'geometry']],
+        params: [['geometry', ['geometry']]],
         constructor: MeshSurfaceEmitter,
         loadJSON: MeshSurfaceEmitter.fromJSON,
     }],

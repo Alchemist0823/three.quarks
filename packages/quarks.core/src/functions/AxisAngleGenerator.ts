@@ -17,9 +17,9 @@ export class AxisAngleGenerator implements RotationGenerator {
         this.angle.startGen(memory);
     }
 
-    genValue(memory: GeneratorMemory, quat: Quaternion, t?: number): Quaternion {
+    genValue(memory: GeneratorMemory, quat: Quaternion, delta: number, t?: number): Quaternion {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return quat.setFromAxisAngle(this.axis, this.angle.genValue(memory, t!));
+        return quat.setFromAxisAngle(this.axis, this.angle.genValue(memory, t!) * delta);
     }
 
     toJSON(): FunctionJSON {

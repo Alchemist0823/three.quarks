@@ -1,7 +1,7 @@
 import {Behavior} from './Behavior';
 import {Particle, SpriteParticle} from '../Particle';
 import {Quaternion} from '../math';
-import {RotationGenerator, RotationGeneratorFromJSON} from '../functions/RotationGenerator';
+import {RotationGenerator, RotationGeneratorFromJSON} from '../functions';
 
 const IdentityQuaternion = new Quaternion();
 
@@ -27,10 +27,10 @@ export class Rotation3DOverLife implements Behavior {
             (this.angularVelocity as RotationGenerator).genValue(
                 particle.memory,
                 this.tempQuat,
+                delta,
                 particle.age / particle.life
             );
-            this.tempQuat2.slerpQuaternions(IdentityQuaternion, this.tempQuat, delta);
-            ((particle as SpriteParticle).rotation as Quaternion).multiply(this.tempQuat2);
+            ((particle as SpriteParticle).rotation as Quaternion).multiply(this.tempQuat);
         }
     }
     toJSON(): any {

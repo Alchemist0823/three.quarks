@@ -340,13 +340,12 @@ export class NodeVFX implements IParticleSystem {
         }
         if (this.worldSpace) {
             particle.position.applyMatrix4(matrix);
-            particle.size *= (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z)) / 3;
+            particle.size.multiply(scale).abs();
             particle.velocity.multiply(scale).applyMatrix3(this.normalMatrix);
             if (particle.rotation && particle.rotation instanceof Quaternion) {
                 particle.rotation.multiplyQuaternions(tempQ, particle.rotation);
             }
-        } else {
-        }
+        } else { /* empty */ }
     }
 
     endEmit() {
@@ -378,7 +377,7 @@ export class NodeVFX implements IParticleSystem {
     private update(delta: number) {
         if (this.paused) return;
 
-        let emitter = this.emitter as unknown as Object3D;
+        const emitter = this.emitter as unknown as Object3D;
         let currentParent: Object3D = emitter;
         while (currentParent.parent) {
             currentParent = currentParent.parent;

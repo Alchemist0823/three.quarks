@@ -26,9 +26,9 @@ export interface IParticle {
     life: number;
     /**
      * Size of the particle.
-     * @type {number}
+     * @type {Vector3}
      */
-    size: number;
+    size: Vector3;
     /**
      * Rotation of the particle.
      * @type {number | Quaternion}
@@ -83,9 +83,9 @@ export interface Particle extends IParticle {
     startColor: Vector4;
     /**
      * Initial size of the particle.
-     * @type {number}
+     * @type {Vector3}
      */
-    startSize: number;
+    startSize: Vector3;
 
     reset(): void;
 }
@@ -116,9 +116,9 @@ export class NodeParticle implements IParticle {
     life = 1;
     /**
      * Size of the particle.
-     * @type {number}
+     * @type {Vector3}
      */
-    size = 1;
+    size : Vector3 = new Vector3();
     /**
      * Angular velocity of the particle.
      * @type {number | Quaternion}
@@ -157,7 +157,7 @@ export class NodeParticle implements IParticle {
         this.velocity.set(0, 0, 0);
         this.age = 0;
         this.life = 1;
-        this.size = 1;
+        this.size.set(1, 1, 1);
         this.rotation = 0;
         this.color.set(1, 1, 1, 1);
         this.uvTile = 0;
@@ -187,9 +187,9 @@ export class SpriteParticle implements Particle {
     startColor: Vector4 = new Vector4();
     /**
      * Initial size of the particle.
-     * @type {number}
+     * @type {Vector3}
      */
-    startSize = 1;
+    startSize: Vector3 = new Vector3(1, 1, 1);
     /**
      * Position of the particle.
      * @type {Vector3}
@@ -212,9 +212,9 @@ export class SpriteParticle implements Particle {
     life = 1;
     /**
      * Size of the particle.
-     * @type {number}
+     * @type {Vector3}
      */
-    size = 1;
+    size = new Vector3(1, 1, 1);
     /**
      * Speed modifier of the particle.
      * @type {number}
@@ -293,9 +293,9 @@ export class TrailParticle implements Particle {
     startColor: Vector4 = new Vector4();
     /**
      * Initial size of the particle.
-     * @type {number}
+     * @type {Vector3}
      */
-    startSize = 1;
+    startSize: Vector3 = new Vector3(1,1,1);
     /**
      * Position of the particle.
      * @type {Vector3}
@@ -323,9 +323,9 @@ export class TrailParticle implements Particle {
     life = 1;
     /**
      * Size of the particle.
-     * @type {number}
+     * @type {Vector3}
      */
-    size = 1;
+    size = new Vector3(1,1,1);
     /**
      * Length of the trail.
      * @type {number}
@@ -359,7 +359,7 @@ export class TrailParticle implements Particle {
      */
     update() {
         if (this.age <= this.life) {
-            this.previous.push(new RecordState(this.position.clone(), this.size, this.color.clone()));
+            this.previous.push(new RecordState(this.position.clone(), this.size.x, this.color.clone()));
         } else {
             if (this.previous.length > 0) {
                 this.previous.dequeue();

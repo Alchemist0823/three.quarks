@@ -30,7 +30,7 @@ export class RandomQuatGenerator implements RotationGenerator {
         memory[this.indexCount].set(x, y, s * u, s * v);
     }
 
-    genValue(memory: GeneratorMemory, quat: Quaternion, t: number): Quaternion {
+    genValue(memory: GeneratorMemory, quat: Quaternion, delta: number, t: number): Quaternion {
         if (this.indexCount === -1) {
             this.startGen(memory);
         }

@@ -8,7 +8,7 @@ export default /* glsl */ `
 
 attribute vec3 offset;
 attribute vec4 rotation;
-attribute float size;
+attribute vec3 size;
 // attribute vec4 color;
 
 void main() {
@@ -17,7 +17,7 @@ void main() {
     float xx = rotation.x * x2, xy = rotation.x * y2, xz = rotation.x * z2;
     float yy = rotation.y * y2, yz = rotation.y * z2, zz = rotation.z * z2;
     float wx = rotation.w * x2, wy = rotation.w * y2, wz = rotation.w * z2;
-    float sx = size, sy = size, sz = size;
+    float sx = size.x, sy = size.y, sz = size.z;
     
     mat4 matrix = mat4(( 1.0 - ( yy + zz ) ) * sx, ( xy + wz ) * sx, ( xz - wy ) * sx, 0.0,  // 1. column
                       ( xy - wz ) * sy, ( 1.0 - ( xx + zz ) ) * sy, ( yz + wx ) * sy, 0.0,  // 2. column
