@@ -20,6 +20,7 @@ export class SubEmitterDemo extends Demo {
                 this.batchRenderer.addSystem(obj.system);
             }
             obj.position.x = -5;
+            obj.scale.setScalar(2.0);
             this.scene.add(obj);
             this.groups.push(obj);
         });

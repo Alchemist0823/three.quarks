@@ -138,6 +138,7 @@ export interface IParticleSystem {
     stop(): void;
     play(): void;
     restart(): void;
+    endEmit(): void;
 
     clone(): IParticleSystem;
 
