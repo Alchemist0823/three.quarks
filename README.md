@@ -142,15 +142,7 @@ loader.setCrossOrigin("");
 loader.load(jsonURL, (obj) => {
     // the API uses manuel loading because users may need to 
     // store the VFX somewhere to reuse it later.
-    obj.traverse((child) => {
-        if (child.type === "ParticleEmitter") {
-            // only if want to display the VFX
-            batchRenderer.addSystem(child.system);
-        }
-    });
-    if (obj.type === "ParticleEmitter") {
-        batchRenderer.addSystem(obj.system);
-    }
+    QuarksUtil.addToBatchRenderer(obj, batchRenderer);
     scene.add(obj);
 }, () => {
 }, () => {
