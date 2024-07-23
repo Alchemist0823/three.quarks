@@ -79,7 +79,7 @@ export class QuarksUtil {
      */
     static pause(obj: Object3D) {
         QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            ps.system.restart();
+            ps.system.pause();
         });
     }
 }
