@@ -92,6 +92,12 @@ export interface IEmitter {
 
 
 export interface IParticleSystem {
+
+    /**
+     * Whether the ParticleSystem should be automatically disposed when it finishes emitting particles.
+     * @type {string}
+     */
+    autoDestroy: boolean;
     /**
      * Whether the system is in world space.
      * @type {boolean}

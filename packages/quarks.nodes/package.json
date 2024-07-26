@@ -1,10 +1,10 @@
 {
   "name": "quarks.nodes",
-  "version": "0.15.0",
+  "version": "0.15.2",
   "description": "node based behavior and render system for quarks engine",
   "type": "module",
   "dependencies": {
-    "three.quarks": "^0.15.0"
+    "three.quarks": "^0.15.2"
   },
   "devDependencies": {
     "@types/three": "^0.165.0",

@@ -279,7 +279,7 @@ const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
  */
 export class ParticleSystem implements IParticleSystem {
     /**
-     * Determines whether the ParticleSystem should be automatically disposed when it finishes emitting particles.
+     * whether the ParticleSystem should be automatically disposed when it finishes emitting particles.
      *
      * @type {boolean}
      */

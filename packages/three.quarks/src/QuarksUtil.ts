@@ -1,6 +1,7 @@
 import {Object3D} from 'three';
 import {ParticleEmitter} from './ParticleEmitter';
 import {BatchedRenderer} from './BatchedRenderer';
+import {ParticleSystem} from './ParticleSystem';
 
 
 export class QuarksUtil {
@@ -49,6 +50,12 @@ export class QuarksUtil {
     static stop(obj: Object3D) {
         QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
             ps.system.stop();
+        });
+    }
+
+    static setAutoDestroy(obj: Object3D, value: boolean) {
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
+            ps.system.autoDestroy = value;
         });
     }
 

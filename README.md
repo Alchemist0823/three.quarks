@@ -150,6 +150,17 @@ loader.load(jsonURL, (obj) => {
 scene.add(batchSystem);
 ```
 
+#### Play multiple instances of loaded effect
+
+```javascript
+const effect = obj.clone(true);
+scene.add(effect);
+QuarksUtil.setAutoDestroy(effect, true);
+QuarksUtil.addToBatchRenderer(effect, batchSystem);
+QuarksUtil.play(effect);
+
+```
+
 Note: the texture url reference is defined by the texture's name field.
 you may need to modify the texture url in json as needed.
 
