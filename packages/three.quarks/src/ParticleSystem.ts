@@ -30,7 +30,7 @@ import {
     Matrix3,
     Matrix4,
     Quaternion,
-    Vector3Generator,
+    Vector3Generator, ParticleSystemEvent, ParticleSystemEventType,
 } from 'quarks.core';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
 import {
@@ -455,6 +455,7 @@ export class ParticleSystem implements IParticleSystem {
 
     private normalMatrix: Matrix3 = new Matrix3();
     private memory: GeneratorMemory = [];
+    private listeners: {[event: string]: Array<(event: ParticleSystemEvent)=>void>} = {};
     /** @internal **/
     _renderer?: BatchedRenderer;
 
@@ -920,6 +921,7 @@ export class ParticleSystem implements IParticleSystem {
         if (this.autoDestroy) {
             this.markForDestroy = true;
         }
+        this.fire({type: "emitEnd", particleSystem: this});
     }
 
     /**
@@ -929,6 +931,7 @@ export class ParticleSystem implements IParticleSystem {
         if (this._renderer) this._renderer.deleteSystem(this);
         this.emitter.dispose();
         if (this.emitter.parent) this.emitter.parent.remove(this.emitter);
+        this.fire({type: "destroy", particleSystem: this});
     }
 
     /**
@@ -1351,6 +1354,32 @@ export class ParticleSystem implements IParticleSystem {
      */
     getRendererSettings() {
         return this.rendererSettings;
+    }
+
+    addEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void {
+        if (!this.listeners[event])
+            this.listeners[event] = [];
+        this.listeners[event].push(callback);
+    }
+
+    removeAllEventListeners(event: ParticleSystemEventType): void {
+        if (this.listeners[event])
+            this.listeners[event] = [];
+    }
+
+    removeEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void {
+        if (this.listeners[event]) {
+            const index = this.listeners[event].indexOf(callback);
+            if (index !== -1) {
+                this.listeners[event].splice(index, 1);
+            }
+        }
+    }
+
+    private fire(event: ParticleSystemEvent) {
+        if (this.listeners[event.type]) {
+            this.listeners[event.type].forEach(callback => callback(event));
+        }
     }
 
     /**

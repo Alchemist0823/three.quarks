@@ -13,9 +13,15 @@ export class ExplosionDemo extends Demo {
 
         this.batchRenderer = new BatchedParticleRenderer();
         this.scene.add(this.batchRenderer);
+        function listener(event) {
+          console.log(event.type);
+        }
 
         new QuarksLoader().load('ps.json', (obj) => {
             QuarksUtil.addToBatchRenderer(obj, this.batchRenderer);
+            QuarksUtil.runOnAllParticleEmitters(obj, (emitter) => {
+                emitter.system.addEventListener("emitEnd", listener);
+            })
             this.scene.add(obj);
             this.groups.push(obj);
         });

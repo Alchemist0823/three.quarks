@@ -90,6 +90,11 @@ export interface IEmitter {
     matrixWorld: any; //type is annoying
 }
 
+export type ParticleSystemEventType = "emitEnd" | "destroy";
+export interface ParticleSystemEvent {
+    type: ParticleSystemEventType;
+    particleSystem: IParticleSystem;
+}
 
 export interface IParticleSystem {
 
@@ -152,4 +157,7 @@ export interface IParticleSystem {
 
     emit(delta: number, subEmissionState: EmissionState, matrix: Matrix4): void;
 
+    addEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent)=>void): void;
+    removeEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent)=>void): void;
+    removeAllEventListeners(event: ParticleSystemEventType): void;
 }

@@ -15,7 +15,14 @@ import {
     EmissionState,
     IEmitter,
 } from 'quarks.core';
-import {ParticleEmitter, RenderMode, BatchedRenderer, VFXBatchSettings} from 'three.quarks';
+import {
+    ParticleEmitter,
+    RenderMode,
+    BatchedRenderer,
+    VFXBatchSettings,
+    ParticleSystemEventType,
+    ParticleSystemEvent,
+} from 'three.quarks';
 import {
     BufferGeometry,
     Layers,
@@ -353,6 +360,7 @@ export class NodeVFX implements IParticleSystem {
         if (this.autoDestroy) {
             this.markForDestroy = true;
         }
+        this.fire({type: "emitEnd", particleSystem: this});
     }
 
     dispose() {
@@ -361,6 +369,7 @@ export class NodeVFX implements IParticleSystem {
         emitter.dispose();
         if (emitter.parent)
             emitter.parent!.remove(emitter);
+        this.fire({type: "destroy", particleSystem: this});
     }
 
     restart() {
@@ -499,4 +508,31 @@ export class NodeVFX implements IParticleSystem {
     }
 
     speedFactor = 0;
+
+    private listeners: {[event: string]: Array<(event: ParticleSystemEvent)=>void>} = {};
+    addEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void {
+        if (!this.listeners[event])
+            this.listeners[event] = [];
+        this.listeners[event].push(callback);
+    }
+
+    removeAllEventListeners(event: ParticleSystemEventType): void {
+        if (this.listeners[event])
+            this.listeners[event] = [];
+    }
+
+    removeEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void {
+        if (this.listeners[event]) {
+            const index = this.listeners[event].indexOf(callback);
+            if (index !== -1) {
+                this.listeners[event].splice(index, 1);
+            }
+        }
+    }
+
+    private fire(event: ParticleSystemEvent) {
+        if (this.listeners[event.type]) {
+            this.listeners[event.type].forEach(callback => callback(event));
+        }
+    }
 }
