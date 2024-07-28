@@ -90,10 +90,11 @@ export interface IEmitter {
     matrixWorld: any; //type is annoying
 }
 
-export type ParticleSystemEventType = "emitEnd" | "destroy";
+export type ParticleSystemEventType = "emitEnd" | "destroy" | "particleDied";
 export interface ParticleSystemEvent {
     type: ParticleSystemEventType;
     particleSystem: IParticleSystem;
+    particle?: IParticle;
 }
 
 export interface IParticleSystem {

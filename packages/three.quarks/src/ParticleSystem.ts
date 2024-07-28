@@ -1054,6 +1054,7 @@ export class ParticleSystem implements IParticleSystem {
                 this.particles[this.particleNum - 1] = particle;
                 this.particleNum--;
                 i--;
+                this.fire({type: "particleDied", particleSystem: this, particle: particle});
             }
         }
     }
