@@ -8,7 +8,7 @@ import {
     ShaderMaterial,
     Scene,
     PerspectiveCamera,
-    MeshPhysicalMaterial,
+    MeshPhysicalMaterial, Object3D,
 } from 'three';
 import {
     Vector2,
@@ -283,6 +283,8 @@ export class SpriteBatch extends VFXBatch {
             const rotation = this.quaternion2_;
             const translation = this.vector2_;
             const scale = this.vector3_;
+            if ((system.emitter as unknown as Object3D).updateMatrixWorld)
+                (system.emitter as unknown as Object3D).updateMatrixWorld(true);
             system.emitter.matrixWorld.decompose(translation, rotation, scale);
             this.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
 
