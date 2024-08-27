@@ -107,6 +107,10 @@ export class BatchedRenderer extends Object3D {
         return (
             a.material.side === b.material.side &&
             a.material.blending === b.material.blending &&
+            a.material.blendSrc === b.material.blendSrc &&
+            a.material.blendDst === b.material.blendDst &&
+            a.material.blendEquation === b.material.blendEquation &&
+            a.material.premultipliedAlpha === b.material.premultipliedAlpha &&
             a.material.transparent === b.material.transparent &&
             a.material.depthTest === b.material.depthTest &&
             a.material.type === b.material.type &&

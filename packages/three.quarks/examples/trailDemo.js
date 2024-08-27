@@ -4,7 +4,6 @@ import {
     MeshBasicMaterial,
     DoubleSide,
     Mesh,
-    Vector4,
     Vector3,
     Color,
     AdditiveBlending,
@@ -27,6 +26,7 @@ import {
     ApplyForce,
     ApplyCollision,
     Gradient,
+    Vector4,
 } from 'three.quarks';
 import {Demo} from './demo.js';
 

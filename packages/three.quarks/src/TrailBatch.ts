@@ -121,6 +121,10 @@ export class TrailBatch extends VFXBatch {
                 depthWrite: !this.settings.material.transparent,
                 side: this.settings.material.side,
                 blending: this.settings.material.blending || AdditiveBlending,
+                blendDst: this.settings.material.blendDst,
+                blendSrc: this.settings.material.blendSrc,
+                blendEquation: this.settings.material.blendEquation,
+                premultipliedAlpha: this.settings.material.premultipliedAlpha,
             });
         } else {
             throw new Error('render mode unavailable');
