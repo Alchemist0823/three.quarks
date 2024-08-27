@@ -5,7 +5,7 @@ import {
     Uniform,
     DynamicDrawUsage,
     BufferGeometry,
-    BufferAttribute,
+    BufferAttribute, Object3D,
 } from 'three';
 
 import trail_frag from './shaders/trail_frag.glsl';
@@ -152,6 +152,10 @@ export class TrailBatch extends VFXBatch {
         }
 
         this.systems.forEach((system) => {
+            if ((system.emitter as unknown as Object3D).updateMatrixWorld) {
+                (system.emitter as unknown as Object3D).updateWorldMatrix(true, false);
+                (system.emitter as unknown as Object3D).updateMatrixWorld(true);
+            }
             const rotation = this.quaternion_;
             const translation = this.vector2_;
             const scale = this.vector3_;

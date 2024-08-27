@@ -278,13 +278,15 @@ export class SpriteBatch extends VFXBatch {
         }
 
         this.systems.forEach((system) => {
+            if ((system.emitter as unknown as Object3D).updateMatrixWorld) {
+                (system.emitter as unknown as Object3D).updateWorldMatrix(true, false);
+                (system.emitter as unknown as Object3D).updateMatrixWorld(true);
+            }
             const particles = system.particles;
             const particleNum = system.particleNum;
             const rotation = this.quaternion2_;
             const translation = this.vector2_;
             const scale = this.vector3_;
-            if ((system.emitter as unknown as Object3D).updateMatrixWorld)
-                (system.emitter as unknown as Object3D).updateMatrixWorld(true);
             system.emitter.matrixWorld.decompose(translation, rotation, scale);
             this.rotationMat_.setFromMatrix4(system.emitter.matrixWorld);
 
