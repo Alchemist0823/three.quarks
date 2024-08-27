@@ -1,4 +1,17 @@
 # Change Log
+
+## Version 0.15.4
+- Fix 1 frame lag bug when parent entity of a particle system is moved
+- Added support for customized blend function
+- Added particleDied event
+
+## Version 0.15.3
+- Support event listeners on particle system
+
+## Version 0.15.1
+- Introduce QuarksUtils to provide utility functions
+- Update README and examples with QuarksUtils
+
 ## Version 0.15.0
 - Support Vector3Generator
 - Support 3d Start Size, 3d Particle Size.
