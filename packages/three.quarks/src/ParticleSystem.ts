@@ -1405,6 +1405,11 @@ export class ParticleSystem implements IParticleSystem {
                 startLength: (this.rendererEmitterSettings as TrailSettings).startLength.clone(),
                 followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
             };
+        } else if (this.renderMode === RenderMode.StretchedBillBoard) {
+            rendererEmitterSettings = {
+                lengthFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).lengthFactor,
+                speedFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).speedFactor,
+            };
         } else {
             rendererEmitterSettings = {};
         }

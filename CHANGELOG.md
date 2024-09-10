@@ -1,4 +1,6 @@
 # Change Log
+## Version 0.15.5
+- Fix stretched billboard settings are not cloned in clone function
 
 ## Version 0.15.4
 - Fix 1 frame lag bug when parent entity of a particle system is moved
