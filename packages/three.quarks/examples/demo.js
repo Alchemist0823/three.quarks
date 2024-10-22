@@ -21,15 +21,20 @@ export class Demo {
     texture;
     camera;
     renderer;
+    controls;
+    enableControls = true;
 
     name = 'Unname';
 
-    constructor(camera, renderer) {
+    constructor(camera, renderer, controls) {
+        camera.position.set(0, 10, 10);
         this.camera = camera;
         this.renderer = renderer;
+        this.controls = controls;
     }
 
     render(delta) {
+        if (this.enableControls) this.controls.update();
         this.groups.forEach((group) =>
             group.traverse((object) => {
                 if (object.userData && object.userData.func) {

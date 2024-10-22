@@ -30,10 +30,6 @@ export class SoftParticleDemo extends Demo {
     name = 'Soft Particle & Blend Tiles Demo';
     refreshTime = 2;
 
-    constructor(camera, renderer) {
-        super(camera, renderer);
-    }
-
     initScene() {
         super.initScene();
 
