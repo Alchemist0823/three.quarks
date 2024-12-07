@@ -153,12 +153,13 @@ scene.add(batchSystem);
 #### Play multiple instances of loaded effect
 
 ```javascript
-const effect = obj.clone(true);
+const effect = loadedEffect.clone(true);
 scene.add(effect);
 QuarksUtil.setAutoDestroy(effect, true);
 QuarksUtil.addToBatchRenderer(effect, batchSystem);
+// if you want to stop the effect animation at the beginning you could run pause
+QuarksUtil.pause(effect);
 QuarksUtil.play(effect);
-
 ```
 
 Note: the texture url reference is defined by the texture's name field.
