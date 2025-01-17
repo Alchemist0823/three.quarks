@@ -3,8 +3,6 @@ import {Particle} from '../Particle';
 import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
 import {Quaternion, Vector3} from '../math';
 
-const V3_Z = new Vector3(0, 0, 1);
-
 /**
  * Orbit particles around an axis over their life.
  */

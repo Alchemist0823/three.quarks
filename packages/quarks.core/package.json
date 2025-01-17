@@ -1,6 +1,6 @@
 {
   "name": "quarks.core",
-  "version": "0.15.4",
+  "version": "0.15.6",
   "description": "Core library for Quarks VFX / Particle System Library",
   "type": "module",
   "types": "./dist/types/index.d.ts",

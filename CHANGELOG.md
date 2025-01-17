@@ -1,4 +1,8 @@
 # Change Log
+
+## Version 0.15.6
+- Make particle rotation aligns with velocity on emitter shapes
+
 ## Version 0.15.5
 - Fix stretched billboard settings are not cloned in clone function
 

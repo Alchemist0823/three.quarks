@@ -14,8 +14,6 @@ import {VFXBatch, RenderMode} from './VFXBatch';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
 import {VFXBatchSettings} from './BatchedRenderer';
 
-const UP = new Vector3(0, 0, 1);
-
 /**
  * A VFX batch that render trails in a batch.
  */
