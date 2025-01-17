@@ -1,13 +1,14 @@
 # three.quarks
-[![][npm]][npm-url]
-[![][github-star]][github-url]
-[![][build-size]][build-size-url]
-[![][npm-downloads]][npmtrends-url]
-[![][discord]][discord-url]
+
+[![npm][npm]][npm-url]
+[![github][github-star]][github-url]
+[![build-size][build-size]][build-size-url]
+[![npm-downloads][npm-downloads]][npmtrends-url]
+[![discord][discord]][discord-url]
 
 [**three.quarks**](https://quarks.art/) is a high-performance javascript particle system based visual effect library for threejs
  written in modern **TypeScript**.
- 
+
  Join our discord for discussion.
 
 ![landing image](./landing.png)
@@ -24,12 +25,14 @@
 - [Three Fiber Example](https://codesandbox.io/s/three-quarks-with-react-three-fiber-llhvxk)
 
 ## Background
+
  [three.quarks](https://github.com/Alchemist0823/three.quarks) is a high-performance general-purpose particle
-  system library with a WYSIWYG visual editor 
-  [three.quarks-editor](https://quarks.art/create) for it. It runs on 
+  system library with a WYSIWYG visual editor
+  [three.quarks-editor](https://quarks.art/create) for it. It runs on
 top of the well-known WebGL library called [three.js](https://threejs.org).
 
 ## Roadmap
+
 - Port Simulation Compiler code to Rust
 - WebAssembly Particle Simulation on CPU. (WIP)
 - GPU simulation on GPU (WIP)
@@ -38,8 +41,9 @@ top of the well-known WebGL library called [three.js](https://threejs.org).
 - Unity / Standalone Cross-platform Native plugin to run VFX
 
 ## Features
+
 - Semi-compatible Unity (shuriken) Particle system
-- Support Mesh Standard Material and Mesh Basic Material 
+- Support Mesh Standard Material and Mesh Basic Material
 - Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
 - Emission Shape and Control
   - Mesh Surface Emitter
@@ -57,16 +61,18 @@ top of the well-known WebGL library called [three.js](https://threejs.org).
 - Texture Atlas Animation
 - User Extension and Customization
 - A realtime editor to test and create visual effects [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor)
-- VFX json load and save 
+- VFX json load and save
 
 three.quarks computes most particle information on CPU, and it uses customized shader
-, instancing, batch techniques to render those particles with as few draw calls as possible. 
+, instancing, batch techniques to render those particles with as few draw calls as possible.
 three.quarks supports one dimension piecewise Bézier curves for the customizable transform
-visual effect. Most importantly, developers can customize how the particle system works 
+visual effect. Most importantly, developers can customize how the particle system works
 by adding their own Behavior.
 
 ### Install
+
 #### Package install
+
 ```bash
 npm install three.quarks
 ```
@@ -166,6 +172,7 @@ Note: the texture url reference is defined by the texture's name field.
 you may need to modify the texture url in json as needed.
 
 #### Export VFX JSON
+
 ```javascript
 JSON.stringify(muzzle1.emitter.toJSON())
 JSON.stringify(muzzle1.emitter.parent.toJSON())
@@ -185,12 +192,12 @@ npm run example         # start an HTTP server to serve example particle effects
 
 three.quarks-editor can help you preview a set of particle system at once.
  and you can also adjust all the particle system at real time and export those system
-  as a JSON file. Your app or game can load those JSON file later. It even includes a 
-  Javascript scripting system to test those effect in a similar environment to your 
+  as a JSON file. Your app or game can load those JSON file later. It even includes a
+  Javascript scripting system to test those effect in a similar environment to your
   application.
 
-
 ### Tests
+
 Check [test](./packages/three.quarks/test) folder
 
 More examples will come up later.

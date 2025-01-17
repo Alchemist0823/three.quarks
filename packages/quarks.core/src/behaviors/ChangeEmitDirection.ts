@@ -2,9 +2,6 @@ import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {ValueGenerator, ValueGeneratorFromJSON} from '../functions/ValueGenerator';
 import {Quaternion, Vector3} from '../math';
-
-const V3_Z = new Vector3(0, 0, 1);
-
 /**
  * Change the emit direction of particles.
  */

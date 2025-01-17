@@ -5,12 +5,13 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
-    "dev": "npm run dev --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
-    "test": "npm run test  --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "test": "npm run test  --workspaces",
     "example": "npm run example --workspace=three.quarks",
-    "prettier": "npm run prettier --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
-    "publish": "npm publish --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes",
+    "playground": "npm run dev --workspace=quarks.playground",
+    "prettier": "npm run prettier --workspaces",
+    "publish": "npm publish --workplace=quarks.core --workspace=three.quarks",
     "docs": "typedoc",
     "docs-dev": "http-server ./docs -c-1 -p 8001"
   },
@@ -29,7 +30,7 @@
     "@types/jest": "^29.5.12",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
-    "cpx": "^1.5.0",
+    "cpx": "^1.2.1",
     "cross-env": "^7.0.3",
     "eslint": "^8.56.0",
     "eslint-plugin-unused-imports": "^3.2.0",
@@ -57,5 +58,8 @@
     "typedoc-plugin-script-inject": {
       "typedoc": "$typedoc"
     }
+  },
+  "lint-staged": {
+    "**/*.ts": "prettier --write --ignore-unknown"
   }
 }

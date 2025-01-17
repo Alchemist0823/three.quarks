@@ -14,8 +14,6 @@ import {VFXBatch, RenderMode} from './VFXBatch';
 import {getMaterialUVChannelName} from './util/ThreeUtil';
 import {VFXBatchSettings} from './BatchedRenderer';
 
-const UP = new Vector3(0, 0, 1);
-
 /**
  * A VFX batch that render trails in a batch.
  */
@@ -248,8 +246,8 @@ export class TrailBatch extends VFXBatch {
                         this.nextBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
                     }
 
-                    this.sideBuffer.setX(index, -1);
-                    this.sideBuffer.setX(index + 1, 1);
+                    this.sideBuffer.setX(index, 1);
+                    this.sideBuffer.setX(index + 1, -1);
 
                     if (system.worldSpace) {
                         this.widthBuffer.setX(index, current.size);

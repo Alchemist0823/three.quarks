@@ -20,6 +20,7 @@ import {Rotation3DOverLife} from './Rotation3DOverLife';
 import {ForceOverLife} from './ForceOverLife';
 import {Noise} from './Noise';
 import {LimitSpeedOverLife} from './LimitSpeedOverLife';
+import { ApplyCollision } from './ApplyCollision';
 
 /**
  * Interface for particle behaviors.
@@ -198,8 +199,21 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
         ],
         loadJSON: LimitSpeedOverLife.fromJSON,
     },
+    /*ApplyCollision: {
+        type: 'ApplyCollision',
+        constructor: ApplyCollision,
+        params: [
+            ['resolver', ['']],
+            ['bounce', ['number']],
+        ],
+        loadJSON: ApplyCollision.fromJSON,
+    }*/
 };
 
-export function BehaviorFromJSON(json: any, particleSystem: IParticleSystem): Behavior {
-    return BehaviorTypes[json.type].loadJSON(json, particleSystem);
+export function BehaviorFromJSON(json: any, particleSystem: IParticleSystem): Behavior | null {
+    if (BehaviorTypes[json.type]) {
+        return BehaviorTypes[json.type].loadJSON(json, particleSystem);
+    }
+    return null;
 }
+

@@ -28,8 +28,6 @@ import {VFXBatchSettings} from './BatchedRenderer';
 import {RenderMode, VFXBatch} from './VFXBatch';
 import {ParticleMeshPhysicsMaterial, ParticleMeshStandardMaterial} from './materials/ParticleMaterials';
 
-const UP = new Vector3(0, 0, 1);
-
 /**
  * A VFX batch that render sprites in a batch.
  */

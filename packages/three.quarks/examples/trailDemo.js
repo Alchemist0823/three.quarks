@@ -1,11 +1,7 @@
 import {
     Group,
-    Scene,
     MeshBasicMaterial,
-    DoubleSide,
-    Mesh,
     Vector3,
-    Color,
     AdditiveBlending,
     TextureLoader,
 } from 'three';
@@ -20,7 +16,6 @@ import {
     SizeOverLife,
     ParticleSystem,
     RandomColorBetweenGradient,
-    ParticleEmitter,
     BatchedParticleRenderer,
     ConeEmitter,
     ApplyForce,
@@ -64,7 +59,6 @@ export class TrailDemo extends Demo {
                 map: this.texture,
                 blending: AdditiveBlending,
                 transparent: true,
-                side: DoubleSide,
             }),
             renderMode: RenderMode.Trail,
             rendererEmitterSettings: {

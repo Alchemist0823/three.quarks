@@ -2,9 +2,7 @@ import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {EmissionState, IParticleSystem, IEmitter} from '../IParticleSystem';
 import {Matrix4, Quaternion, Vector3} from '../math';
-
-const VECTOR_ONE = new Vector3(1, 1, 1);
-const VECTOR_Z = new Vector3(0, 0, 1);
+import { ONE_VEC3, Z_VEC3 } from '../util/MathUtil';
 
 export enum SubParticleEmitMode {
     Death,
@@ -165,7 +163,7 @@ export class EmitSubParticleSystem implements Behavior {
                     1
                 );
             } else {
-                this.v_.copy(VECTOR_Z).cross(particle.velocity);
+                this.v_.copy(Z_VEC3).cross(particle.velocity);
                 this.v2_.copy(particle.velocity).cross(this.v_);
                 const len = this.v_.length();
                 const len2 = this.v2_.length();
@@ -192,10 +190,10 @@ export class EmitSubParticleSystem implements Behavior {
             if (particle.rotation instanceof Quaternion) {
                 rotation = particle.rotation;
             } else {
-                this.q_.setFromAxisAngle(VECTOR_Z, particle.rotation);
+                this.q_.setFromAxisAngle(Z_VEC3, particle.rotation);
                 rotation = this.q_;
             }
-            m.compose(particle.position, rotation, VECTOR_ONE);
+            m.compose(particle.position, rotation, ONE_VEC3);
         }
         if (!this.particleSystem.worldSpace) {
             m.multiplyMatrices(this.particleSystem.emitter.matrixWorld, m);

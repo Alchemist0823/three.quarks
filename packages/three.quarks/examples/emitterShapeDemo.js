@@ -1,14 +1,11 @@
 import {
-    Group,
     DoubleSide,
     Mesh,
     Vector4,
-    Vector3,
     Color,
     AdditiveBlending,
-    NormalBlending,
     TextureLoader,
-    MeshBasicMaterial, MeshStandardMaterial, MeshLambertMaterial,
+    MeshBasicMaterial, MeshLambertMaterial,
 } from 'three';
 import {
     GridEmitter,
@@ -23,7 +20,6 @@ import {
     RandomColor,
     RenderMode,
     ParticleSystem,
-    ParticleEmitter,
     BatchedParticleRenderer,
     EmitterMode,
 } from 'three.quarks';
@@ -66,7 +62,7 @@ export class EmitterShapeDemo extends Demo {
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
             vTileCount: 10,
-            renderMode: RenderMode.BillBoard,
+            renderMode: RenderMode.Mesh,
             renderOrder: 1,
         });
     }

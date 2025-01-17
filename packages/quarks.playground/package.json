@@ -1,0 +1,20 @@
+{
+  "name": "quarks.playground",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 8001",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 8001"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.2",
+    "vite": "^6.0.5"
+  },
+  "dependencies": {
+    "three": "^0.165.0",
+    "three-stdlib": "^2.35.13",
+    "three.quarks": "*"
+  }
+}

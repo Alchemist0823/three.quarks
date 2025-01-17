@@ -634,20 +634,21 @@ export class ParticleSystem implements IParticleSystem {
      * {@link RenderMode}
      */
     set renderMode(renderMode: RenderMode) {
-        if (
-            (this.rendererSettings.renderMode != RenderMode.Trail && renderMode === RenderMode.Trail) ||
-            (this.rendererSettings.renderMode == RenderMode.Trail && renderMode !== RenderMode.Trail)
-        ) {
-            this.restart();
-            this.particles.length = 0;
-        }
         if (this.rendererSettings.renderMode !== renderMode) {
+            let needRestart = false;
+            if (this.rendererSettings.renderMode === RenderMode.Trail) {
+                needRestart = true;
+            }
+            if (this.rendererSettings.renderMode === RenderMode.Mesh) {
+                this.startRotation = new ConstantValue(0);
+            }
             switch (renderMode) {
                 case RenderMode.Trail:
                     this.rendererEmitterSettings = {
                         startLength: new ConstantValue(30),
                         followLocalOrigin: false,
                     };
+                    needRestart = true;
                     break;
                 case RenderMode.Mesh:
                     this.rendererEmitterSettings = {
@@ -657,22 +658,20 @@ export class ParticleSystem implements IParticleSystem {
                     break;
                 case RenderMode.StretchedBillBoard:
                     this.rendererEmitterSettings = {speedFactor: 0, lengthFactor: 2};
-                    if (this.rendererSettings.renderMode === RenderMode.Mesh) {
-                        this.startRotation = new ConstantValue(0);
-                    }
                     break;
                 case RenderMode.BillBoard:
                 case RenderMode.VerticalBillBoard:
                 case RenderMode.HorizontalBillBoard:
                     this.rendererEmitterSettings = {};
-                    if (this.rendererSettings.renderMode === RenderMode.Mesh) {
-                        this.startRotation = new ConstantValue(0);
-                    }
                     break;
             }
+            this.rendererSettings.renderMode = renderMode;
+            if (needRestart) {
+                this.restart();
+                this.particles.length = 0;
+            }
+            this.neededToUpdateRender = true;
         }
-        this.rendererSettings.renderMode = renderMode;
-        this.neededToUpdateRender = true;
         //this.emitter.rebuildMaterial();
     }
 
@@ -1334,11 +1333,11 @@ export class ParticleSystem implements IParticleSystem {
         });
         ps.behaviors = json.behaviors.map((behaviorJson) => {
             const behavior = BehaviorFromJSON(behaviorJson, ps);
-            if (behavior.type === 'EmitSubParticleSystem') {
+            if (behavior && behavior.type === 'EmitSubParticleSystem') {
                 dependencies[behaviorJson.subParticleSystem] = behavior;
             }
             return behavior;
-        });
+        }).filter(behavior => behavior !== null) as Behavior[];
         return ps;
     }
 

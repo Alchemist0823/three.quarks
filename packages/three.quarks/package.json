@@ -1,6 +1,6 @@
 {
   "name": "three.quarks",
-  "version": "0.15.5",
+  "version": "0.15.7",
   "description": "A General-Purpose Particle System for three.js",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -60,14 +60,11 @@
     "three": ">=0.165.0"
   },
   "dependencies": {
-    "quarks.core": "^0.15.4"
+    "quarks.core": "^0.15.7"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/three": "^0.165.0",
     "three": "^0.165.0"
-  },
-  "lint-staged": {
-    "**/*.ts": "prettier --write --ignore-unknown"
   }
 }

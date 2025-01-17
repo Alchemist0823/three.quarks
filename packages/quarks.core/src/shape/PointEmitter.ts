@@ -1,6 +1,8 @@
 import {EmitterShape, ShapeJSON} from './EmitterUtil';
 import {Particle} from '../Particle';
 import {IParticleSystem} from '../IParticleSystem';
+import { Matrix4, Quaternion } from '../math';
+import { UP_VEC3, ZERO_VEC3 } from '../util/MathUtil';
 
 /**
  * A point emitter emits particles from a single point.
@@ -8,7 +10,11 @@ import {IParticleSystem} from '../IParticleSystem';
 export class PointEmitter implements EmitterShape {
     type = 'point';
 
-    constructor() {}
+    _m1: Matrix4;
+    
+    constructor() {
+        this._m1 = new Matrix4();
+    }
 
     update(system: IParticleSystem, delta: number): void {}
 
@@ -28,6 +34,11 @@ export class PointEmitter implements EmitterShape {
         p.velocity.multiplyScalar(p.startSpeed);
 
         p.position.setScalar(0);
+        
+        if (p.rotation instanceof Quaternion) {
+            this._m1.lookAt(ZERO_VEC3, p.position, UP_VEC3);
+            p.rotation.setFromRotationMatrix(this._m1);
+        }
     }
 
     toJSON(): ShapeJSON {
