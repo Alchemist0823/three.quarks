@@ -44,7 +44,7 @@ export interface HemisphereEmitterParameters {
 }
 
 export class HemisphereEmitter implements EmitterShape {
-    type = 'sphere';
+    type = 'hemisphere';
     radius: number;
     arc: number;
     thickness: number; //[0, 1]

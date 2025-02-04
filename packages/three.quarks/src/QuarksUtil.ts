@@ -1,8 +1,6 @@
 import {Object3D} from 'three';
 import {ParticleEmitter} from './ParticleEmitter';
 import {BatchedRenderer} from './BatchedRenderer';
-import {ParticleSystem} from './ParticleSystem';
-
 
 export class QuarksUtil {
     /**

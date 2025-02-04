@@ -17,6 +17,7 @@ import {
     IntervalValue,
     DonutEmitter,
     PointEmitter,
+    RectangleEmitter,
     RandomColor,
     RenderMode,
     ParticleSystem,
@@ -203,23 +204,22 @@ export class EmitterShapeDemo extends Demo {
                 this.scene.add(text);
 
                 particles = this.initParticleSystem();
-                particles.emitterShape = new ConeEmitter({
-                    radius: 1,
+                particles.emitterShape = new RectangleEmitter({
+                    width: 2,
+                    height: 2,
                     thickness: 0.2,
-                    arc: Math.PI * 2,
-                    angle: 0,
                     mode: EmitterMode.Loop,
                     spread: 0,
-                    speed: new ConstantValue(3),
+                    speed: new ConstantValue(1),
                 });
-                particles.emitter.name = 'Loop';
+                particles.emitter.name = 'Rectangle';
                 //particles.emitter.rotation.y = Math.PI / 2;
                 particles.emitter.position.set(5, -5, 2);
                 this.batchRenderer.addSystem(particles);
                 this.scene.add(particles.emitter);
                 this.groups.push(particles.emitter);
                 text = new Mesh(
-                    new TextGeometry('Loop', fontConfig),
+                    new TextGeometry('Rectangle', fontConfig),
                     new MeshLambertMaterial({color: new Color(0x999999)})
                 );
                 text.position.set(5, -7, 2);

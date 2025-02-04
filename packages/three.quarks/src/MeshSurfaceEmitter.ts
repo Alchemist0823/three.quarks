@@ -7,9 +7,8 @@ import {
     JsonMetaData,
     IParticleSystem,
     Vector3 as QuarksVector3,
-    loadPlugin,
+    Plugin,
 } from 'quarks.core';
-import {BehaviorPlugin, EmitterShapePlugin} from 'quarks.core/src';
 
 /**
  * A particle emitter that emits particles from the surface of a mesh uniformly.
@@ -138,14 +137,15 @@ export class MeshSurfaceEmitter implements EmitterShape {
     update(system: IParticleSystem, delta: number): void {}
 }
 
-loadPlugin({
+export const MeshSurfaceEmitterPlugin: Plugin = {
     id: "three.quarks",
     initialize: () => {},
     emitterShapes: [{
+
         type: 'mesh_surface',
         params: [['geometry', ['geometry']]],
         constructor: MeshSurfaceEmitter,
         loadJSON: MeshSurfaceEmitter.fromJSON,
     }],
     behaviors: [],
-})
+};
