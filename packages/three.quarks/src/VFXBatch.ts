@@ -1,4 +1,4 @@
-import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Texture} from 'three';
+import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Texture, Object3D} from 'three';
 import {VFXBatchSettings} from './BatchedRenderer';
 import {IParticleSystem} from 'quarks.core';
 
@@ -98,6 +98,10 @@ export abstract class VFXBatch extends Mesh {
                 (this.material as ShaderMaterial).needsUpdate = true;
             }
         }
+    }
+
+    getVisibleSystems(): IParticleSystem[] {
+        return Array.from(this.systems).filter((system) => system.emitter.visible);
     }
 
     abstract setupBuffers(): void;

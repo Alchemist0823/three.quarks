@@ -87,6 +87,7 @@ export interface MeshSettings {
 export interface IEmitter {
     system: IParticleSystem;
     uuid: string;
+    visible: boolean;
     matrixWorld: any; //type is annoying
 }
 

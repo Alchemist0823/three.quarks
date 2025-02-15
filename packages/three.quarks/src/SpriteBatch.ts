@@ -276,14 +276,16 @@ export class SpriteBatch extends VFXBatch {
         let index = 0;
 
         let particleCount = 0;
-        this.systems.forEach((system) => {
+
+        const visibleSystems = this.getVisibleSystems();
+        for (const system of visibleSystems) {
             particleCount += system.particleNum;
-        });
+        }
         if (particleCount > this.maxParticles) {
             this.expandBuffers(particleCount);
         }
 
-        this.systems.forEach((system) => {
+        for (const system of visibleSystems) {
             if ((system.emitter as unknown as Object3D).updateMatrixWorld) {
                 (system.emitter as unknown as Object3D).updateWorldMatrix(true, false);
                 (system.emitter as unknown as Object3D).updateMatrixWorld(true);
@@ -379,7 +381,7 @@ export class SpriteBatch extends VFXBatch {
                     );
                 }
             }
-        });
+        }
         this.geometry.instanceCount = index;
 
         if (index > 0) {

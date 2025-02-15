@@ -21,7 +21,8 @@
   "scripts": {
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "cross-env NODE_ENV=production rollup -c",
-    "build": "npm run build:types && npm run build:js && cpx ./dist/quarks.core.esm.js ../three.quarks/examples/js/",
+    "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
+    "build": "npm run build:types && npm run build:js && cpx ./dist/quarks.core.esm.js ../three.quarks/examples/js/ && npm run yalc:publish",
     "test": "jest",
     "prettier": "prettier --write --ignore-unknown **/*.ts"
   },

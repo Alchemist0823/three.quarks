@@ -10,8 +10,8 @@
     "removeComments": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "target": "ES2017",
-    "module": "ES2015",
+    "target": "ES2020",
+    "module": "ES2020",
     "strict": true,
 
     // These options are necessary so that TypeDoc can resolve references across packages

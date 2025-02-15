@@ -144,16 +144,17 @@ export class TrailBatch extends VFXBatch {
         let triangles = 0;
 
         let particleCount = 0;
-        this.systems.forEach((system) => {
+        const visibleSystems = this.getVisibleSystems();
+        for (const system of visibleSystems) {
             for (let j = 0; j < system.particleNum; j++) {
                 particleCount += (system.particles[j] as TrailParticle).previous.length * 2;
             }
-        });
+        }
         if (particleCount > this.maxParticles) {
             this.expandBuffers(particleCount);
         }
 
-        this.systems.forEach((system) => {
+        for (const system of visibleSystems) {
             if ((system.emitter as unknown as Object3D).updateMatrixWorld) {
                 (system.emitter as unknown as Object3D).updateWorldMatrix(true, false);
                 (system.emitter as unknown as Object3D).updateMatrixWorld(true);
@@ -303,7 +304,7 @@ export class TrailBatch extends VFXBatch {
                     }
                 }
             }
-        });
+        }
         this.positionBuffer.clearUpdateRanges();
         this.positionBuffer.addUpdateRange(0, index * 3);
         this.positionBuffer.needsUpdate = true;

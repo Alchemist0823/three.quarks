@@ -1,6 +1,7 @@
 {
   "name": "root",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
@@ -12,8 +13,8 @@
     "playground": "npm run dev --workspace=quarks.playground",
     "prettier": "npm run prettier --workspaces",
     "publish": "npm publish --workplace=quarks.core --workspace=three.quarks",
-    "docs": "typedoc",
-    "docs-dev": "http-server ./docs -c-1 -p 8001"
+    "docs": "cross-env NODE_OPTIONS='--experimental-require-module' typedoc",
+    "docs-dev": "http-server ./docs -c-1 -p 8002"
   },
   "devDependencies": {
     "@babel/core": "^7.26.7",
@@ -49,7 +50,8 @@
     "typedoc-google-tag-manager-plugin": "^1.0.5",
     "typedoc-plugin-markdown": "^4.4.1",
     "typedoc-plugin-script-inject": "^2.0.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "yalc": "^1.0.0-pre.53"
   },
   "overrides": {
     "typedoc-google-tag-manager-plugin": {
