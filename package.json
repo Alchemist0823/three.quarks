@@ -13,6 +13,7 @@
     "playground": "npm run dev --workspace=quarks.playground",
     "prettier": "npm run prettier --workspaces",
     "publish": "npm publish --workplace=quarks.core --workspace=three.quarks",
+    "yalc:publish": "npm run yalc:publish --workspace=quarks.core --workspace=three.quarks",
     "docs": "cross-env NODE_OPTIONS='--experimental-require-module' typedoc",
     "docs-dev": "http-server ./docs -c-1 -p 8002"
   },

@@ -28,7 +28,7 @@
     "build:examples": "cpx \"../../node_modules/three/examples/**/*.*\" ./examples/js/examples && cpx ../../node_modules/three/build/three.module.js ./examples/js/",
     "build:production": "npm run build:types && npm run build:examples && cross-env NODE_ENV=production npm run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/",
     "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
-    "build": "npm run build:production && npm run yalc:publish",
+    "build": "npm run build:production",
     "lint": "eslint . --ext .ts",
     "example": "http-server ./examples -c-1 -p 8000",
     "test": "jest",
