@@ -92,8 +92,9 @@ export class SpriteBatch extends VFXBatch {
             this.geometry.setAttribute('normal', this.settings.instancingGeometry.getAttribute('normal'));
         }
         this.geometry.setAttribute('position', this.settings.instancingGeometry.getAttribute('position')); //new InterleavedBufferAttribute(this.interleavedBuffer, 3, 0, false));
-        this.geometry.setAttribute('uv', this.settings.instancingGeometry.getAttribute('uv')); //new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
-
+        if (this.settings.instancingGeometry.hasAttribute('uv')) {
+            this.geometry.setAttribute('uv', this.settings.instancingGeometry.getAttribute('uv')); //new InterleavedBufferAttribute(this.interleavedBuffer, 2, 3, false));
+        }
         this.buildExpandableBuffers();
     }
 
