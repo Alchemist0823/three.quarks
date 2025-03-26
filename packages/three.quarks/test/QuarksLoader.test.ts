@@ -1,16 +1,15 @@
 /**
  * @jest-environment jsdom
  */
-import {ParticleSystem, QuarksLoader} from '../src';
+import {ParticleSystem, QuarksLoader, QuarksPrefab} from '../src';
 import {MeshSurfaceEmitter, ParticleEmitter} from '../src';
 import {EmitSubParticleSystem} from '../src';
-import JSON1 from './subPS.json';
-import JSON2 from './meshSurface.json';
+import {SUB_PS_GEOMETRY, MESH_SURFACE_GEOMETRY, QUARKS_PREFAB} from './JsonFiles';
 
 describe('QuarksLoader', () => {
     test('#loadSubSystem', () => {
         const loader = new QuarksLoader();
-        const object = loader.parse(JSON1, () => {});
+        const object = loader.parse(SUB_PS_GEOMETRY, () => {});
         expect(object.children.length).toBe(2);
         const system = (object.children[0] as ParticleEmitter).system as ParticleSystem;
         expect(system.behaviors.length).toBe(1);
@@ -20,7 +19,7 @@ describe('QuarksLoader', () => {
 
     test('#loadMeshSurfaceEmitter', () => {
         const loader = new QuarksLoader();
-        const object = loader.parse(JSON2, () => {});
+        const object = loader.parse(MESH_SURFACE_GEOMETRY, () => {});
         expect(object.children.length).toBe(2);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         expect(
@@ -29,5 +28,12 @@ describe('QuarksLoader', () => {
                     .geometry!.attributes
             ).length
         ).toBe(3);
+    });
+
+    test('#loadQuarksPrefab', () => {
+        const loader = new QuarksLoader();
+        const object = loader.parse(QUARKS_PREFAB, () => {}) as QuarksPrefab;
+        expect(object.children.length).toBe(2);
+        expect(object.animationData.length).toBe(2);
     });
 });

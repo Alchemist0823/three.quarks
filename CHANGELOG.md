@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.16.0
+
+- Add QuarksPrefab class to manage lifecycle of animations and effects
+- Fix uv attributes issue on InstancedGeometry
+- Make visible property in Object3D works
+- Fix a emitter shape bug and add rectangle emitter
+
 ## Version 0.15.7
 
 - Fix trail renderer's side buffer bug where it only rendered the trail on the wrong side.

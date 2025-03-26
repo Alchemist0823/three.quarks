@@ -17,6 +17,6 @@
     // These options are necessary so that TypeDoc can resolve references across packages
     "composite": true,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": false
   }
 }

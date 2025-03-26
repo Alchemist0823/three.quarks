@@ -10,6 +10,7 @@ export * from './MeshSurfaceEmitter';
 export * from './BatchedRenderer';
 export * from './BatchedParticleRenderer';
 export * from './QuarksLoader';
+export * from './QuarksPrefab';
 export * from './QuarksUtil';
 export * from './shaders/';
 export * from './materials/';

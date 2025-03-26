@@ -1,0 +1,237 @@
+{
+  "metadata": {
+    "version": 4.6,
+    "type": "Object",
+    "generator": "Object3D.toJSON"
+  },
+  "geometries": [
+    {
+      "uuid": "0bbcdb64-e0a4-4a13-bfaa-c1f7f83bd718",
+      "type": "PlaneGeometry",
+      "width": 1,
+      "height": 1,
+      "widthSegments": 1,
+      "heightSegments": 1
+    }
+  ],
+  "materials": [
+    {
+      "uuid": "d520a91a-e3c4-4c32-828b-49e98500eb98",
+      "type": "MeshBasicMaterial",
+      "color": 65280,
+      "envMapRotation": [
+        0,
+        0,
+        0,
+        "XYZ"
+      ],
+      "reflectivity": 1,
+      "refractionRatio": 0.98,
+      "blendColor": 0
+    }
+  ],
+  "animations": [
+    {
+      "name": "test",
+      "duration": 1,
+      "tracks": [
+        {
+          "name": ".position",
+          "times": [
+            0,
+            1
+          ],
+          "values": [
+            0,
+            0,
+            0,
+            1,
+            1,
+            1
+          ],
+          "type": "number"
+        }
+      ],
+      "uuid": "d32a0df3-cbc4-44fa-8076-c32915818d59",
+      "blendMode": 2500
+    }
+  ],
+  "object": {
+    "uuid": "4250628b-3390-41ff-9049-af9c3596ce78",
+    "type": "QuarksPrefab",
+    "layers": 1,
+    "matrix": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "children": [
+      {
+        "uuid": "8f365036-abd6-4cf8-95b5-eb251408f5d7",
+        "type": "ParticleEmitter",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "ps": {
+          "version": "3.0",
+          "autoDestroy": false,
+          "looping": true,
+          "prewarm": false,
+          "duration": 1,
+          "shape": {
+            "type": "sphere",
+            "radius": 10,
+            "arc": 6.283185307179586,
+            "thickness": 1,
+            "mode": 0,
+            "spread": 0,
+            "speed": {
+              "type": "ConstantValue",
+              "value": 1
+            }
+          },
+          "startLife": {
+            "type": "ConstantValue",
+            "value": 5
+          },
+          "startSpeed": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "startRotation": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "startSize": {
+            "type": "ConstantValue",
+            "value": 1
+          },
+          "startColor": {
+            "type": "ConstantColor",
+            "color": {
+              "r": 1,
+              "g": 1,
+              "b": 1,
+              "a": 1
+            }
+          },
+          "emissionOverTime": {
+            "type": "ConstantValue",
+            "value": 10
+          },
+          "emissionOverDistance": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "emissionBursts": [],
+          "onlyUsedByOther": false,
+          "instancingGeometry": "0bbcdb64-e0a4-4a13-bfaa-c1f7f83bd718",
+          "renderOrder": 0,
+          "renderMode": 0,
+          "rendererEmitterSettings": {},
+          "material": "d520a91a-e3c4-4c32-828b-49e98500eb98",
+          "layers": 1,
+          "startTileIndex": {
+            "type": "ConstantValue",
+            "value": 0
+          },
+          "uTileCount": 1,
+          "vTileCount": 1,
+          "blendTiles": false,
+          "softParticles": false,
+          "softFarFade": 0,
+          "softNearFade": 0,
+          "behaviors": [],
+          "worldSpace": false
+        }
+      },
+      {
+        "uuid": "ebc08a91-9d7f-4a26-81fc-bbf67e87bf6f",
+        "type": "Object3D",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "animations": [
+          "d32a0df3-cbc4-44fa-8076-c32915818d59"
+        ]
+      }
+    ],
+    "animationData": [
+      {
+        "startTime": 0,
+        "duration": 1,
+        "type": "three",
+        "targetUUID": "ebc08a91-9d7f-4a26-81fc-bbf67e87bf6f",
+        "clipUUID": "d32a0df3-cbc4-44fa-8076-c32915818d59",
+        "loop": false
+      },
+      {
+        "startTime": 0,
+        "duration": 2,
+        "type": "ps",
+        "targetUUID": "8f365036-abd6-4cf8-95b5-eb251408f5d7",
+        "loop": false
+      }
+    ]
+  }
+}

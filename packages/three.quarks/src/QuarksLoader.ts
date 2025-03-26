@@ -39,6 +39,7 @@ import {
 import {ParticleSystem} from './ParticleSystem';
 import {Behavior, EmitSubParticleSystem} from 'quarks.core';
 import {ParticleEmitter} from './ParticleEmitter';
+import { QuarksPrefab } from './QuarksPrefab';
 
 /**
  * Loader for quarks particle system.
@@ -140,6 +141,9 @@ export class QuarksLoader extends ObjectLoader {
         const dependencies: {[uuid: string]: Behavior} = {};
 
         switch (data.type) {
+            case 'QuarksPrefab':
+                object = QuarksPrefab.fromJSON(data);
+                break;
             case 'ParticleEmitter':
                 object = ParticleSystem.fromJSON(data.ps, meta as any, dependencies).emitter;
                 break;
@@ -438,6 +442,8 @@ export class QuarksLoader extends ObjectLoader {
                     object.addLevel(child, level.distance);
                 }
             }
+        } else if (data.type === 'QuarksPrefab') {
+            (object as QuarksPrefab).resolveReferences(object);
         }
 
         return object;

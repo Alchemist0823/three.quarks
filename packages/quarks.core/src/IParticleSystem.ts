@@ -1,7 +1,6 @@
 import {Matrix4, Vector3} from './math';
 import {IParticle} from './Particle';
 import {FunctionValueGenerator, ValueGenerator} from './functions';
-
 export interface EmissionState {
     burstIndex: number;
     burstWaveIndex: number;

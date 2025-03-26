@@ -6,5 +6,6 @@ export * from './sequencers/';
 export * from './Particle';
 export * from './Plugin';
 export * from './IParticleSystem';
+export * from './IPrefab';
 //export * from './util/';
 export * from './TypeUtil';

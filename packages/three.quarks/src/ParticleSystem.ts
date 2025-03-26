@@ -51,7 +51,7 @@ import {
     BatchedRenderer,
     VFXBatchSettings,
 } from './BatchedRenderer';
-
+import { ThreeMetaData } from './util/ThreeUtil';
 export interface BurstParameters {
     time: number;
     count: ValueGenerator | FunctionValueGenerator;
@@ -1236,11 +1236,7 @@ export class ParticleSystem implements IParticleSystem {
      */
     static fromJSON(
         json: ParticleSystemJSONParameters,
-        meta: {
-            textures: {[uuid: string]: Texture};
-            materials: {[uuoid: string]: Material};
-            geometries: {[uuid: string]: BufferGeometry};
-        },
+        meta: ThreeMetaData,
         dependencies: {[uuid: string]: Behavior},
     ): ParticleSystem {
         const shape = EmitterFromJSON(json.shape, meta);
