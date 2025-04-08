@@ -652,17 +652,19 @@ export class ParticleSystem implements IParticleSystem {
                     break;
                 case RenderMode.Mesh:
                     this.rendererEmitterSettings = {
-                        geometry: new PlaneGeometry(1, 1),
+                        geometry: DEFAULT_GEOMETRY,
                     };
                     this.startRotation = new AxisAngleGenerator(new Vector3(0, 1, 0), new ConstantValue(0));
                     break;
                 case RenderMode.StretchedBillBoard:
                     this.rendererEmitterSettings = {speedFactor: 0, lengthFactor: 2};
+                    this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
                     break;
                 case RenderMode.BillBoard:
                 case RenderMode.VerticalBillBoard:
                 case RenderMode.HorizontalBillBoard:
                     this.rendererEmitterSettings = {};
+                    this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
                     break;
             }
             this.rendererSettings.renderMode = renderMode;
