@@ -56,6 +56,10 @@
     "yalc": "^1.0.0-pre.53"
   },
   "overrides": {
+    "glob": "9.0.0",
+    "rimraf": "^6.0.1",
+    "braces": "^3.0.3",
+    "micromatch": "^4.0.8",
     "typedoc-google-tag-manager-plugin": {
       "typedoc": "$typedoc"
     },
@@ -65,5 +69,8 @@
   },
   "lint-staged": {
     "**/*.ts": "prettier --write --ignore-unknown"
+  },
+  "dependencies": {
+    "three.quarks": "^0.16.0"
   }
 }
