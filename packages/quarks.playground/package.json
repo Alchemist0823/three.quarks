@@ -10,11 +10,12 @@
     "preview": "vite preview --port 8001"
   },
   "devDependencies": {
+    "@types/three": "^0.182.0",
     "vite": "^6.0.5"
   },
   "dependencies": {
-    "three": "^0.165.0",
-    "three-stdlib": "^2.35.13",
+    "three": "^0.182.0",
+    "three-stdlib": "^2.36.1",
     "three.quarks": "*"
   }
 }

@@ -56,14 +56,14 @@
   },
   "homepage": "https://quarks.art",
   "peerDependencies": {
-    "three": ">=0.165.0"
+    "three": ">=0.182.0"
   },
   "dependencies": {
     "quarks.core": "^0.16.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
-    "@types/three": "^0.165.0",
-    "three": "^0.165.0"
+    "@types/three": "^0.182.0",
+    "three": "^0.182.0"
   }
 }
