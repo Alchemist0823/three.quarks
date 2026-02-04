@@ -76,7 +76,7 @@ export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap>exten
         this.children = this.children.filter((child) => child.type !== 'ParticleSystemPreview');
         const data = super.toJSON(meta);
         this.children = children;
-        if (this.system !== null) data.object.ps = this.system.toJSON(meta!, options);
+        if (this.system !== null) (data.object as any).ps = this.system.toJSON(meta!, options);
         return data;
     }
 }

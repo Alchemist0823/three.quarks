@@ -4,7 +4,7 @@ import babel from '@rollup/plugin-babel';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import ts from 'typescript';
-import pkg from './package.json' assert {type: 'json'};
+import pkg from './package.json' with {type: 'json'};
 
 const date = new Date().toDateString();
 

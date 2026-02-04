@@ -1158,7 +1158,7 @@ export class ParticleSystem implements IParticleSystem {
                 const image = this.texture.source;
                 meta.images[image.uuid] = {
                     uuid: image.uuid,
-                    url: this.texture.image.url,
+                    url: (this.texture.image as {url?: string}).url,
                 };
             }
         }

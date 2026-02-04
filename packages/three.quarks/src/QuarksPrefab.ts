@@ -367,7 +367,7 @@ export class QuarksPrefab extends Group implements IPrefab {
         const json = super.toJSON();
         
         // Add animations data
-        json.object.animationData = this.animationData.map(anim => ({
+        (json.object as any).animationData = this.animationData.map(anim => ({
             startTime: anim.startTime,
             duration: anim.duration,
             type: anim.type,
