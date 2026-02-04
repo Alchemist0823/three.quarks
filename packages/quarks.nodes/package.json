@@ -27,9 +27,10 @@
     "LICENSE"
   ],
   "scripts": {
+    "clean": "rimraf dist",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "cross-env NODE_ENV=production rollup -c",
-    "build": "npm run build:types && npm run build:js",
+    "build": "npm run clean && npm run build:types && npm run build:js",
     "test": "jest",
     "prettier": "prettier --write --ignore-unknown **/*.ts"
   },

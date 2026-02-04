@@ -20,13 +20,14 @@
     "LICENSE"
   ],
   "scripts": {
+    "clean": "rimraf dist",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "dev": "rollup -c -w",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
     "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
-    "build": "npm run build:types && cross-env NODE_ENV=production npm run build:js",
+    "build": "npm run clean && npm run build:types && cross-env NODE_ENV=production npm run build:js",
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "test:coverage": "jest --coverage",

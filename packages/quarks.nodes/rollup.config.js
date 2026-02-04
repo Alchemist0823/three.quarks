@@ -67,18 +67,11 @@ export const lib = {
                 globals,
                 banner,
             },
-            {
-                file: pkg.main,
-                format: 'umd',
-                name: pkg.name.replace(/-/g, '').toUpperCase(),
-                globals,
-                banner,
-            },
         ],
     },
 
     min: {
-        input: pkg.main,
+        input: pkg.module,
         external: Object.keys(globals),
         plugins: [
             terser({
@@ -94,8 +87,8 @@ export const lib = {
                 banner,
             },
             {
-                file: pkg.main.replace('.js', '.min.js'),
-                format: 'umd',
+                file: pkg.exports['.'].require.replace('.cjs', '.min.cjs'),
+                format: 'cjs',
                 name: pkg.name.replace(/-/g, '').toUpperCase(),
                 globals,
                 banner,
