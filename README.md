@@ -165,6 +165,8 @@ This project is a monorepo with modular packages:
 | **[three.quarks](https://www.npmjs.com/package/three.quarks)** | 🎯 Main package - Three.js particle system with batched rendering, shaders, and full VFX toolkit |
 | **[quarks.core](https://www.npmjs.com/package/quarks.core)** | 🧱 Core library - Framework-agnostic math, behaviors, emitter shapes, and functions (zero dependencies) |
 | **[quarks.nodes](https://www.npmjs.com/package/quarks.nodes)** | 🔮 Node system - Experimental node-based VFX with visual programming and WebGPU compute support |
+| **quarks.examples** | 🎮 Examples - Interactive demos showcasing particle effects and features |
+| **quarks.playground** | 🧪 Playground - Development sandbox for testing and experimenting with effects |
 
 ### 🛠️ Editor
 
