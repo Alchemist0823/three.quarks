@@ -14,7 +14,7 @@ const banner = `/**
 
 const production = process.env.NODE_ENV === 'production';
 const globals = {three: 'THREE'};
-const extensions = ['.js', '.jsx', '.ts', '.tsx'];
+const extensions = ['.js', '.jsx', '.ts', '.tsx', '.wgsl'];
 
 function wgslPlugin() {
     return {
@@ -34,7 +34,7 @@ export const lib = {
         input: 'src/index.ts',
         external: Object.keys(globals),
         plugins: [
-            //wgslPlugin(),
+            wgslPlugin(),
             resolve({
                 extensions: extensions,
                 customResolveOptions: {

@@ -4,7 +4,7 @@
   "description": "node based behavior and render system for quarks engine",
   "type": "module",
   "dependencies": {
-    "three.quarks": "^0.16.0"
+    "three.quarks": "*"
   },
   "devDependencies": {
     "@types/three": "^0.182.0",
@@ -17,7 +17,7 @@
   "exports": {
     ".": {
       "import": "./dist/quarks.nodes.esm.js",
-      "require": "./dist/quarks.nodes.js",
+      "require": "./dist/quarks.nodes.cjs",
       "types": "./dist/types/index.d.ts"
     }
   },

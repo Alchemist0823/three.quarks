@@ -25,12 +25,9 @@
     "dev": "rollup -c -w",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build:examples": "cpx \"./node_modules/three/examples/**/*.*\" ./examples/js/examples && cpx \"./node_modules/three/build/three.{module,core}.js\" ./examples/js/",
-    "build:production": "npm run build:types && npm run build:examples && cross-env NODE_ENV=production npm run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/",
     "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
-    "build": "npm run build:production",
+    "build": "npm run build:types && cross-env NODE_ENV=production npm run build:js",
     "lint": "eslint . --ext .ts",
-    "example": "http-server ./examples -c-1 -p 8000",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:prod": "npm run test -- --no-cache",
@@ -59,7 +56,7 @@
     "three": ">=0.182.0"
   },
   "dependencies": {
-    "quarks.core": "^0.16.0"
+    "quarks.core": "*"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

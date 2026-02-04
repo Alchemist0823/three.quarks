@@ -6,14 +6,13 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.node --workspace=quarks.playground",
-    "build:examples": "npm run build:examples --workspace=three.quarks",
+    "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes --workspace=quarks.playground",
     "dev": "npm run dev --workspaces",
     "test": "npm run test  --workspaces",
-    "example": "npm run example --workspace=three.quarks",
+    "examples": "npm run dev --workspace=quarks.examples",
     "playground": "npm run dev --workspace=quarks.playground",
     "prettier": "npm run prettier --workspaces",
-    "publish": "npm publish --workplace=quarks.core --workspace=three.quarks",
+    "publish": "npm publish --workspace=quarks.core --workspace=three.quarks",
     "yalc:publish": "npm run yalc:publish --workspace=quarks.core --workspace=three.quarks",
     "docs": "cross-env NODE_OPTIONS='--experimental-require-module' typedoc",
     "docs-dev": "http-server ./docs -c-1 -p 8002"
