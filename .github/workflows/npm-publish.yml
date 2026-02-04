@@ -1,33 +1,43 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# This workflow builds, tests, and publishes packages when a version tag is pushed
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
-name: Node.js Package
+name: Publish to NPM
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: '20'
+          cache: 'npm'
       - run: npm ci
+      - run: npm run build
       - run: npm test
 
   publish-npm:
-    needs: build
+    needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: '20'
+          cache: 'npm'
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm publish
+      - run: npm run build
+      - name: Publish quarks.core
+        run: npm publish --workspace=quarks.core --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - name: Publish three.quarks
+        run: npm publish --workspace=three.quarks --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

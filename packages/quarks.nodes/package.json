@@ -1,6 +1,6 @@
 {
   "name": "quarks.nodes",
-  "version": "0.15.2",
+  "version": "0.17.0",
   "description": "node based behavior and render system for quarks engine",
   "type": "module",
   "dependencies": {
