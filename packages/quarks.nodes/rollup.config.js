@@ -21,8 +21,13 @@ function wgslPlugin() {
         name: 'wgsl-plugin',
         transform(code, id) {
             if (id.endsWith('.wgsl')) {
+                // Escape backslashes, backticks, and ${} for template literal
+                const escaped = code
+                    .replace(/\\/g, '\\\\')
+                    .replace(/`/g, '\\`')
+                    .replace(/\$\{/g, '\\${');
                 return {
-                    code: `export default \`${code}\`;`,
+                    code: `export default \`${escaped}\`;`,
                     map: { mappings: '' },
                 };
             }
