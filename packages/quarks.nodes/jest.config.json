@@ -13,5 +13,8 @@
         }
     },
     "extensionsToTreatAsEsm": [".ts"],
-    "collectCoverageFrom": ["src/**/*.{js,ts}"]
+    "collectCoverageFrom": ["src/**/*.{js,ts}"],
+    "moduleNameMapper": {
+        "\\.wgsl$": "<rootDir>/test/__mocks__/wgslMock.js"
+    }
 }
