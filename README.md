@@ -19,7 +19,7 @@
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Contributing Guide](./CONTRIBUTING.md)
 - [Development Guide](./DEVELOPMENT_GUIDE.md)
-- [Demo](https://alchemist0823.github.io/three.quarks/)
+- [Demo](https://demo.quarks.art/)
 - [Change Log](./CHANGELOG.md)
 - [Sandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz?file=/index.html)
 - [Three Fiber Example](https://codesandbox.io/s/three-quarks-with-react-three-fiber-llhvxk)
