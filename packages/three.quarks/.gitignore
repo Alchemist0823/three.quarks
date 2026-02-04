@@ -3,6 +3,7 @@ dist/
 examples/js/quarks.core.esm.js
 examples/js/three.quarks.esm.js
 examples/js/three.module.js
+examples/js/three.core.js
 examples/js/examples
 
 # Logs

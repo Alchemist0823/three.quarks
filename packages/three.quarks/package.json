@@ -25,7 +25,7 @@
     "dev": "rollup -c -w",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build:examples": "cpx \"../../node_modules/three/examples/**/*.*\" ./examples/js/examples && cpx ../../node_modules/three/build/three.module.js ./examples/js/",
+    "build:examples": "cpx \"./node_modules/three/examples/**/*.*\" ./examples/js/examples && cpx \"./node_modules/three/build/three.{module,core}.js\" ./examples/js/",
     "build:production": "npm run build:types && npm run build:examples && cross-env NODE_ENV=production npm run build:js && cpx ./dist/three.quarks.esm.js ./examples/js/",
     "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
     "build": "npm run build:production",
@@ -62,7 +62,7 @@
     "quarks.core": "^0.16.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^30.0.0",
     "@types/three": "^0.182.0",
     "three": "^0.182.0"
   }
