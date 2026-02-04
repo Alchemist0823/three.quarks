@@ -1,4 +1,4 @@
-# three.quarks
+# three.quarks ✨
 
 [![npm][npm]][npm-url]
 [![npm-downloads][npm-downloads]][npmtrends-url]
@@ -12,30 +12,33 @@ Create stunning real-time VFX for games, interactive experiences, and web applic
 
 ![landing image](./landing.png)
 
-## Quick Links
+## 🎮 Try the Demo
 
-| Resource | Description |
-|----------|-------------|
-| [Demo](https://demo.quarks.art/) | Live examples and showcase |
-| [Documentation](https://quarks.art/) | Official website and guides |
-| [Visual Editor](https://quarks.art/create) | WYSIWYG particle effect creator |
-| [Discord](https://discord.gg/5Tv3kJCrQZ) | Community support and discussion |
+> **[▶️ Launch Live Demo](https://demo.quarks.art/)** - See three.quarks in action with interactive examples!
 
-## Why three.quarks?
+## 🔗 Quick Links
 
-- **High Performance** - Optimized batch rendering minimizes draw calls
-- **Unity Compatible** - Import particle systems from Unity's Shuriken system
-- **Visual Editor** - Design effects visually with [three.quarks-editor](https://quarks.art/create)
-- **Flexible** - Extensible plugin system for custom behaviors and emitters
-- **Production Ready** - Used in games and interactive applications
+| | Resource | Description |
+|--|----------|-------------|
+| 📖 | [Documentation](https://quarks.art/) | Official website and guides |
+| 🎨 | [Visual Editor](https://quarks.art/create) | WYSIWYG particle effect creator |
+| 💬 | [Discord](https://discord.gg/5Tv3kJCrQZ) | Community support and discussion |
 
-## Installation
+## 🚀 Why three.quarks?
+
+- ⚡ **High Performance** - Optimized batch rendering minimizes draw calls
+- 🎮 **Unity Compatible** - Import particle systems from Unity's Shuriken system
+- 🎨 **Visual Editor** - Design effects visually with [three.quarks-editor](https://quarks.art/create)
+- 🔧 **Flexible** - Extensible plugin system for custom behaviors and emitters
+- ✅ **Production Ready** - Used in games and interactive applications
+
+## 📦 Installation
 
 ```bash
 npm install three.quarks
 ```
 
-## Quick Start
+## ⚡ Quick Start
 
 ```javascript
 import * as THREE from 'three';
@@ -84,7 +87,7 @@ function animate() {
 }
 ```
 
-## Loading VFX from JSON
+## 📂 Loading VFX from JSON
 
 Export effects from the visual editor and load them at runtime:
 
@@ -114,20 +117,20 @@ QuarksUtil.setAutoDestroy(instance, true); // Auto-cleanup when finished
 QuarksUtil.play(instance);
 ```
 
-## Features
+## ✨ Features
 
-### Renderers
+### 🎬 Renderers
 - **Billboard** - Camera-facing sprites
 - **Stretched Billboard** - Velocity-aligned sprites
 - **Mesh** - 3D geometry particles
 - **Trail** - Ribbon trails behind particles
 
-### Emitter Shapes
+### 📐 Emitter Shapes
 - Point, Sphere, Hemisphere, Cone, Circle
 - Mesh Surface - Emit from 3D model surfaces
 - Grid - Structured emission patterns
 
-### Behaviors
+### 🎭 Behaviors
 - Color over lifetime
 - Size over lifetime
 - Rotation over lifetime
@@ -137,13 +140,13 @@ QuarksUtil.play(instance);
 - Sub-emitters
 - Custom behaviors via plugin system
 
-### Materials
+### 🎨 Materials
 - MeshBasicMaterial (unlit)
 - MeshStandardMaterial (PBR)
 - Configurable blending modes
 - Texture atlas support
 
-## Examples
+## 🧪 Examples
 
 Browse the [examples folder](./packages/quarks.examples) or run locally:
 
@@ -153,13 +156,21 @@ npm run build
 npm run examples
 ```
 
-## Ecosystem
+## 📦 Packages
 
-- **[three.quarks-editor](https://quarks.art/create)** - Visual editor for creating and previewing effects
-- **[quarks.core](https://www.npmjs.com/package/quarks.core)** - Core library (framework-agnostic)
-- **[quarks.nodes](https://www.npmjs.com/package/quarks.nodes)** - Node-based VFX system (experimental)
+This project is a monorepo with modular packages:
 
-## Resources
+| Package | Description |
+|---------|-------------|
+| **[three.quarks](https://www.npmjs.com/package/three.quarks)** | 🎯 Main package - Three.js particle system with batched rendering, shaders, and full VFX toolkit |
+| **[quarks.core](https://www.npmjs.com/package/quarks.core)** | 🧱 Core library - Framework-agnostic math, behaviors, emitter shapes, and functions (zero dependencies) |
+| **[quarks.nodes](https://www.npmjs.com/package/quarks.nodes)** | 🔮 Node system - Experimental node-based VFX with visual programming and WebGPU compute support |
+
+### 🛠️ Editor
+
+- **[three.quarks-editor](https://quarks.art/create)** - Visual editor for creating and previewing particle effects with real-time preview and JSON export
+
+## 📚 Resources
 
 - [Change Log](./CHANGELOG.md)
 - [Contributing Guide](./CONTRIBUTING.md)
@@ -168,14 +179,14 @@ npm run examples
 - [CodeSandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz)
 - [React Three Fiber Example](https://codesandbox.io/s/three-quarks-with-react-three-fiber-llhvxk)
 
-## Roadmap
+## 🗺️ Roadmap
 
-- WebGPU rendering support
-- WebAssembly particle simulation
-- Node-based scriptable particle systems
-- Cross-platform native plugins
+- 🔲 WebGPU rendering support
+- 🔲 WebAssembly particle simulation
+- 🔲 Node-based scriptable particle systems
+- 🔲 Cross-platform native plugins
 
-## License
+## 📄 License
 
 MIT
 
