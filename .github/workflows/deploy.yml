@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build packages
-        run: npm run build --workspace=quarks.core --workspace=three.quarks
+        run: npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.r3f
       - name: Build examples
         run: npm run build --workspace=quarks.examples
       - name: Setup Pages
