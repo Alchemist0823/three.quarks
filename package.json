@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.nodes --workspace=quarks.playground --workspace=quarks.examples",
+    "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.r3f --workspace=quarks.nodes --workspace=quarks.playground --workspace=quarks.examples",
     "dev": "npm run dev --workspaces",
     "test": "npm run test  --workspaces",
     "examples": "npm run dev --workspace=quarks.examples",
