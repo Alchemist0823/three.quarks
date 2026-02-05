@@ -370,7 +370,7 @@ function App() {
     return (
         <Canvas
             camera={{ position: [0, 4, 10], fov: 60 }}
-            style={{ background: '#1a1a2e' }}
+            style={{ background: '#171717' }}
         >
             <Scene refs={refs} />
         </Canvas>
