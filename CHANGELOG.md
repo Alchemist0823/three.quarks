@@ -2,6 +2,11 @@
 
 ## Version 0.17.0
 
+- Add quarks.r3f package for React Three Fiber integration
+  - Declarative `<ParticleSystem>` component with flexible props API
+  - `<QuarksEffect>` component for loading JSON effects with Suspense support
+  - `<QuarksProvider>` context for managing BatchedRenderer
+  - Hooks: `useQuarks`, `useParticleSystem`, `useQuarksEffect`
 - Add WebGPU shader support for next-gen rendering
 - Upgrade Three.js from 0.165.0 to 0.182.0
 - Move examples to quarks.examples package for better organization

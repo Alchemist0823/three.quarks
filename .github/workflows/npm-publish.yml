@@ -41,3 +41,7 @@ jobs:
         run: npm publish --workspace=three.quarks --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - name: Publish quarks.r3f
+        run: npm publish --workspace=quarks.r3f --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}

@@ -117,6 +117,56 @@ QuarksUtil.setAutoDestroy(instance, true); // Auto-cleanup when finished
 QuarksUtil.play(instance);
 ```
 
+## ⚛️ React Three Fiber
+
+Use the `quarks.r3f` package for declarative React integration:
+
+```bash
+npm install quarks.r3f three.quarks
+```
+
+```tsx
+import { Canvas } from '@react-three/fiber'
+import { QuarksProvider, ParticleSystem } from 'quarks.r3f'
+import { ConeEmitter, SizeOverLife, PiecewiseBezier, Bezier, RenderMode } from 'three.quarks'
+
+function FireEffect() {
+    const shape = useMemo(() => new ConeEmitter({ angle: 0.3, radius: 0.2 }), [])
+    const behaviors = useMemo(() => [
+        new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.5, 0.2, 0), 0]]))
+    ], [])
+
+    return (
+        <ParticleSystem
+            duration={5}
+            looping
+            startLife={[1, 2]}
+            startSpeed={[2, 4]}
+            startSize={0.5}
+            startColor={{ r: 1, g: 0.5, b: 0.2, a: 1 }}
+            emissionOverTime={40}
+            shape={shape}
+            renderMode={RenderMode.BillBoard}
+            behaviors={behaviors}
+            position={[0, 0, 0]}
+            autoPlay
+        />
+    )
+}
+
+function App() {
+    return (
+        <Canvas>
+            <QuarksProvider>
+                <FireEffect />
+            </QuarksProvider>
+        </Canvas>
+    )
+}
+```
+
+See [quarks.r3f documentation](./packages/quarks.r3f/README.md) for full API reference.
+
 ## ✨ Features
 
 ### 🎬 Renderers
@@ -164,6 +214,7 @@ This project is a monorepo with modular packages:
 |---------|-------------|
 | **[three.quarks](https://www.npmjs.com/package/three.quarks)** | 🎯 Main package - Three.js particle system with batched rendering, shaders, and full VFX toolkit |
 | **[quarks.core](https://www.npmjs.com/package/quarks.core)** | 🧱 Core library - Framework-agnostic math, behaviors, emitter shapes, and functions (zero dependencies) |
+| **[quarks.r3f](https://www.npmjs.com/package/quarks.r3f)** | ⚛️ React Three Fiber - Declarative R3F components with hooks, Suspense support, and flexible props API |
 | **[quarks.nodes](https://www.npmjs.com/package/quarks.nodes)** | 🔮 Node system - Experimental node-based VFX with visual programming and WebGPU compute support |
 | **quarks.examples** | 🎮 Examples - Interactive demos showcasing particle effects and features |
 | **quarks.playground** | 🧪 Playground - Development sandbox for testing and experimenting with effects |
@@ -179,7 +230,7 @@ This project is a monorepo with modular packages:
 - [Development Guide](./DEVELOPMENT_GUIDE.md)
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [CodeSandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz)
-- [React Three Fiber Example](https://codesandbox.io/s/three-quarks-with-react-three-fiber-llhvxk)
+- [React Three Fiber Package](./packages/quarks.r3f) - Official R3F integration
 
 ## 🗺️ Roadmap
 

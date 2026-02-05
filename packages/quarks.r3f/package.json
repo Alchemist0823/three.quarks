@@ -1,0 +1,67 @@
+{
+  "name": "quarks.r3f",
+  "version": "0.17.0",
+  "description": "React Three Fiber integration for three.quarks particle systems",
+  "type": "module",
+  "types": "./dist/types/index.d.ts",
+  "main": "./dist/quarks.r3f.cjs",
+  "module": "./dist/quarks.r3f.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/quarks.r3f.esm.js",
+      "require": "./dist/quarks.r3f.cjs",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "type-check": "tsc --noEmit",
+    "dev": "rollup -c -w",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "rollup -c",
+    "build": "npm run clean && npm run build:types && cross-env NODE_ENV=production npm run build:js",
+    "test": "jest --passWithNoTests",
+    "test:coverage": "jest --coverage",
+    "prettier": "prettier --write --ignore-unknown"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alchemist0823/three.quarks.git"
+  },
+  "keywords": [
+    "particle",
+    "react",
+    "three",
+    "react-three-fiber",
+    "r3f",
+    "3d",
+    "vfx",
+    "effects"
+  ],
+  "author": "Alchemist0823 <the.forrest.sun@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Alchemist0823/three.quarks/issues"
+  },
+  "homepage": "https://quarks.art",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "@react-three/fiber": ">=8.0.0",
+    "three": ">=0.182.0",
+    "three.quarks": ">=0.17.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "@react-three/fiber": "^8.0.0",
+    "three": "^0.182.0",
+    "@types/three": "^0.182.0",
+    "three.quarks": "*"
+  }
+}

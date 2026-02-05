@@ -79,7 +79,16 @@ let scene;
 let demo;
 
 let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, SoftParticleDemo, CustomBlendingDemo, FollowObjectDemo];
+let demoFiles = ['muzzleFlashDemo.js', 'explosionDemo.js', 'emitterShapeDemo.js', 'trailDemo.js', 'sequencerDemo.js', 'meshMaterialDemo.js', 'subEmitterDemo.js', 'turbulenceDemo.js', 'alphaTestDemo.js', 'customPluginDemo.js', 'billboardDemo.js', 'softParticleDemo.js', 'customBlendingDemo.js', 'followObjectDemo.js'];
 let demoIndex = 0;
+const GITHUB_BASE = 'https://github.com/Alchemist0823/three.quarks/blob/master/packages/quarks.examples/';
+
+function updateSourceLink() {
+    const sourceLink = document.getElementById('source-link');
+    if (sourceLink) {
+        sourceLink.href = GITHUB_BASE + demoFiles[demoIndex];
+    }
+}
 
 function init() {
     if (WEBGL.isWebGLAvailable() === false) {
@@ -130,6 +139,7 @@ function init() {
     demo = new demos[demoIndex](camera, renderer, controls);
     document.querySelector("#demo-name").innerText = demo.name;
     scene = demo.initScene();
+    updateSourceLink();
 
     document.getElementById("nextBtn").addEventListener("click", nextDemo, false);
     document.getElementById("previousBtn").addEventListener("click", previousDemo, false);
@@ -170,6 +180,7 @@ function nextDemo() {
     demo = new demos[demoIndex](camera, renderer, controls);
     document.querySelector("#demo-name").innerText = demo.name;
     scene = demo.initScene();
+    updateSourceLink();
 }
 
 function previousDemo() {
@@ -177,12 +188,14 @@ function previousDemo() {
     if (demoIndex < 0) {
         demoIndex = demos.length - 1;
     }
+    window.location.hash = '#' + demos[demoIndex].name;
     if (demo && demo.deinitScene) {
         demo.deinitScene();
     }
     demo = new demos[demoIndex](camera, renderer, controls);
     document.querySelector("#demo-name").innerText = demo.name;
     scene = demo.initScene();
+    updateSourceLink();
 }
 
 init();

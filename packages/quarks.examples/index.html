@@ -1,66 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q0RV7V5Y83"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q0RV7V5Y83');
+    </script>
     <meta charset="utf-8">
-    <title>three.quarks – particle system / VFX library for three.js</title>
+    <title>three.quarks Examples</title>
     <link rel="shortcut icon" href="./favicon.png"/>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <meta name="theme-color" content="#000000"/>
-    <link rel="manifest" href="./manifest.json"/>
-    <meta name="description" content="A ThreeJS / WebGL Particle System for Creators.">
-    <meta name="og:title" property="og:title" content="Three.quarks Particle System - Demo">
+    <meta name="description" content="three.quarks particle system examples - Choose between vanilla Three.js and React Three Fiber demos">
 
     <style>
         :root {
-            color-scheme: light dark;
+            color-scheme: dark;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
         }
 
-        #demo-name {
-            font-weight: bold;
-            font-family: sans-serif;
-            color: white;
-            z-index: 10;
-            position: relative;
+        .header {
             text-align: center;
-            margin: 0 auto;
-            padding: 16px;
+            margin-bottom: 60px;
         }
 
-        #renderer-canvas {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .btn {
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 500px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .card {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            text-decoration: none;
             color: white;
-            border: white 1px;
-            font-size: 3em;
-            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
-        .next {
-            position: absolute;
-            top: 50%;
-            right: 0;
+        .card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .previous {
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 24px;
+        }
+
+        .vanilla .card-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .r3f .card-icon {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .card-description {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .card-features {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: left;
+            width: 100%;
+        }
+
+        .card-features li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            list-style: none;
+        }
+
+        .card-features li::before {
+            content: "✓";
             position: absolute;
-            top: 50%;
+            left: 0;
+            color: #48dbfb;
+        }
+
+        .card-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 16px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: #48dbfb;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
-<body id="home">
-<canvas id="renderer-canvas"></canvas>
-<div id="demo-name">Unname</div>
-<div id="nextBtn" class="next btn">&#62;</div>
-<div id="previousBtn" class="previous btn">&#60;</div>
-<script type="module" src="./main.js"></script>
+<body>
+    <div class="header">
+        <h1>three.quarks</h1>
+        <p class="subtitle">High-performance particle system and VFX library for Three.js</p>
+    </div>
+
+    <div class="cards">
+        <a href="./vanilla.html" class="card vanilla">
+            <div class="card-icon">JS</div>
+            <h2 class="card-title">Vanilla Three.js</h2>
+            <p class="card-description">
+                Direct Three.js integration with full control over the rendering pipeline.
+            </p>
+            <ul class="card-features">
+                <li>BatchedRenderer for optimal performance</li>
+                <li>Multiple particle effect demos</li>
+                <li>JSON effect loading</li>
+                <li>Interactive navigation</li>
+            </ul>
+            <span class="card-badge">three.quarks</span>
+        </a>
+
+        <a href="./r3fDemo.html" class="card r3f">
+            <div class="card-icon">R3F</div>
+            <h2 class="card-title">React Three Fiber</h2>
+            <p class="card-description">
+                Declarative React components with hooks and Suspense support.
+            </p>
+            <ul class="card-features">
+                <li>Declarative &lt;ParticleSystem&gt; component</li>
+                <li>Flexible props API</li>
+                <li>JSON effect loading with Suspense</li>
+                <li>Play/Pause/Restart controls</li>
+            </ul>
+            <span class="card-badge">quarks.r3f</span>
+        </a>
+    </div>
+
+    <div class="footer">
+        <p>
+            <a href="https://github.com/Alchemist0823/three.quarks" target="_blank">GitHub</a>
+            &nbsp;·&nbsp;
+            <a href="https://quarks.art/" target="_blank">Documentation</a>
+            &nbsp;·&nbsp;
+            <a href="https://quarks.art/create" target="_blank">Visual Editor</a>
+        </p>
+    </div>
 </body>
 </html>

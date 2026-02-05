@@ -1,0 +1,13 @@
+{
+  "extends": ["../../tsconfig.package.json"],
+  "compilerOptions": {
+    "declarationDir": "./dist/types",
+    "rootDir": "src",
+    "outDir": "dist",
+    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules/", "test/", "dist/"]
+}
