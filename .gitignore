@@ -27,3 +27,5 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+CLAUDE.md

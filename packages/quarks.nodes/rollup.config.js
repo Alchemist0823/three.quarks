@@ -2,7 +2,7 @@ import resolve from '@rollup/plugin-node-resolve';
 //import commonjs from '@rollup/plugin-commonjs'
 import babel from '@rollup/plugin-babel';
 import terser from '@rollup/plugin-terser';
-import pkg from './package.json' assert {type: 'json'};
+import pkg from './package.json' with {type: 'json'};
 
 const date = new Date().toDateString();
 
@@ -14,15 +14,20 @@ const banner = `/**
 
 const production = process.env.NODE_ENV === 'production';
 const globals = {three: 'THREE'};
-const extensions = ['.js', '.jsx', '.ts', '.tsx'];
+const extensions = ['.js', '.jsx', '.ts', '.tsx', '.wgsl'];
 
 function wgslPlugin() {
     return {
         name: 'wgsl-plugin',
         transform(code, id) {
             if (id.endsWith('.wgsl')) {
+                // Escape backslashes, backticks, and ${} for template literal
+                const escaped = code
+                    .replace(/\\/g, '\\\\')
+                    .replace(/`/g, '\\`')
+                    .replace(/\$\{/g, '\\${');
                 return {
-                    code: `export default \`${code}\`;`,
+                    code: `export default \`${escaped}\`;`,
                     map: { mappings: '' },
                 };
             }
@@ -34,7 +39,7 @@ export const lib = {
         input: 'src/index.ts',
         external: Object.keys(globals),
         plugins: [
-            //wgslPlugin(),
+            wgslPlugin(),
             resolve({
                 extensions: extensions,
                 customResolveOptions: {
@@ -62,18 +67,11 @@ export const lib = {
                 globals,
                 banner,
             },
-            {
-                file: pkg.main,
-                format: 'umd',
-                name: pkg.name.replace(/-/g, '').toUpperCase(),
-                globals,
-                banner,
-            },
         ],
     },
 
     min: {
-        input: pkg.main,
+        input: pkg.module,
         external: Object.keys(globals),
         plugins: [
             terser({
@@ -89,8 +87,8 @@ export const lib = {
                 banner,
             },
             {
-                file: pkg.main.replace('.js', '.min.js'),
-                format: 'umd',
+                file: pkg.exports['.'].require.replace('.cjs', '.min.cjs'),
+                format: 'cjs',
                 name: pkg.name.replace(/-/g, '').toUpperCase(),
                 globals,
                 banner,

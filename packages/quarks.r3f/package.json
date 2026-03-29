@@ -1,16 +1,15 @@
 {
-  "name": "three.quarks",
+  "name": "quarks.r3f",
   "version": "0.17.0",
-  "description": "A General-Purpose Particle System for three.js",
+  "description": "React Three Fiber integration for three.quarks particle systems",
   "type": "module",
   "types": "./dist/types/index.d.ts",
-  "main": "./dist/three.quarks.js",
-  "module": "./dist/three.quarks.esm.js",
-  "browser_NO_NPM": "./dist/three.quarks.min.js",
+  "main": "./dist/quarks.r3f.cjs",
+  "module": "./dist/quarks.r3f.esm.js",
   "exports": {
     ".": {
-      "import": "./dist/three.quarks.esm.js",
-      "require": "./dist/three.quarks.cjs",
+      "import": "./dist/quarks.r3f.esm.js",
+      "require": "./dist/quarks.r3f.cjs",
       "types": "./dist/types/index.d.ts"
     }
   },
@@ -22,17 +21,12 @@
   "scripts": {
     "clean": "rimraf dist",
     "type-check": "tsc --noEmit",
-    "type-check:watch": "npm run type-check -- --watch",
     "dev": "rollup -c -w",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
     "build": "npm run clean && npm run build:types && cross-env NODE_ENV=production npm run build:js",
-    "lint": "eslint . --ext .ts",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:coverage": "jest --coverage",
-    "test:prod": "npm run test -- --no-cache",
-    "prepare": "husky",
     "prettier": "prettier --write --ignore-unknown"
   },
   "repository": {
@@ -41,11 +35,13 @@
   },
   "keywords": [
     "particle",
-    "library",
+    "react",
+    "three",
+    "react-three-fiber",
+    "r3f",
     "3d",
-    "game",
-    "performance",
-    "math"
+    "vfx",
+    "effects"
   ],
   "author": "Alchemist0823 <the.forrest.sun@gmail.com>",
   "license": "MIT",
@@ -54,14 +50,18 @@
   },
   "homepage": "https://quarks.art",
   "peerDependencies": {
-    "three": ">=0.182.0"
+    "react": ">=18.0.0",
+    "@react-three/fiber": ">=8.0.0",
+    "three": ">=0.182.0",
+    "three.quarks": ">=0.17.0"
   },
-  "dependencies": {
-    "quarks.core": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/jest": "^30.0.0",
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "@react-three/fiber": "^8.0.0",
+    "three": "^0.182.0",
     "@types/three": "^0.182.0",
-    "three": "^0.182.0"
+    "three.quarks": "*"
   }
 }

@@ -1,15 +1,15 @@
 {
   "name": "quarks.nodes",
-  "version": "0.15.2",
+  "version": "0.17.0",
   "description": "node based behavior and render system for quarks engine",
   "type": "module",
   "dependencies": {
-    "three.quarks": "^0.15.3"
+    "three.quarks": "*"
   },
   "devDependencies": {
-    "@types/three": "^0.165.0",
-    "@types/webxr": "^0.5.16",
-    "three": "^0.165.0"
+    "@types/three": "^0.182.0",
+    "@types/webxr": "^0.5.24",
+    "three": "^0.182.0"
   },
   "types": "./dist/types/index.d.ts",
   "main": "./dist/quarks.nodes.cjs",
@@ -17,7 +17,7 @@
   "exports": {
     ".": {
       "import": "./dist/quarks.nodes.esm.js",
-      "require": "./dist/quarks.nodes.js",
+      "require": "./dist/quarks.nodes.cjs",
       "types": "./dist/types/index.d.ts"
     }
   },
@@ -27,9 +27,10 @@
     "LICENSE"
   ],
   "scripts": {
+    "clean": "rimraf dist",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "cross-env NODE_ENV=production rollup -c",
-    "build": "npm run build:types && npm run build:js",
+    "build": "npm run clean && npm run build:types && npm run build:js",
     "test": "jest",
     "prettier": "prettier --write --ignore-unknown **/*.ts"
   },

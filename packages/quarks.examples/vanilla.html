@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q0RV7V5Y83"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q0RV7V5Y83');
+    </script>
+    <meta charset="utf-8">
+    <title>three.quarks – particle system / VFX library for three.js</title>
+    <link rel="shortcut icon" href="./favicon.png"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" content="#000000"/>
+    <link rel="manifest" href="./manifest.json"/>
+    <meta name="description" content="A ThreeJS / WebGL Particle System for Creators.">
+    <meta name="og:title" property="og:title" content="Three.quarks Particle System - Demo">
+
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #demo-name {
+            font-weight: bold;
+            font-family: sans-serif;
+            color: white;
+            z-index: 10;
+            position: relative;
+            text-align: center;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        #renderer-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .btn {
+            color: white;
+            border: white 1px;
+            font-size: 3em;
+            cursor: pointer;
+        }
+
+        .next {
+            position: absolute;
+            top: 50%;
+            right: 0;
+        }
+
+        .previous {
+            position: absolute;
+            top: 50%;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            color: white;
+            text-decoration: none;
+            font-family: sans-serif;
+            font-size: 14px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            z-index: 100;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .source-link {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            color: white;
+            text-decoration: none;
+            font-family: sans-serif;
+            font-size: 14px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            z-index: 100;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .source-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body id="home">
+<a href="./" class="back-link">← Back to Examples</a>
+<a id="source-link" href="https://github.com/Alchemist0823/three.quarks/blob/master/packages/quarks.examples/muzzleFlashDemo.js" target="_blank" class="source-link">View Source Code</a>
+<canvas id="renderer-canvas"></canvas>
+<div id="demo-name">Unname</div>
+<div id="nextBtn" class="next btn">&#62;</div>
+<div id="previousBtn" class="previous btn">&#60;</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

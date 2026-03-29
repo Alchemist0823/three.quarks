@@ -1,4 +1,4 @@
-import {WebGPURenderer, initWebGPU, NodeGraph, Node, NodeTypes, NodeValueType, Wire, WebGPUCompiler} from "three.quarks";
+import {WebGPURenderer, initWebGPU, NodeGraph, Node, NodeTypes, NodeValueType, Wire, WebGPUCompiler} from "quarks.nodes";
 import {PerspectiveCamera, Vector3} from "three";
 
 

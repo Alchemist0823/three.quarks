@@ -377,7 +377,7 @@ export class WebGPURenderer {
 
         const swapChainTexture = this.context.getCurrentTexture();
         // prettier-ignore
-        this.renderPassDescriptor.colorAttachments[0]!.view = swapChainTexture.createView();
+        (this.renderPassDescriptor.colorAttachments as GPURenderPassColorAttachment[])[0]!.view = swapChainTexture.createView();
 
         const commandEncoder = this.deviceContext.device.createCommandEncoder();
         {

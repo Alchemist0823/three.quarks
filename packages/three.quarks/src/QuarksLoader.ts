@@ -19,6 +19,7 @@ import {
     RectAreaLight,
     HemisphereLight,
     LightProbe,
+    SphericalHarmonics3,
     SpotLight,
     SkinnedMesh,
     Mesh,
@@ -239,7 +240,10 @@ export class QuarksLoader extends ObjectLoader {
                 break;
 
             case 'LightProbe':
-                object = new LightProbe().fromJSON(data);
+                object = new LightProbe();
+                if (data.sh !== undefined) {
+                    object.sh = new SphericalHarmonics3().fromArray(data.sh);
+                }
 
                 break;
 

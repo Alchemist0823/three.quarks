@@ -1,215 +1,249 @@
-# three.quarks
+# three.quarks ✨
 
 [![npm][npm]][npm-url]
-[![github][github-star]][github-url]
-[![build-size][build-size]][build-size-url]
 [![npm-downloads][npm-downloads]][npmtrends-url]
+[![build-size][build-size]][build-size-url]
+[![github][github-star]][github-url]
 [![discord][discord]][discord-url]
 
-[**three.quarks**](https://quarks.art/) is a high-performance javascript particle system based visual effect library for threejs
- written in modern **TypeScript**.
+**three.quarks** is a high-performance particle system and visual effects library for [three.js](https://threejs.org), written in TypeScript.
 
- Join our discord for discussion.
+Create stunning real-time VFX for games, interactive experiences, and web applications with an intuitive API and powerful visual editor.
 
 ![landing image](./landing.png)
 
-## Links
+## 🎮 Try the Demo
 
-- [Official Website](https://quarks.art/)
-- [Code of Conduct](./CODE_OF_CONDUCT.md)
-- [Contributing Guide](./CONTRIBUTING.md)
-- [Development Guide](./DEVELOPMENT_GUIDE.md)
-- [Demo](https://alchemist0823.github.io/three.quarks/)
-- [Change Log](./CHANGELOG.md)
-- [Sandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz?file=/index.html)
-- [Three Fiber Example](https://codesandbox.io/s/three-quarks-with-react-three-fiber-llhvxk)
+> **[▶️ Launch Live Demo](https://demo.quarks.art/)** - See three.quarks in action with interactive examples!
 
-## Background
+## 🔗 Quick Links
 
- [three.quarks](https://github.com/Alchemist0823/three.quarks) is a high-performance general-purpose particle
-  system library with a WYSIWYG visual editor
-  [three.quarks-editor](https://quarks.art/create) for it. It runs on
-top of the well-known WebGL library called [three.js](https://threejs.org).
+| | Resource | Description |
+|--|----------|-------------|
+| 📖 | [Documentation](https://quarks.art/) | Official website and guides |
+| 🎨 | [Visual Editor](https://quarks.art/create) | WYSIWYG particle effect creator |
+| 💬 | [Discord](https://discord.gg/5Tv3kJCrQZ) | Community support and discussion |
 
-## Roadmap
+## 🚀 Why three.quarks?
 
-- Port Simulation Compiler code to Rust
-- WebAssembly Particle Simulation on CPU. (WIP)
-- GPU simulation on GPU (WIP)
-- Node based / scriptable particle system (WIP)
-- Simulation Frequency - Performance
-- Unity / Standalone Cross-platform Native plugin to run VFX
+- ⚡ **High Performance** - Optimized batch rendering minimizes draw calls
+- 🎮 **Unity Compatible** - Import particle systems from Unity's Shuriken system
+- 🎨 **Visual Editor** - Design effects visually with [three.quarks-editor](https://quarks.art/create)
+- 🔧 **Flexible** - Extensible plugin system for custom behaviors and emitters
+- ✅ **Production Ready** - Used in games and interactive applications
 
-## Features
-
-- Semi-compatible Unity (shuriken) Particle system
-- Support Mesh Standard Material and Mesh Basic Material
-- Batch Render Multiple Particle System (reduce draw calls) - [BatchedParticleRenderer](https://github.com/Alchemist0823/three.quarks/tree/master/src/BatchedParticleRenderer.ts)
-- Emission Shape and Control
-  - Mesh Surface Emitter
-- Plugin System - [Plugin](https://github.com/Alchemist0823/three.quarks/tree/master/src/Plugin.ts)
-  - Customizable Behaviors
-  - Customizable Emitter Shape
-- 4 Type of renderer
-  - Billboard
-  - Stretched Billboard
-  - Mesh Renderer
-  - Trail Renderer [TrailBatch](https://github.com/Alchemist0823/three.quarks/tree/master/src/TrailBatch.ts)
-- Spawn Particle on Mesh Surface
-- Configuable RenderMode and BlendMode
-- 1D Bézier curve function for adjusting
-- Texture Atlas Animation
-- User Extension and Customization
-- A realtime editor to test and create visual effects [three.quarks-editor](https://github.com/Alchemist0823/three.quarks-editor)
-- VFX json load and save
-
-three.quarks computes most particle information on CPU, and it uses customized shader
-, instancing, batch techniques to render those particles with as few draw calls as possible.
-three.quarks supports one dimension piecewise Bézier curves for the customizable transform
-visual effect. Most importantly, developers can customize how the particle system works
-by adding their own Behavior.
-
-### Install
-
-#### Package install
+## 📦 Installation
 
 ```bash
 npm install three.quarks
 ```
 
-### Check [examples](./packages/three.quarks/examples) folder
-
-Add particle system to the scene
+## ⚡ Quick Start
 
 ```javascript
-const clock = new THREE.Clock();
-const batchSystem = new BatchedRenderer();
-const texture = new TextureLoader().load("atlas.png");
-// Particle system configuration
-const muzzle = {
-    duration: 1,
-    looping: false,
-    startLife: new IntervalValue(0.1, 0.2),
-    startSpeed: new ConstantValue(0),
-    startSize: new IntervalValue(1, 5),
+import * as THREE from 'three';
+import {
+    BatchedRenderer,
+    ParticleSystem,
+    ConstantValue,
+    IntervalValue,
+    ConstantColor,
+    PointEmitter,
+    RenderMode
+} from 'three.quarks';
+
+// 1. Create the batch renderer (manages all particle systems)
+const batchRenderer = new BatchedRenderer();
+scene.add(batchRenderer);
+
+// 2. Define your particle system
+const particles = new ParticleSystem({
+    duration: 2,
+    looping: true,
+    startLife: new IntervalValue(1, 2),
+    startSpeed: new ConstantValue(5),
+    startSize: new IntervalValue(0.1, 0.3),
     startColor: new ConstantColor(new THREE.Vector4(1, 1, 1, 1)),
-    worldSpace: false,
-
-    maxParticle: 5,
-    emissionOverTime: new ConstantValue(0),
-    emissionBursts: [{
-        time: 0,
-        count: new ConstantValue(1),
-        cycle: 1,
-        interval: 0.01,
-        probability: 1,
-    }],
-
+    maxParticle: 100,
+    emissionOverTime: new ConstantValue(20),
     shape: new PointEmitter(),
-    material: new MeshBasicMaterial({map: texture, blending: AdditiveBlending, transparent: true}),
-    startTileIndex: new ConstantValue(91),
-    uTileCount: 10,
-    vTileCount: 10,
-    renderOrder: 2,
-    renderMode: RenderMode.Mesh
-};
-
-// Create particle system based on your configuration
-muzzle1 = new ParticleSystem(muzzle);
-// developers can customize how the particle system works by 
-// using existing behavior or adding their own Behavior.
-muzzle1.addBehavior(new ColorOverLife(new ColorRange(new THREE.Vector4(1, 0.3882312, 0.125, 1), new THREE.Vector4(1, 0.826827, 0.3014706, 1))));
-muzzle1.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
-// texture atlas animation
-muzzle1.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
-muzzle1.emitter.name = 'muzzle1';
-muzzle1.emitter.position.x = 1;
-
-batchSystem.addSystem(muzzle1);
-
-// Add emitter to your Object3D
-scene.add(muzzle1.emitter);
-scene.add(batchSystem);
-```
-
-Add batch renderer update in your main loop
-
-```javascript
-// update batched renderer
-batchSystem.update(clock.getDelta());
-```
-
-#### Import VFX JSON
-
-```javascript
-const batchSystem = new BatchedRenderer();
-const loader = new QuarksLoader();
-loader.setCrossOrigin("");
-loader.load(jsonURL, (obj) => {
-    // the API uses manuel loading because users may need to 
-    // store the VFX somewhere to reuse it later.
-    QuarksUtil.addToBatchRenderer(obj, batchRenderer);
-    scene.add(obj);
-}, () => {
-}, () => {
+    material: new THREE.MeshBasicMaterial({
+        map: yourTexture,
+        transparent: true
+    }),
+    renderMode: RenderMode.BillBoard
 });
-scene.add(batchSystem);
+
+// 3. Add to scene and renderer
+scene.add(particles.emitter);
+batchRenderer.addSystem(particles);
+
+// 4. Update in your animation loop
+function animate() {
+    const delta = clock.getDelta();
+    batchRenderer.update(delta);
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+}
 ```
 
-#### Play multiple instances of loaded effect
+## 📂 Loading VFX from JSON
+
+Export effects from the visual editor and load them at runtime:
 
 ```javascript
-const effect = loadedEffect.clone(true);
-scene.add(effect);
-QuarksUtil.setAutoDestroy(effect, true);
-QuarksUtil.addToBatchRenderer(effect, batchSystem);
-// if you want to stop the effect animation at the beginning you could run pause
-QuarksUtil.pause(effect);
-QuarksUtil.play(effect);
+import { QuarksLoader, QuarksUtil, BatchedRenderer } from 'three.quarks';
+
+const batchRenderer = new BatchedRenderer();
+const loader = new QuarksLoader();
+
+loader.load('effects/explosion.json', (effect) => {
+    QuarksUtil.addToBatchRenderer(effect, batchRenderer);
+    scene.add(effect);
+});
+
+scene.add(batchRenderer);
 ```
 
-Note: the texture url reference is defined by the texture's name field.
-you may need to modify the texture url in json as needed.
-
-#### Export VFX JSON
+### Playing Multiple Instances
 
 ```javascript
-JSON.stringify(muzzle1.emitter.toJSON())
-JSON.stringify(muzzle1.emitter.parent.toJSON())
+// Clone and play the effect multiple times
+const instance = loadedEffect.clone();
+scene.add(instance);
+
+QuarksUtil.addToBatchRenderer(instance, batchRenderer);
+QuarksUtil.setAutoDestroy(instance, true); // Auto-cleanup when finished
+QuarksUtil.play(instance);
 ```
 
-## Examples
+## ⚛️ React Three Fiber
 
-Launch Examples
+Use the `quarks.r3f` package for declarative React integration:
 
 ```bash
-npm install             # install dependencies
-npm run build           # build three.quarks
-npm run example         # start an HTTP server to serve example particle effects
+npm install quarks.r3f three.quarks
 ```
 
-### three.quarks-editor
+```tsx
+import { Canvas } from '@react-three/fiber'
+import { QuarksProvider, ParticleSystem } from 'quarks.r3f'
+import { ConeEmitter, SizeOverLife, PiecewiseBezier, Bezier, RenderMode } from 'three.quarks'
 
-three.quarks-editor can help you preview a set of particle system at once.
- and you can also adjust all the particle system at real time and export those system
-  as a JSON file. Your app or game can load those JSON file later. It even includes a
-  Javascript scripting system to test those effect in a similar environment to your
-  application.
+function FireEffect() {
+    const shape = useMemo(() => new ConeEmitter({ angle: 0.3, radius: 0.2 }), [])
+    const behaviors = useMemo(() => [
+        new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.5, 0.2, 0), 0]]))
+    ], [])
 
-### Tests
+    return (
+        <ParticleSystem
+            duration={5}
+            looping
+            startLife={[1, 2]}
+            startSpeed={[2, 4]}
+            startSize={0.5}
+            startColor={{ r: 1, g: 0.5, b: 0.2, a: 1 }}
+            emissionOverTime={40}
+            shape={shape}
+            renderMode={RenderMode.BillBoard}
+            behaviors={behaviors}
+            position={[0, 0, 0]}
+            autoPlay
+        />
+    )
+}
 
-Check [test](./packages/three.quarks/test) folder
+function App() {
+    return (
+        <Canvas>
+            <QuarksProvider>
+                <FireEffect />
+            </QuarksProvider>
+        </Canvas>
+    )
+}
+```
 
-More examples will come up later.
+See [quarks.r3f documentation](./packages/quarks.r3f/README.md) for full API reference.
 
-### Notes
+## ✨ Features
 
-<s>
-If you want the best performance please consider `yarn link` [https://github.com/Alchemist0823/three.js](https://github.com/Alchemist0823/three.js).
-This version of three.js performs much better than official release, because it avoids unnecessary `getProgramCachedKey()` calls and material updates.
-</s>
+### 🎬 Renderers
+- **Billboard** - Camera-facing sprites
+- **Stretched Billboard** - Velocity-aligned sprites
+- **Mesh** - 3D geometry particles
+- **Trail** - Ribbon trails behind particles
 
-[github-star]: https://img.shields.io/github/stars/Alchemist0823/three.quarks.svg?style=social
+### 📐 Emitter Shapes
+- Point, Sphere, Hemisphere, Cone, Circle
+- Mesh Surface - Emit from 3D model surfaces
+- Grid - Structured emission patterns
+
+### 🎭 Behaviors
+- Color over lifetime
+- Size over lifetime
+- Rotation over lifetime
+- Force fields
+- Orbital motion
+- Texture animation
+- Sub-emitters
+- Custom behaviors via plugin system
+
+### 🎨 Materials
+- MeshBasicMaterial (unlit)
+- MeshStandardMaterial (PBR)
+- Configurable blending modes
+- Texture atlas support
+
+## 🧪 Examples
+
+Browse the [examples folder](./packages/quarks.examples) or run locally:
+
+```bash
+npm install
+npm run build
+npm run examples
+```
+
+## 📦 Packages
+
+This project is a monorepo with modular packages:
+
+| Package | Description |
+|---------|-------------|
+| **[three.quarks](https://www.npmjs.com/package/three.quarks)** | 🎯 Main package - Three.js particle system with batched rendering, shaders, and full VFX toolkit |
+| **[quarks.core](https://www.npmjs.com/package/quarks.core)** | 🧱 Core library - Framework-agnostic math, behaviors, emitter shapes, and functions (zero dependencies) |
+| **[quarks.r3f](https://www.npmjs.com/package/quarks.r3f)** | ⚛️ React Three Fiber - Declarative R3F components with hooks, Suspense support, and flexible props API |
+| **[quarks.nodes](https://www.npmjs.com/package/quarks.nodes)** | 🔮 Node system - Experimental node-based VFX with visual programming and WebGPU compute support |
+| **quarks.examples** | 🎮 Examples - Interactive demos showcasing particle effects and features |
+| **quarks.playground** | 🧪 Playground - Development sandbox for testing and experimenting with effects |
+
+### 🛠️ Editor
+
+- **[three.quarks-editor](https://quarks.art/create)** - Visual editor for creating and previewing particle effects with real-time preview and JSON export
+
+## 📚 Resources
+
+- [Change Log](./CHANGELOG.md)
+- [Contributing Guide](./CONTRIBUTING.md)
+- [Development Guide](./DEVELOPMENT_GUIDE.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [CodeSandbox Example](https://codesandbox.io/s/three-quarks-atom-particle-system-xp3fvz)
+- [React Three Fiber Package](./packages/quarks.r3f) - Official R3F integration
+
+## 🗺️ Roadmap
+
+- 🔲 WebGPU rendering support
+- 🔲 WebAssembly particle simulation
+- 🔲 Node-based scriptable particle systems
+- 🔲 Cross-platform native plugins
+
+## 📄 License
+
+MIT
+
+[github-star]: https://img.shields.io/github/stars/Alchemist0823/three.quarks.svg?style=flat
 [github-url]: https://github.com/Alchemist0823/three.quarks
 [npm]: https://img.shields.io/npm/v/three.quarks
 [npm-url]: https://www.npmjs.com/package/three.quarks

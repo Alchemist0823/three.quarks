@@ -1,6 +1,6 @@
 {
   "name": "quarks.core",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Core library for Quarks VFX / Particle System Library",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -9,7 +9,7 @@
   "exports": {
     ".": {
       "import": "./dist/quarks.core.esm.js",
-      "require": "./dist/quarks.core.js",
+      "require": "./dist/quarks.core.cjs",
       "types": "./dist/types/index.d.ts"
     }
   },
@@ -19,10 +19,11 @@
     "LICENSE"
   ],
   "scripts": {
+    "clean": "rimraf dist",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "cross-env NODE_ENV=production rollup -c",
     "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
-    "build": "npm run build:types && npm run build:js && cpx ./dist/quarks.core.esm.js ../three.quarks/examples/js/",
+    "build": "npm run clean && npm run build:types && npm run build:js",
     "test": "jest",
     "prettier": "prettier --write --ignore-unknown **/*.ts"
   },
