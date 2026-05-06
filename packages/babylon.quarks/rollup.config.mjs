@@ -19,7 +19,7 @@ export default {
             sourcemap: true,
         },
     ],
-    external: ['@babylonjs/core', /^@babylonjs\/core\/.*/],
+    external: ['@babylonjs/core', /^@babylonjs\/core\/.*/, 'quarks.core'],
     plugins: [
         resolve(),
         commonjs(),
