@@ -17,8 +17,10 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
+    "@babylonjs/core": "^9.0.0",
     "@react-three/drei": "^9.0.0",
     "@react-three/fiber": "^8.0.0",
+    "babylon.quarks": "*",
     "quarks.r3f": "*",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
