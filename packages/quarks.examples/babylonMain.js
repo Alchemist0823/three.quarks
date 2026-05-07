@@ -331,7 +331,6 @@ const refreshTime = 1;
 const demos = [
     {name: 'Muzzle Flash Performance', init: muzzleFlashDemo},
     {name: 'Emitter Shapes', init: emitterShapeDemo},
-    {name: 'Trail Renderer', init: trailDemo},
     {name: 'Explosion (JSON)', init: explosionDemo},
 ];
 
