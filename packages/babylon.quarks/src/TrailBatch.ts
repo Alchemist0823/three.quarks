@@ -130,10 +130,10 @@ export class TrailBatch extends VFXBatch {
         }
 
         const engine = this.scene.getEngine();
-        mat.setFloat('resolutionX', engine.getRenderWidth());
-        mat.setFloat('resolutionY', engine.getRenderHeight());
-        mat.setFloat('lineWidth', 1.0);
-        mat.setFloat('sizeAttenuation', 1.0);
+        mat.setFloat('resolutionX', engine.getRenderWidth() || 1920);
+        mat.setFloat('resolutionY', engine.getRenderHeight() || 1080);
+        mat.setFloat('lineWidth', 5.0);
+        mat.setFloat('sizeAttenuation', 0.0);
         mat.backFaceCulling = false;
 
         if (this.settings.materialTransparent) {
@@ -141,6 +141,15 @@ export class TrailBatch extends VFXBatch {
         }
 
         this.mesh.material = mat;
+
+        // Update resolution uniforms before rendering
+        this.scene.onBeforeRenderObservable.add(() => {
+            if (this.mesh.material) {
+                const e = this.scene.getEngine();
+                (this.mesh.material as ShaderMaterial).setFloat('resolutionX', e.getRenderWidth() || 1920);
+                (this.mesh.material as ShaderMaterial).setFloat('resolutionY', e.getRenderHeight() || 1080);
+            }
+        });
     }
 
     private vector_ = new Vector3();
