@@ -44,22 +44,17 @@ export class TrailBatch extends VFXBatch {
         this.colorBuffer = new Float32Array(this.maxParticles * 8);
         this.indexBuffer = new Uint32Array(this.maxParticles * 6);
 
-        // Initialize with a minimal valid triangle to avoid boundingSphere issues
+        // Initialize with full-capacity buffers (updatable) and a dummy triangle
         this.positionBuffer[0] = 0; this.positionBuffer[1] = 0; this.positionBuffer[2] = 0;
         this.positionBuffer[3] = 1; this.positionBuffer[4] = 0; this.positionBuffer[5] = 0;
         this.positionBuffer[6] = 0; this.positionBuffer[7] = 1; this.positionBuffer[8] = 0;
+        this.positionBuffer[9] = 1; this.positionBuffer[10] = 1; this.positionBuffer[11] = 0;
         this.indexBuffer[0] = 0; this.indexBuffer[1] = 1; this.indexBuffer[2] = 2;
+        this.indexBuffer[3] = 1; this.indexBuffer[4] = 3; this.indexBuffer[5] = 2;
 
-        const vertexData = new VertexData();
-        vertexData.positions = Array.from(this.positionBuffer.subarray(0, 9));
-        vertexData.indices = Array.from(this.indexBuffer.subarray(0, 3));
-        vertexData.uvs = [0, 0, 1, 0, 0, 1];
-        vertexData.applyToMesh(this.mesh, true);
-
-        // Now set the full updatable buffers
         this.mesh.setVerticesData(VertexBuffer.PositionKind, this.positionBuffer, true);
         this.mesh.setVerticesData(VertexBuffer.UVKind, this.uvBuffer, true);
-        this.mesh.setIndices(Array.from(this.indexBuffer.subarray(0, 3)));
+        this.mesh.setIndices(this.indexBuffer, null, true);
 
         const engine = this.scene.getEngine();
 
@@ -300,7 +295,7 @@ export class TrailBatch extends VFXBatch {
         if (index > 0 && triangles > 0) {
             this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positionBuffer);
             this.mesh.updateVerticesData(VertexBuffer.UVKind, this.uvBuffer);
-            this.mesh.updateIndices(Array.from(this.indexBuffer.subarray(0, triangles * 3)));
+            this.mesh.updateIndices(this.indexBuffer);
 
             const prevVB = this.mesh.getVertexBuffer('previous');
             if (prevVB) prevVB.update(this.previousBuffer);
@@ -316,6 +311,7 @@ export class TrailBatch extends VFXBatch {
             this.mesh.setEnabled(true);
             if (this.mesh.subMeshes && this.mesh.subMeshes.length > 0) {
                 this.mesh.subMeshes[0].indexCount = triangles * 3;
+                this.mesh.subMeshes[0].indexStart = 0;
             }
         } else {
             this.mesh.setEnabled(false);
