@@ -18,9 +18,10 @@ import {
 import {MeshBasicMaterial, NormalBlending, AdditiveBlending, TextureLoader, Vector4, Vector3} from 'three';
 import {Demo} from './demo.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {alphaTestShared} from '../shared/alphaTest.shared.js';
 
 export class AlphaTestDemo extends Demo {
-    name = 'AlphaTest';
+    name = alphaTestShared.name;
 
     initScene() {
         super.initScene();
@@ -31,12 +32,12 @@ export class AlphaTestDemo extends Demo {
         new GLTFLoader().load('leave.glb', (gltf) => {
             const geo = gltf.scene.children[0].geometry;
             const leaveConfig = {
-                duration: 5,
+                duration: alphaTestShared.duration,
                 looping: true,
                 instancingGeometry: geo,
-                startLife: new IntervalValue(4, 5),
-                startSpeed: new ConstantValue(5),
-                startSize: new IntervalValue(0.4, 0.5),
+                startLife: new IntervalValue(alphaTestShared.life.min, alphaTestShared.life.max),
+                startSpeed: new ConstantValue(alphaTestShared.speed),
+                startSize: new IntervalValue(alphaTestShared.size.min, alphaTestShared.size.max),
                 startRotation: new RandomQuatGenerator(),
                 startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
                 worldSpace: false,
@@ -46,7 +47,7 @@ export class AlphaTestDemo extends Demo {
                 emissionBursts: [
                     {
                         time: 0,
-                        count: new ConstantValue(100),
+                        count: new ConstantValue(alphaTestShared.burstCount),
                         cycle: 1,
                         interval: 0.01,
                         probability: 1,
@@ -66,13 +67,26 @@ export class AlphaTestDemo extends Demo {
             let leaves = new ParticleSystem(leaveConfig);
             leaves.addBehavior(
                 new Rotation3DOverLife(
-                    new AxisAngleGenerator(new Vector3(0, 0.5, 0.2).normalize(), new ConstantValue(1)),
+                    new AxisAngleGenerator(
+                        new Vector3(
+                            alphaTestShared.angularVelocityAxis.x,
+                            alphaTestShared.angularVelocityAxis.y,
+                            alphaTestShared.angularVelocityAxis.z
+                        ).normalize(),
+                        new ConstantValue(alphaTestShared.angularVelocity)
+                    ),
                     false
                 )
             );
-            leaves.addBehavior(new SpeedOverLife(new PiecewiseBezier([[new Bezier(1, 0.75, 0.5, 0), 0]])));
+            leaves.addBehavior(
+                new SpeedOverLife(
+                    new PiecewiseBezier([
+                        [new Bezier(...alphaTestShared.speedOverLifeCurve), 0],
+                    ])
+                )
+            );
             leaves.emitter.name = 'leaves';
-            leaves.emitter.position.x = 2;
+            leaves.emitter.position.x = alphaTestShared.emitterOffsetX;
 
             this.batchRenderer.addSystem(leaves);
 
