@@ -261,14 +261,13 @@ function trailDemo() {
         scene,
         duration: 5,
         looping: true,
-        startLife: new IntervalValue(3.8, 4.4),
-        startSpeed: new IntervalValue(10, 15),
-        startSize: new ConstantValue(0.2),
+        startLife: new IntervalValue(2, 3),
+        startSpeed: new IntervalValue(5, 10),
+        startSize: new ConstantValue(0.5),
         startColor: new ColorRange(new Vector4(1, 0.5, 0.1, 1), new Vector4(1, 0.8, 0.3, 1)),
-        worldSpace: true,
-        emissionOverTime: new ConstantValue(0),
-        emissionBursts: [{time: 0, count: new ConstantValue(50), cycle: 1, interval: 0.01, probability: 1}],
-        shape: new ConeEmitter({radius: 0.1, angle: 1}),
+        worldSpace: false,
+        emissionOverTime: new ConstantValue(5),
+        shape: new ConeEmitter({radius: 0.1, angle: 0.8}),
         renderMode: RenderMode.Trail,
         rendererEmitterSettings: {startLength: new ConstantValue(20), followLocalOrigin: false},
         texture,
@@ -279,8 +278,8 @@ function trailDemo() {
         vTileCount: 10,
     });
     trail.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
-    trail.addBehavior(new ApplyForce(new Vector3(0, -1, 0), new ConstantValue(20)));
-    trail.emitter.position = new BVector3(0, 0, 0);
+    trail.addBehavior(new ApplyForce(new Vector3(0, -1, 0), new ConstantValue(10)));
+    trail.emitter.position = new BVector3(0, 3, 0);
     batchRenderer.addSystem(trail);
     systems.push(trail);
 }
