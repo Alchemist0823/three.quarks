@@ -299,6 +299,8 @@ async function explosionDemo() {
             if (node.system) {
                 batchRenderer.addSystem(node.system);
                 systems.push(node.system);
+                node.system.restart();
+                node.system.play();
             }
             for (const child of node.getChildren()) {
                 traverse(child);

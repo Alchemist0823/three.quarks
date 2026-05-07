@@ -31,6 +31,7 @@ export class TrailBatch extends VFXBatch {
         this.mesh.dispose();
         this.mesh = new Mesh('trailBatch', this.scene);
         this.mesh.alwaysSelectAsActiveMesh = true;
+        this.mesh.doNotSyncBoundingInfo = true;
 
         this.positionBuffer = new Float32Array(this.maxParticles * 6);
         this.previousBuffer = new Float32Array(this.maxParticles * 6);
