@@ -260,7 +260,7 @@ function trailDemo() {
     const trail = new ParticleSystem({
         scene,
         duration: 5,
-        looping: false,
+        looping: true,
         startLife: new IntervalValue(3.8, 4.4),
         startSpeed: new IntervalValue(10, 15),
         startSize: new ConstantValue(0.2),
@@ -294,11 +294,12 @@ async function explosionDemo() {
         const effect = await loader.load('ps.json');
         effect.parent = batchRenderer;
 
-        // Find all ParticleEmitter children and add to batch renderer
         const traverse = (node) => {
             if (node.system) {
                 batchRenderer.addSystem(node.system);
                 systems.push(node.system);
+                // Make it loop so we see the effect continuously
+                node.system.looping = true;
                 node.system.restart();
                 node.system.play();
             }
