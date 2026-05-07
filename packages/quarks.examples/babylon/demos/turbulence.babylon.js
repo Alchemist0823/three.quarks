@@ -4,12 +4,11 @@ import {
     ParticleSystem,
     ConstantValue,
     IntervalValue,
-    PointEmitter,
+    ConeEmitter,
     RenderMode,
     RandomColor,
     Vector4,
     Noise,
-    Vector3,
 } from 'babylon.quarks';
 import {createSharedTexture} from '../shared/common.js';
 
@@ -19,20 +18,25 @@ export function initTurbulenceBabylonDemo({scene, camera, batchRenderer, systems
 
     const turbulence = new ParticleSystem({
         scene,
-        duration: 6,
+        duration: 1,
         looping: true,
-        startLife: new IntervalValue(1, 2),
-        startSpeed: new IntervalValue(1, 3),
-        startSize: new IntervalValue(0.15, 0.35),
-        startColor: new RandomColor(new Vector4(0.2, 0.6, 1, 1), new Vector4(0.8, 1, 1, 1)),
-        emissionOverTime: new ConstantValue(100),
-        shape: new PointEmitter(),
+        startLife: new ConstantValue(4),
+        startSpeed: new IntervalValue(5, 6),
+        startSize: new ConstantValue(0.1),
+        startColor: new RandomColor(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1)),
+        worldSpace: true,
+        emissionOverTime: new ConstantValue(500),
+        shape: new ConeEmitter({radius: 0.5, angle: 0.5}),
         renderMode: RenderMode.BillBoard,
         texture,
         transparent: true,
         blendMode: Constants.ALPHA_ADD,
+        depthTest: false,
+        depthWrite: false,
     });
-    turbulence.addBehavior(new Noise(new Vector3(3, 3, 3), new ConstantValue(2), new ConstantValue(0.5)));
+    turbulence.addBehavior(new Noise(new ConstantValue(1), new ConstantValue(2)));
+    turbulence.emitter.rotation.x = -Math.PI / 2;
+    turbulence.emitter.position.y = -8;
     batchRenderer.addSystem(turbulence);
     systems.push(turbulence);
 }

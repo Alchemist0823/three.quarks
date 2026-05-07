@@ -16,6 +16,7 @@ export class MeshSurfaceEmitter implements EmitterShape {
     private _mesh?: Mesh;
     private _positions?: Float32Array;
     private _indices?: Uint32Array | Int32Array;
+    private _meshReferenceId?: string;
 
     get mesh() {
         return this._mesh;
@@ -59,7 +60,8 @@ export class MeshSurfaceEmitter implements EmitterShape {
         }
     }
 
-    constructor(mesh?: Mesh) {
+    constructor(mesh?: Mesh, meshReferenceId?: string) {
+        this._meshReferenceId = meshReferenceId;
         if (mesh) this.mesh = mesh;
     }
 
@@ -108,11 +110,11 @@ export class MeshSurfaceEmitter implements EmitterShape {
     }
 
     toJSON(): ShapeJSON {
-        return {type: 'mesh_surface', mesh: this._mesh ? (this._mesh as any).uniqueId?.toString() : ''};
+        return {type: 'mesh_surface', mesh: this._mesh ? (this._mesh as any).uniqueId?.toString() : this._meshReferenceId ?? ''};
     }
 
     clone(): EmitterShape {
-        return new MeshSurfaceEmitter(this._mesh);
+        return new MeshSurfaceEmitter(this._mesh, this._meshReferenceId);
     }
 
     update(_system: IParticleSystem, _delta: number): void {}
@@ -125,7 +127,7 @@ export const MeshSurfaceEmitterPlugin: Plugin = {
         type: 'mesh_surface',
         params: [['mesh', ['mesh']]],
         constructor: MeshSurfaceEmitter,
-        loadJSON: (_json: any) => new MeshSurfaceEmitter(),
+        loadJSON: (json: any) => new MeshSurfaceEmitter(undefined, json?.mesh),
     }],
     behaviors: [],
 };

@@ -2,6 +2,7 @@ import {Vector3 as BVector3} from '@babylonjs/core/Maths/math.vector';
 import {StandardMaterial} from '@babylonjs/core/Materials/standardMaterial';
 import {CubeTexture} from '@babylonjs/core/Materials/Textures/cubeTexture';
 import {MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder';
+import {VertexBuffer} from '@babylonjs/core/Buffers/buffer';
 import {Constants} from '@babylonjs/core/Engines/constants';
 import {
     ParticleSystem,
@@ -31,20 +32,30 @@ export function initMeshMaterialBabylonDemo({scene, camera, batchRenderer, syste
         'negz.jpg',
     ]);
 
-    const particleMesh = MeshBuilder.CreateBox('meshParticleGeo', {size: 0.35}, scene);
+    const particleMesh = MeshBuilder.CreateCapsule('meshParticleGeo', {radius: 1, height: 3, tessellation: 12, subdivisions: 3}, scene);
     particleMesh.material = meshMaterial;
     particleMesh.isVisible = false;
+    const positions = particleMesh.getVerticesData(VertexBuffer.PositionKind);
+    const normals = particleMesh.getVerticesData(VertexBuffer.NormalKind);
+    const indices = particleMesh.getIndices();
+    if (!positions || !indices) {
+        return;
+    }
 
     const meshSystem = new ParticleSystem({
         scene,
-        duration: 5,
+        duration: 1,
         looping: true,
-        instancingGeometry: particleMesh,
-        startLife: new IntervalValue(1.5, 2.5),
-        startSpeed: new IntervalValue(0.4, 1.2),
-        startSize: new IntervalValue(0.4, 0.8),
+        prewarm: true,
+        instancingGeometry: new Float32Array(positions),
+        instancingNormals: normals ? new Float32Array(normals) : undefined,
+        instancingIndices: new Uint32Array(indices),
+        startLife: new IntervalValue(2.0, 3.0),
+        startSpeed: new ConstantValue(1),
+        startSize: new ConstantValue(0.1),
         startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
-        emissionOverTime: new ConstantValue(30),
+        worldSpace: true,
+        emissionOverTime: new ConstantValue(60),
         shape: new PointEmitter(),
         material: meshMaterial,
         renderMode: RenderMode.Mesh,

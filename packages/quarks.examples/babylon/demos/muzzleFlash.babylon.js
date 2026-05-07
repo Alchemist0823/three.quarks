@@ -81,6 +81,46 @@ export function initMuzzleFlashBabylonDemo({scene, camera, batchRenderer, system
         batchRenderer.addSystem(flash);
         systems.push(flash);
 
+        const muzzleConfig = {
+            scene,
+            duration: 1,
+            looping: false,
+            startLife: new IntervalValue(0.1, 0.2),
+            startSpeed: new ConstantValue(0),
+            startSize: new IntervalValue(1, 5),
+            startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
+            worldSpace: false,
+            emissionOverTime: new ConstantValue(0),
+            emissionBursts: [{time: 0, count: new ConstantValue(1), cycle: 1, interval: 0.01, probability: 1}],
+            shape: new PointEmitter(),
+            renderMode: RenderMode.BillBoard,
+            texture,
+            transparent: true,
+            blendMode: Constants.ALPHA_ADD,
+            startTileIndex: new ConstantValue(91),
+            uTileCount: 10,
+            vTileCount: 10,
+        };
+
+        const muzzle1 = new ParticleSystem(muzzleConfig);
+        muzzle1.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
+        muzzle1.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
+        muzzle1.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
+        muzzle1.emitter.position = position.clone();
+        muzzle1.emitter.position.x += 1;
+        batchRenderer.addSystem(muzzle1);
+        systems.push(muzzle1);
+
+        const muzzle2 = new ParticleSystem(muzzleConfig);
+        muzzle2.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.3882312, 0.125, 1), new Vector4(1, 0.826827, 0.3014706, 1))));
+        muzzle2.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
+        muzzle2.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(91, 94, 97, 100), 0]])));
+        muzzle2.emitter.position = position.clone();
+        muzzle2.emitter.position.x += 1;
+        muzzle2.emitter.rotation.x = Math.PI / 2;
+        batchRenderer.addSystem(muzzle2);
+        systems.push(muzzle2);
+
         const smoke = new ParticleSystem({
             scene,
             duration: 2.5,
@@ -132,6 +172,7 @@ export function initMuzzleFlashBabylonDemo({scene, camera, batchRenderer, system
         });
         particles.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         particles.emitter.position = position;
+        particles.emitter.rotation.y = Math.PI / 2;
         batchRenderer.addSystem(particles);
         systems.push(particles);
     }

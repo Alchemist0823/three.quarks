@@ -101,6 +101,9 @@ export interface ParticleSystemParameters {
     worldSpace?: boolean;
     blendMode?: number;
     transparent?: boolean;
+    depthTest?: boolean;
+    depthWrite?: boolean;
+    alphaTest?: number;
     layerMask?: number;
     scene?: Scene;
 }
@@ -251,6 +254,9 @@ export class ParticleSystem implements IParticleSystem {
             softFarFade: parameters.softFarFade ?? 0,
             materialBlendMode: parameters.blendMode ?? Constants.ALPHA_ADD,
             materialTransparent: parameters.transparent ?? true,
+            materialDepthTest: parameters.depthTest ?? true,
+            materialDepthWrite: parameters.depthWrite ?? false,
+            materialAlphaTest: parameters.alphaTest ?? 0,
             texture: parameters.texture ?? null,
             layerMask: parameters.layerMask ?? 0x0FFFFFFF,
         };
@@ -647,6 +653,9 @@ export class ParticleSystem implements IParticleSystem {
             worldSpace: this.worldSpace,
             blendMode: this.rendererSettings.materialBlendMode,
             transparent: this.rendererSettings.materialTransparent,
+            depthTest: this.rendererSettings.materialDepthTest,
+            depthWrite: this.rendererSettings.materialDepthWrite,
+            alphaTest: this.rendererSettings.materialAlphaTest,
             layerMask: this.rendererSettings.layerMask,
         });
     }

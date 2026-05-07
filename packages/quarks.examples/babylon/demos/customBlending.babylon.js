@@ -3,10 +3,12 @@ import {Constants} from '@babylonjs/core/Engines/constants';
 import {
     ParticleSystem,
     ConstantValue,
-    IntervalValue,
-    PointEmitter,
+    SphereEmitter,
     RenderMode,
     ConstantColor,
+    SpeedOverLife,
+    PiecewiseBezier,
+    Bezier,
     Vector4,
 } from 'babylon.quarks';
 import {createSharedTexture, SHARED_ASSETS} from '../shared/common.js';
@@ -16,18 +18,21 @@ function addBlendSystem({scene, batchRenderer, systems, texture, blendMode, posi
         scene,
         duration: 5,
         looping: true,
-        startLife: new IntervalValue(1, 1.8),
+        startLife: new IntervalValue(4, 5),
         startSpeed: new ConstantValue(0),
-        startSize: new ConstantValue(2),
+        startSize: new IntervalValue(1, 2),
         startColor: new ConstantColor(color),
-        emissionOverTime: new ConstantValue(20),
-        shape: new PointEmitter(),
+        worldSpace: false,
+        emissionOverTime: new ConstantValue(0),
+        emissionBursts: [{time: 0, count: new ConstantValue(10), cycle: 1, interval: 0.01, probability: 1}],
+        shape: new SphereEmitter({radius: 3}),
         renderMode: RenderMode.BillBoard,
         texture,
         transparent: true,
         blendMode,
     });
     system.emitter.position = position;
+    system.addBehavior(new SpeedOverLife(new PiecewiseBezier([[new Bezier(1, 0.75, 0.5, 0), 0]])));
     batchRenderer.addSystem(system);
     systems.push(system);
 }
@@ -41,8 +46,8 @@ export function initCustomBlendingBabylonDemo({scene, camera, batchRenderer, sys
         systems,
         texture,
         blendMode: Constants.ALPHA_ADD,
-        position: new BVector3(-4, 0, 0),
-        color: new Vector4(1, 0.4, 0.2, 1),
+        position: new BVector3(-5, 0, 0),
+        color: new Vector4(0.5, 0.5, 0.5, 1),
     });
     addBlendSystem({
         scene,
@@ -51,15 +56,15 @@ export function initCustomBlendingBabylonDemo({scene, camera, batchRenderer, sys
         texture,
         blendMode: Constants.ALPHA_COMBINE,
         position: new BVector3(0, 0, 0),
-        color: new Vector4(0.2, 0.8, 1, 1),
+        color: new Vector4(0.5, 0.5, 0.5, 1),
     });
     addBlendSystem({
         scene,
         batchRenderer,
         systems,
         texture,
-        blendMode: Constants.ALPHA_MULTIPLY,
-        position: new BVector3(4, 0, 0),
-        color: new Vector4(0.8, 1, 0.4, 1),
+        blendMode: Constants.ALPHA_SUBTRACT,
+        position: new BVector3(5, 0, 0),
+        color: new Vector4(0.5, 0.5, 0.5, 1),
     });
 }

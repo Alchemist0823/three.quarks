@@ -27,6 +27,7 @@ function createBaseScene() {
         scene.dispose();
     }
     scene = new Scene(engine);
+    scene.useRightHandedSystem = true;
     scene.clearColor = new Color4(0.05, 0.05, 0.08, 1);
 
     camera = new ArcRotateCamera('camera', -Math.PI / 2, Math.PI / 3, 20, BVector3.Zero(), scene);

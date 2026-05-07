@@ -1,11 +1,12 @@
 import {Mesh} from '@babylonjs/core/Meshes/mesh';
-import {VertexData} from '@babylonjs/core/Meshes/mesh.vertexData';
 import {VertexBuffer} from '@babylonjs/core/Buffers/buffer';
 import {Effect} from '@babylonjs/core/Materials/effect';
 import {ShaderMaterial} from '@babylonjs/core/Materials/shaderMaterial';
 import {Scene} from '@babylonjs/core/scene';
 import {BoundingInfo} from '@babylonjs/core/Culling/boundingInfo';
 import {Vector3 as BVector3} from '@babylonjs/core/Maths/math.vector';
+import {Vector2 as BVector2} from '@babylonjs/core/Maths/math.vector';
+import {Constants} from '@babylonjs/core/Engines/constants';
 import {Matrix4, Quaternion, RecordState, TrailParticle, Vector3} from 'quarks.core';
 import {VFXBatch, RenderMode} from './VFXBatch';
 import {VFXBatchSettings} from './BatchedRenderer';
@@ -21,6 +22,10 @@ export class TrailBatch extends VFXBatch {
     private widthBuffer!: Float32Array;
     private colorBuffer!: Float32Array;
     private indexBuffer!: Uint32Array;
+    private previousVB!: VertexBuffer;
+    private nextVB!: VertexBuffer;
+    private sideVB!: VertexBuffer;
+    private widthVB!: VertexBuffer;
 
     constructor(settings: VFXBatchSettings, scene: Scene) {
         super(settings, scene);
@@ -57,6 +62,15 @@ export class TrailBatch extends VFXBatch {
         this.mesh.setVerticesData(VertexBuffer.UVKind, this.uvBuffer, true);
         this.mesh.setVerticesData(VertexBuffer.ColorKind, this.colorBuffer, true, 4);
         this.mesh.setIndices(Array.from(this.indexBuffer.subarray(0, 6)), null, true);
+        const engine = this.scene.getEngine();
+        this.previousVB = new VertexBuffer(engine, this.previousBuffer, 'previous', true, false, 3, true);
+        this.nextVB = new VertexBuffer(engine, this.nextBuffer, 'next', true, false, 3, true);
+        this.sideVB = new VertexBuffer(engine, this.sideBuffer, 'side', true, false, 1, true);
+        this.widthVB = new VertexBuffer(engine, this.widthBuffer, 'width', true, false, 1, true);
+        this.mesh.setVerticesBuffer(this.previousVB);
+        this.mesh.setVerticesBuffer(this.nextVB);
+        this.mesh.setVerticesBuffer(this.sideVB);
+        this.mesh.setVerticesBuffer(this.widthVB);
 
         // Disable bounding info recomputation
         this.mesh.doNotSyncBoundingInfo = true;
@@ -90,8 +104,8 @@ export class TrailBatch extends VFXBatch {
         Effect.ShadersStore[shaderName + 'VertexShader'] = trail_vert;
         Effect.ShadersStore[shaderName + 'FragmentShader'] = trail_frag;
 
-        const attributes = ['position', 'uv', 'color'];
-        const uniforms = ['worldViewProjection', 'view', 'projection'];
+        const attributes = ['position', 'previous', 'next', 'side', 'width', 'uv', 'color'];
+        const uniforms = ['world', 'view', 'projection', 'worldViewProjection', 'lineWidth', 'resolution', 'sizeAttenuation'];
         const samplers: string[] = [];
 
         if (this.settings.texture) {
@@ -112,12 +126,25 @@ export class TrailBatch extends VFXBatch {
         if (this.settings.texture) {
             mat.setTexture('map', this.settings.texture);
         }
+        const engine = this.scene.getEngine();
+        mat.setFloat('lineWidth', 1);
+        mat.setVector2('resolution', new BVector2(engine.getRenderWidth(), engine.getRenderHeight()));
+        mat.setFloat('sizeAttenuation', 1);
+        mat.onBindObservable.add(() => {
+            const renderEngine = this.scene.getEngine();
+            mat.setVector2('resolution', new BVector2(renderEngine.getRenderWidth(), renderEngine.getRenderHeight()));
+        });
 
         mat.backFaceCulling = false;
 
         if (this.settings.materialTransparent) {
             mat.alphaMode = this.settings.materialBlendMode;
+        } else {
+            mat.alphaMode = Constants.ALPHA_DISABLE;
         }
+        mat.needDepthPrePass = this.settings.materialDepthWrite;
+        mat.forceDepthWrite = this.settings.materialDepthWrite;
+        mat.disableDepthWrite = !this.settings.materialDepthWrite;
 
         this.mesh.material = mat;
     }
@@ -171,7 +198,7 @@ export class TrailBatch extends VFXBatch {
                 if (!curIter.done) curIter = iter.next();
                 let next: RecordState;
                 if (curIter.value !== undefined) {
-                    next = curIter.value;
+                    next = curIter.value as RecordState;
                 } else {
                     next = current;
                 }
@@ -276,7 +303,7 @@ export class TrailBatch extends VFXBatch {
                     if (!curIter.done) {
                         curIter = iter.next();
                         if (curIter.value !== undefined) {
-                            next = curIter.value;
+                            next = curIter.value as RecordState;
                         }
                     }
                 }
@@ -287,6 +314,10 @@ export class TrailBatch extends VFXBatch {
             this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positionBuffer);
             this.mesh.updateVerticesData(VertexBuffer.UVKind, this.uvBuffer);
             this.mesh.updateIndices(Array.from(this.indexBuffer.subarray(0, triangles * 3)));
+            this.previousVB.update(this.previousBuffer);
+            this.nextVB.update(this.nextBuffer);
+            this.sideVB.update(this.sideBuffer);
+            this.widthVB.update(this.widthBuffer);
 
             const colorVB = this.mesh.getVertexBuffer(VertexBuffer.ColorKind);
             if (colorVB) colorVB.update(this.colorBuffer);

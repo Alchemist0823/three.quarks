@@ -4,6 +4,8 @@ import {VertexBuffer} from '@babylonjs/core/Buffers/buffer';
 import {Effect} from '@babylonjs/core/Materials/effect';
 import {ShaderMaterial} from '@babylonjs/core/Materials/shaderMaterial';
 import {Scene} from '@babylonjs/core/scene';
+import {Constants} from '@babylonjs/core/Engines/constants';
+import {Vector2 as BVector2, Vector4 as BVector4} from '@babylonjs/core/Maths/math.vector';
 import {
     Vector3,
     Vector4,
@@ -125,6 +127,21 @@ export class SpriteBatch extends VFXBatch {
         if (this.settings.uTileCount > 1 || this.settings.vTileCount > 1) {
             defines.push('UV_TILE');
         }
+        if (this.settings.blendTiles) {
+            defines.push('TILE_BLEND');
+        }
+        if (this.settings.softParticles) {
+            defines.push('SOFT_PARTICLES');
+        }
+        if (this.settings.materialAlphaTest > 0) {
+            defines.push('USE_ALPHATEST');
+        }
+        if (this.settings.renderMode === RenderMode.VerticalBillBoard) {
+            defines.push('VERTICAL');
+        }
+        if (this.settings.renderMode === RenderMode.HorizontalBillBoard) {
+            defines.push('HORIZONTAL');
+        }
 
         Effect.ShadersStore[shaderName + 'VertexShader'] = vertexShader;
         Effect.ShadersStore[shaderName + 'FragmentShader'] = particle_frag;
@@ -147,6 +164,14 @@ export class SpriteBatch extends VFXBatch {
         if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
             uniforms.push('speedFactor');
         }
+        if (this.settings.softParticles) {
+            uniforms.push('softParams');
+            uniforms.push('projParams');
+            samplers.push('depthTexture');
+        }
+        if (this.settings.materialAlphaTest > 0) {
+            uniforms.push('alphaTest');
+        }
 
         const mat = new ShaderMaterial(shaderName, this.scene,
             {vertex: shaderName, fragment: shaderName},
@@ -167,14 +192,31 @@ export class SpriteBatch extends VFXBatch {
             mat.setFloat('tileCountY', this.settings.vTileCount);
         }
         if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
-            mat.setFloat('speedFactor', 1.0);
+            mat.setFloat('speedFactor', this.settings.softNearFade > 0 ? this.settings.softNearFade : 1.0);
+        }
+        if (this.settings.softParticles) {
+            mat.setVector2('softParams', new BVector2(this.settings.softNearFade, 1.0 / Math.max(this.settings.softFarFade - this.settings.softNearFade, 0.0001)));
+            mat.onBindObservable.add(() => {
+                const camera = this.scene.activeCamera;
+                if (camera) {
+                    mat.setVector4('projParams', new BVector4(camera.minZ, camera.maxZ, 0, 0));
+                }
+            });
+        }
+        if (this.settings.materialAlphaTest > 0) {
+            mat.setFloat('alphaTest', this.settings.materialAlphaTest);
         }
 
         mat.backFaceCulling = false;
 
         if (this.settings.materialTransparent) {
             mat.alphaMode = this.settings.materialBlendMode;
+        } else {
+            mat.alphaMode = Constants.ALPHA_DISABLE;
         }
+        mat.needDepthPrePass = this.settings.materialDepthWrite;
+        mat.forceDepthWrite = this.settings.materialDepthWrite;
+        mat.disableDepthWrite = !this.settings.materialDepthWrite;
 
         this.mesh.material = mat;
     }
@@ -300,6 +342,11 @@ export class SpriteBatch extends VFXBatch {
                     this.velocityBuffer[vi + 3] = lengthFactor;
                 }
             }
+        }
+
+        if (this.settings.renderMode === RenderMode.StretchedBillBoard && this.mesh.material instanceof ShaderMaterial && visibleSystems.length > 0) {
+            const speedFactor = (visibleSystems[0].rendererEmitterSettings as StretchedBillBoardSettings).speedFactor ?? 1.0;
+            this.mesh.material.setFloat('speedFactor', speedFactor === 0 ? 0.001 : speedFactor);
         }
 
         this.mesh.forcedInstanceCount = index;

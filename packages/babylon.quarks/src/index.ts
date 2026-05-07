@@ -1,3 +1,6 @@
+import {loadPlugin} from 'quarks.core';
+import {MeshSurfaceEmitterPlugin} from './MeshSurfaceEmitter';
+
 export {BatchedRenderer} from './BatchedRenderer';
 export type {VFXBatchSettings} from './BatchedRenderer';
 export {VFXBatch, RenderMode} from './VFXBatch';
@@ -11,6 +14,7 @@ export {QuarksUtil} from './QuarksUtil';
 export {QuarksLoader} from './QuarksLoader';
 export type {QuarksLoaderOptions} from './QuarksLoader';
 export {MeshSurfaceEmitter, MeshSurfaceEmitterPlugin} from './MeshSurfaceEmitter';
+export * from 'quarks.core';
 
 // Re-export quarks.core runtime values (classes)
 export {
@@ -95,3 +99,4 @@ export type {
 } from 'quarks.core';
 
 console.log(' Particle system powered by babylon.quarks. https://quarks.art/');
+loadPlugin(MeshSurfaceEmitterPlugin);

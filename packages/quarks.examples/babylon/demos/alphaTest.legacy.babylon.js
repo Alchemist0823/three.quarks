@@ -2,6 +2,7 @@ import {Vector3 as BVector3} from '@babylonjs/core/Maths/math.vector';
 import {Texture} from '@babylonjs/core/Materials/Textures/texture';
 import {StandardMaterial} from '@babylonjs/core/Materials/standardMaterial';
 import {MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder';
+import {VertexBuffer} from '@babylonjs/core/Buffers/buffer';
 import {
     ParticleSystem,
     RenderMode,
@@ -9,6 +10,7 @@ import {
     IntervalValue,
     ConstantColor,
     PointEmitter,
+    RandomQuatGenerator,
     PiecewiseBezier,
     Bezier,
     Vector4,
@@ -34,12 +36,23 @@ export function initAlphaTestBabylonDemo({scene, camera, batchRenderer, systems}
     const leafMesh = MeshBuilder.CreatePlane('alphaTestLeafMesh', {size: 0.8}, scene);
     leafMesh.material = leafMaterial;
     leafMesh.isVisible = false;
+    const positions = leafMesh.getVerticesData(VertexBuffer.PositionKind);
+    const uvs = leafMesh.getVerticesData(VertexBuffer.UVKind);
+    const normals = leafMesh.getVerticesData(VertexBuffer.NormalKind);
+    const indices = leafMesh.getIndices();
+    if (!positions || !indices) {
+        return;
+    }
 
     const leaves = new ParticleSystem({
         scene,
         duration: alphaTestShared.duration,
         looping: true,
-        instancingGeometry: leafMesh,
+        instancingGeometry: new Float32Array(positions),
+        instancingUVs: uvs ? new Float32Array(uvs) : undefined,
+        instancingNormals: normals ? new Float32Array(normals) : undefined,
+        instancingIndices: new Uint32Array(indices),
+        startRotation: new RandomQuatGenerator(),
         startLife: new IntervalValue(alphaTestShared.life.min, alphaTestShared.life.max),
         startSpeed: new ConstantValue(alphaTestShared.speed),
         startSize: new IntervalValue(alphaTestShared.size.min, alphaTestShared.size.max),
@@ -57,6 +70,9 @@ export function initAlphaTestBabylonDemo({scene, camera, batchRenderer, systems}
             },
         ],
         shape: new PointEmitter(),
+        texture: diffuseTexture,
+        alphaTest: 0.5,
+        transparent: true,
         material: leafMaterial,
         startTileIndex: new ConstantValue(0),
         uTileCount: 1,

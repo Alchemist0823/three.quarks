@@ -1,5 +1,7 @@
 import {Mesh} from '@babylonjs/core/Meshes/mesh';
 import {Scene} from '@babylonjs/core/scene';
+import {BaseTexture} from '@babylonjs/core/Materials/Textures/baseTexture';
+import {ShaderMaterial} from '@babylonjs/core/Materials/shaderMaterial';
 import {IParticleSystem} from 'quarks.core';
 import {VFXBatchSettings} from './BatchedRenderer';
 
@@ -27,6 +29,9 @@ export interface StoredBatchSettings {
     softFarFade: number;
     materialBlendMode: number;
     materialTransparent: boolean;
+    materialDepthTest: boolean;
+    materialDepthWrite: boolean;
+    materialAlphaTest: number;
     texture: any;
     layerMask: number;
 }
@@ -57,6 +62,9 @@ export abstract class VFXBatch {
             softFarFade: settings.softFarFade,
             materialBlendMode: settings.materialBlendMode,
             materialTransparent: settings.materialTransparent,
+            materialDepthTest: settings.materialDepthTest,
+            materialDepthWrite: settings.materialDepthWrite,
+            materialAlphaTest: settings.materialAlphaTest,
             texture: settings.texture,
             layerMask: settings.layerMask,
         };
@@ -74,6 +82,13 @@ export abstract class VFXBatch {
 
     getVisibleSystems(): IParticleSystem[] {
         return Array.from(this.systems).filter((system) => system.emitter.visible);
+    }
+
+    applyDepthTexture(depthTexture: BaseTexture | null): void {
+        const material = this.mesh.material;
+        if (material && material instanceof ShaderMaterial) {
+            material.setTexture('depthTexture', depthTexture);
+        }
     }
 
     abstract setupBuffers(): void;

@@ -1,6 +1,7 @@
 import {TransformNode} from '@babylonjs/core/Meshes/transformNode';
 import {Scene} from '@babylonjs/core/scene';
 import {Texture} from '@babylonjs/core/Materials/Textures/texture';
+import {BaseTexture} from '@babylonjs/core/Materials/Textures/baseTexture';
 import {IParticleSystem} from 'quarks.core';
 import {VFXBatch, RenderMode, StoredBatchSettings} from './VFXBatch';
 import {SpriteBatch} from './SpriteBatch';
@@ -22,6 +23,9 @@ export interface VFXBatchSettings {
     softFarFade: number;
     materialBlendMode: number;
     materialTransparent: boolean;
+    materialDepthTest: boolean;
+    materialDepthWrite: boolean;
+    materialAlphaTest: number;
     texture: Texture | null;
     layerMask: number;
 }
@@ -29,6 +33,7 @@ export interface VFXBatchSettings {
 export class BatchedRenderer extends TransformNode {
     batches: Array<VFXBatch> = [];
     systemToBatchIndex: Map<IParticleSystem, number> = new Map<IParticleSystem, number>();
+    depthTexture: BaseTexture | null = null;
 
     constructor(name: string, scene: Scene) {
         super(name, scene);
@@ -38,6 +43,9 @@ export class BatchedRenderer extends TransformNode {
         return (
             a.materialBlendMode === b.materialBlendMode &&
             a.materialTransparent === b.materialTransparent &&
+            a.materialDepthTest === b.materialDepthTest &&
+            a.materialDepthWrite === b.materialDepthWrite &&
+            a.materialAlphaTest === b.materialAlphaTest &&
             a.texture === b.texture &&
             a.renderMode === b.renderMode &&
             a.blendTiles === b.blendTiles &&
@@ -79,6 +87,9 @@ export class BatchedRenderer extends TransformNode {
                 throw new Error(`Unsupported render mode: ${settings.renderMode}`);
         }
         batch.mesh.parent = this;
+        if (this.depthTexture) {
+            batch.applyDepthTexture(this.depthTexture);
+        }
         batch.addSystem(system);
         this.batches.push(batch);
         this.systemToBatchIndex.set(system, this.batches.length - 1);
@@ -95,6 +106,13 @@ export class BatchedRenderer extends TransformNode {
     updateSystem(system: IParticleSystem) {
         this.deleteSystem(system);
         this.addSystem(system);
+    }
+
+    setDepthTexture(depthTexture: BaseTexture | null) {
+        this.depthTexture = depthTexture;
+        for (const batch of this.batches) {
+            batch.applyDepthTexture(depthTexture);
+        }
     }
 
     update(delta: number) {

@@ -1,7 +1,9 @@
 import {Scene} from '@babylonjs/core/scene';
 import {TransformNode} from '@babylonjs/core/Meshes/transformNode';
+import {Mesh} from '@babylonjs/core/Meshes/mesh';
 import {Texture} from '@babylonjs/core/Materials/Textures/texture';
 import {Constants} from '@babylonjs/core/Engines/constants';
+import {Matrix, Quaternion, Vector3} from '@babylonjs/core/Maths/math.vector';
 import {
     Behavior,
     EmitSubParticleSystem,
@@ -244,19 +246,22 @@ export class QuarksLoader {
         if (data.name) node.name = data.name;
 
         if (data.matrix) {
-            const m = data.matrix;
-            node.position.set(0, 0, 0);
-            node.rotationQuaternion = null;
-            node.scaling.set(1, 1, 1);
-            // Decompose 4x4 column-major matrix
-            const sx = Math.sqrt(m[0] * m[0] + m[1] * m[1] + m[2] * m[2]);
-            const sy = Math.sqrt(m[4] * m[4] + m[5] * m[5] + m[6] * m[6]);
-            const sz = Math.sqrt(m[8] * m[8] + m[9] * m[9] + m[10] * m[10]);
-            node.position.set(m[12], m[13], m[14]);
-            node.scaling.set(sx, sy, sz);
+            const matrix = Matrix.FromArray(data.matrix);
+            const scaling = new Vector3(1, 1, 1);
+            const rotation = Quaternion.Identity();
+            const translation = new Vector3(0, 0, 0);
+            matrix.decompose(scaling, rotation, translation);
+            node.position.copyFrom(translation);
+            node.scaling.copyFrom(scaling);
+            node.rotationQuaternion = rotation;
         } else {
             if (data.position) node.position.set(data.position[0], data.position[1], data.position[2]);
             if (data.scale) node.scaling.set(data.scale[0], data.scale[1], data.scale[2]);
+            if (data.quaternion) {
+                node.rotationQuaternion = new Quaternion(data.quaternion[0], data.quaternion[1], data.quaternion[2], data.quaternion[3]);
+            } else if (data.rotation) {
+                node.rotation.set(data.rotation[0], data.rotation[1], data.rotation[2]);
+            }
         }
 
         if (data.visible !== undefined) node.setEnabled(data.visible);
@@ -294,6 +299,9 @@ export class QuarksLoader {
         const texture = matInfo?.texture || null;
         const transparent = matInfo?.transparent ?? json.transparent ?? true;
         const blendMode = matInfo?.alphaMode ?? Constants.ALPHA_ADD;
+        const depthTest = matInfo?.depthTest ?? true;
+        const depthWrite = matInfo?.depthWrite ?? false;
+        const alphaTest = matInfo?.alphaTest ?? 0;
 
         let geomData = meta.geometries[json.instancingGeometry];
         if (!geomData) {
@@ -323,7 +331,7 @@ export class QuarksLoader {
                 count: typeof burst.count === 'number' ? new ConstantValue(burst.count) : ValueGeneratorFromJSON(burst.count),
                 probability: burst.probability ?? 1,
                 interval: burst.interval ?? 0.1,
-                cycle: burst.cycle ?? 1,
+                cycle: burst.cycle ?? burst.cycleCount ?? 1,
             })),
             onlyUsedByOther: json.onlyUsedByOther,
             instancingGeometry: geomData.positions,
@@ -336,6 +344,9 @@ export class QuarksLoader {
             texture,
             transparent,
             blendMode,
+            depthTest,
+            depthWrite,
+            alphaTest,
             startTileIndex: typeof json.startTileIndex === 'number'
                 ? new ConstantValue(json.startTileIndex)
                 : (ValueGeneratorFromJSON(json.startTileIndex) as ValueGenerator),
@@ -349,6 +360,7 @@ export class QuarksLoader {
             worldSpace: json.worldSpace,
             layerMask: json.layers,
         });
+        (ps as any)._meshSurfaceReferenceUUID = json?.shape?.type === 'mesh_surface' ? json?.shape?.mesh : undefined;
 
         const dependencies: {[uuid: string]: Behavior} = {};
         ps.behaviors = json.behaviors.map((behaviorJson: any) => {
@@ -380,6 +392,13 @@ export class QuarksLoader {
         const linkNode = (node: TransformNode) => {
             if (node instanceof ParticleEmitter) {
                 const system = node.system as ParticleSystem;
+                const meshSurfaceUUID = (system as any)._meshSurfaceReferenceUUID;
+                if (meshSurfaceUUID && (system.emitterShape as any).type === 'mesh_surface') {
+                    const targetNode = nodesMap[meshSurfaceUUID];
+                    if (targetNode instanceof Mesh) {
+                        (system.emitterShape as any).mesh = targetNode;
+                    }
+                }
                 for (let i = 0; i < system.behaviors.length; i++) {
                     if (system.behaviors[i] instanceof EmitSubParticleSystem) {
                         const subEmitter = system.behaviors[i] as EmitSubParticleSystem;

@@ -7,15 +7,20 @@ import {
     ParticleSystem,
     ConstantValue,
     IntervalValue,
-    PointEmitter,
+    ConeEmitter,
     RenderMode,
     ConstantColor,
     Vector4,
+    SpeedOverLife,
+    PiecewiseBezier,
+    Bezier,
 } from 'babylon.quarks';
 import {createSharedTexture, SHARED_ASSETS} from '../shared/common.js';
 
 export function initFollowObjectBabylonDemo({scene, camera, batchRenderer, systems, demoState}) {
-    camera.setPosition(new BVector3(0, 8, 20));
+    camera.setPosition(new BVector3(0, 10, 60));
+    camera.lowerRadiusLimit = 1;
+    camera.upperRadiusLimit = 200;
     const texture = createSharedTexture(scene, SHARED_ASSETS.defaultParticle);
 
     const leader = MeshBuilder.CreateSphere('followLeader', {diameter: 0.6}, scene);
@@ -27,24 +32,27 @@ export function initFollowObjectBabylonDemo({scene, camera, batchRenderer, syste
         scene,
         duration: 6,
         looping: true,
-        startLife: new IntervalValue(1, 2),
-        startSpeed: new IntervalValue(0.4, 1.2),
-        startSize: new IntervalValue(0.2, 0.5),
-        startColor: new ConstantColor(new Vector4(1, 0.8, 0.3, 1)),
-        emissionOverTime: new ConstantValue(30),
-        shape: new PointEmitter(),
+        startLife: new IntervalValue(2, 3),
+        startSpeed: new ConstantValue(20),
+        startSize: new IntervalValue(1, 2),
+        startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
+        worldSpace: false,
+        emissionOverTime: new ConstantValue(10),
+        shape: new ConeEmitter({radius: 0.1, angle: 0.1}),
         renderMode: RenderMode.BillBoard,
         texture,
         transparent: true,
         blendMode: Constants.ALPHA_ADD,
     });
+    system.addBehavior(new SpeedOverLife(new PiecewiseBezier([[new Bezier(1, 0.75, 0.5, 0), 0]])));
+    system.emitter.parent = leader;
     batchRenderer.addSystem(system);
     systems.push(system);
 
     demoState.followObject = {
         elapsed: 0,
         leader,
-        emitter: system.emitter,
+        camera,
     };
 }
 
@@ -54,8 +62,11 @@ export function updateFollowObjectBabylonDemo({demoState}, delta) {
         return;
     }
     state.elapsed += delta;
-    state.leader.position.x = Math.cos(state.elapsed * 0.7) * 6;
-    state.leader.position.z = Math.sin(state.elapsed * 0.9) * 4;
-    state.leader.position.y = 1.5 + Math.sin(state.elapsed * 1.5) * 1.5;
-    state.emitter.position.copyFrom(state.leader.position);
+    const x = Math.sin(state.elapsed) * 50;
+    const z = Math.cos(state.elapsed) * 50;
+    state.leader.position.x = x;
+    state.leader.position.y = 0;
+    state.leader.position.z = z;
+    state.camera.setPosition(new BVector3(x, 10, z + 10));
+    state.camera.setTarget(new BVector3(x, 0, z));
 }
