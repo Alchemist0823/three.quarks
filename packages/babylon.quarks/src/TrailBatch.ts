@@ -300,22 +300,19 @@ export class TrailBatch extends VFXBatch {
         }
 
         if (index > 0 && triangles > 0) {
-            this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positionBuffer);
-            this.mesh.updateVerticesData(VertexBuffer.UVKind, this.uvBuffer);
-            // Only pass valid indices to avoid boundingSphere computation on invalid vertex refs
-            const validIndices = new Uint32Array(this.indexBuffer.buffer, 0, triangles * 3);
-            this.mesh.updateIndices(validIndices);
+            const vertCount = index;
+            const idxCount = triangles * 3;
 
-            const prevVB = this.mesh.getVertexBuffer('previous');
-            if (prevVB) prevVB.update(this.previousBuffer);
-            const nextVB = this.mesh.getVertexBuffer('next');
-            if (nextVB) nextVB.update(this.nextBuffer);
-            const sideVB = this.mesh.getVertexBuffer('side');
-            if (sideVB) sideVB.update(this.sideBuffer);
-            const widthVB = this.mesh.getVertexBuffer('width');
-            if (widthVB) widthVB.update(this.widthBuffer);
-            const colorVB = this.mesh.getVertexBuffer('color');
-            if (colorVB) colorVB.update(this.colorBuffer);
+            // Rebuild geometry each frame with only valid vertex/index data
+            const positions = Array.from(this.positionBuffer.subarray(0, vertCount * 3));
+            const uvs = Array.from(this.uvBuffer.subarray(0, vertCount * 2));
+            const colors = Array.from(this.colorBuffer.subarray(0, vertCount * 4));
+            const indices = Array.from(this.indexBuffer.subarray(0, idxCount));
+
+            this.mesh.setVerticesData(VertexBuffer.PositionKind, positions, true);
+            this.mesh.setVerticesData(VertexBuffer.UVKind, uvs, true);
+            this.mesh.setVerticesData(VertexBuffer.ColorKind, colors, true, 4);
+            this.mesh.setIndices(indices);
 
             this.mesh.setEnabled(true);
         } else {
