@@ -52,38 +52,22 @@ export class TrailBatch extends VFXBatch {
         this.indexBuffer[0] = 0; this.indexBuffer[1] = 1; this.indexBuffer[2] = 2;
         this.indexBuffer[3] = 1; this.indexBuffer[4] = 3; this.indexBuffer[5] = 2;
 
+        // Set standard vertex data with full buffer capacity (updatable)
         this.mesh.setVerticesData(VertexBuffer.PositionKind, this.positionBuffer, true);
         this.mesh.setVerticesData(VertexBuffer.UVKind, this.uvBuffer, true);
-        this.mesh.setIndices(this.indexBuffer, null, true);
+        this.mesh.setVerticesData(VertexBuffer.ColorKind, this.colorBuffer, true, 4);
+        this.mesh.setIndices(Array.from(this.indexBuffer.subarray(0, 6)), null, true);
 
-        // Disable bounding info computation — trail geometry is dynamic and all-encompassing
+        // Disable bounding info recomputation
         this.mesh.doNotSyncBoundingInfo = true;
         const min = new BVector3(-10000, -10000, -10000);
         const max = new BVector3(10000, 10000, 10000);
         this.mesh.setBoundingInfo(new BoundingInfo(min, max));
-        // Prevent sub-mesh bounding sphere access issues
         if (this.mesh.subMeshes) {
             for (const sub of this.mesh.subMeshes) {
                 (sub as any)._boundingInfo = this.mesh.getBoundingInfo();
             }
         }
-
-        const engine = this.scene.getEngine();
-
-        const prevVB = new VertexBuffer(engine, this.previousBuffer, 'previous', true, false, 3, false);
-        this.mesh.setVerticesBuffer(prevVB);
-
-        const nextVB = new VertexBuffer(engine, this.nextBuffer, 'next', true, false, 3, false);
-        this.mesh.setVerticesBuffer(nextVB);
-
-        const sideVB = new VertexBuffer(engine, this.sideBuffer, 'side', true, false, 1, false);
-        this.mesh.setVerticesBuffer(sideVB);
-
-        const widthVB = new VertexBuffer(engine, this.widthBuffer, 'width', true, false, 1, false);
-        this.mesh.setVerticesBuffer(widthVB);
-
-        const colorVB = new VertexBuffer(engine, this.colorBuffer, 'color', true, false, 4, false);
-        this.mesh.setVerticesBuffer(colorVB);
 
     }
 
@@ -106,7 +90,7 @@ export class TrailBatch extends VFXBatch {
         Effect.ShadersStore[shaderName + 'VertexShader'] = trail_vert;
         Effect.ShadersStore[shaderName + 'FragmentShader'] = trail_frag;
 
-        const attributes = ['position', 'uv', 'previous', 'next', 'side', 'width', 'color'];
+        const attributes = ['position', 'uv', 'color'];
         const uniforms = ['worldViewProjection', 'view', 'projection'];
         const samplers: string[] = [];
 
@@ -300,21 +284,18 @@ export class TrailBatch extends VFXBatch {
         }
 
         if (index > 0 && triangles > 0) {
-            const vertCount = index;
-            const idxCount = triangles * 3;
+            this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positionBuffer);
+            this.mesh.updateVerticesData(VertexBuffer.UVKind, this.uvBuffer);
+            this.mesh.updateIndices(Array.from(this.indexBuffer.subarray(0, triangles * 3)));
 
-            // Rebuild geometry each frame with only valid vertex/index data
-            const positions = Array.from(this.positionBuffer.subarray(0, vertCount * 3));
-            const uvs = Array.from(this.uvBuffer.subarray(0, vertCount * 2));
-            const colors = Array.from(this.colorBuffer.subarray(0, vertCount * 4));
-            const indices = Array.from(this.indexBuffer.subarray(0, idxCount));
-
-            this.mesh.setVerticesData(VertexBuffer.PositionKind, positions, true);
-            this.mesh.setVerticesData(VertexBuffer.UVKind, uvs, true);
-            this.mesh.setVerticesData(VertexBuffer.ColorKind, colors, true, 4);
-            this.mesh.setIndices(indices);
+            const colorVB = this.mesh.getVertexBuffer(VertexBuffer.ColorKind);
+            if (colorVB) colorVB.update(this.colorBuffer);
 
             this.mesh.setEnabled(true);
+            if (this.mesh.subMeshes && this.mesh.subMeshes.length > 0) {
+                this.mesh.subMeshes[0].indexCount = triangles * 3;
+                this.mesh.subMeshes[0].verticesCount = index;
+            }
         } else {
             this.mesh.setEnabled(false);
         }
