@@ -1,6 +1,4 @@
 export default /* glsl */ `
-precision highp float;
-
 // Per-vertex attributes
 attribute vec3 position;
 attribute vec2 uv;
@@ -38,10 +36,9 @@ void main() {
     gl_Position = worldViewProjection * vec4(worldPos, 1.0);
 
     #ifdef UV_TILE
-        float tileIndex = uvTile;
         vec2 tc = vec2(tileCountX, tileCountY);
-        float tileU = mod(tileIndex, tc.x) / tc.x;
-        float tileV = 1.0 - floor(tileIndex / tc.x) / tc.y - 1.0 / tc.y;
+        float tileU = mod(uvTile, tc.x) / tc.x;
+        float tileV = 1.0 - floor(uvTile / tc.x) / tc.y - 1.0 / tc.y;
         vUV = uv / tc + vec2(tileU, tileV);
     #else
         vUV = uv;

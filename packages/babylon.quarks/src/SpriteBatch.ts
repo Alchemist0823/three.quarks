@@ -1,12 +1,9 @@
 import {Mesh} from '@babylonjs/core/Meshes/mesh';
 import {VertexData} from '@babylonjs/core/Meshes/mesh.vertexData';
 import {VertexBuffer} from '@babylonjs/core/Buffers/buffer';
-import {Buffer} from '@babylonjs/core/Buffers/buffer';
 import {Effect} from '@babylonjs/core/Materials/effect';
 import {ShaderMaterial} from '@babylonjs/core/Materials/shaderMaterial';
-import {Texture} from '@babylonjs/core/Materials/Textures/texture';
 import {Scene} from '@babylonjs/core/scene';
-import {Constants} from '@babylonjs/core/Engines/constants';
 import {
     Vector3,
     Vector4,
@@ -98,6 +95,7 @@ export class SpriteBatch extends VFXBatch {
         }
 
         this.mesh.forcedInstanceCount = 0;
+        this.mesh.doNotSyncBoundingInfo = true;
     }
 
     expandBuffers(target: number): void {
@@ -119,29 +117,17 @@ export class SpriteBatch extends VFXBatch {
             vertexShader = stretched_bb_particle_vert;
         } else {
             vertexShader = particle_vert;
-            if (this.settings.renderMode === RenderMode.VerticalBillBoard) {
-                defines.push('#define VERTICAL');
-            } else if (this.settings.renderMode === RenderMode.HorizontalBillBoard) {
-                defines.push('#define HORIZONTAL');
-            }
         }
 
         if (this.settings.texture) {
-            defines.push('#define USE_MAP');
+            defines.push('USE_MAP');
         }
         if (this.settings.uTileCount > 1 || this.settings.vTileCount > 1) {
-            defines.push('#define UV_TILE');
-        }
-        if (this.settings.blendTiles) {
-            defines.push('#define TILE_BLEND');
+            defines.push('UV_TILE');
         }
 
-        const defineBlock = defines.join('\n') + '\n';
-        const processedVert = vertexShader.replace('precision highp float;', 'precision highp float;\n' + defineBlock);
-        const processedFrag = particle_frag.replace('precision highp float;', 'precision highp float;\n' + defineBlock);
-
-        Effect.ShadersStore[shaderName + 'VertexShader'] = processedVert;
-        Effect.ShadersStore[shaderName + 'FragmentShader'] = processedFrag;
+        Effect.ShadersStore[shaderName + 'VertexShader'] = vertexShader;
+        Effect.ShadersStore[shaderName + 'FragmentShader'] = particle_frag;
 
         const attributes = ['position', 'uv', 'offset', 'color', 'size', 'rotation', 'uvTile'];
         if (this.settings.renderMode === RenderMode.StretchedBillBoard) {
@@ -168,6 +154,7 @@ export class SpriteBatch extends VFXBatch {
                 attributes,
                 uniforms,
                 samplers,
+                defines,
                 needAlphaBlending: this.settings.materialTransparent,
             }
         );
