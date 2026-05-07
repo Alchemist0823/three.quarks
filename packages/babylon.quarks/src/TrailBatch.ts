@@ -107,7 +107,7 @@ export class TrailBatch extends VFXBatch {
         Effect.ShadersStore[shaderName + 'FragmentShader'] = trail_frag;
 
         const attributes = ['position', 'uv', 'previous', 'next', 'side', 'width', 'color'];
-        const uniforms = ['worldViewProjection', 'view', 'projection', 'resolutionX', 'resolutionY', 'lineWidth', 'sizeAttenuation'];
+        const uniforms = ['worldViewProjection', 'view', 'projection'];
         const samplers: string[] = [];
 
         if (this.settings.texture) {
@@ -129,11 +129,6 @@ export class TrailBatch extends VFXBatch {
             mat.setTexture('map', this.settings.texture);
         }
 
-        const engine = this.scene.getEngine();
-        mat.setFloat('resolutionX', engine.getRenderWidth() || 1920);
-        mat.setFloat('resolutionY', engine.getRenderHeight() || 1080);
-        mat.setFloat('lineWidth', 5.0);
-        mat.setFloat('sizeAttenuation', 0.0);
         mat.backFaceCulling = false;
 
         if (this.settings.materialTransparent) {
@@ -141,15 +136,6 @@ export class TrailBatch extends VFXBatch {
         }
 
         this.mesh.material = mat;
-
-        // Update resolution uniforms before rendering
-        this.scene.onBeforeRenderObservable.add(() => {
-            if (this.mesh.material) {
-                const e = this.scene.getEngine();
-                (this.mesh.material as ShaderMaterial).setFloat('resolutionX', e.getRenderWidth() || 1920);
-                (this.mesh.material as ShaderMaterial).setFloat('resolutionY', e.getRenderHeight() || 1080);
-            }
-        });
     }
 
     private vector_ = new Vector3();
