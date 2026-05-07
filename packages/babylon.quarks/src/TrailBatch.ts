@@ -56,8 +56,17 @@ export class TrailBatch extends VFXBatch {
         this.mesh.setVerticesData(VertexBuffer.UVKind, this.uvBuffer, true);
         this.mesh.setIndices(this.indexBuffer, null, true);
 
-        // Prevent bounding info recomputation from failing on zero positions
-        this.mesh.refreshBoundingInfo({applySkeleton: false, applyMorph: false});
+        // Disable bounding info computation — trail geometry is dynamic and all-encompassing
+        this.mesh.doNotSyncBoundingInfo = true;
+        const min = new BVector3(-10000, -10000, -10000);
+        const max = new BVector3(10000, 10000, 10000);
+        this.mesh.setBoundingInfo(new BoundingInfo(min, max));
+        // Prevent sub-mesh bounding sphere access issues
+        if (this.mesh.subMeshes) {
+            for (const sub of this.mesh.subMeshes) {
+                (sub as any)._boundingInfo = this.mesh.getBoundingInfo();
+            }
+        }
 
         const engine = this.scene.getEngine();
 
@@ -76,10 +85,6 @@ export class TrailBatch extends VFXBatch {
         const colorVB = new VertexBuffer(engine, this.colorBuffer, 'color', true, false, 4, false);
         this.mesh.setVerticesBuffer(colorVB);
 
-        // Set a large bounding box so the mesh is never culled
-        const min = new BVector3(-1000, -1000, -1000);
-        const max = new BVector3(1000, 1000, 1000);
-        this.mesh.setBoundingInfo(new BoundingInfo(min, max));
     }
 
     expandBuffers(target: number): void {
