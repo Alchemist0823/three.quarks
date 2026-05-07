@@ -159,6 +159,10 @@ export class TrailBatch extends VFXBatch {
         }
 
         for (const system of visibleSystems) {
+            // Ensure world matrix is up to date
+            if ((system.emitter as any).computeWorldMatrix) {
+                (system.emitter as any).computeWorldMatrix(true);
+            }
             const rotation = this.quaternion_;
             const translation = this.vector2_;
             const scale = this.vector3_;

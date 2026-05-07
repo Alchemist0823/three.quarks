@@ -282,6 +282,15 @@ function trailDemo() {
     trail.emitter.position = new BVector3(0, 3, 0);
     batchRenderer.addSystem(trail);
     systems.push(trail);
+
+    // Debug: log trail particle data after 2 seconds
+    setTimeout(() => {
+        console.log('Trail particles:', trail.particleNum);
+        for (let i = 0; i < Math.min(trail.particleNum, 3); i++) {
+            const p = trail.particles[i];
+            console.log(`Particle ${i}: pos=(${p.position.x.toFixed(2)}, ${p.position.y.toFixed(2)}, ${p.position.z.toFixed(2)}), previous.length=${p.previous?.length || 'N/A'}`);
+        }
+    }, 2000);
 }
 
 async function explosionDemo() {
