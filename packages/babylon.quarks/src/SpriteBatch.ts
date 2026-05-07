@@ -303,6 +303,7 @@ export class SpriteBatch extends VFXBatch {
         }
 
         this.mesh.forcedInstanceCount = index;
+        this.mesh.setEnabled(index > 0);
 
         if (index > 0) {
             this.offsetVB.update(this.offsetBuffer);

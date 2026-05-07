@@ -282,7 +282,7 @@ export class TrailBatch extends VFXBatch {
             }
         }
 
-        if (index > 0) {
+        if (index > 0 && triangles > 0) {
             this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positionBuffer);
             this.mesh.updateVerticesData(VertexBuffer.UVKind, this.uvBuffer);
             this.mesh.updateIndices(this.indexBuffer);
@@ -297,9 +297,14 @@ export class TrailBatch extends VFXBatch {
             if (widthVB) widthVB.update(this.widthBuffer);
             const colorVB = this.mesh.getVertexBuffer('color');
             if (colorVB) colorVB.update(this.colorBuffer);
+            this.mesh.setEnabled(true);
+        } else {
+            this.mesh.setEnabled(false);
         }
 
-        this.mesh.subMeshes[0].indexCount = triangles * 3;
+        if (this.mesh.subMeshes && this.mesh.subMeshes.length > 0) {
+            this.mesh.subMeshes[0].indexCount = triangles * 3;
+        }
     }
 
     dispose(): void {
