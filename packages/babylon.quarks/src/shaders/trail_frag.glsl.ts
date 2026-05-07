@@ -1,14 +1,9 @@
 export default /* glsl */ `
-precision highp float;
-
 varying vec2 vUV;
 varying vec4 vColor;
 
 #ifdef USE_MAP
 uniform sampler2D map;
-#endif
-
-#ifdef USE_COLOR_AS_ALPHA
 #endif
 
 void main() {
@@ -19,9 +14,7 @@ void main() {
     baseColor *= texColor;
 #endif
 
-#ifdef USE_COLOR_AS_ALPHA
-    baseColor.a *= (baseColor.r + baseColor.g + baseColor.b) / 3.0;
-#endif
+    if (baseColor.a < 0.01) discard;
 
     gl_FragColor = baseColor;
 }
