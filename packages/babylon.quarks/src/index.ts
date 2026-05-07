@@ -8,6 +8,9 @@ export {ParticleSystem} from './ParticleSystem';
 export type {ParticleSystemParameters, BurstParameters} from './ParticleSystem';
 export {ParticleEmitter} from './ParticleEmitter';
 export {QuarksUtil} from './QuarksUtil';
+export {QuarksLoader} from './QuarksLoader';
+export type {QuarksLoaderOptions} from './QuarksLoader';
+export {MeshSurfaceEmitter, MeshSurfaceEmitterPlugin} from './MeshSurfaceEmitter';
 
 // Re-export quarks.core runtime values (classes)
 export {

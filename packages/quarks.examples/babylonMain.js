@@ -10,6 +10,8 @@ import {Constants} from '@babylonjs/core/Engines/constants';
 import {
     BatchedRenderer,
     ParticleSystem,
+    QuarksLoader,
+    QuarksUtil,
     RenderMode,
     ConstantValue,
     IntervalValue,
@@ -283,6 +285,34 @@ function trailDemo() {
     systems.push(trail);
 }
 
+async function explosionDemo() {
+    createBaseScene();
+    camera.setPosition(new BVector3(0, 10, 15));
+
+    try {
+        const loader = new QuarksLoader(scene, {baseUrl: ''});
+        const effect = await loader.load('ps.json');
+        effect.parent = batchRenderer;
+
+        // Find all ParticleEmitter children and add to batch renderer
+        const traverse = (node) => {
+            if (node.system) {
+                batchRenderer.addSystem(node.system);
+                systems.push(node.system);
+            }
+            for (const child of node.getChildren()) {
+                traverse(child);
+            }
+        };
+        traverse(effect);
+
+        document.getElementById('demo-name').textContent = 'Explosion (JSON Loaded)';
+    } catch (e) {
+        console.error('Failed to load explosion JSON:', e);
+        document.getElementById('demo-name').textContent = 'Error: ' + e.message;
+    }
+}
+
 let totalTime = 0;
 let refreshIndex = 0;
 const refreshTime = 1;
@@ -291,6 +321,7 @@ const demos = [
     {name: 'Muzzle Flash Performance', init: muzzleFlashDemo},
     {name: 'Emitter Shapes', init: emitterShapeDemo},
     {name: 'Trail Renderer', init: trailDemo},
+    {name: 'Explosion (JSON)', init: explosionDemo},
 ];
 
 function loadDemo(index) {
