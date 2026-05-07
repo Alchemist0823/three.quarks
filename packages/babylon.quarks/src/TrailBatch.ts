@@ -56,6 +56,9 @@ export class TrailBatch extends VFXBatch {
         this.mesh.setVerticesData(VertexBuffer.UVKind, this.uvBuffer, true);
         this.mesh.setIndices(this.indexBuffer, null, true);
 
+        // Prevent bounding info recomputation from failing on zero positions
+        this.mesh.refreshBoundingInfo({applySkeleton: false, applyMorph: false});
+
         const engine = this.scene.getEngine();
 
         const prevVB = new VertexBuffer(engine, this.previousBuffer, 'previous', true, false, 3, false);
@@ -295,7 +298,9 @@ export class TrailBatch extends VFXBatch {
         if (index > 0 && triangles > 0) {
             this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positionBuffer);
             this.mesh.updateVerticesData(VertexBuffer.UVKind, this.uvBuffer);
-            this.mesh.updateIndices(this.indexBuffer);
+            // Only pass valid indices to avoid boundingSphere computation on invalid vertex refs
+            const validIndices = new Uint32Array(this.indexBuffer.buffer, 0, triangles * 3);
+            this.mesh.updateIndices(validIndices);
 
             const prevVB = this.mesh.getVertexBuffer('previous');
             if (prevVB) prevVB.update(this.previousBuffer);
@@ -309,10 +314,6 @@ export class TrailBatch extends VFXBatch {
             if (colorVB) colorVB.update(this.colorBuffer);
 
             this.mesh.setEnabled(true);
-            if (this.mesh.subMeshes && this.mesh.subMeshes.length > 0) {
-                this.mesh.subMeshes[0].indexCount = triangles * 3;
-                this.mesh.subMeshes[0].indexStart = 0;
-            }
         } else {
             this.mesh.setEnabled(false);
         }
