@@ -14,6 +14,7 @@ export default defineConfig({
         alias: {
             'babylon.quarks': resolve(__dirname, '../babylon.quarks/src/index.ts'),
             'quarks.core': resolve(__dirname, '../quarks.core/src/index.ts'),
+            'three.quarks': resolve(__dirname, '../three.quarks/src/index.ts'),
         },
     },
     build: {
