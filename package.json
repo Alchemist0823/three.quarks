@@ -6,14 +6,14 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=quarks.r3f --workspace=quarks.nodes --workspace=quarks.playground --workspace=quarks.examples",
+    "build": "npm run build --workspace=quarks.core --workspace=three.quarks --workspace=babylon.quarks --workspace=quarks.r3f --workspace=quarks.nodes --workspace=quarks.playground --workspace=quarks.examples",
     "dev": "npm run dev --workspaces",
     "test": "npm run test  --workspaces",
     "examples": "npm run dev --workspace=quarks.examples",
     "playground": "npm run dev --workspace=quarks.playground",
     "prettier": "npm run prettier --workspaces",
-    "publish": "npm publish --workspace=quarks.core --workspace=three.quarks",
-    "yalc:publish": "npm run yalc:publish --workspace=quarks.core --workspace=three.quarks",
+    "publish": "npm publish --workspace=quarks.core --workspace=three.quarks --workspace=babylon.quarks",
+    "yalc:publish": "npm run yalc:publish --workspace=quarks.core --workspace=three.quarks --workspace=babylon.quarks",
     "docs": "cross-env NODE_OPTIONS='--experimental-require-module' typedoc",
     "docs-dev": "http-server ./docs -c-1 -p 8002"
   },
@@ -65,8 +65,5 @@
   },
   "lint-staged": {
     "**/*.ts": "prettier --write --ignore-unknown"
-  },
-  "dependencies": {
-    "three.quarks": "^0.17.0"
   }
 }
