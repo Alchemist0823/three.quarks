@@ -11,7 +11,11 @@ export const SHARED_ASSETS = {
 };
 
 export function createSharedTexture(scene, path = SHARED_ASSETS.atlas) {
-    return new Texture(path, scene);
+    const texture = new Texture(path, scene);
+    // Match three.js defaults used by examples: clamp sampling on sprite atlases.
+    texture.wrapU = Texture.CLAMP_ADDRESSMODE;
+    texture.wrapV = Texture.CLAMP_ADDRESSMODE;
+    return texture;
 }
 
 export function addBasicBillboardSystem({

@@ -48,6 +48,7 @@ export function initMuzzleFlashBabylonDemo({scene, camera, batchRenderer, system
             startTileIndex: new ConstantValue(1),
             uTileCount: 10,
             vTileCount: 10,
+            renderOrder: 0,
         });
         beam.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         beam.emitter.position = position.clone();
@@ -74,6 +75,7 @@ export function initMuzzleFlashBabylonDemo({scene, camera, batchRenderer, system
             startTileIndex: new ConstantValue(81),
             uTileCount: 10,
             vTileCount: 10,
+            renderOrder: 2,
         });
         flash.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 0.95, 0.82, 1), new Vector4(1, 0.38, 0.12, 1))));
         flash.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(81, 84.333, 87.666, 91), 0]])));
@@ -100,6 +102,7 @@ export function initMuzzleFlashBabylonDemo({scene, camera, batchRenderer, system
             startTileIndex: new ConstantValue(91),
             uTileCount: 10,
             vTileCount: 10,
+            renderOrder: 2,
         };
 
         const muzzle1 = new ParticleSystem(muzzleConfig);
@@ -141,6 +144,7 @@ export function initMuzzleFlashBabylonDemo({scene, camera, batchRenderer, system
             startTileIndex: new ConstantValue(81),
             uTileCount: 10,
             vTileCount: 10,
+            renderOrder: -2,
         });
         smoke.addBehavior(new ColorOverLife(new ColorRange(new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 0))));
         smoke.addBehavior(new RotationOverLife(new IntervalValue(-Math.PI / 4, Math.PI / 4)));
@@ -169,6 +173,7 @@ export function initMuzzleFlashBabylonDemo({scene, camera, batchRenderer, system
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
             vTileCount: 10,
+            renderOrder: 1,
         });
         particles.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
         particles.emitter.position = position;

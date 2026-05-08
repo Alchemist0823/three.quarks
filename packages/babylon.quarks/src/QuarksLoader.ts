@@ -99,11 +99,83 @@ export class QuarksLoader {
                     uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
                     normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]),
                 };
+            } else if (geom.type === 'SphereGeometry') {
+                meta.geometries[geom.uuid] = this.parseSphereGeometry(geom);
             } else if (geom.type === 'BufferGeometry' && geom.data) {
                 const parsed = this.parseBufferGeometry(geom.data);
                 meta.geometries[geom.uuid] = parsed;
             }
         }
+    }
+
+    private parseSphereGeometry(geom: any): ParsedGeometry {
+        const radius = geom.radius ?? 0.5;
+        const widthSegments = Math.max(3, Math.floor(geom.widthSegments ?? 16));
+        const heightSegments = Math.max(2, Math.floor(geom.heightSegments ?? 8));
+        const phiStart = geom.phiStart ?? 0;
+        const phiLength = geom.phiLength ?? Math.PI * 2;
+        const thetaStart = geom.thetaStart ?? 0;
+        const thetaLength = geom.thetaLength ?? Math.PI;
+
+        const positions: number[] = [];
+        const normals: number[] = [];
+        const uvs: number[] = [];
+        const indices: number[] = [];
+        const grid: number[][] = [];
+
+        let index = 0;
+
+        for (let iy = 0; iy <= heightSegments; iy++) {
+            const verticesRow: number[] = [];
+            const v = iy / heightSegments;
+            const theta = thetaStart + v * thetaLength;
+
+            for (let ix = 0; ix <= widthSegments; ix++) {
+                const u = ix / widthSegments;
+                const phi = phiStart + u * phiLength;
+
+                const x = -radius * Math.cos(phi) * Math.sin(theta);
+                const y = radius * Math.cos(theta);
+                const z = radius * Math.sin(phi) * Math.sin(theta);
+
+                positions.push(x, y, z);
+                const length = Math.hypot(x, y, z) || 1;
+                normals.push(x / length, y / length, z / length);
+                uvs.push(u, 1 - v);
+
+                verticesRow.push(index++);
+            }
+
+            grid.push(verticesRow);
+        }
+
+        const thetaEnd = thetaStart + thetaLength;
+        const isTopFull = thetaStart <= 0;
+        const isBottomFull = thetaEnd >= Math.PI;
+
+        for (let iy = 0; iy < heightSegments; iy++) {
+            for (let ix = 0; ix < widthSegments; ix++) {
+                const a = grid[iy][ix + 1];
+                const b = grid[iy][ix];
+                const c = grid[iy + 1][ix];
+                const d = grid[iy + 1][ix + 1];
+
+                if (iy !== 0 || !isTopFull) {
+                    indices.push(a, b, d);
+                }
+                if (iy !== heightSegments - 1 || !isBottomFull) {
+                    indices.push(b, c, d);
+                }
+            }
+        }
+
+        const typedIndices = positions.length / 3 > 65535 ? new Uint32Array(indices) : new Uint16Array(indices);
+        return {
+            positions: new Float32Array(positions),
+            indices: typedIndices,
+            uvs: new Float32Array(uvs),
+            normals: new Float32Array(normals),
+        };
     }
 
     private parseBufferGeometry(data: any): ParsedGeometry {
@@ -196,10 +268,38 @@ export class QuarksLoader {
         for (const texDef of textures) {
             const imageUrl = images[texDef.image];
             if (imageUrl) {
-                meta.textures[texDef.uuid] = new Texture(imageUrl, this.scene);
+                const texture = new Texture(imageUrl, this.scene);
+                if (Array.isArray(texDef.wrap)) {
+                    texture.wrapU = this.mapWrapMode(texDef.wrap[0]);
+                    texture.wrapV = this.mapWrapMode(texDef.wrap[1] ?? texDef.wrap[0]);
+                }
+                if (Array.isArray(texDef.repeat)) {
+                    texture.uScale = texDef.repeat[0] ?? 1;
+                    texture.vScale = texDef.repeat[1] ?? 1;
+                }
+                if (Array.isArray(texDef.offset)) {
+                    texture.uOffset = texDef.offset[0] ?? 0;
+                    texture.vOffset = texDef.offset[1] ?? 0;
+                }
+                if (typeof texDef.rotation === 'number') {
+                    texture.wAng = texDef.rotation;
+                }
+                meta.textures[texDef.uuid] = texture;
             } else {
                 meta.textures[texDef.uuid] = null;
             }
+        }
+    }
+
+    private mapWrapMode(wrapMode?: number): number {
+        switch (wrapMode) {
+            case 1001: // ClampToEdgeWrapping (three.js)
+                return Texture.CLAMP_ADDRESSMODE;
+            case 1002: // MirroredRepeatWrapping (three.js)
+                return Texture.MIRROR_ADDRESSMODE;
+            case 1000: // RepeatWrapping (three.js)
+            default:
+                return Texture.WRAP_ADDRESSMODE;
         }
     }
 

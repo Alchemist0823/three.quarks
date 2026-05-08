@@ -50,8 +50,6 @@ export async function initSequencerBabylonDemo({scene, camera, batchRenderer, sy
         texture,
         transparent: true,
         blendMode: Constants.ALPHA_COMBINE,
-        depthTest: false,
-        depthWrite: false,
         startTileIndex: new ConstantValue(0),
         uTileCount: 10,
         vTileCount: 10,

@@ -37,8 +37,9 @@ void main() {
 
     #ifdef UV_TILE
         vec2 tc = vec2(tileCountX, tileCountY);
-        float tileU = mod(uvTile, tc.x) / tc.x;
-        float tileV = 1.0 - floor(uvTile / tc.x) / tc.y - 1.0 / tc.y;
+        float baseTile = floor(uvTile);
+        float tileU = mod(baseTile, tc.x) / tc.x;
+        float tileV = 1.0 - floor(baseTile / tc.x) / tc.y - 1.0 / tc.y;
         vUV = uv / tc + vec2(tileU, tileV);
     #else
         vUV = uv;

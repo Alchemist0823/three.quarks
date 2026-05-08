@@ -3,6 +3,7 @@ import {Constants} from '@babylonjs/core/Engines/constants';
 import {
     ParticleSystem,
     ConstantValue,
+    IntervalValue,
     SphereEmitter,
     RenderMode,
     ConstantColor,
@@ -30,6 +31,10 @@ function addBlendSystem({scene, batchRenderer, systems, texture, blendMode, posi
         texture,
         transparent: true,
         blendMode,
+        startTileIndex: new ConstantValue(0),
+        uTileCount: 1,
+        vTileCount: 1,
+        renderOrder: 2,
     });
     system.emitter.position = position;
     system.addBehavior(new SpeedOverLife(new PiecewiseBezier([[new Bezier(1, 0.75, 0.5, 0), 0]])));

@@ -3,6 +3,7 @@ import {Texture} from '@babylonjs/core/Materials/Textures/texture';
 import {StandardMaterial} from '@babylonjs/core/Materials/standardMaterial';
 import {MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder';
 import {VertexBuffer} from '@babylonjs/core/Buffers/buffer';
+import {Constants} from '@babylonjs/core/Engines/constants';
 import {
     ParticleSystem,
     RenderMode,
@@ -26,6 +27,8 @@ export function initAlphaTestBabylonDemo({scene, camera, batchRenderer, systems}
 
     const diffuseTexture = new Texture('textures/texture1.png', scene);
     diffuseTexture.hasAlpha = true;
+    diffuseTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
+    diffuseTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
 
     const leafMaterial = new StandardMaterial('alphaTestLeafMaterial', scene);
     leafMaterial.diffuseTexture = diffuseTexture;
@@ -72,11 +75,16 @@ export function initAlphaTestBabylonDemo({scene, camera, batchRenderer, systems}
         shape: new PointEmitter(),
         texture: diffuseTexture,
         alphaTest: 0.5,
-        transparent: true,
+        transparent: false,
+        blendMode: Constants.ALPHA_COMBINE,
+        depthWrite: true,
+        depthTest: true,
         material: leafMaterial,
-        startTileIndex: new ConstantValue(0),
-        uTileCount: 1,
-        vTileCount: 1,
+        // TODO: Babylon demo still uses atlas fallback; migrate to the same leave.glb path as Three for full visual parity.
+        // texture1.png is a 10x10 sprite atlas; render a single tile instead of the full sheet
+        startTileIndex: new ConstantValue(66),
+        uTileCount: 10,
+        vTileCount: 10,
         renderMode: RenderMode.Mesh,
     });
     leaves.addBehavior(

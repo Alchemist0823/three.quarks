@@ -10,6 +10,7 @@ import {
     SizeOverLife,
     ColorOverLife,
     ApplyForce,
+    ApplyCollision,
     PiecewiseBezier,
     Bezier,
     Gradient,
@@ -55,6 +56,20 @@ export function initTrailBabylonDemo({scene, camera, batchRenderer, systems}) {
         )
     );
     trail.addBehavior(new ApplyForce(new Vector3(0, -1, 0), new ConstantValue(20)));
+    trail.addBehavior(
+        new ApplyCollision(
+            {
+                resolve(pos, normal) {
+                    if (pos.y <= -6) {
+                        normal.set(0, 1, 0);
+                        return true;
+                    }
+                    return false;
+                },
+            },
+            0.6
+        )
+    );
     trail.emitter.rotation.x = -Math.PI / 2;
     batchRenderer.addSystem(trail);
     systems.push(trail);

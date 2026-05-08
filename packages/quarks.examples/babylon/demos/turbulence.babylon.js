@@ -31,8 +31,10 @@ export function initTurbulenceBabylonDemo({scene, camera, batchRenderer, systems
         texture,
         transparent: true,
         blendMode: Constants.ALPHA_ADD,
-        depthTest: false,
-        depthWrite: false,
+        startTileIndex: new ConstantValue(0),
+        uTileCount: 10,
+        vTileCount: 10,
+        renderOrder: 0,
     });
     turbulence.addBehavior(new Noise(new ConstantValue(1), new ConstantValue(2)));
     turbulence.emitter.rotation.x = -Math.PI / 2;

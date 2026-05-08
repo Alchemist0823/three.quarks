@@ -8,10 +8,11 @@ import {
     ParticleSystem,
     ConstantValue,
     IntervalValue,
-    PointEmitter,
+    ConeEmitter,
     RenderMode,
     ConstantColor,
-    AxisAngleGenerator,
+    RandomQuatGenerator,
+    EulerGenerator,
     Rotation3DOverLife,
     Vector4,
     Vector3,
@@ -54,15 +55,24 @@ export function initMeshMaterialBabylonDemo({scene, camera, batchRenderer, syste
         startSpeed: new ConstantValue(1),
         startSize: new ConstantValue(0.1),
         startColor: new ConstantColor(new Vector4(1, 1, 1, 1)),
+        startRotation: new RandomQuatGenerator(),
         worldSpace: true,
         emissionOverTime: new ConstantValue(60),
-        shape: new PointEmitter(),
+        shape: new ConeEmitter({radius: 0.1, angle: 1}),
         material: meshMaterial,
         renderMode: RenderMode.Mesh,
         transparent: true,
         blendMode: Constants.ALPHA_COMBINE,
+        startTileIndex: new ConstantValue(0),
+        uTileCount: 10,
+        vTileCount: 10,
+        renderOrder: 0,
     });
-    meshSystem.addBehavior(new Rotation3DOverLife(new AxisAngleGenerator(new Vector3(0.4, 1, 0.2), new ConstantValue(1.2)), false));
+    meshSystem.addBehavior(
+        new Rotation3DOverLife(
+            new EulerGenerator(new IntervalValue(0, Math.PI), new ConstantValue(0), new ConstantValue(0))
+        )
+    );
     batchRenderer.addSystem(meshSystem);
     systems.push(meshSystem);
 }
