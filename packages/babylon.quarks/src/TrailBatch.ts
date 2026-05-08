@@ -63,10 +63,10 @@ export class TrailBatch extends VFXBatch {
         this.mesh.setVerticesData(VertexBuffer.ColorKind, this.colorBuffer, true, 4);
         this.mesh.setIndices(Array.from(this.indexBuffer.subarray(0, 6)), null, true);
         const engine = this.scene.getEngine();
-        this.previousVB = new VertexBuffer(engine, this.previousBuffer, 'previous', true, false, 3, true);
-        this.nextVB = new VertexBuffer(engine, this.nextBuffer, 'next', true, false, 3, true);
-        this.sideVB = new VertexBuffer(engine, this.sideBuffer, 'side', true, false, 1, true);
-        this.widthVB = new VertexBuffer(engine, this.widthBuffer, 'width', true, false, 1, true);
+        this.previousVB = new VertexBuffer(engine, this.previousBuffer, 'previous', true, false, 3, false);
+        this.nextVB = new VertexBuffer(engine, this.nextBuffer, 'next', true, false, 3, false);
+        this.sideVB = new VertexBuffer(engine, this.sideBuffer, 'side', true, false, 1, false);
+        this.widthVB = new VertexBuffer(engine, this.widthBuffer, 'width', true, false, 1, false);
         this.mesh.setVerticesBuffer(this.previousVB);
         this.mesh.setVerticesBuffer(this.nextVB);
         this.mesh.setVerticesBuffer(this.sideVB);
@@ -324,6 +324,10 @@ export class TrailBatch extends VFXBatch {
 
             this.mesh.setEnabled(true);
             if (this.mesh.subMeshes && this.mesh.subMeshes.length > 0) {
+                const meshBoundingInfo = this.mesh.getBoundingInfo();
+                for (const subMesh of this.mesh.subMeshes) {
+                    (subMesh as any)._boundingInfo = meshBoundingInfo;
+                }
                 this.mesh.subMeshes[0].indexCount = triangles * 3;
                 this.mesh.subMeshes[0].verticesCount = index;
             }

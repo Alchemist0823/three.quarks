@@ -43,11 +43,14 @@ void main() {
         vec2 dir2 = normalize(nextP - currentP);
         dir = normalize(dir1 + dir2);
     }
-    vec2 normal = vec2(-dir.y, dir.x) * 0.5 * w;
+    vec4 normal = vec4(-dir.y, dir.x, 0.0, 1.0);
+    normal.xy *= 0.5 * w;
+    normal *= projection;
     if (sizeAttenuation == 0.0) {
-        normal *= finalPosition.w;
+        normal.xy *= finalPosition.w;
+        normal.xy /= (vec4(resolution, 0.0, 1.0) * projection).xy;
     }
-    finalPosition.xy += normal * side;
+    finalPosition.xy += normal.xy * side;
     gl_Position = finalPosition;
     vUV = uv;
     vColor = color;
