@@ -8,9 +8,6 @@ import {
     GridEmitter,
     RenderMode,
     ConstantColor,
-    FrameOverLife,
-    PiecewiseBezier,
-    Bezier,
     TextureSequencer,
     ApplySequences,
     RandomColor,
@@ -62,7 +59,6 @@ export async function initSequencerBabylonDemo({scene, camera, batchRenderer, sy
     applySeq.appendSequencer(new IntervalValue(1.0, 2.0), seq);
     applySeq.appendSequencer(new IntervalValue(5.0, 6.0), seq2);
     sequence.addBehavior(applySeq);
-    sequence.addBehavior(new FrameOverLife(new PiecewiseBezier([[new Bezier(0, 20, 40, 63), 0]])));
     batchRenderer.addSystem(sequence);
     systems.push(sequence);
 }
