@@ -32,7 +32,8 @@ export const lib = {
             }),
             typescript({
                 typescript: ts,
-                declaration: true,
+                declaration: false,
+                composite: false,
             }),
         ],
         output: [
