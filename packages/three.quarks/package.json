@@ -20,11 +20,11 @@
     "LICENSE"
   ],
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist .rollup.cache tsconfig.tsbuildinfo",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "dev": "rollup -c -w",
-    "build:types": "tsc --emitDeclarationOnly",
+    "build:types": "tsc --emitDeclarationOnly && node ../../scripts/fix-dts-extensions.mjs dist/types",
     "build:js": "rollup -c",
     "yalc:publish": "node -e \"const os = require('os'); const { execSync } = require('child_process'); const homedir = os.homedir(); execSync(`yalc publish --store-folder ${homedir}/.yalc`, {stdio: 'inherit'});\"",
     "build": "npm run clean && npm run build:types && cross-env NODE_ENV=production npm run build:js",
