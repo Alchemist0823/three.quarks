@@ -27,8 +27,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "clean": "rimraf dist",
-    "build:types": "tsc --emitDeclarationOnly",
+    "clean": "rimraf dist .rollup.cache tsconfig.tsbuildinfo",
+    "build:types": "tsc --emitDeclarationOnly && node ../../scripts/fix-dts-extensions.mjs dist/types",
     "build:js": "cross-env NODE_ENV=production rollup -c",
     "build": "npm run clean && npm run build:types && npm run build:js",
     "test": "jest",
