@@ -1,0 +1,58 @@
+{
+  "name": "babylon.quarks",
+  "version": "0.17.0",
+  "description": "A High-Performance Particle System for Babylon.js",
+  "type": "module",
+  "types": "./dist/types/index.d.ts",
+  "main": "./dist/babylon.quarks.cjs",
+  "module": "./dist/babylon.quarks.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/babylon.quarks.esm.js",
+      "require": "./dist/babylon.quarks.cjs",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "cross-env NODE_ENV=production rollup -c",
+    "build": "npm run clean && npm run build:types && npm run build:js",
+    "test": "jest",
+    "prettier": "prettier --write --ignore-unknown **/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alchemist0823/three.quarks.git"
+  },
+  "keywords": [
+    "particle",
+    "library",
+    "3d",
+    "game",
+    "performance",
+    "babylonjs",
+    "vfx"
+  ],
+  "author": "Alchemist0823 <the.forrest.sun@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Alchemist0823/three.quarks/issues"
+  },
+  "homepage": "https://quarks.art",
+  "peerDependencies": {
+    "@babylonjs/core": ">=9.0.0"
+  },
+  "dependencies": {
+    "quarks.core": "*"
+  },
+  "devDependencies": {
+    "@babylonjs/core": "^9.0.0",
+    "@types/jest": "^30.0.0"
+  }
+}

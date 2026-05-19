@@ -1,0 +1,16 @@
+{
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": ["ts", "tsx", "js"],
+    "coveragePathIgnorePatterns": ["/node_modules/", "/test/"],
+    "extensionsToTreatAsEsm": [".ts"],
+    "collectCoverageFrom": ["src/**/*.{js,ts}"],
+    "transformIgnorePatterns": [
+        "/node_modules/(?!@babylonjs)"
+    ],
+    "transform": {
+        "^.+\\.(ts|tsx)$": "ts-jest",
+        "^.+\\.js$": ["babel-jest", { "plugins": ["@babel/plugin-transform-modules-commonjs"] }]
+    }
+}
