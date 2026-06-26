@@ -1,5 +1,5 @@
-import {Sequencer} from './Sequencer';
 import {Vector2, Vector3} from '../math';
+import {Sequencer} from './Sequencer';
 
 export class TextureSequencer implements Sequencer {
     locations: Vector2[] = [];
@@ -9,6 +9,7 @@ export class TextureSequencer implements Sequencer {
         public scaleY: number = 0,
         public position: Vector3 = new Vector3()
     ) {}
+
     transform(position: Vector3, index: number) {
         position.x = this.locations[index % this.locations.length].x * this.scaleX + this.position.x;
         position.y = this.locations[index % this.locations.length].y * this.scaleY + this.position.y;
@@ -21,13 +22,16 @@ export class TextureSequencer implements Sequencer {
             json.scaleY,
             new Vector3(json.position[0], json.position[1], json.position[2])
         );
+
         textureSequencer.locations = json.locations.map((loc: any) => new Vector2(loc.x, loc.y));
+
         return textureSequencer;
     }
 
     clone(): Sequencer {
         const textureSequencer = new TextureSequencer(this.scaleX, this.scaleY, this.position.clone());
         textureSequencer.locations = this.locations.map((loc) => loc.clone());
+
         return textureSequencer;
     }
 
@@ -51,28 +55,19 @@ export class TextureSequencer implements Sequencer {
 
         // Copy the image contents to the canvas
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            return;
-        }
+        if (!ctx) return;
+
         ctx.drawImage(img, 0, 0);
         const data = ctx.getImageData(0, 0, canvas.width, canvas.height, {colorSpace: 'srgb'});
-        canvas.remove();
 
+        canvas.remove();
         this.locations.length = 0;
+
         for (let i = 0; i < data.height; i++) {
             for (let j = 0; j < data.width; j++) {
-                if (data.data[(i * data.width + j) * 4 + 3] > threshold) {
-                    this.locations.push(new Vector2(j, data.height - i));
-                }
+                if (data.data[(i * data.width + j) * 4 + 3] <= threshold) continue;
+                this.locations.push(new Vector2(j, data.height - i));
             }
         }
-        //return data;
-        // Get the data-URL formatted image
-        // Firefox supports PNG and JPEG. You could check img.src to
-        // guess the original format, but be aware the using "image/jpg"
-        // will re-encode the image.
-        //var dataURL = canvas.toDataURL("image/png");
-
-        //return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
     }
 }

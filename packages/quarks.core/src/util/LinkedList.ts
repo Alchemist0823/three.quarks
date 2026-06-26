@@ -32,13 +32,12 @@ export class CircularLinkedList<T> {
     }
 
     start(): T | null {
-        if (this.head === null)
-            return null;
-        return this.head.data;
+        return this.head === null ? null : this.head.data;
     }
 
     push(data: T): LinkedListNode<T> {
         const node = new LinkedListNode(data);
+
         if (!this.head) {
             this.head = node;
             node.prev = node;
@@ -46,44 +45,42 @@ export class CircularLinkedList<T> {
         } else {
             node.prev = this.head.prev;
             node.next = this.head;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.head.prev!.next = node;
             this.head.prev = node;
         }
+
         this.length++;
+
         return node;
     }
 
-    insertAfter(prevNode: LinkedListNode<T>, data: T): LinkedListNode<T>{
+    insertAfter(prevNode: LinkedListNode<T>, data: T): LinkedListNode<T> {
         const node = new LinkedListNode(data);
         node.prev = prevNode;
         node.next = prevNode.next;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         prevNode.next!.prev = node;
         prevNode.next = node;
+
         this.length++;
+
         return node;
     }
 
     last(): LinkedListNode<T> | undefined {
-        if (this.head) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            return this.head.prev!;
-        } else
-            return undefined;
+        return this.head ? this.head.prev! : undefined;
     }
+
     /**
      * Returns an iterator over the values
      */
-    * values() {
+    *values() {
         let current = this.head;
+
         if (current !== null) {
             yield current.data;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             while (current!.next !== this.head) {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 current = current!.next;
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 yield current!.data;
             }
         }
@@ -110,82 +107,91 @@ export class LinkedList<T> {
     }
 
     front(): T | null {
-        if (this.head === null)
-            return null;
+        if (this.head === null) return null;
         return this.head.data;
     }
 
     back(): T | null {
-        if (this.tail === null)
-            return null;
+        if (this.tail === null) return null;
         return this.tail.data;
     }
 
-
     /**
-     * remove at head in O(1)
+     * Remove at head in O(1).
      */
     dequeue(): T | undefined {
         if (this.head) {
             const value = this.head.data;
             this.head = this.head.next;
+
             if (!this.head) {
                 this.tail = null;
             } else {
                 this.head.prev = null;
             }
+
             this.length--;
             return value;
         }
+
         return undefined;
     }
 
     /**
-     * remove at tail in O(1)
+     * Remove at tail in O(1).
      */
     pop(): T | undefined {
         if (this.tail) {
             const value = this.tail.data;
             this.tail = this.tail.prev;
+
             if (!this.tail) {
                 this.head = null;
             } else {
                 this.tail.next = null;
             }
+
             this.length--;
             return value;
         }
+
         return undefined;
     }
 
     /**
-     * add at head in O(1)
+     * Add at head in O(1).
      */
     queue(data: T): void {
         const node = new LinkedListNode(data);
+
         if (!this.tail) {
             this.tail = node;
         }
+
         if (this.head) {
             this.head.prev = node;
             node.next = this.head;
         }
+
         this.head = node;
         this.length++;
     }
 
     /**
-     * add at tail in O(1)
+     * Add at tail in O(1).
      */
     push(data: T): void {
         const node = new LinkedListNode(data);
+
         if (!this.head) {
             this.head = node;
         }
+
         if (this.tail) {
             this.tail.next = node;
             node.prev = this.tail;
         }
+
         this.tail = node;
         this.length++;
     }
@@ -198,45 +204,41 @@ export class LinkedList<T> {
         if (newNode.prev !== null) {
             newNode.prev.next = newNode;
         }
+
         newNode.next.prev = newNode;
 
         if (node == this.head) {
             this.head = newNode;
         }
+
         this.length++;
     }
 
     remove(data: T): void {
-        if (this.head === null || this.tail === null) {
-            return;
-        }
+        if (this.head === null || this.tail === null) return;
+
         let tempNode: LinkedListNode<T> = this.head;
 
-        if (data === this.head.data) {
-            this.head = this.head.next;
-        }
-        if (data === this.tail.data) {
-            this.tail = this.tail.prev;
-        }
+        if (data === this.head.data) this.head = this.head.next;
+        if (data === this.tail.data) this.tail = this.tail.prev;
 
         while (tempNode.next !== null && tempNode.data !== data) {
             tempNode = tempNode.next;
         }
+
         if (tempNode.data === data) {
-            if (tempNode.prev !== null)
-                tempNode.prev.next = tempNode.next;
-            if (tempNode.next !== null)
-                tempNode.next.prev = tempNode.prev;
+            if (tempNode.prev !== null) tempNode.prev.next = tempNode.next;
+            if (tempNode.next !== null) tempNode.next.prev = tempNode.prev;
             this.length--;
         }
     }
 
-
     /**
-     * Returns an iterator over the values
+     * Returns an iterator over the values.
      */
-    * values() {
+    *values() {
         let current = this.head;
+
         while (current !== null) {
             yield current.data;
             current = current.next;
