@@ -1,6 +1,6 @@
-import {EmitterShape, ShapeJSON} from './EmitterUtil';
-import {Particle} from '../Particle';
 import {IParticleSystem} from '../IParticleSystem';
+import {Particle} from '../Particle';
+import {EmitterShape, ShapeJSON} from './EmitterUtil';
 
 /**
  * Interface representing the parameters for a grid emitter.
@@ -25,7 +25,8 @@ export interface GridEmitterParameters {
 }
 
 export class GridEmitter implements EmitterShape {
-    type = 'grid';
+    readonly type = 'grid';
+
     width: number;
     height: number; // [0, Math.PI * 2]
     column: number; // [0, 1]
@@ -45,8 +46,11 @@ export class GridEmitter implements EmitterShape {
         p.position.x = (c * this.width) / this.column - this.width / 2;
         p.position.y = (r * this.height) / this.row - this.height / 2;
         p.position.z = 0;
+
         p.velocity.set(0, 0, p.startSpeed);
     }
+
+    update(system: IParticleSystem, delta: number): void {}
 
     toJSON(): ShapeJSON {
         return {
@@ -70,6 +74,4 @@ export class GridEmitter implements EmitterShape {
             row: this.row,
         });
     }
-
-    update(system: IParticleSystem, delta: number): void {}
 }

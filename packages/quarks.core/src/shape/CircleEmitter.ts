@@ -1,6 +1,3 @@
-import {EmitterMode, EmitterShape, getValueFromEmitterMode, ShapeJSON} from './EmitterUtil';
-import {Particle} from '../Particle';
-import {MathUtils} from '../math';
 import {
     ConstantValue,
     FunctionValueGenerator,
@@ -9,6 +6,10 @@ import {
     ValueGeneratorFromJSON,
 } from '../functions';
 import {EmissionState, IParticleSystem} from '../IParticleSystem';
+import {MathUtils} from '../math';
+import {Particle} from '../Particle';
+import {EmitterMode, EmitterShape, getValueFromEmitterMode, ShapeJSON} from './EmitterUtil';
+
 /**
  * Interface representing the parameters for a circle emitter.
  */
@@ -44,19 +45,20 @@ export interface CircleEmitterParameters {
 }
 
 /**
- * a particle emitter that emits particles from a circle.
+ * A particle emitter that emits particles from a circle.
  */
 export class CircleEmitter implements EmitterShape {
-    type = 'circle';
+    readonly type = 'circle';
+
+    private currentValue = 0;
+
     radius: number;
     arc: number; // [0, Math.PI * 2]
     thickness: number; // [0, 1]
     mode: EmitterMode;
     spread: number;
     speed: ValueGenerator | FunctionValueGenerator;
-    memory: GeneratorMemory;
-
-    private currentValue = 0;
+    memory: GeneratorMemory = [];
 
     constructor(parameters: CircleEmitterParameters = {}) {
         this.radius = parameters.radius ?? 10;
@@ -65,7 +67,6 @@ export class CircleEmitter implements EmitterShape {
         this.mode = parameters.mode ?? EmitterMode.Random;
         this.spread = parameters.spread ?? 0;
         this.speed = parameters.speed ?? new ConstantValue(1);
-        this.memory = [];
     }
 
     update(system: IParticleSystem, delta: number): void {
@@ -76,11 +77,13 @@ export class CircleEmitter implements EmitterShape {
         const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread, emissionState);
         const r = MathUtils.lerp(1 - this.thickness, 1, Math.random());
         const theta = u * this.arc;
+
         p.position.x = Math.cos(theta);
         p.position.y = Math.sin(theta);
         p.position.z = 0;
+
         p.velocity.copy(p.position).multiplyScalar(p.startSpeed);
-        //const v = Math.random();
+
         p.position.multiplyScalar(this.radius * r);
     }
 

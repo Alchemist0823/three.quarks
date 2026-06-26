@@ -1,6 +1,3 @@
-import {EmitterMode, EmitterShape, getValueFromEmitterMode, ShapeJSON} from './EmitterUtil';
-import {Particle} from '../Particle';
-import {MathUtils, Matrix4, Quaternion} from '../math';
 import {
     ConstantValue,
     FunctionValueGenerator,
@@ -9,7 +6,15 @@ import {
     ValueGeneratorFromJSON,
 } from '../functions';
 import {EmissionState, IParticleSystem} from '../IParticleSystem';
-import { UP_VEC3, ZERO_VEC3 } from '../util/MathUtil';
+import {MathUtils, Matrix4} from '../math';
+import {Particle} from '../Particle';
+import {
+    EmitterMode,
+    EmitterShape,
+    getValueFromEmitterMode,
+    setDefaultRotationFromMatrix,
+    ShapeJSON,
+} from './EmitterUtil';
 
 /**
  * Interface representing the parameters for a donut emitter.
@@ -49,7 +54,11 @@ export interface DonutEmitterParameters {
 }
 
 export class DonutEmitter implements EmitterShape {
-    type = 'donut';
+    readonly type = 'donut';
+
+    private readonly _tmpM: Matrix4 = new Matrix4();
+    private currentValue = 0;
+
     radius: number;
     donutRadius: number;
     arc: number; // [0, Math.PI * 2]
@@ -57,10 +66,8 @@ export class DonutEmitter implements EmitterShape {
     mode: EmitterMode;
     spread: number;
     speed: ValueGenerator | FunctionValueGenerator;
-    memory: GeneratorMemory;
+    memory: GeneratorMemory = [];
 
-    _m1: Matrix4;
-    
     constructor(parameters: DonutEmitterParameters = {}) {
         this.radius = parameters.radius ?? 10;
         this.arc = parameters.arc ?? 2.0 * Math.PI;
@@ -69,11 +76,7 @@ export class DonutEmitter implements EmitterShape {
         this.mode = parameters.mode ?? EmitterMode.Random;
         this.spread = parameters.spread ?? 0;
         this.speed = parameters.speed ?? new ConstantValue(1);
-        this.memory = [];
-        this._m1 = new Matrix4();
     }
-
-    private currentValue = 0;
 
     update(system: IParticleSystem, delta: number): void {
         if (EmitterMode.Random != this.mode) {
@@ -85,11 +88,12 @@ export class DonutEmitter implements EmitterShape {
         const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread, emissionState);
         const v = Math.random();
         const rand = MathUtils.lerp(1 - this.thickness, 1, Math.random());
-        const theta = u * this.arc;
+
         const phi = v * Math.PI * 2;
-        //const r = Math.sqrt(rand);
+        const theta = u * this.arc;
         const sinTheta = Math.sin(theta);
         const cosTheta = Math.cos(theta);
+
         p.position.x = this.radius * cosTheta;
         p.position.y = this.radius * sinTheta;
         p.position.z = 0;
@@ -102,19 +106,8 @@ export class DonutEmitter implements EmitterShape {
 
         p.velocity.normalize().multiplyScalar(p.startSpeed);
 
-        //const angle = this.angle * r;
-        //p.velocity.set(0, 0, Math.cos(angle)).addScaledVector(p.position, Math.sin(angle)).multiplyScalar(p.startSpeed);
-        //const v = Math.random();
-
-        //.multiplyScalar(this.radius);
-        // Default facing-velocity orientation, but defer to startRotation if set.
-        if (p.rotation instanceof Quaternion) {
-            const r = p.rotation;
-            if (r.x === 0 && r.y === 0 && r.z === 0 && r.w === 1) {
-                this._m1.lookAt(ZERO_VEC3, p.velocity, UP_VEC3);
-                p.rotation.setFromRotationMatrix(this._m1);
-            }
-        }
+        // Default facing-velocity orientation or defer to startRotation if set.
+        setDefaultRotationFromMatrix(p.rotation, p.velocity, this._tmpM);
     }
 
     toJSON(): ShapeJSON {

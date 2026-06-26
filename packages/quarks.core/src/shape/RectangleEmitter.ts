@@ -1,10 +1,20 @@
-
-import { ConstantValue, FunctionValueGenerator, GeneratorMemory, ValueGenerator, ValueGeneratorFromJSON } from "../functions";
-import { EmissionState, IParticleSystem } from "../IParticleSystem";
-import { Matrix4, Quaternion } from "../math";
-import { Particle } from "../Particle";
-import { UP_VEC3, ZERO_VEC3 } from "../util/MathUtil";
-import { EmitterMode, EmitterShape, getValueFromEmitterMode, ShapeJSON } from "./EmitterUtil";
+import {
+    ConstantValue,
+    FunctionValueGenerator,
+    GeneratorMemory,
+    ValueGenerator,
+    ValueGeneratorFromJSON,
+} from '../functions';
+import {EmissionState, IParticleSystem} from '../IParticleSystem';
+import {Matrix4} from '../math';
+import {Particle} from '../Particle';
+import {
+    EmitterMode,
+    EmitterShape,
+    getValueFromEmitterMode,
+    setDefaultRotationFromMatrix,
+    ShapeJSON,
+} from './EmitterUtil';
 
 /**
  * Interface representing the parameters for a rectangle emitter.
@@ -44,18 +54,18 @@ export interface RectangleEmitterParameters {
  * a particle emitter that emits particles from a rectangle.
  */
 export class RectangleEmitter implements EmitterShape {
-    type = 'rectangle';
+    readonly type = 'rectangle';
+
+    private currentValue = 0;
+    private readonly _tmpM: Matrix4 = new Matrix4();
+
     width: number;
     height: number;
     thickness: number; // [0, 1]
     mode: EmitterMode;
     spread: number;
     speed: ValueGenerator | FunctionValueGenerator;
-    memory: GeneratorMemory;
-
-    private currentValue = 0;
-
-    private _m1: Matrix4;
+    memory: GeneratorMemory = [];
 
     constructor(parameters: RectangleEmitterParameters = {}) {
         this.width = parameters.width ?? 10;
@@ -64,9 +74,6 @@ export class RectangleEmitter implements EmitterShape {
         this.mode = parameters.mode ?? EmitterMode.Random;
         this.spread = parameters.spread ?? 0;
         this.speed = parameters.speed ?? new ConstantValue(1);
-        this.memory = [];
-        
-        this._m1 = new Matrix4();
     }
 
     update(system: IParticleSystem, delta: number): void {
@@ -75,7 +82,6 @@ export class RectangleEmitter implements EmitterShape {
 
     initialize(p: Particle, emissionState: EmissionState) {
         const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread, emissionState);
-        const v = Math.random();
 
         // Calculate perimeter points
         const totalPerimeter = 2 * (this.width + this.height);
@@ -85,20 +91,20 @@ export class RectangleEmitter implements EmitterShape {
         let x, y;
         if (point < this.width) {
             // Bottom edge
-            x = point - this.width/2;
-            y = -this.height/2;
+            x = point - this.width / 2;
+            y = -this.height / 2;
         } else if (point < this.width + this.height) {
             // Right edge
-            x = this.width/2;
-            y = point - this.width - this.height/2;
+            x = this.width / 2;
+            y = point - this.width - this.height / 2;
         } else if (point < 2 * this.width + this.height) {
             // Top edge
-            x = this.width/2 - (point - this.width - this.height);
-            y = this.height/2;
+            x = this.width / 2 - (point - this.width - this.height);
+            y = this.height / 2;
         } else {
             // Left edge
-            x = -this.width/2;
-            y = this.height/2 - (point - 2 * this.width - this.height);
+            x = -this.width / 2;
+            y = this.height / 2 - (point - 2 * this.width - this.height);
         }
 
         // Apply thickness - lerp from edge point toward center
@@ -114,14 +120,7 @@ export class RectangleEmitter implements EmitterShape {
         p.velocity.z = 0;
         p.velocity.normalize().multiplyScalar(p.startSpeed);
 
-        // Default facing-velocity orientation, but defer to startRotation if set.
-        if (p.rotation instanceof Quaternion) {
-            const r = p.rotation;
-            if (r.x === 0 && r.y === 0 && r.z === 0 && r.w === 1) {
-                this._m1.lookAt(ZERO_VEC3, p.velocity, UP_VEC3);
-                p.rotation.setFromRotationMatrix(this._m1);
-            }
-        }
+        setDefaultRotationFromMatrix(p.rotation, p.velocity, this._tmpM);
     }
 
     toJSON(): ShapeJSON {

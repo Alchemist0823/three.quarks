@@ -1,15 +1,14 @@
-import {EmitterMode, EmitterShape, getValueFromEmitterMode, ShapeJSON} from './EmitterUtil';
-import {Particle} from '../Particle';
-import {MathUtils, Matrix3, Matrix4, Quaternion, Vector3} from '../math';
-import {
-    ConstantValue,
-    FunctionValueGenerator,
-    GeneratorMemory,
-    ValueGenerator,
-    ValueGeneratorFromJSON,
-} from '../functions';
+import {AnyValueGenerator, ConstantValue, GeneratorMemory, ValueGeneratorFromJSON} from '../functions';
 import {EmissionState, IParticleSystem} from '../IParticleSystem';
-import { UP_VEC3, ZERO_VEC3 } from '../util/MathUtil';
+import {MathUtils, Matrix4} from '../math';
+import {Particle} from '../Particle';
+import {
+    EmitterMode,
+    EmitterShape,
+    getValueFromEmitterMode,
+    setDefaultRotationFromMatrix,
+    ShapeJSON,
+} from './EmitterUtil';
 
 /**
  * Interface representing the parameters for a sphere emitter.
@@ -41,20 +40,22 @@ export interface SphereEmitterParameters {
      * The speed of the emitter start point when mode is EmitterMode.Loop or EmitterMode.PingPong.
      * {@link EmitterMode}
      */
-    speed?: ValueGenerator | FunctionValueGenerator;
+    speed?: AnyValueGenerator;
 }
 
 export class SphereEmitter implements EmitterShape {
-    type = 'sphere';
+    readonly type = 'sphere';
+
+    private currentValue = 0;
+    private readonly _tmpM: Matrix4 = new Matrix4();
+
     radius: number;
     arc: number;
-    thickness: number; //[0, 1]
+    thickness: number; // [0, 1]
     mode: EmitterMode;
     spread: number;
-    speed: ValueGenerator | FunctionValueGenerator;
-    memory: GeneratorMemory;
-
-    _m1: Matrix4;
+    speed: AnyValueGenerator;
+    memory: GeneratorMemory = [];
 
     constructor(parameters: SphereEmitterParameters = {}) {
         this.radius = parameters.radius ?? 10;
@@ -63,12 +64,7 @@ export class SphereEmitter implements EmitterShape {
         this.mode = parameters.mode ?? EmitterMode.Random;
         this.spread = parameters.spread ?? 0;
         this.speed = parameters.speed ?? new ConstantValue(1);
-        this.memory = [];
-
-        this._m1 = new Matrix4();
     }
-
-    private currentValue = 0;
 
     update(system: IParticleSystem, delta: number): void {
         if (EmitterMode.Random != this.mode) {
@@ -80,27 +76,25 @@ export class SphereEmitter implements EmitterShape {
         const u = getValueFromEmitterMode(this.mode, this.currentValue, this.spread, emissionState);
         const v = Math.random();
         const rand = MathUtils.lerp(1 - this.thickness, 1, Math.random());
+
         const theta = u * this.arc;
-        const phi = Math.acos(2.0 * v - 1.0);
         const sinTheta = Math.sin(theta);
         const cosTheta = Math.cos(theta);
+
+        const phi = Math.acos(2.0 * v - 1.0);
         const sinPhi = Math.sin(phi);
         const cosPhi = Math.cos(phi);
+
         p.position.x = sinPhi * cosTheta;
         p.position.y = sinPhi * sinTheta;
         p.position.z = cosPhi;
 
         p.velocity.copy(p.position).multiplyScalar(p.startSpeed);
+
         p.position.multiplyScalar(this.radius * rand);
 
-        // Default facing-outward orientation, but defer to startRotation if set.
-        if (p.rotation instanceof Quaternion) {
-            const r = p.rotation;
-            if (r.x === 0 && r.y === 0 && r.z === 0 && r.w === 1) {
-                this._m1.lookAt(ZERO_VEC3, p.position, UP_VEC3);
-                p.rotation.setFromRotationMatrix(this._m1);
-            }
-        }
+        // Default facing-outward orientation or defer to startRotation if set.
+        setDefaultRotationFromMatrix(p.rotation, p.position, this._tmpM);
     }
 
     toJSON(): ShapeJSON {

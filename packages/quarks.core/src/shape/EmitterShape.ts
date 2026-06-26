@@ -1,18 +1,17 @@
-import { Constructable, ParameterPair } from "../TypeUtil";
-import { JsonMetaData } from "../IParticleSystem";
-import { CircleEmitter } from "./CircleEmitter";
-import { ConeEmitter } from "./ConeEmitter";
-import { DonutEmitter } from "./DonutEmitter";
-import { PointEmitter } from "./PointEmitter";
-import { SphereEmitter } from "./SphereEmitter";
-import { HemisphereEmitter } from "./HemisphereEmitter";
-import { GridEmitter } from "./GridEmitter";
-//import { MeshSurfaceEmitter } from "./MeshSurfaceEmitter";
-import { EmitterShape, ShapeJSON } from "./EmitterUtil";
-import { RectangleEmitter } from "./RectangleEmitter";
+import {JsonMetaData} from '../IParticleSystem';
+import {Constructable, ParameterPair} from '../TypeUtil';
+import {CircleEmitter} from './CircleEmitter';
+import {ConeEmitter} from './ConeEmitter';
+import {DonutEmitter} from './DonutEmitter';
+import {EmitterShape, ShapeJSON} from './EmitterUtil';
+import {GridEmitter} from './GridEmitter';
+import {HemisphereEmitter} from './HemisphereEmitter';
+import {PointEmitter} from './PointEmitter';
+import {RectangleEmitter} from './RectangleEmitter';
+import {SphereEmitter} from './SphereEmitter';
 
 export interface EmitterShapePlugin {
-    type: string;
+    readonly type: string;
     constructor: Constructable<EmitterShape>;
     params: ParameterPair[];
     loadJSON: (json: any, meta: JsonMetaData) => EmitterShape;
@@ -112,10 +111,8 @@ export const EmitterShapes: {[key: string]: EmitterShapePlugin} = {
         ],
         constructor: RectangleEmitter,
         loadJSON: RectangleEmitter.fromJSON,
-
     },
 };
-
 
 export function EmitterFromJSON(json: ShapeJSON, meta: JsonMetaData): EmitterShape {
     return EmitterShapes[json.type].loadJSON(json, meta);

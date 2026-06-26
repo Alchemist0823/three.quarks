@@ -1,5 +1,15 @@
-import {Particle} from '../Particle';
 import {EmissionState, IParticleSystem} from '../IParticleSystem';
+import {Matrix4, Quaternion, Vector3} from '../math';
+import {Particle} from '../Particle';
+import {IDENTITY_QUAT, UP_VEC3, ZERO_VEC3} from '../util/MathUtil';
+
+export interface EmitterShape {
+    readonly type: string;
+    initialize(particle: Particle, emissionState: EmissionState): void;
+    toJSON(): ShapeJSON;
+    update(system: IParticleSystem, delta: number): void;
+    clone(): EmitterShape;
+}
 
 export interface ShapeJSON {
     type: string;
@@ -47,17 +57,20 @@ export function getValueFromEmitterMode(
     spread: number,
     emissionState: EmissionState
 ): number {
-    let u;
     if (EmitterMode.Random === mode) {
         currentValue = Math.random();
     } else if (EmitterMode.Burst === mode && emissionState.isBursting) {
         currentValue = emissionState.burstParticleIndex / emissionState.burstParticleCount;
     }
+
+    let u;
+
     if (spread > 0) {
         u = Math.floor(currentValue / spread) * spread;
     } else {
         u = currentValue;
     }
+
     switch (mode) {
         case EmitterMode.Loop:
             u = u % 1;
@@ -66,13 +79,24 @@ export function getValueFromEmitterMode(
             u = Math.abs((u % 2) - 1);
             break;
     }
+
     return u;
 }
 
-export interface EmitterShape {
-    type: string;
-    initialize(particle: Particle, emissionState: EmissionState): void;
-    toJSON(): ShapeJSON;
-    update(system: IParticleSystem, delta: number): void;
-    clone(): EmitterShape;
+/**
+ * Defaults a rotation quaternion from given matrix, unless it's a non-identity quaternion.
+ *
+ * @param rotation - The rotation quaternion.
+ * @param target - The matrix target vector.
+ * @param matrix - The matrix to set the rotation from.
+ */
+export function setDefaultRotationFromMatrix(
+    rotation: number | Quaternion | undefined,
+    target: Vector3,
+    matrix: Matrix4
+): void {
+    if (rotation instanceof Quaternion && rotation.equals(IDENTITY_QUAT)) {
+        matrix.lookAt(ZERO_VEC3, target, UP_VEC3);
+        rotation.setFromRotationMatrix(matrix);
+    }
 }
