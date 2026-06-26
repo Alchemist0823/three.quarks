@@ -1,13 +1,13 @@
-import {RotationGenerator} from './RotationGenerator';
-import {Euler, Quaternion} from '../math';
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './ValueGenerator';
+import {Euler, EulerOrder, Quaternion} from '../math';
 import {FunctionJSON} from './FunctionJSON';
-import {EulerOrder} from '../math';
 import {GeneratorMemory} from './GeneratorMemory';
+import {RotationGenerator} from './RotationGenerator';
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './ValueGenerator';
 
 export class EulerGenerator implements RotationGenerator {
-    type: 'rotation';
-    eular: Euler;
+    readonly type = 'rotation';
+
+    private readonly _euler: Euler;
 
     constructor(
         public angleX: FunctionValueGenerator | ValueGenerator,
@@ -15,8 +15,7 @@ export class EulerGenerator implements RotationGenerator {
         public angleZ: FunctionValueGenerator | ValueGenerator,
         eulerOrder?: EulerOrder
     ) {
-        this.type = 'rotation';
-        this.eular = new Euler(0, 0, 0, eulerOrder);
+        this._euler = new Euler(0, 0, 0, eulerOrder);
     }
 
     startGen(memory: GeneratorMemory): void {
@@ -26,12 +25,13 @@ export class EulerGenerator implements RotationGenerator {
     }
 
     genValue(memory: GeneratorMemory, quat: Quaternion, delta: number, t?: number): Quaternion {
-        this.eular.set(
+        this._euler.set(
             this.angleX.genValue(memory, t!) * delta,
             this.angleY.genValue(memory, t!) * delta,
             this.angleZ.genValue(memory, t!) * delta
         );
-        return quat.setFromEuler(this.eular);
+
+        return quat.setFromEuler(this._euler);
     }
 
     toJSON(): FunctionJSON {
@@ -40,7 +40,7 @@ export class EulerGenerator implements RotationGenerator {
             angleX: this.angleX.toJSON(),
             angleY: this.angleY.toJSON(),
             angleZ: this.angleZ.toJSON(),
-            eulerOrder: this.eular.order,
+            eulerOrder: this._euler.order,
         };
     }
 
@@ -54,6 +54,6 @@ export class EulerGenerator implements RotationGenerator {
     }
 
     clone(): RotationGenerator {
-        return new EulerGenerator(this.angleX, this.angleY, this.angleZ, this.eular.order);
+        return new EulerGenerator(this.angleX, this.angleY, this.angleZ, this._euler.order);
     }
 }

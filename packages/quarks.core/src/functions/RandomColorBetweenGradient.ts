@@ -1,22 +1,23 @@
-import {FunctionColorGenerator} from './ColorGenerator';
 import {Vector4} from '../math';
+import {FunctionColorGenerator} from './ColorGenerator';
 import {FunctionJSON} from './FunctionJSON';
-import {Gradient} from './Gradient';
 import {GeneratorMemory} from './GeneratorMemory';
+import {Gradient} from './Gradient';
 
-const tempColor: Vector4 = new Vector4();
+const _tmpV: Vector4 = new Vector4();
 
-// generate a random color from the start two gradients
+/**
+ * Generate a random color from the start of two gradients.
+ */
 export class RandomColorBetweenGradient implements FunctionColorGenerator {
-    public gradient1: Gradient;
-    public gradient2: Gradient;
-    public type: 'function';
-    private indexCount: number = 0;
-    constructor(gradient1: Gradient, gradient2: Gradient) {
-        this.type = 'function';
-        this.gradient1 = gradient1;
-        this.gradient2 = gradient2;
-    }
+    readonly type = 'function';
+
+    private indexCount = 0;
+
+    constructor(
+        public gradient1: Gradient,
+        public gradient2: Gradient
+    ) {}
 
     startGen(memory: GeneratorMemory): void {
         this.indexCount = memory.length;
@@ -25,12 +26,14 @@ export class RandomColorBetweenGradient implements FunctionColorGenerator {
 
     genColor(memory: GeneratorMemory, color: Vector4, t: number): Vector4 {
         this.gradient1.genColor(memory, color, t);
-        this.gradient2.genColor(memory, tempColor, t);
+        this.gradient2.genColor(memory, _tmpV, t);
+
         if (memory && memory[this.indexCount] !== undefined) {
-            color.lerp(tempColor, memory[this.indexCount]);
+            color.lerp(_tmpV, memory[this.indexCount]);
         } else {
-            color.lerp(tempColor, Math.random());
+            color.lerp(_tmpV, Math.random());
         }
+
         return color;
     }
 

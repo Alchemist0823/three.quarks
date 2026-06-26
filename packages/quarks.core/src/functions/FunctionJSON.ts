@@ -1,1 +1,1 @@
-export type FunctionJSON = {[a:string]:any};
+export type FunctionJSON = {[a: string]: any};

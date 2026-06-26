@@ -1,12 +1,13 @@
-import {FunctionJSON} from "./FunctionJSON";
-import {RotationGenerator, RotationGeneratorFromJSON} from "./RotationGenerator";
-import {ConstantValue} from "./ConstantValue";
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from "./ValueGenerator";
+import {ConstantValue} from './ConstantValue';
+import {FunctionJSON} from './FunctionJSON';
+import {RotationGenerator, RotationGeneratorFromJSON} from './RotationGenerator';
+import {AnyValueGenerator, ValueGeneratorFromJSON} from './ValueGenerator';
 import {Vector3Generator, Vector3GeneratorFromJSON} from './Vector3Generator';
 
+export type AnyGenerator = AnyValueGenerator | RotationGenerator | Vector3Generator;
 
-export function GeneratorFromJSON(json: FunctionJSON): FunctionValueGenerator | ValueGenerator | RotationGenerator | Vector3Generator {
-    switch(json.type) {
+export function GeneratorFromJSON(json: FunctionJSON): AnyGenerator {
+    switch (json.type) {
         case 'ConstantValue':
         case 'IntervalValue':
         case 'PiecewiseBezier':
@@ -20,5 +21,4 @@ export function GeneratorFromJSON(json: FunctionJSON): FunctionValueGenerator | 
         default:
             return new ConstantValue(0);
     }
-
 }

@@ -1,24 +1,22 @@
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './ValueGenerator';
 import {Quaternion, Vector3} from '../math';
 import {FunctionJSON} from './FunctionJSON';
-import {RotationGenerator} from './RotationGenerator';
 import {GeneratorMemory} from './GeneratorMemory';
+import {RotationGenerator} from './RotationGenerator';
+import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from './ValueGenerator';
 
 export class AxisAngleGenerator implements RotationGenerator {
-    type: 'rotation';
+    readonly type = 'rotation';
+
     constructor(
         public axis: Vector3,
         public angle: FunctionValueGenerator | ValueGenerator
-    ) {
-        this.type = 'rotation';
-    }
+    ) {}
 
     startGen(memory: GeneratorMemory): void {
         this.angle.startGen(memory);
     }
 
     genValue(memory: GeneratorMemory, quat: Quaternion, delta: number, t?: number): Quaternion {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return quat.setFromAxisAngle(this.axis, this.angle.genValue(memory, t!) * delta);
     }
 

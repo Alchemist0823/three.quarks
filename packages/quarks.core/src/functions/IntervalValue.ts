@@ -1,17 +1,17 @@
-import {ValueGenerator} from './ValueGenerator';
 import {MathUtils} from '../math';
 import {FunctionJSON} from './FunctionJSON';
 import {GeneratorMemory} from './GeneratorMemory';
+import {ValueGenerator} from './ValueGenerator';
 
 export class IntervalValue implements ValueGenerator {
+    readonly type = 'value';
+
+    private indexCount = -1;
+
     constructor(
         public a: number,
         public b: number
-    ) {
-        this.type = 'value';
-    }
-
-    indexCount = -1;
+    ) {}
 
     // Roll a random sample once at spawn and remember the slot, so the
     // particle keeps the same lerp factor for its whole life. See
@@ -25,10 +25,9 @@ export class IntervalValue implements ValueGenerator {
         if (this.indexCount === -1) {
             this.startGen(memory);
         }
+
         return MathUtils.lerp(this.a, this.b, memory[this.indexCount]);
     }
-
-    type: 'value';
 
     toJSON(): FunctionJSON {
         return {

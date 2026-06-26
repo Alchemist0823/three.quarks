@@ -1,34 +1,38 @@
-import {FunctionColorGenerator} from './ColorGenerator';
 import {Vector3, Vector4} from '../math';
+import {FunctionColorGenerator} from './ColorGenerator';
 import {ColorRange} from './ColorRange';
-import {FunctionJSON} from './FunctionJSON';
 import {ContinuousLinearFunction} from './ContinuousLinearFunction';
+import {FunctionJSON} from './FunctionJSON';
 import {GeneratorMemory} from './GeneratorMemory';
 
-const tempVec3 = new Vector3();
+const _tmpV = new Vector3();
+
 export class Gradient implements FunctionColorGenerator {
-    type: 'function';
+    readonly type = 'function';
+
     color: ContinuousLinearFunction<Vector3>;
     alpha: ContinuousLinearFunction<number>;
-    // default linear bezier
+
+    // Default linear bezier
     constructor(
-        color: Array<[Vector3, number]> = [
+        color: [Vector3, number][] = [
             [new Vector3(0, 0, 0), 0],
             [new Vector3(1, 1, 1), 0],
         ],
-        alpha: Array<[number, number]> = [
+        alpha: [number, number][] = [
             [1, 0],
             [1, 1],
         ]
     ) {
-        this.type = 'function';
         this.color = new ContinuousLinearFunction<Vector3>(color, 'Color');
         this.alpha = new ContinuousLinearFunction<number>(alpha, 'Number');
     }
 
+    startGen(memory: GeneratorMemory): void {}
+
     genColor(memory: GeneratorMemory, color: Vector4, t: number): Vector4 {
-        this.color.genValue(tempVec3, t);
-        return color.set(tempVec3.x, tempVec3.y, tempVec3.z, this.alpha.genValue(1, t));
+        this.color.genValue(_tmpV, t);
+        return color.set(_tmpV.x, _tmpV.y, _tmpV.z, this.alpha.genValue(1, t));
     }
 
     toJSON(): FunctionJSON {
@@ -46,6 +50,7 @@ export class Gradient implements FunctionColorGenerator {
             if (json.functions.length > 0) {
                 keys.push([ColorRange.fromJSON(json.functions[json.functions.length - 1].function).b, 1]);
             }
+
             return new Gradient(
                 keys.map((key: any) => [new Vector3(key[0].x, key[0].y, key[0].z), key[1]]),
                 keys.map((key: any) => [key[0].w, key[1]])
@@ -54,6 +59,7 @@ export class Gradient implements FunctionColorGenerator {
             const gradient = new Gradient();
             gradient.alpha = ContinuousLinearFunction.fromJSON(json.alpha);
             gradient.color = ContinuousLinearFunction.fromJSON(json.color);
+
             return gradient;
         }
     }
@@ -62,8 +68,7 @@ export class Gradient implements FunctionColorGenerator {
         const gradient = new Gradient();
         gradient.alpha = this.alpha.clone();
         gradient.color = this.color.clone();
+
         return gradient;
     }
-
-    startGen(memory: GeneratorMemory): void {}
 }

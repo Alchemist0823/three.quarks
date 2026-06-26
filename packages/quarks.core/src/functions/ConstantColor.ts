@@ -4,33 +4,29 @@ import {ColorGenerator} from './ColorGenerator';
 import {FunctionJSON} from './FunctionJSON';
 import {GeneratorMemory} from './GeneratorMemory';
 
-export class RandomColor implements ColorGenerator {
+export class ConstantColor implements ColorGenerator {
     readonly type = 'value';
 
-    constructor(
-        public a: Vector4,
-        public b: Vector4
-    ) {}
+    constructor(public color: Vector4) {}
 
     startGen(memory: GeneratorMemory): void {}
 
     genColor(memory: GeneratorMemory, color: Vector4): Vector4 {
-        return color.copy(this.a).lerp(this.b, Math.random());
+        return color.copy(this.color);
     }
 
     toJSON(): FunctionJSON {
         return {
-            type: 'RandomColor',
-            a: ColorToJSON(this.a),
-            b: ColorToJSON(this.b),
+            type: 'ConstantColor',
+            color: ColorToJSON(this.color),
         };
     }
 
-    static fromJSON(json: FunctionJSON): RandomColor {
-        return new RandomColor(JSONToColor(json.a), JSONToColor(json.b));
+    static fromJSON(json: FunctionJSON): ConstantColor {
+        return new ConstantColor(JSONToColor(json.color));
     }
 
     clone(): ColorGenerator {
-        return new RandomColor(this.a.clone(), this.b.clone());
+        return new ConstantColor(this.color.clone());
     }
 }

@@ -1,5 +1,5 @@
-import {FunctionJSON} from './FunctionJSON';
 import {JSONToValue, ValueToJSON} from '../util/JSONUtil';
+import {FunctionJSON} from './FunctionJSON';
 
 interface ObjectValueType<T> {
     copy(value: T): ObjectValueType<T>;
@@ -8,29 +8,30 @@ interface ObjectValueType<T> {
 }
 
 export class ContinuousLinearFunction<T extends ObjectValueType<T> | number> {
-    keys: Array<[T, number]>;
-    type: 'function';
-    subType: 'Number' | 'Vector3' | 'Vector4' | 'Color';
-    // default linear bezier
-    constructor(keys: Array<[T, number]>, subType: 'Number' | 'Vector3' | 'Vector4' | 'Color') {
-        this.subType = subType;
-        this.type = 'function';
-        this.keys = keys;
-    }
+    readonly type = 'function';
+
+    constructor(
+        public keys: [T, number][],
+        public subType: 'Number' | 'Vector3' | 'Vector4' | 'Color'
+    ) {}
 
     findKey(t: number): number {
-        let mid = 0;
-        let left = 0,
+        let mid = 0,
+            left = 0,
             right = this.keys.length - 1;
+
         while (left + 1 < right) {
             mid = Math.floor((left + right) / 2);
+
             if (t < this.getStartX(mid)) right = mid - 1;
             else if (t > this.getEndX(mid)) left = mid + 1;
             else return mid;
         }
+
         for (let i = left; i <= right; i++) {
             if (t >= this.getStartX(i) && t <= this.getEndX(i)) return i;
         }
+
         return -1;
     }
 
@@ -45,33 +46,34 @@ export class ContinuousLinearFunction<T extends ObjectValueType<T> | number> {
 
     genValue(value: T, t: number): T {
         const index = this.findKey(t);
-        if (this.subType === 'Number') {
-            if (index === -1) {
-                return this.keys[0][0];
-            } else if (index + 1 >= this.keys.length) {
-                return this.keys[this.keys.length - 1][0];
-            }
-            return (((this.keys[index + 1][0] as number) - (this.keys[index][0] as number)) *
-                ((t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index))) +
-                (this.keys[index][0] as number)) as T;
-        } else {
-            if (index === -1) {
-                return (value as ObjectValueType<T>).copy(this.keys[0][0]) as T;
-            }
-            if (index + 1 >= this.keys.length) {
-                return (value as ObjectValueType<T>).copy(this.keys[this.keys.length - 1][0]) as T;
-            }
-            return (value as ObjectValueType<T>)
-                .copy(this.keys[index][0])
-                .lerp(
-                    this.keys[index + 1][0],
-                    (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index))
-                ) as T;
+        const firstValue = this.keys[0][0];
+        const lastValue = this.keys[this.keys.length - 1][0];
+
+        if (index === -1) {
+            return this.subType === 'Number' ? firstValue : ((value as ObjectValueType<T>).copy(firstValue) as T);
         }
+
+        if (index + 1 >= this.keys.length) {
+            return this.subType === 'Number' ? lastValue : ((value as ObjectValueType<T>).copy(lastValue) as T);
+        }
+
+        const startValue = this.keys[index][0];
+        const endValue = this.keys[index + 1][0];
+        const startX = this.getStartX(index);
+        const endX = this.getEndX(index);
+        const ratio = (t - startX) / (endX - startX);
+
+        if (this.subType === 'Number') {
+            const start = startValue as number;
+            const end = endValue as number;
+
+            return (start + (end - start) * ratio) as T;
+        }
+
+        return (value as ObjectValueType<T>).copy(startValue).lerp(endValue, ratio) as T;
     }
 
     toJSON(): FunctionJSON {
-        const subType = this.keys[0][0].constructor.name;
         return {
             type: 'CLinearFunction',
             subType: this.subType,

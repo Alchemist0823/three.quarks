@@ -1,16 +1,13 @@
-import {FunctionJSON} from './FunctionJSON';
 import {Quaternion} from '../math';
-import {RandomQuatGenerator} from './RandomQuatGenerator';
 import {AxisAngleGenerator} from './AxisAngleGenerator';
 import {EulerGenerator} from './EulerGenerator';
+import {FunctionJSON} from './FunctionJSON';
+import {GeneratorLike} from './GeneratorLike';
 import {GeneratorMemory} from './GeneratorMemory';
+import {RandomQuatGenerator} from './RandomQuatGenerator';
 
-export interface RotationGenerator {
-    type: 'rotation';
-    startGen(memory: GeneratorMemory): void;
+export interface RotationGenerator extends GeneratorLike<'rotation', RotationGenerator> {
     genValue(memory: GeneratorMemory, q: Quaternion, delta: number, t: number): Quaternion;
-    toJSON(): FunctionJSON;
-    clone(): RotationGenerator;
 }
 
 export function RotationGeneratorFromJSON(json: FunctionJSON): RotationGenerator {

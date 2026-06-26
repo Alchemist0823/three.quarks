@@ -1,15 +1,12 @@
-import {GeneratorMemory} from './GeneratorMemory';
-import {FunctionJSON} from './FunctionJSON';
 import {Vector3} from '../math';
-import {Vector3Function} from './Vector3Function';
 import {ConstantValue} from './ConstantValue';
+import {FunctionJSON} from './FunctionJSON';
+import {GeneratorLike} from './GeneratorLike';
+import {GeneratorMemory} from './GeneratorMemory';
+import {Vector3Function} from './Vector3Function';
 
-export interface Vector3Generator {
-    type: 'vec3function';
-    startGen(memory: GeneratorMemory): void;
+export interface Vector3Generator extends GeneratorLike<'vec3function', Vector3Generator> {
     genValue(memory: GeneratorMemory, vec: Vector3, t?: number): Vector3;
-    toJSON(): FunctionJSON;
-    clone(): Vector3Generator;
 }
 
 export function Vector3GeneratorFromJSON(json: FunctionJSON): Vector3Generator {

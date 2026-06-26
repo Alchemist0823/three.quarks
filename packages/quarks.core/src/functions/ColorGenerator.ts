@@ -1,53 +1,19 @@
 import {Vector4} from '../math';
-import {FunctionJSON} from './FunctionJSON';
-import {ColorToJSON, JSONToColor} from '../util/JSONUtil';
-import {RandomColor} from './RandomColor';
 import {ColorRange} from './ColorRange';
-import {Gradient} from './Gradient';
-import {RandomColorBetweenGradient} from './RandomColorBetweenGradient';
+import {ConstantColor} from './ConstantColor';
+import {FunctionJSON} from './FunctionJSON';
+import {GeneratorLike} from './GeneratorLike';
 import {GeneratorMemory} from './GeneratorMemory';
+import {Gradient} from './Gradient';
+import {RandomColor} from './RandomColor';
+import {RandomColorBetweenGradient} from './RandomColorBetweenGradient';
 
-export interface ColorGenerator {
-    type: 'value';
-    startGen(memory: GeneratorMemory): void;
+export interface ColorGenerator extends GeneratorLike<'value', ColorGenerator> {
     genColor(memory: GeneratorMemory, color: Vector4): Vector4;
-    toJSON(): FunctionJSON;
-    clone(): ColorGenerator;
 }
 
-export interface FunctionColorGenerator {
-    type: 'function';
-    startGen(memory: GeneratorMemory): void;
+export interface FunctionColorGenerator extends GeneratorLike<'function', FunctionColorGenerator> {
     genColor(memory: GeneratorMemory, color: Vector4, t: number): Vector4;
-    toJSON(): FunctionJSON;
-    clone(): FunctionColorGenerator;
-}
-export class ConstantColor implements ColorGenerator {
-    constructor(public color: Vector4) {
-        this.type = 'value';
-    }
-
-    startGen(memory: GeneratorMemory): void {}
-    genColor(memoryGenerator: GeneratorMemory, color: Vector4): Vector4 {
-        return color.copy(this.color);
-    }
-
-    type: 'value';
-
-    toJSON(): FunctionJSON {
-        return {
-            type: 'ConstantColor',
-            color: ColorToJSON(this.color),
-        };
-    }
-
-    static fromJSON(json: FunctionJSON): ConstantColor {
-        return new ConstantColor(JSONToColor(json.color));
-    }
-
-    clone(): ColorGenerator {
-        return new ConstantColor(this.color.clone());
-    }
 }
 
 export function ColorGeneratorFromJSON(json: FunctionJSON) {
