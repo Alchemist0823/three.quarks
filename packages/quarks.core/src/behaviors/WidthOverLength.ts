@@ -1,27 +1,29 @@
-import {Behavior} from './Behavior';
 import {Particle, RecordState, TrailParticle} from '../Particle';
 import {FunctionValueGenerator, ValueGeneratorFromJSON} from '../functions/ValueGenerator';
+import {Behavior} from './Behavior';
 
 /**
  * Apply width to particles based on their length.
  */
 export class WidthOverLength implements Behavior {
-    type = 'WidthOverLength';
+    readonly type = 'WidthOverLength';
+
+    constructor(public width: FunctionValueGenerator) {}
 
     initialize(particle: Particle): void {
         this.width.startGen(particle.memory);
     }
 
-    constructor(public width: FunctionValueGenerator) {}
-
     update(particle: Particle): void {
         if (particle instanceof TrailParticle) {
             const iter = particle.previous.values();
-            for (let i = 0; i < particle.previous.length; i++) {
+            const previousLength = particle.previous.length;
+
+            for (let i = 0; i < previousLength; i++) {
                 const cur = iter.next();
                 (cur.value as RecordState).size = this.width.genValue(
                     particle.memory,
-                    (particle.previous.length - i) / particle.length
+                    (previousLength - i) / particle.length
                 );
             }
         }
@@ -43,5 +45,6 @@ export class WidthOverLength implements Behavior {
     clone(): Behavior {
         return new WidthOverLength(this.width.clone());
     }
+
     reset(): void {}
 }

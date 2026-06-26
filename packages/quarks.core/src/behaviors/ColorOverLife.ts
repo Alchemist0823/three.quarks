@@ -6,7 +6,7 @@ import {ColorGeneratorFromJSON, FunctionColorGenerator} from '../functions';
  * Color particles by their life.
  */
 export class ColorOverLife implements Behavior {
-    type = 'ColorOverLife';
+    readonly type = 'ColorOverLife';
 
     constructor(public color: FunctionColorGenerator) {}
 
@@ -16,6 +16,7 @@ export class ColorOverLife implements Behavior {
 
     update(particle: Particle, delta: number): void {
         this.color.genColor(particle.memory, particle.color, particle.age / particle.life);
+
         particle.color.x *= particle.startColor.x;
         particle.color.y *= particle.startColor.y;
         particle.color.z *= particle.startColor.z;
@@ -38,5 +39,6 @@ export class ColorOverLife implements Behavior {
     clone(): Behavior {
         return new ColorOverLife(this.color.clone());
     }
+
     reset(): void {}
 }

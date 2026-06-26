@@ -1,31 +1,28 @@
-import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions/ValueGenerator';
+import {AnyValueGenerator, ValueGeneratorFromJSON} from '../functions/ValueGenerator';
+import {Behavior} from './Behavior';
 
 /**
  * Apply rotation to particles over their life.
  */
 export class RotationOverLife implements Behavior {
-    type = 'RotationOverLife';
+    readonly type = 'RotationOverLife';
 
-    constructor(public angularVelocity: ValueGenerator | FunctionValueGenerator) {}
+    constructor(public angularVelocity: AnyValueGenerator) {}
 
     initialize(particle: Particle): void {
         if (typeof particle.rotation === 'number') {
-            (this.angularVelocity as ValueGenerator).startGen(particle.memory);
+            this.angularVelocity.startGen(particle.memory);
         }
     }
 
     update(particle: Particle, delta: number): void {
         if (typeof particle.rotation === 'number') {
-            (particle.rotation as number) +=
-                delta *
-                (this.angularVelocity as FunctionValueGenerator).genValue(
-                    particle.memory,
-                    particle.age / particle.life
-                );
+            particle.rotation += delta * this.angularVelocity.genValue(particle.memory, particle.age / particle.life);
         }
     }
+
+    frameUpdate(delta: number): void {}
 
     toJSON(): any {
         return {
@@ -35,13 +32,12 @@ export class RotationOverLife implements Behavior {
     }
 
     static fromJSON(json: any): Behavior {
-        return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity) as FunctionValueGenerator);
+        return new RotationOverLife(ValueGeneratorFromJSON(json.angularVelocity));
     }
-
-    frameUpdate(delta: number): void {}
 
     clone(): Behavior {
         return new RotationOverLife(this.angularVelocity.clone());
     }
+
     reset(): void {}
 }

@@ -1,12 +1,13 @@
-import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {ColorGeneratorFromJSON, FunctionColorGenerator, IntervalValue} from '../functions';
+import {Behavior} from './Behavior';
 
 /**
  * Color particles by their speed.
  */
 export class ColorBySpeed implements Behavior {
-    type = 'ColorBySpeed';
+    readonly type = 'ColorBySpeed';
+
     constructor(
         public color: FunctionColorGenerator,
         public speedRange: IntervalValue
@@ -18,7 +19,8 @@ export class ColorBySpeed implements Behavior {
 
     update(particle: Particle, delta: number): void {
         const t = (particle.startSpeed - this.speedRange.a) / (this.speedRange.b - this.speedRange.a);
-        (this.color as FunctionColorGenerator).genColor(particle.memory, particle.color, t);
+        this.color.genColor(particle.memory, particle.color, t);
+
         particle.color.x *= particle.startColor.x;
         particle.color.y *= particle.startColor.y;
         particle.color.z *= particle.startColor.z;
@@ -45,5 +47,6 @@ export class ColorBySpeed implements Behavior {
     clone(): Behavior {
         return new ColorBySpeed(this.color.clone(), this.speedRange.clone() as IntervalValue);
     }
+
     reset(): void {}
 }

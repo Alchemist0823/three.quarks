@@ -1,17 +1,19 @@
-import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {Vector3} from '../math';
 import SimplexNoise from '../util/SimplexNoise';
+import {Behavior} from './Behavior';
 
 /**
  * Apply turbulence to particles.
  */
 export class TurbulenceField implements Behavior {
-    type = 'TurbulenceField';
-    generator = new SimplexNoise();
-    timeOffset = new Vector3();
-    temp = new Vector3();
-    temp2 = new Vector3();
+    readonly type = 'TurbulenceField';
+
+    private readonly _tmpV = new Vector3();
+    private readonly _tmpV2 = new Vector3();
+
+    private readonly generator = new SimplexNoise();
+    private readonly timeOffset = new Vector3();
 
     constructor(
         public scale: Vector3,
@@ -19,9 +21,9 @@ export class TurbulenceField implements Behavior {
         public velocityMultiplier: Vector3,
         public timeScale: Vector3
     ) {
-        this.timeOffset.x = (Math.random() / this.scale.x) * this.timeScale.x;
-        this.timeOffset.y = (Math.random() / this.scale.y) * this.timeScale.y;
-        this.timeOffset.z = (Math.random() / this.scale.z) * this.timeScale.z;
+        this.timeOffset.x = (Math.random() / scale.x) * timeScale.x;
+        this.timeOffset.y = (Math.random() / scale.y) * timeScale.y;
+        this.timeOffset.z = (Math.random() / scale.z) * timeScale.z;
     }
 
     initialize(particle: Particle): void {}
@@ -31,19 +33,32 @@ export class TurbulenceField implements Behavior {
         const y = particle.position.y / this.scale.y;
         const z = particle.position.z / this.scale.z;
 
-        this.temp.set(0, 0, 0);
+        this._tmpV.set(0, 0, 0);
         let lvl = 1;
+
         for (let i = 0; i < this.octaves; i++) {
-            this.temp2.set(
-                this.generator.noise4D(x * lvl, y * lvl, z * lvl, this.timeOffset.x * lvl) / lvl,
-                this.generator.noise4D(x * lvl, y * lvl, z * lvl, this.timeOffset.y * lvl) / lvl,
-                this.generator.noise4D(x * lvl, y * lvl, z * lvl, this.timeOffset.z * lvl) / lvl
+            const xLvl = x * lvl;
+            const yLvl = y * lvl;
+            const zLvl = z * lvl;
+
+            this._tmpV2.set(
+                this.generator.noise4D(xLvl, yLvl, zLvl, this.timeOffset.x * lvl) / lvl,
+                this.generator.noise4D(xLvl, yLvl, zLvl, this.timeOffset.y * lvl) / lvl,
+                this.generator.noise4D(xLvl, yLvl, zLvl, this.timeOffset.z * lvl) / lvl
             );
-            this.temp.add(this.temp2);
+
+            this._tmpV.add(this._tmpV2);
             lvl *= 2;
         }
-        this.temp.multiply(this.velocityMultiplier);
-        particle.velocity.addScaledVector(this.temp, delta);
+
+        this._tmpV.multiply(this.velocityMultiplier);
+        particle.velocity.addScaledVector(this._tmpV, delta);
+    }
+
+    frameUpdate(delta: number): void {
+        this.timeOffset.x += delta * this.timeScale.x;
+        this.timeOffset.y += delta * this.timeScale.y;
+        this.timeOffset.z += delta * this.timeScale.z;
     }
 
     toJSON(): any {
@@ -54,12 +69,6 @@ export class TurbulenceField implements Behavior {
             velocityMultiplier: [this.velocityMultiplier.x, this.velocityMultiplier.y, this.velocityMultiplier.z],
             timeScale: [this.timeScale.x, this.timeScale.y, this.timeScale.z],
         };
-    }
-
-    frameUpdate(delta: number): void {
-        this.timeOffset.x += delta * this.timeScale.x;
-        this.timeOffset.y += delta * this.timeScale.y;
-        this.timeOffset.z += delta * this.timeScale.z;
     }
 
     static fromJSON(json: any): Behavior {
@@ -79,5 +88,6 @@ export class TurbulenceField implements Behavior {
             this.timeScale.clone()
         );
     }
+
     reset(): void {}
 }

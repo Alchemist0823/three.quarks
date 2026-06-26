@@ -1,22 +1,25 @@
-import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {FunctionValueGenerator, ValueGeneratorFromJSON} from '../functions/ValueGenerator';
+import {Behavior} from './Behavior';
 
 /**
  * Apply speed to particles based on their life.
  */
 export class SpeedOverLife implements Behavior {
-    type = 'SpeedOverLife';
+    readonly type = 'SpeedOverLife';
+
+    constructor(public speed: FunctionValueGenerator) {}
 
     initialize(particle: Particle): void {
         this.speed.startGen(particle.memory);
     }
 
-    constructor(public speed: FunctionValueGenerator) {}
-
     update(particle: Particle): void {
-        (particle as any).speedModifier = this.speed.genValue(particle.memory, particle.age / particle.life);
+        particle.speedModifier = this.speed.genValue(particle.memory, particle.age / particle.life);
     }
+
+    frameUpdate(delta: number): void {}
+
     toJSON(): any {
         return {
             type: this.type,
@@ -28,10 +31,9 @@ export class SpeedOverLife implements Behavior {
         return new SpeedOverLife(ValueGeneratorFromJSON(json.speed) as FunctionValueGenerator);
     }
 
-    frameUpdate(delta: number): void {}
-
     clone(): Behavior {
         return new SpeedOverLife(this.speed.clone());
     }
+
     reset(): void {}
 }

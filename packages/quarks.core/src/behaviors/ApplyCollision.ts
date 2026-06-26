@@ -1,15 +1,17 @@
-import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {Vector3} from '../math';
+import {Behavior} from './Behavior';
 
 interface PhysicsResolver {
     resolve(pos: Vector3, normal: Vector3): boolean;
 }
 
 let physicsResolver: PhysicsResolver;
+
 export function setPhysicsResolver(resolver: PhysicsResolver) {
     physicsResolver = resolver;
 }
+
 export function getPhysicsResolver(): PhysicsResolver {
     return physicsResolver;
 }
@@ -18,8 +20,9 @@ export function getPhysicsResolver(): PhysicsResolver {
  * Apply collision to particles from a physics resolver.
  */
 export class ApplyCollision implements Behavior {
-    type = 'ApplyCollision';
-    tempV = new Vector3();
+    readonly type = 'ApplyCollision';
+
+    private readonly _tmpV = new Vector3();
 
     constructor(
         public resolver: PhysicsResolver,
@@ -29,8 +32,8 @@ export class ApplyCollision implements Behavior {
     initialize(particle: Particle): void {}
 
     update(particle: Particle, delta: number): void {
-        if (this.resolver.resolve(particle.position, this.tempV)) {
-            particle.velocity.reflect(this.tempV).multiplyScalar(this.bounce);
+        if (this.resolver.resolve(particle.position, this._tmpV)) {
+            particle.velocity.reflect(this._tmpV).multiplyScalar(this.bounce);
         }
     }
 

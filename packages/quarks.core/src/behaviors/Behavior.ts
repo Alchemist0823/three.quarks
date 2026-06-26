@@ -1,33 +1,32 @@
+import {IParticleSystem} from '../IParticleSystem';
 import {Particle} from '../Particle';
+import {Constructable, ParameterPair} from '../TypeUtil';
+import {ApplyForce} from './ApplyForce';
+import {ChangeEmitDirection} from './ChangeEmitDirection';
+import {ColorBySpeed} from './ColorBySpeed';
 import {ColorOverLife} from './ColorOverLife';
+import {EmitSubParticleSystem} from './EmitSubParticleSystem';
+import {ForceOverLife} from './ForceOverLife';
+import {FrameOverLife} from './FrameOverLife';
+import {GravityForce} from './GravityForce';
+import {LimitSpeedOverLife} from './LimitSpeedOverLife';
+import {Noise} from './Noise';
+import {OrbitOverLife} from './OrbitOverLife';
+import {Rotation3DOverLife} from './Rotation3DOverLife';
+import {RotationBySpeed} from './RotationBySpeed';
 import {RotationOverLife} from './RotationOverLife';
+import {SizeBySpeed} from './SizeBySpeed';
 import {SizeOverLife} from './SizeOverLife';
 import {SpeedOverLife} from './SpeedOverLife';
-import {RotationBySpeed} from './RotationBySpeed';
-import {SizeBySpeed} from './SizeBySpeed';
-import {ColorBySpeed} from './ColorBySpeed';
-import {FrameOverLife} from './FrameOverLife';
-import {OrbitOverLife} from './OrbitOverLife';
-import {ApplyForce} from './ApplyForce';
-import {Constructable, ParameterPair} from '../TypeUtil';
-import {GravityForce} from './GravityForce';
-import {WidthOverLength} from './WidthOverLength';
-import {ChangeEmitDirection} from './ChangeEmitDirection';
-import {EmitSubParticleSystem} from './EmitSubParticleSystem';
-import {IParticleSystem} from '../IParticleSystem';
 import {TurbulenceField} from './TurbulenceField';
-import {Rotation3DOverLife} from './Rotation3DOverLife';
-import {ForceOverLife} from './ForceOverLife';
-import {Noise} from './Noise';
-import {LimitSpeedOverLife} from './LimitSpeedOverLife';
-import { ApplyCollision } from './ApplyCollision';
+import {WidthOverLength} from './WidthOverLength';
 
 /**
  * Interface for particle behaviors.
  * a behavior is a function that modifies a particle's properties over time.
  */
 export interface Behavior {
-    type: string;
+    readonly type: string;
     initialize(particle: Particle, particleSystem: IParticleSystem): void;
     update(particle: Particle, delta: number): void;
     frameUpdate(delta: number): void;
@@ -37,7 +36,7 @@ export interface Behavior {
 }
 
 export interface BehaviorPlugin {
-    type: string;
+    readonly type: string;
     constructor: Constructable<Behavior>;
     params: ParameterPair[];
     loadJSON: (json: any, particleSystem: IParticleSystem) => Behavior;
@@ -199,21 +198,12 @@ export const BehaviorTypes: {[key: string]: BehaviorPlugin} = {
         ],
         loadJSON: LimitSpeedOverLife.fromJSON,
     },
-    /*ApplyCollision: {
-        type: 'ApplyCollision',
-        constructor: ApplyCollision,
-        params: [
-            ['resolver', ['']],
-            ['bounce', ['number']],
-        ],
-        loadJSON: ApplyCollision.fromJSON,
-    }*/
 };
 
 export function BehaviorFromJSON(json: any, particleSystem: IParticleSystem): Behavior | null {
     if (BehaviorTypes[json.type]) {
         return BehaviorTypes[json.type].loadJSON(json, particleSystem);
     }
+
     return null;
 }
-

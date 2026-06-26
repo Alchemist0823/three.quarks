@@ -1,18 +1,16 @@
-import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
-import {FunctionValueGenerator, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
+import {GeneratorMemory, ValueGenerator, ValueGeneratorFromJSON} from '../functions';
 import {Vector3} from '../math';
+import {Behavior} from './Behavior';
 
 /**
  * Apply a global force to particles.
  */
 export class ApplyForce implements Behavior {
-    type = 'ApplyForce';
-    magnitudeValue: number;
-    memory = {
-        data: [],
-        dataCount: 0,
-    };
+    readonly type = 'ApplyForce';
+
+    private magnitudeValue: number;
+    memory: GeneratorMemory = [];
 
     constructor(
         public direction: Vector3,

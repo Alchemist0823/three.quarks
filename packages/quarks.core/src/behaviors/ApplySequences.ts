@@ -1,24 +1,23 @@
-import {Behavior} from './Behavior';
 import {Particle} from '../Particle';
 import {Bezier, IntervalValue, ValueGeneratorFromJSON} from '../functions';
 import {Vector3} from '../math';
 import {Sequencer, SequencerFromJSON} from '../sequencers/Sequencer';
+import {Behavior} from './Behavior';
 
 /**
  * Apply sequences to particles.
  * {@link Sequencer}
  */
 export class ApplySequences implements Behavior {
-    static BEZIER: Bezier = new Bezier(0, 0, 1, 1);
-    type = 'ApplySequences';
-    sequencers: Array<[IntervalValue, Sequencer]> = [];
+    readonly type = 'ApplySequences';
 
+    static BEZIER: Bezier = new Bezier(0, 0, 1, 1);
+
+    sequencers: [IntervalValue, Sequencer][] = [];
     time = 0;
     index = 0;
     pCount = 0;
-
     delay: number;
-    tempV: Vector3 = new Vector3();
 
     constructor(delayBetweenParticles: number) {
         this.delay = delayBetweenParticles;
@@ -29,6 +28,7 @@ export class ApplySequences implements Behavior {
         (particle as any).dst = new Vector3();
         (particle as any).begin = new Vector3();
         (particle as any).inMotion = false;
+
         this.pCount++;
     }
 
@@ -40,20 +40,23 @@ export class ApplySequences implements Behavior {
 
     update(particle: Particle, delta: number): void {
         const sequencer = this.sequencers[this.index];
-        const delay = (particle as any).id * this.delay;
+        const p = particle as any;
+        const delay = p.id * this.delay;
+
         if (this.time >= sequencer[0].a + delay && this.time <= sequencer[0].b + delay) {
-            if (!(particle as any).inMotion) {
-                (particle as any).inMotion = true;
-                (particle as any).begin.copy((particle as any).position);
-                sequencer[1].transform((particle as any).dst, (particle as any).id);
+            if (!p.inMotion) {
+                p.inMotion = true;
+                p.begin.copy(particle.position);
+                sequencer[1].transform(p.dst, p.id);
             }
+
             particle.position.lerpVectors(
-                (particle as any).begin,
-                (particle as any).dst,
+                p.begin,
+                p.dst,
                 ApplySequences.BEZIER.genValue((this.time - sequencer[0].a - delay) / (sequencer[0].b - sequencer[0].a))
             );
         } else if (this.time > sequencer[0].b + delay) {
-            (particle as any).inMotion = false;
+            p.inMotion = false;
         }
     }
 
@@ -61,6 +64,7 @@ export class ApplySequences implements Behavior {
         while (this.index + 1 < this.sequencers.length && this.time >= this.sequencers[this.index + 1][0].a) {
             this.index++;
         }
+
         this.time += delta;
     }
 
@@ -81,18 +85,21 @@ export class ApplySequences implements Behavior {
 
     static fromJSON(json: any): Behavior {
         const seq = new ApplySequences(json.delay);
-        json.sequencers.forEach((sequencerJson: any) => {
+
+        for (const sequencerJson of json.sequencers) {
             seq.sequencers.push([
                 ValueGeneratorFromJSON(sequencerJson.range) as IntervalValue,
                 SequencerFromJSON(sequencerJson.sequencer),
             ]);
-        });
+        }
+
         return seq;
     }
 
     clone(): Behavior {
         const applySequences = new ApplySequences(this.delay);
         applySequences.sequencers = this.sequencers.map((seq) => [seq[0].clone() as IntervalValue, seq[1].clone()]);
+
         return applySequences;
     }
 }
