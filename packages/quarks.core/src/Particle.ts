@@ -1,7 +1,7 @@
-import {Matrix4, Quaternion, Vector3, Vector4} from './math';
-import {EmissionState} from './IParticleSystem';
-import {LinkedList} from './util/LinkedList';
 import {GeneratorMemory} from './functions';
+import {EmissionState} from './IParticleSystem';
+import {Matrix4, Quaternion, Vector3, Vector4} from './math';
+import {LinkedList} from './util/LinkedList';
 
 export interface IParticle {
     /**
@@ -45,7 +45,8 @@ export interface IParticle {
      */
     color: Vector4;
     /**
-     * the memory of the particle.
+     * The memory of the particle.
+     * @type {GeneratorMemory}
      */
     memory: GeneratorMemory;
     /**
@@ -118,7 +119,7 @@ export class NodeParticle implements IParticle {
      * Size of the particle.
      * @type {Vector3}
      */
-    size : Vector3 = new Vector3();
+    size: Vector3 = new Vector3();
     /**
      * Angular velocity of the particle.
      * @type {number | Quaternion}
@@ -220,13 +221,11 @@ export class SpriteParticle implements Particle {
      * @type {number}
      */
     speedModifier = 1;
-    // extra properties
     /**
      * Angular velocity of the particle.
      * @type {number | Quaternion}
      */
     angularVelocity?: number | Quaternion;
-    // GPU properties
     /**
      * Rotation of the particle.
      * @type {number | Quaternion}
@@ -251,6 +250,9 @@ export class SpriteParticle implements Particle {
         return this.age >= this.life;
     }
 
+    /**
+     * Resets the particle memory.
+     */
     reset() {
         this.memory.length = 0;
     }
@@ -295,7 +297,7 @@ export class TrailParticle implements Particle {
      * Initial size of the particle.
      * @type {Vector3}
      */
-    startSize: Vector3 = new Vector3(1,1,1);
+    startSize: Vector3 = new Vector3(1, 1, 1);
     /**
      * Position of the particle.
      * @type {Vector3}
@@ -325,7 +327,7 @@ export class TrailParticle implements Particle {
      * Size of the particle.
      * @type {Vector3}
      */
-    size = new Vector3(1,1,1);
+    size = new Vector3(1, 1, 1);
     /**
      * Length of the trail.
      * @type {number}
@@ -336,8 +338,6 @@ export class TrailParticle implements Particle {
      * @type {number}
      */
     speedModifier = 1;
-
-    // GPU properties
     /**
      * Color of the particle.
      * @type {Vector4}
@@ -365,6 +365,7 @@ export class TrailParticle implements Particle {
                 this.previous.dequeue();
             }
         }
+
         while (this.previous.length > this.length) {
             this.previous.dequeue();
         }

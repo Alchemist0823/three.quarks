@@ -1,11 +1,15 @@
-
-
 export interface IAnimationData {
-    /** Start time in seconds */
+    /**
+     * Start time in seconds
+     */
     startTime: number;
-    /** Duration in seconds */
+    /**
+     * Duration in seconds
+     */
     duration: number;
-    /** Target object */
+    /**
+     * Target object
+     */
     target: any;
 }
 

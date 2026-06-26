@@ -17,5 +17,7 @@ export type FieldType =
     | 'geometry'
     | 'emitterMode'
     | 'vec3Func';
+
 export type ParameterType = FieldType | 'self';
-export type ParameterPair = [string, Array<ParameterType>];
+
+export type ParameterPair = [string, ParameterType[]];

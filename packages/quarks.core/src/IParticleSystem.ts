@@ -1,6 +1,7 @@
+import {FunctionValueGenerator, ValueGenerator} from './functions';
 import {Matrix4, Vector3} from './math';
 import {IParticle} from './Particle';
-import {FunctionValueGenerator, ValueGenerator} from './functions';
+
 export interface EmissionState {
     burstIndex: number;
     burstWaveIndex: number;
@@ -13,9 +14,7 @@ export interface EmissionState {
     previousWorldPos?: Vector3;
 }
 
-export interface Resource {
-
-}
+export interface Resource {}
 
 export interface JsonMetaData {
     textures: {[uuid: string]: Resource};
@@ -24,7 +23,7 @@ export interface JsonMetaData {
 
 export interface SerializationOptions {
     /**
-     * Use URL for image.
+     * Whether to use URL for the image.
      * @type {boolean}
      */
     useUrlForImage?: boolean;
@@ -34,12 +33,12 @@ export type RendererEmitterSettings = TrailSettings | MeshSettings | BillBoardSe
 
 export interface StretchedBillBoardSettings {
     /**
-     * how stretched the particle is in the direction of the camera based on the speed of the particle.
+     * How stretched the particle is in the direction of the camera based on the speed of the particle.
      * @type {number}
      */
     speedFactor: number;
     /**
-     * how stretched the particle is in the direction of the camera based on the size of the particle.
+     * How stretched the particle is in the direction of the camera based on the size of the particle.
      * @type {number}
      */
     lengthFactor: number;
@@ -87,10 +86,11 @@ export interface IEmitter {
     system: IParticleSystem;
     uuid: string;
     visible: boolean;
-    matrixWorld: any; //type is annoying
+    matrixWorld: any; // Type is annoying
 }
 
-export type ParticleSystemEventType = "emitEnd" | "destroy" | "particleDied";
+export type ParticleSystemEventType = 'emitEnd' | 'destroy' | 'particleDied';
+
 export interface ParticleSystemEvent {
     type: ParticleSystemEventType;
     particleSystem: IParticleSystem;
@@ -98,7 +98,6 @@ export interface ParticleSystemEvent {
 }
 
 export interface IParticleSystem {
-
     /**
      * Whether the ParticleSystem should be automatically disposed when it finishes emitting particles.
      * @type {string}
@@ -126,39 +125,39 @@ export interface IParticleSystem {
     looping: boolean;
     /**
      * Array of particles.
-     * @type {Array<IParticle>}
+     * @type {IParticle[]}
      */
-    particles: Array<IParticle>;
+    particles: IParticle[];
     /**
      * Emitter for the particles.
      * @type {IEmitter}
      */
     emitter: IEmitter;
     /**
-     * Optional renderer.
-     * @type {BatchedRenderer}
+     * Renderer emitter settings for trails, meshes, billboards, or stretched billboards.
+     * @type {RendererEmitterSettings}
      */
-    //_renderer?: BatchedRenderer;
-    //instancingGeometry: BufferGeometry;
     rendererEmitterSettings: RendererEmitterSettings;
+    /**
+     * Current emission counters and timing state.
+     * @type {EmissionState}
+     */
     emissionState: EmissionState;
-
-    //getRendererSettings(): VFXBatchSettings;
-
+    /**
+     * Whether the system is paused.
+     * @type {boolean}
+     */
     paused: boolean;
+
     pause(): void;
     stop(): void;
     play(): void;
     restart(): void;
     endEmit(): void;
-
     clone(): IParticleSystem;
-
     toJSON(metaData: any, options: SerializationOptions): any;
-
     emit(delta: number, subEmissionState: EmissionState, matrix: Matrix4): void;
-
-    addEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent)=>void): void;
-    removeEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent)=>void): void;
+    addEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void;
+    removeEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void;
     removeAllEventListeners(event: ParticleSystemEventType): void;
 }
