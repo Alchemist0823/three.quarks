@@ -1,8 +1,8 @@
-import {Behavior} from './Behavior';
-import {Particle} from '../Particle';
-import {EmissionState, IParticleSystem, IEmitter} from '../IParticleSystem';
+import {EmissionState, IEmitter, IParticleSystem} from '../IParticleSystem';
 import {Matrix4, Quaternion, Vector3} from '../math';
-import { ONE_VEC3, Z_VEC3 } from '../util/MathUtil';
+import {Particle} from '../Particle';
+import {ONE_VEC3, Z_VEC3} from '../util/MathUtil';
+import {Behavior} from './Behavior';
 
 export enum SubParticleEmitMode {
     Death,
@@ -12,21 +12,20 @@ export enum SubParticleEmitMode {
 
 interface SubEmissionState extends EmissionState {
     matrix: Matrix4;
-    particle: undefined | Particle;
+    particle: Particle | undefined;
 }
 
 /**
  * Emit a sub particle system from particles.
  */
 export class EmitSubParticleSystem implements Behavior {
-    type = 'EmitSubParticleSystem';
+    readonly type = 'EmitSubParticleSystem';
 
-    //private matrix_ = new Matrix4();
-    private q_ = new Quaternion();
-    private v_ = new Vector3();
-    private v2_ = new Vector3();
+    private readonly _tmpV = new Vector3();
+    private readonly _tmpV2 = new Vector3();
+    private readonly _tmpQ = new Quaternion();
 
-    private subEmissions = new Array<SubEmissionState>();
+    subEmissions: SubEmissionState[] = [];
 
     constructor(
         private particleSystem: IParticleSystem,
@@ -40,15 +39,7 @@ export class EmitSubParticleSystem implements Behavior {
         }
     }
 
-    initialize(particle: Particle): void {
-        /*particle.emissionState = {
-            burstIndex: 0,
-            burstWaveIndex: 0,
-            time: 0,
-            waitEmiting: 0,
-            matrix: new Matrix4(),
-        } as EmissionState;*/
-    }
+    initialize(particle: Particle): void {}
 
     update(particle: Particle, delta: number): void {
         if (this.mode === SubParticleEmitMode.Frame) {
@@ -61,12 +52,11 @@ export class EmitSubParticleSystem implements Behavior {
     }
 
     private emit(particle: Particle, delta: number) {
-        if (!this.subParticleSystem) return;
-        if (Math.random() > this.emitProbability) {
-            return;
-        }
-        const m = new Matrix4();
-        this.setMatrixFromParticle(m, particle);
+        if (!this.subParticleSystem || Math.random() > this.emitProbability) return;
+
+        const matrix = new Matrix4();
+        this.setMatrixFromParticle(matrix, particle);
+
         this.subEmissions.push({
             burstParticleCount: 0,
             burstParticleIndex: 0,
@@ -75,33 +65,33 @@ export class EmitSubParticleSystem implements Behavior {
             burstWaveIndex: 0,
             time: 0,
             waitEmiting: 0,
-            matrix: m,
+            matrix,
             travelDistance: 0,
-            particle: particle,
+            particle,
         });
-        //(this.subParticleSystem.system as ParticleSystem).emit(delta, particle.emissionState, m);
     }
 
     frameUpdate(delta: number): void {
         if (!this.subParticleSystem) return;
+
         for (let i = 0; i < this.subEmissions.length; i++) {
-            if (this.subEmissions[i].time >= (this.subParticleSystem!.system as IParticleSystem).duration) {
+            const subEmissionState = this.subEmissions[i];
+
+            if (subEmissionState.time >= this.subParticleSystem.system.duration) {
                 this.subEmissions[i] = this.subEmissions[this.subEmissions.length - 1];
                 this.subEmissions.length = this.subEmissions.length - 1;
                 i--;
-            } else {
-                const subEmissionState = this.subEmissions[i];
-                if (subEmissionState.particle && subEmissionState.particle!.age < subEmissionState.particle!.life) {
-                    this.setMatrixFromParticle(subEmissionState.matrix, subEmissionState.particle!);
-                } else {
-                    subEmissionState.particle = undefined;
-                }
-                (this.subParticleSystem.system as IParticleSystem).emit(
-                    delta,
-                    subEmissionState,
-                    subEmissionState.matrix
-                );
+
+                continue;
             }
+
+            if (subEmissionState.particle && subEmissionState.particle.age < subEmissionState.particle.life) {
+                this.setMatrixFromParticle(subEmissionState.matrix, subEmissionState.particle);
+            } else {
+                subEmissionState.particle = undefined;
+            }
+
+            this.subParticleSystem.system.emit(delta, subEmissionState, subEmissionState.matrix);
         }
     }
 
@@ -134,69 +124,42 @@ export class EmitSubParticleSystem implements Behavior {
             this.emitProbability
         );
     }
+
     reset(): void {}
 
-    private setMatrixFromParticle(m: Matrix4, particle: Particle) {
-        let rotation;
-        if (particle.rotation === undefined || this.useVelocityAsBasis) {
-            if (
-                particle.velocity.x === 0 &&
-                particle.velocity.y === 0 &&
-                (particle.velocity.z === 1 || particle.velocity.z === 0)
-            ) {
-                m.set(
-                    1,
-                    0,
-                    0,
-                    particle.position.x,
-                    0,
-                    1,
-                    0,
-                    particle.position.y,
-                    0,
-                    0,
-                    1,
-                    particle.position.z,
-                    0,
-                    0,
-                    0,
-                    1
-                );
+    private setMatrixFromParticle(matrix: Matrix4, particle: Particle) {
+        const {position, rotation, velocity} = particle;
+        const usesVelocityBasis = rotation === undefined || this.useVelocityAsBasis;
+
+        if (usesVelocityBasis) {
+            if (velocity.lengthSq() === 0) {
+                const xAxis = this._tmpV.set(1, 0, 0);
+                const yAxis = this._tmpV2.set(0, 1, 0);
+
+                matrix.makeBasis(xAxis, yAxis, Z_VEC3).setPosition(position);
+            } else if (velocity.x === 0 && velocity.y === 0) {
+                // Z-parallel velocities make Z_VEC3.cross(velocity) degenerate - choose a stable handed basis.
+                const ySign = velocity.z < 0 ? -1 : 1;
+                const xAxis = this._tmpV.set(1, 0, 0);
+                const yAxis = this._tmpV2.set(0, ySign, 0);
+
+                matrix.makeBasis(xAxis, yAxis, velocity).setPosition(position);
             } else {
-                this.v_.copy(Z_VEC3).cross(particle.velocity);
-                this.v2_.copy(particle.velocity).cross(this.v_);
-                const len = this.v_.length();
-                const len2 = this.v2_.length();
-                m.set(
-                    this.v_.x / len,
-                    this.v2_.x / len2,
-                    particle.velocity.x,
-                    particle.position.x,
-                    this.v_.y / len,
-                    this.v2_.y / len2,
-                    particle.velocity.y,
-                    particle.position.y,
-                    this.v_.z / len,
-                    this.v2_.z / len2,
-                    particle.velocity.z,
-                    particle.position.z,
-                    0,
-                    0,
-                    0,
-                    1
-                );
+                // Keep velocity length on the local Z basis, matching the old matrix scale.
+                const xAxis = this._tmpV.copy(Z_VEC3).cross(velocity).normalize();
+                const yAxis = this._tmpV2.copy(velocity).cross(xAxis).normalize();
+
+                matrix.makeBasis(xAxis, yAxis, velocity).setPosition(position);
             }
         } else {
-            if (particle.rotation instanceof Quaternion) {
-                rotation = particle.rotation;
-            } else {
-                this.q_.setFromAxisAngle(Z_VEC3, particle.rotation);
-                rotation = this.q_;
-            }
-            m.compose(particle.position, rotation, ONE_VEC3);
+            const particleRotation =
+                rotation instanceof Quaternion ? rotation : this._tmpQ.setFromAxisAngle(Z_VEC3, rotation);
+
+            matrix.compose(position, particleRotation, ONE_VEC3);
         }
+
         if (!this.particleSystem.worldSpace) {
-            m.multiplyMatrices(this.particleSystem.emitter.matrixWorld, m);
+            matrix.multiplyMatrices(this.particleSystem.emitter.matrixWorld, matrix);
         }
     }
 }
