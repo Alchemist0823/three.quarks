@@ -1,123 +1,59 @@
-import {Triangle, BufferGeometry} from 'three';
-import {Vector3} from 'three';
 import {
-    Particle,
     EmitterShape,
-    ShapeJSON,
-    JsonMetaData,
     IParticleSystem,
-    Vector3 as QuarksVector3,
+    JsonMetaData,
+    Particle,
     Plugin,
+    Vector3 as QuarksVector3,
+    ShapeJSON,
 } from 'quarks.core';
+import {BufferAttribute, BufferGeometry, Triangle, Vector3} from 'three';
 
 /**
  * A particle emitter that emits particles from the surface of a mesh uniformly.
  */
 export class MeshSurfaceEmitter implements EmitterShape {
-    type = 'mesh_surface';
+    readonly type = 'mesh_surface';
 
-    private _triangleIndexToArea: number[] = [];
+    private readonly _cumulativeTriangleAreas: number[] = [];
+    private readonly _vA: Vector3 = new Vector3();
+    private readonly _vB: Vector3 = new Vector3();
+    private readonly _vC: Vector3 = new Vector3();
+
     private _geometry?: BufferGeometry;
+
+    constructor(geometry?: BufferGeometry) {
+        if (!geometry) return;
+
+        this.geometry = geometry;
+    }
 
     get geometry() {
         return this._geometry;
     }
+
     set geometry(geometry: BufferGeometry | undefined) {
         this._geometry = geometry;
-        if (geometry === undefined) {
-            return;
-        }
-        if (typeof geometry === 'string') {
-            return;
-        }
-        // optimization
-        /*if (mesh.userData.triangleIndexToArea) {
-            this._triangleIndexToArea = mesh.userData.triangleIndexToArea;
-            return;
-        }*/
-        const tri = new Triangle();
-        this._triangleIndexToArea.length = 0;
-        let area = 0;
-        if (!geometry.getIndex()) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const array = geometry.getIndex()!.array;
-        const triCount = array.length / 3;
-        this._triangleIndexToArea.push(0);
-        for (let i = 0; i < triCount; i++) {
-            tri.setFromAttributeAndIndices(
-                geometry.getAttribute('position'),
-                array[i * 3],
-                array[i * 3 + 1],
-                array[i * 3 + 2]
-            );
-            area += tri.getArea();
-            this._triangleIndexToArea.push(area);
-        }
-        geometry.userData.triangleIndexToArea = this._triangleIndexToArea;
+        if (geometry === undefined || typeof geometry === 'string') return;
+
+        this.rebuildCumulativeTriangleAreas(geometry);
     }
 
-    constructor(geometry?: BufferGeometry) {
-        if (!geometry) {
-            return;
-        }
-        this.geometry = geometry;
-    }
-
-    private _tempA: Vector3 = new Vector3();
-    private _tempB: Vector3 = new Vector3();
-    private _tempC: Vector3 = new Vector3();
-
-    initialize(p: Particle) {
+    initialize(particle: Particle) {
         const geometry = this._geometry;
-        if (!geometry || geometry.getIndex() === null) {
-            p.position.set(0, 0, 0);
-            p.velocity.set(0, 0, 1).multiplyScalar(p.startSpeed);
+        const indexBuffer = geometry?.getIndex();
+
+        if (!geometry || !indexBuffer) {
+            particle.position.set(0, 0, 0);
+            particle.velocity.set(0, 0, 1).multiplyScalar(particle.startSpeed);
+
             return;
         }
-        const triCount = this._triangleIndexToArea.length - 1;
-        let left = 0,
-            right = triCount;
-        const target = Math.random() * this._triangleIndexToArea[triCount];
-        while (left + 1 < right) {
-            const mid = Math.floor((left + right) / 2);
-            if (target < this._triangleIndexToArea[mid]) {
-                right = mid;
-            } else {
-                left = mid;
-            }
-        }
 
-        //const area = this._triangleIndexToArea[left + 1] - this._triangleIndexToArea[left];
-        //const percent = (target - this._triangleIndexToArea[left]) / area;
-        let u1 = Math.random();
-        let u2 = Math.random();
-        if (u1 + u2 > 1) {
-            u1 = 1 - u1;
-            u2 = 1 - u2;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const index1 = geometry.getIndex()!.array[left * 3];
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const index2 = geometry.getIndex()!.array[left * 3 + 1];
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const index3 = geometry.getIndex()!.array[left * 3 + 2];
-        const positionBuffer = geometry.getAttribute('position');
-        this._tempA.fromBufferAttribute(positionBuffer, index1);
-        this._tempB.fromBufferAttribute(positionBuffer, index2);
-        this._tempC.fromBufferAttribute(positionBuffer, index3);
-        this._tempB.sub(this._tempA);
-        this._tempC.sub(this._tempA);
-        this._tempA.addScaledVector(this._tempB, u1).addScaledVector(this._tempC, u2);
-        p.position.copy(this._tempA as unknown as QuarksVector3);
-
-        // velocity based on tri normal
-        this._tempA.copy(this._tempB).cross(this._tempC).normalize();
-        p.velocity.copy(this._tempA as unknown as QuarksVector3).normalize().multiplyScalar(p.startSpeed);
-        /*p.position.applyMatrix4(this._mesh.matrixWorld);
-        p.velocity.applyMatrix3(this._mesh.normalMatrix);*/
+        this.initializeFromTriangle(particle, geometry, indexBuffer);
     }
+
+    update(system: IParticleSystem, delta: number): void {}
 
     toJSON(): ShapeJSON {
         return {
@@ -127,25 +63,104 @@ export class MeshSurfaceEmitter implements EmitterShape {
     }
 
     static fromJSON(json: any, meta: JsonMetaData): MeshSurfaceEmitter {
-        return new MeshSurfaceEmitter(meta.geometries[json.geometry] as BufferGeometry);
+        // Serialized shapes may use "geometry", while toJSON currently emits "mesh".
+        return new MeshSurfaceEmitter(meta.geometries[json.mesh ?? json.geometry] as BufferGeometry);
     }
 
     clone(): EmitterShape {
         return new MeshSurfaceEmitter(this._geometry);
     }
 
-    update(system: IParticleSystem, delta: number): void {}
+    private rebuildCumulativeTriangleAreas(geometry: BufferGeometry) {
+        this._cumulativeTriangleAreas.length = 0;
+
+        const indexBuffer = geometry.getIndex()?.array;
+        if (!indexBuffer) return;
+
+        this._cumulativeTriangleAreas.push(0);
+
+        const tri = new Triangle();
+        const triCount = indexBuffer.length / 3;
+
+        let area = 0;
+
+        for (let i = 0; i < triCount; i++) {
+            tri.setFromAttributeAndIndices(
+                geometry.getAttribute('position'),
+                indexBuffer[i * 3],
+                indexBuffer[i * 3 + 1],
+                indexBuffer[i * 3 + 2]
+            );
+
+            area += tri.getArea();
+            this._cumulativeTriangleAreas.push(area);
+        }
+
+        geometry.userData.triangleIndexToArea = this._cumulativeTriangleAreas;
+    }
+
+    private sampleTriangleIndex() {
+        const triangleCount = this._cumulativeTriangleAreas.length - 1;
+        const targetArea = Math.random() * this._cumulativeTriangleAreas[triangleCount];
+
+        let left = 0,
+            right = triangleCount;
+
+        while (left + 1 < right) {
+            const mid = Math.floor((left + right) / 2);
+
+            if (targetArea < this._cumulativeTriangleAreas[mid]) {
+                right = mid;
+            } else {
+                left = mid;
+            }
+        }
+
+        return left;
+    }
+
+    private initializeFromTriangle(particle: Particle, geometry: BufferGeometry, indexBuffer: BufferAttribute) {
+        let u1 = Math.random();
+        let u2 = Math.random();
+
+        if (u1 + u2 > 1) {
+            u1 = 1 - u1;
+            u2 = 1 - u2;
+        }
+
+        const positionBuffer = geometry.getAttribute('position');
+        const triangleIndex = this.sampleTriangleIndex();
+
+        this._vA.fromBufferAttribute(positionBuffer, indexBuffer.array[triangleIndex * 3]);
+        this._vB.fromBufferAttribute(positionBuffer, indexBuffer.array[triangleIndex * 3 + 1]);
+        this._vC.fromBufferAttribute(positionBuffer, indexBuffer.array[triangleIndex * 3 + 2]);
+
+        this._vB.sub(this._vA);
+        this._vC.sub(this._vA);
+        this._vA.addScaledVector(this._vB, u1).addScaledVector(this._vC, u2);
+
+        particle.position.copy(this._vA as unknown as QuarksVector3);
+
+        // Velocity based on triangle normal
+        this._vA.copy(this._vB).cross(this._vC).normalize();
+
+        particle.velocity
+            .copy(this._vA as unknown as QuarksVector3)
+            .normalize()
+            .multiplyScalar(particle.startSpeed);
+    }
 }
 
 export const MeshSurfaceEmitterPlugin: Plugin = {
-    id: "three.quarks",
+    id: 'three.quarks',
     initialize: () => {},
-    emitterShapes: [{
-
-        type: 'mesh_surface',
-        params: [['geometry', ['geometry']]],
-        constructor: MeshSurfaceEmitter,
-        loadJSON: MeshSurfaceEmitter.fromJSON,
-    }],
+    emitterShapes: [
+        {
+            type: 'mesh_surface',
+            params: [['geometry', ['geometry']]],
+            constructor: MeshSurfaceEmitter,
+            loadJSON: MeshSurfaceEmitter.fromJSON,
+        },
+    ],
     behaviors: [],
 };
