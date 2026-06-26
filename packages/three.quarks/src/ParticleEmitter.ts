@@ -1,5 +1,5 @@
+import {IEmitter, IParticleSystem, SerializationOptions} from 'quarks.core';
 import {Object3D, Object3DEventMap} from 'three';
-import {IParticleSystem, IEmitter, SerializationOptions} from 'quarks.core';
 
 /**
  * Interface representing metadata used in Threejs object toJSON method.
@@ -16,15 +16,14 @@ export interface MetaData {
 }
 
 /**
- * Class representing a three.quarks particle emitter. particle emitter is a node in the three.js scene graph
- * every particle emitter only associates with a particle system.
- * particle system
- * @extends Object3D
- * @template E - Type of the event map.
+ * Three.js scene graph node for a quarks particle system.
+ *
+ * ParticleEmitter bridges the core particle system to Object3D so it can be
+ * transformed, cloned, serialized, and parented like a regular scene node.
  */
-export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap>extends Object3D<E> implements IEmitter {
-    type = 'ParticleEmitter';
-    system: IParticleSystem;
+export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap> extends Object3D<E> implements IEmitter {
+    readonly type = 'ParticleEmitter';
+    readonly system: IParticleSystem;
 
     /**
      * Creates an instance of ParticleEmitter.
@@ -41,8 +40,10 @@ export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap>exten
      */
     clone() {
         const system = this.system.clone();
-        (system.emitter as unknown as ParticleEmitter).copy(this, true);
-        return system.emitter as any;
+        const emitter = system.emitter as ParticleEmitter<E>;
+        emitter.copy(this, true);
+
+        return emitter as this;
     }
 
     /**
@@ -57,11 +58,13 @@ export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap>exten
      */
     extractFromCache(cache: any) {
         const values = [];
+
         for (const key in cache) {
             const data = cache[key];
             delete data.metadata;
             values.push(data);
         }
+
         return values;
     }
 
@@ -74,9 +77,14 @@ export class ParticleEmitter<E extends Object3DEventMap = Object3DEventMap>exten
     toJSON(meta?: MetaData, options: SerializationOptions = {}): any {
         const children = this.children;
         this.children = this.children.filter((child) => child.type !== 'ParticleSystemPreview');
+
         const data = super.toJSON(meta);
         this.children = children;
-        if (this.system !== null) (data.object as any).ps = this.system.toJSON(meta!, options);
+
+        if (this.system !== null) {
+            (data.object as any).ps = this.system.toJSON(meta!, options);
+        }
+
         return data;
     }
 }
