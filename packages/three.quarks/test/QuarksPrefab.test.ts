@@ -96,7 +96,13 @@ describe('QuarksPrefab', () => {
             
             const newPrefab = QuarksPrefab.fromJSON(json.object);
             expect(newPrefab).toBeInstanceOf(QuarksPrefab);
-            expect((newPrefab as any)._tempAnimationJSON).toHaveLength(2);
+
+            newPrefab.resolveReferences(prefab);
+
+            expect(newPrefab.animationData).toHaveLength(2);
+            expect(newPrefab.animationData[0].target).toBe(targetObject);
+            expect(newPrefab.animationData[0].clip).toBe(animationClip);
+            expect(newPrefab.animationData[1].target).toBe(particleEmitter);
         });
     });
 
@@ -118,6 +124,35 @@ describe('QuarksPrefab', () => {
             prefab.stop();
             expect(prefab.isPlaying).toBe(false);
             expect(prefab.currentTime).toBeLessThanOrEqual(0);
+        });
+
+        it('should update shared target mixers once per frame', () => {
+            const xTrack = new NumberKeyframeTrack('.position[x]', [0, 1], [0, 1]);
+            const yTrack = new NumberKeyframeTrack('.position[y]', [0, 1], [0, 1]);
+            const xClip = new AnimationClip('x', 1, [xTrack]);
+            const yClip = new AnimationClip('y', 1, [yTrack]);
+
+            const animation = prefab.addThreeAnimation(targetObject, xClip, 0, 1);
+            prefab.addThreeAnimation(targetObject, yClip, 0, 1);
+
+            const updateSpy = jest.spyOn(animation.mixer!, 'update');
+
+            prefab.play();
+            prefab.update(0.5);
+
+            expect(updateSpy).toHaveBeenCalledTimes(1);
+            expect(updateSpy).toHaveBeenCalledWith(0.5);
+        });
+
+        it('should treat exact animation end time as outside when seeking', () => {
+            const animation = prefab.addThreeAnimation(targetObject, animationClip, 1, 2);
+            const playSpy = jest.spyOn(animation.action!, 'play');
+            const updateSpy = jest.spyOn(animation.mixer!, 'update');
+
+            prefab.setTime(3);
+
+            expect(playSpy).not.toHaveBeenCalled();
+            expect(updateSpy).not.toHaveBeenCalled();
         });
     });
 });
