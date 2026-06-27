@@ -1,9 +1,8 @@
-import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Texture, Object3D} from 'three';
-import {VFXBatchSettings} from './BatchedRenderer';
 import {IParticleSystem} from 'quarks.core';
+import {BufferGeometry, Layers, Material, Mesh, ShaderMaterial, Texture} from 'three';
+import {VFXBatchSettings} from './BatchedRenderer';
 
 export interface StoredBatchSettings {
-    // 5 component x,y,z,u,v
     instancingGeometry: BufferGeometry;
     material: Material;
     uTileCount: number;
@@ -16,6 +15,7 @@ export interface StoredBatchSettings {
     renderOrder: number;
     layers: Layers;
 }
+
 /**
  * Enum representing the render modes for particles.
  */
@@ -50,36 +50,22 @@ export enum RenderMode {
  * Base class for VFX batches.
  */
 export abstract class VFXBatch extends Mesh {
-    type = 'VFXBatch';
-    systems: Set<IParticleSystem>;
+    readonly type = 'VFXBatch';
 
-    settings: StoredBatchSettings;
-    protected maxParticles;
+    readonly systems: Set<IParticleSystem> = new Set();
+    readonly settings: StoredBatchSettings;
+
+    protected maxParticles = 1000;
 
     protected constructor(settings: VFXBatchSettings) {
         super();
-        this.maxParticles = 1000;
-        this.systems = new Set<IParticleSystem>();
-        const layers = new Layers();
-        layers.mask = settings.layers.mask;
-        const newMat = settings.material.clone();
-        newMat.defines = {};
-        Object.assign(newMat.defines, settings.material.defines);
-        this.settings = {
-            instancingGeometry: settings.instancingGeometry,
-            renderMode: settings.renderMode,
-            renderOrder: settings.renderOrder,
-            material: newMat,
-            uTileCount: settings.uTileCount,
-            vTileCount: settings.vTileCount,
-            blendTiles: settings.blendTiles,
-            softParticles: settings.softParticles,
-            softNearFade: settings.softNearFade,
-            softFarFade: settings.softFarFade,
-            layers: layers,
-        };
+
+        const layers = this.createLayersWithMask(settings.layers.mask);
+        const material = this.cloneBatchMaterial(settings.material);
+        this.settings = this.storeBatchSettings(settings, material, layers);
+
         this.frustumCulled = false;
-        this.renderOrder = this.settings.renderOrder;
+        this.renderOrder = settings.renderOrder;
     }
 
     addSystem(system: IParticleSystem) {
@@ -91,17 +77,16 @@ export abstract class VFXBatch extends Mesh {
     }
 
     applyDepthTexture(depthTexture: Texture | null): void {
-        const uniform = (this.material as ShaderMaterial).uniforms['depthTexture'];
-        if (uniform) {
-            if (uniform.value !== depthTexture) {
-                uniform.value = depthTexture;
-                (this.material as ShaderMaterial).needsUpdate = true;
-            }
-        }
+        const material = this.material as ShaderMaterial;
+        const uniform = material.uniforms['depthTexture'];
+        if (!uniform || uniform.value === depthTexture) return;
+
+        uniform.value = depthTexture;
+        material.needsUpdate = true;
     }
 
     getVisibleSystems(): IParticleSystem[] {
-        return Array.from(this.systems).filter((system) => system.emitter.visible);
+        return [...this.systems].filter((system) => system.emitter.visible);
     }
 
     abstract setupBuffers(): void;
@@ -110,9 +95,34 @@ export abstract class VFXBatch extends Mesh {
     abstract update(): void;
     abstract dispose(): void;
 
-    /*
-    clone() {
-        let system = this.system.clone();
-        return system.emitter as any;
-    }*/
+    private createLayersWithMask(mask: number): Layers {
+        const layers = new Layers();
+        layers.mask = mask;
+
+        return layers;
+    }
+
+    private cloneBatchMaterial(material: Material): Material {
+        const clone = material.clone();
+        clone.defines = {};
+        Object.assign(clone.defines, material.defines);
+
+        return clone;
+    }
+
+    private storeBatchSettings(settings: VFXBatchSettings, material: Material, layers: Layers): StoredBatchSettings {
+        return {
+            instancingGeometry: settings.instancingGeometry,
+            renderMode: settings.renderMode,
+            renderOrder: settings.renderOrder,
+            material,
+            uTileCount: settings.uTileCount,
+            vTileCount: settings.vTileCount,
+            blendTiles: settings.blendTiles,
+            softParticles: settings.softParticles,
+            softNearFade: settings.softNearFade,
+            softFarFade: settings.softFarFade,
+            layers,
+        };
+    }
 }
