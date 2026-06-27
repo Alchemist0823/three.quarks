@@ -1,24 +1,44 @@
-import {Matrix4, Quaternion, RecordState, Matrix3,TrailParticle, Vector3,Vector2} from 'quarks.core';
+import {IParticleSystem, Matrix3, Matrix4, Quaternion, RecordState, TrailParticle, Vector2, Vector3} from 'quarks.core';
 import {
     AdditiveBlending,
+    BufferAttribute,
+    BufferGeometry,
+    DynamicDrawUsage,
+    IUniform,
     ShaderMaterial,
     Uniform,
-    DynamicDrawUsage,
-    BufferGeometry,
-    BufferAttribute, Object3D,
+    UniformsUtils,
 } from 'three';
 
+import {VFXBatchSettings} from './BatchedRenderer';
 import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
-import {VFXBatch, RenderMode} from './VFXBatch';
-import {getMaterialUVChannelName} from './util/ThreeUtil';
-import {VFXBatchSettings} from './BatchedRenderer';
+import {getMaterialUVChannelName, updateBufferAttribute} from './util/ThreeUtil';
+import {RenderMode, VFXBatch} from './VFXBatch';
+
+const DEFAULT_MATERIAL_UNIFORMS = {
+    lineWidth: {value: 1},
+    map: {value: null},
+    useMap: {value: 0},
+    alphaMap: {value: null},
+    useAlphaMap: {value: 0},
+    resolution: {value: new Vector2(1, 1)},
+    sizeAttenuation: {value: 1},
+    visibility: {value: 1},
+    alphaTest: {value: 0},
+} satisfies Record<string, IUniform>;
 
 /**
- * A VFX batch that render trails in a batch.
+ * A VFX batch that renders trails.
  */
 export class TrailBatch extends VFXBatch {
     declare geometry: BufferGeometry;
+
+    private readonly _vA: Vector3 = new Vector3();
+    private readonly _vB: Vector3 = new Vector3();
+    private readonly _vC: Vector3 = new Vector3();
+    private readonly _qA: Quaternion = new Quaternion();
+    private readonly _visibleSystems: IParticleSystem[] = [];
 
     private positionBuffer!: BufferAttribute;
     private previousBuffer!: BufferAttribute;
@@ -39,308 +59,264 @@ export class TrailBatch extends VFXBatch {
     }
 
     setupBuffers(): void {
-        if (this.geometry) this.geometry.dispose();
+        this.geometry?.dispose();
         this.geometry = new BufferGeometry();
+
         this.indexBuffer = new BufferAttribute(new Uint32Array(this.maxParticles * 6), 1);
         this.indexBuffer.setUsage(DynamicDrawUsage);
         this.geometry.setIndex(this.indexBuffer);
 
-        this.positionBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 6), 3);
-        this.positionBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('position', this.positionBuffer);
-        this.previousBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 6), 3);
-        this.previousBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('previous', this.previousBuffer);
-        this.nextBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 6), 3);
-        this.nextBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('next', this.nextBuffer);
-        this.widthBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 2), 1);
-        this.widthBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('width', this.widthBuffer);
-        this.sideBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 2), 1);
-        this.sideBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('side', this.sideBuffer);
-        this.uvBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 4), 2);
-        this.uvBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('uv', this.uvBuffer);
-        this.colorBuffer = new BufferAttribute(new Float32Array(this.maxParticles * 8), 4);
-        this.colorBuffer.setUsage(DynamicDrawUsage);
-        this.geometry.setAttribute('color', this.colorBuffer);
+        this.positionBuffer = this.assignBufferAttribute('position', this.maxParticles * 6, 3);
+        this.previousBuffer = this.assignBufferAttribute('previous', this.maxParticles * 6, 3);
+        this.nextBuffer = this.assignBufferAttribute('next', this.maxParticles * 6, 3);
+        this.widthBuffer = this.assignBufferAttribute('width', this.maxParticles * 2, 1);
+        this.sideBuffer = this.assignBufferAttribute('side', this.maxParticles * 2, 1);
+        this.uvBuffer = this.assignBufferAttribute('uv', this.maxParticles * 4, 2);
+        this.colorBuffer = this.assignBufferAttribute('color', this.maxParticles * 8, 4);
     }
 
     expandBuffers(target: number): void {
         while (target >= this.maxParticles) {
             this.maxParticles *= 2;
         }
+
         this.setupBuffers();
     }
 
-    rebuildMaterial() {
-        this.layers.mask = this.settings.layers.mask;
-
-        const uniforms: {[a: string]: {value: any}} = {
-            lineWidth: {value: 1},
-            map: {value: null},
-            useMap: {value: 0},
-            alphaMap: {value: null},
-            useAlphaMap: {value: 0},
-            resolution: {value: new Vector2(1, 1)},
-            sizeAttenuation: {value: 1},
-            visibility: {value: 1},
-            alphaTest: {value: 0},
-            //repeat: {value: new Vector2(1, 1)},
-        };
-        const defines: {[b: string]: string} = {};
-
-        defines['USE_UV'] = '';
-        defines['USE_COLOR_ALPHA'] = '';
-
-        if ((this.settings.material as any).map) {
-            defines['USE_MAP'] = '';
-            defines['MAP_UV'] = getMaterialUVChannelName((this.settings.material as any).map.channel);
-            uniforms['map'] = new Uniform((this.settings.material as any).map);
-            uniforms['mapTransform'] = new Uniform(new Matrix3().copy((this.settings.material as any).map.matrix));
+    rebuildMaterial(): void {
+        if (this.settings.renderMode !== RenderMode.Trail) {
+            throw new Error(`[TrailBatch] Unsupported render mode: ${this.settings.renderMode}`);
         }
 
-        if (
-            (this.settings.material as any).defines &&
-            (this.settings.material as any).defines['USE_COLOR_AS_ALPHA'] !== undefined
-        ) {
+        this.layers.mask = this.settings.layers.mask;
+
+        const uniforms: Record<string, IUniform> = UniformsUtils.clone(DEFAULT_MATERIAL_UNIFORMS);
+        const material = this.settings.material as any;
+        const defines: {[b: string]: string} = {USE_UV: '', USE_COLOR_ALPHA: ''};
+
+        if (material.map) {
+            defines['USE_MAP'] = '';
+            defines['MAP_UV'] = getMaterialUVChannelName(material.map.channel);
+
+            uniforms['map'] = new Uniform(material.map);
+            uniforms['mapTransform'] = new Uniform(new Matrix3().copy(material.map.matrix));
+        }
+
+        if (material.defines && material.defines['USE_COLOR_AS_ALPHA'] !== undefined) {
             defines['USE_COLOR_AS_ALPHA'] = '';
         }
 
-        if (this.settings.renderMode === RenderMode.Trail) {
-            this.material = new ShaderMaterial({
-                uniforms: uniforms,
-                defines: defines,
-                vertexShader: trail_vert,
-                fragmentShader: trail_frag,
-                transparent: this.settings.material.transparent,
-                depthWrite: !this.settings.material.transparent,
-                side: this.settings.material.side,
-                blending: this.settings.material.blending || AdditiveBlending,
-                blendDst: this.settings.material.blendDst,
-                blendSrc: this.settings.material.blendSrc,
-                blendEquation: this.settings.material.blendEquation,
-                premultipliedAlpha: this.settings.material.premultipliedAlpha,
-            });
-        } else {
-            throw new Error('render mode unavailable');
-        }
+        this.material = new ShaderMaterial({
+            uniforms: uniforms,
+            defines: defines,
+            vertexShader: trail_vert,
+            fragmentShader: trail_frag,
+            transparent: material.transparent,
+            depthWrite: !material.transparent,
+            side: material.side,
+            blending: material.blending || AdditiveBlending,
+            blendDst: material.blendDst,
+            blendSrc: material.blendSrc,
+            blendEquation: material.blendEquation,
+            premultipliedAlpha: material.premultipliedAlpha,
+        });
     }
 
-    /*
-    clone() {
-        let system = this.system.clone();
-        return system.emitter as any;
-    }*/
-    vector_: Vector3 = new Vector3();
-    vector2_: Vector3 = new Vector3();
-    vector3_: Vector3 = new Vector3();
-    quaternion_: Quaternion = new Quaternion();
+    update(): void {
+        let vertexIndex = 0;
+        let triangleCount = 0;
 
-    update() {
-        let index = 0;
-        let triangles = 0;
+        const visibleSystems = this.collectVisibleSystems(this._visibleSystems);
+        const particleCount = this.countTrailPoints(visibleSystems);
 
-        let particleCount = 0;
-        const visibleSystems = this.getVisibleSystems();
-        for (const system of visibleSystems) {
-            for (let j = 0; j < system.particleNum; j++) {
-                particleCount += (system.particles[j] as TrailParticle).previous.length * 2;
-            }
-        }
         if (particleCount > this.maxParticles) {
             this.expandBuffers(particleCount);
         }
 
+        const {uTileCount, vTileCount} = this.settings;
+        const tileWidth = 1 / uTileCount;
+        const tileHeight = 1 / vTileCount;
+
+        const translation = this._vB;
+        const rotation = this._qA;
+        const scale = this._vC;
+
         for (const system of visibleSystems) {
-            if ((system.emitter as unknown as Object3D).updateMatrixWorld) {
-                (system.emitter as unknown as Object3D).updateWorldMatrix(true, false);
-                (system.emitter as unknown as Object3D).updateMatrixWorld(true);
-            }
-            const rotation = this.quaternion_;
-            const translation = this.vector2_;
-            const scale = this.vector3_;
-            system.emitter.matrixWorld.decompose(translation, rotation, scale);
+            this.updateEmitterWorldMatrix(system);
 
-            const particles = system.particles;
-            const particleNum = system.particleNum;
+            const worldSpace = system.worldSpace;
+            const emitterMatrix = system.emitter.matrixWorld;
+            emitterMatrix.decompose(translation, rotation, scale);
 
-            const uTileCount = this.settings.uTileCount;
-            const vTileCount = this.settings.vTileCount;
+            const objectScale = (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z)) / 3;
 
-            const tileWidth = 1 / uTileCount;
-            const tileHeight = 1 / vTileCount;
-
-            for (let j = 0; j < particleNum; j++) {
-                const particle = particles[j] as TrailParticle;
-                const col = particle.uvTile % vTileCount;
-                const row = Math.floor(particle.uvTile / vTileCount + 0.001);
+            for (let j = 0; j < system.particleNum; j++) {
+                const particle = system.particles[j] as TrailParticle;
+                const trailLength = particle.previous.length;
+                if (trailLength === 0) continue;
 
                 const iter = particle.previous.values();
                 let curIter = iter.next();
+
+                // Duplicate the first and last records at the trail ends for stable shader tangents.
                 let previous: RecordState = curIter.value as RecordState;
                 let current: RecordState = previous;
-                if (!curIter.done) curIter = iter.next();
                 let next: RecordState;
+
+                if (!curIter.done) curIter = iter.next();
+
                 if (curIter.value !== undefined) {
                     next = curIter.value;
                 } else {
                     next = current;
                 }
-                for (let i = 0; i < particle.previous.length; i++, index += 2) {
-                    this.positionBuffer.setXYZ(index, current.position.x, current.position.y, current.position.z);
-                    this.positionBuffer.setXYZ(index + 1, current.position.x, current.position.y, current.position.z);
 
-                    if (system.worldSpace) {
-                        this.positionBuffer.setXYZ(index, current.position.x, current.position.y, current.position.z);
-                        this.positionBuffer.setXYZ(
-                            index + 1,
-                            current.position.x,
-                            current.position.y,
-                            current.position.z
-                        );
-                    } else {
-                        if (particle.parentMatrix) {
-                            this.vector_.copy(current.position).applyMatrix4(particle.parentMatrix as unknown as Matrix4);
-                        } else {
-                            this.vector_.copy(current.position).applyMatrix4(system.emitter.matrixWorld);
-                        }
-                        this.positionBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
-                        this.positionBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
-                    }
+                const parentMatrix = particle.parentMatrix;
+                const col = particle.uvTile % vTileCount;
+                const row = Math.floor(particle.uvTile / vTileCount + 0.001);
 
-                    if (system.worldSpace) {
-                        this.previousBuffer.setXYZ(
-                            index,
-                            previous.position.x,
-                            previous.position.y,
-                            previous.position.z
-                        );
-                        this.previousBuffer.setXYZ(
-                            index + 1,
-                            previous.position.x,
-                            previous.position.y,
-                            previous.position.z
-                        );
-                    } else {
-                        if (particle.parentMatrix) {
-                            this.vector_.copy(previous.position).applyMatrix4(particle.parentMatrix);
-                        } else {
-                            this.vector_.copy(previous.position).applyMatrix4(system.emitter.matrixWorld);
-                        }
-                        this.previousBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
-                        this.previousBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
-                    }
-
-                    if (system.worldSpace) {
-                        this.nextBuffer.setXYZ(index, next.position.x, next.position.y, next.position.z);
-                        this.nextBuffer.setXYZ(index + 1, next.position.x, next.position.y, next.position.z);
-                    } else {
-                        if (particle.parentMatrix) {
-                            this.vector_.copy(next.position).applyMatrix4(particle.parentMatrix);
-                        } else {
-                            this.vector_.copy(next.position).applyMatrix4(system.emitter.matrixWorld);
-                        }
-                        this.nextBuffer.setXYZ(index, this.vector_.x, this.vector_.y, this.vector_.z);
-                        this.nextBuffer.setXYZ(index + 1, this.vector_.x, this.vector_.y, this.vector_.z);
-                    }
-
-                    this.sideBuffer.setX(index, 1);
-                    this.sideBuffer.setX(index + 1, -1);
-
-                    if (system.worldSpace) {
-                        this.widthBuffer.setX(index, current.size);
-                        this.widthBuffer.setX(index + 1, current.size);
-                    } else {
-                        if (particle.parentMatrix) {
-                            this.widthBuffer.setX(index, current.size);
-                            this.widthBuffer.setX(index + 1, current.size);
-                        } else {
-                            const objectScale = (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z)) / 3;
-                            this.widthBuffer.setX(index, current.size * objectScale);
-                            this.widthBuffer.setX(index + 1, current.size * objectScale);
-                        }
-                    }
-
-                    this.uvBuffer.setXY(
-                        index,
-                        (i / particle.previous.length + col) * tileWidth,
-                        (vTileCount - row - 1) * tileHeight
-                    );
-                    this.uvBuffer.setXY(
-                        index + 1,
-                        (i / particle.previous.length + col) * tileWidth,
-                        (vTileCount - row) * tileHeight
+                for (let trailIndex = 0; trailIndex < trailLength; trailIndex++, vertexIndex += 2) {
+                    this.writeTrailPosition(
+                        this.positionBuffer,
+                        vertexIndex,
+                        current.position,
+                        worldSpace,
+                        parentMatrix,
+                        emitterMatrix
                     );
 
-                    this.colorBuffer.setXYZW(index, current.color.x, current.color.y, current.color.z, current.color.w);
+                    this.writeTrailPosition(
+                        this.previousBuffer,
+                        vertexIndex,
+                        previous.position,
+                        worldSpace,
+                        parentMatrix,
+                        emitterMatrix
+                    );
+
+                    this.writeTrailPosition(
+                        this.nextBuffer,
+                        vertexIndex,
+                        next.position,
+                        worldSpace,
+                        parentMatrix,
+                        emitterMatrix
+                    );
+
+                    const width = !worldSpace && !parentMatrix ? current.size * objectScale : current.size;
+                    const u = (trailIndex / trailLength + col) * tileWidth;
+                    const nextVertexIndex = vertexIndex + 1;
+
+                    this.sideBuffer.setX(vertexIndex, 1);
+                    this.sideBuffer.setX(nextVertexIndex, -1);
+
+                    this.widthBuffer.setX(vertexIndex, width);
+                    this.widthBuffer.setX(nextVertexIndex, width);
+
+                    this.uvBuffer.setXY(vertexIndex, u, (vTileCount - row - 1) * tileHeight);
+                    this.uvBuffer.setXY(nextVertexIndex, u, (vTileCount - row) * tileHeight);
+
                     this.colorBuffer.setXYZW(
-                        index + 1,
+                        vertexIndex,
+                        current.color.x,
+                        current.color.y,
+                        current.color.z,
+                        current.color.w
+                    );
+                    this.colorBuffer.setXYZW(
+                        nextVertexIndex,
                         current.color.x,
                         current.color.y,
                         current.color.z,
                         current.color.w
                     );
 
-                    if (i + 1 < particle.previous.length) {
-                        this.indexBuffer.setX(triangles * 3, index);
-                        this.indexBuffer.setX(triangles * 3 + 1, index + 1);
-                        this.indexBuffer.setX(triangles * 3 + 2, index + 2);
-                        triangles++;
-                        this.indexBuffer.setX(triangles * 3, index + 2);
-                        this.indexBuffer.setX(triangles * 3 + 1, index + 1);
-                        this.indexBuffer.setX(triangles * 3 + 2, index + 3);
-                        triangles++;
+                    if (trailIndex + 1 < trailLength) {
+                        this.writeTrailIndices(vertexIndex, triangleCount);
+                        triangleCount += 2;
                     }
+
                     previous = current;
                     current = next;
-                    if (!curIter.done) {
-                        curIter = iter.next();
-                        if (curIter.value !== undefined) {
-                            next = curIter.value;
-                        }
+
+                    if (curIter.done) continue;
+
+                    curIter = iter.next();
+
+                    if (curIter.value !== undefined) {
+                        next = curIter.value;
                     }
                 }
             }
         }
-        this.positionBuffer.clearUpdateRanges();
-        this.positionBuffer.addUpdateRange(0, index * 3);
-        this.positionBuffer.needsUpdate = true;
 
-        this.previousBuffer.clearUpdateRanges();
-        this.previousBuffer.addUpdateRange(0, index * 3);
-        this.previousBuffer.needsUpdate = true;
+        this.updateBufferRanges(vertexIndex, triangleCount);
+    }
 
-        this.nextBuffer.clearUpdateRanges();
-        this.nextBuffer.addUpdateRange(0, index * 3);
-        this.nextBuffer.needsUpdate = true;
+    private assignBufferAttribute(name: string, length: number, itemSize: number): BufferAttribute {
+        const attribute = new BufferAttribute(new Float32Array(length), itemSize);
+        attribute.setUsage(DynamicDrawUsage);
 
-        this.sideBuffer.clearUpdateRanges();
-        this.sideBuffer.addUpdateRange(0, index);
-        this.sideBuffer.needsUpdate = true;
+        this.geometry.setAttribute(name, attribute);
 
-        this.widthBuffer.clearUpdateRanges();
-        this.widthBuffer.addUpdateRange(0, index);
-        this.widthBuffer.needsUpdate = true;
+        return attribute;
+    }
 
-        this.uvBuffer.clearUpdateRanges();
-        this.uvBuffer.addUpdateRange(0, index * 2);
-        this.uvBuffer.needsUpdate = true;
+    private countTrailPoints(systems: IParticleSystem[]): number {
+        let particleCount = 0;
 
-        this.colorBuffer.clearUpdateRanges();
-        this.colorBuffer.addUpdateRange(0, index * 4);
-        this.colorBuffer.needsUpdate = true;
+        for (const system of systems) {
+            for (let j = 0; j < system.particleNum; j++) {
+                particleCount += (system.particles[j] as TrailParticle).previous.length * 2;
+            }
+        }
 
-        this.indexBuffer.clearUpdateRanges();
-        this.indexBuffer.addUpdateRange(0, triangles * 3);
-        this.indexBuffer.needsUpdate = true;
+        return particleCount;
+    }
 
-        this.geometry.setDrawRange(0, triangles * 3);
+    private writeTrailIndices(vertexIndex: number, triangleCount: number): void {
+        const triangleOffset = triangleCount * 3;
+
+        this.indexBuffer.setX(triangleOffset, vertexIndex);
+        this.indexBuffer.setX(triangleOffset + 1, vertexIndex + 1);
+        this.indexBuffer.setX(triangleOffset + 2, vertexIndex + 2);
+        this.indexBuffer.setX(triangleOffset + 3, vertexIndex + 2);
+        this.indexBuffer.setX(triangleOffset + 4, vertexIndex + 1);
+        this.indexBuffer.setX(triangleOffset + 5, vertexIndex + 3);
+    }
+
+    private updateBufferRanges(vertexIndex: number, triangleCount: number): void {
+        const vertexIndexTimesThree = vertexIndex * 3;
+        const triangleOffset = triangleCount * 3;
+
+        updateBufferAttribute(this.positionBuffer, 0, vertexIndexTimesThree);
+        updateBufferAttribute(this.previousBuffer, 0, vertexIndexTimesThree);
+        updateBufferAttribute(this.nextBuffer, 0, vertexIndexTimesThree);
+        updateBufferAttribute(this.sideBuffer, 0, vertexIndex);
+        updateBufferAttribute(this.widthBuffer, 0, vertexIndex);
+        updateBufferAttribute(this.uvBuffer, 0, vertexIndex * 2);
+        updateBufferAttribute(this.colorBuffer, 0, vertexIndex * 4);
+        updateBufferAttribute(this.indexBuffer, 0, triangleOffset);
+
+        this.geometry.setDrawRange(0, triangleOffset);
+    }
+
+    private writeTrailPosition(
+        buffer: BufferAttribute,
+        index: number,
+        position: Vector3,
+        worldSpace: boolean,
+        parentMatrix: Matrix4 | undefined,
+        emitterMatrix: Matrix4
+    ): void {
+        const transformed = worldSpace ? position : this._vA.copy(position).applyMatrix4(parentMatrix ?? emitterMatrix);
+
+        buffer.setXYZ(index, transformed.x, transformed.y, transformed.z);
+        buffer.setXYZ(index + 1, transformed.x, transformed.y, transformed.z);
     }
 
     dispose() {
         this.geometry.dispose();
+        this._visibleSystems.length = 0;
     }
 }
