@@ -1,12 +1,15 @@
 import {Object3D} from 'three';
-import {ParticleEmitter} from './ParticleEmitter';
 import {BatchedRenderer} from './BatchedRenderer';
+import {ParticleEmitter} from './ParticleEmitter';
 
+/**
+ * Convenience helpers for applying common particle-system operations to Object3D trees.
+ */
 export class QuarksUtil {
     /**
-     * Run a function on all particle emitters in the object and the object's children.
-     * @param obj
-     * @param func
+     * Runs a callback for every particle emitter in an object tree.
+     * @param obj - Root object to traverse.
+     * @param func - Callback invoked for each particle emitter.
      */
     static runOnAllParticleEmitters(obj: Object3D, func: (ps: ParticleEmitter) => void) {
         obj.traverse((child) => {
@@ -14,77 +17,63 @@ export class QuarksUtil {
                 func(child as ParticleEmitter);
             }
         });
-        if (obj.type === 'ParticleEmitter') {
-            func(obj as ParticleEmitter);
-        }
     }
 
     /**
-     * Add all particle systems in the object and the object's children to the batch renderer.
-     * @param obj
-     * @param batchRenderer
+     * Adds every particle system in an object tree to a batched renderer.
+     * @param obj - Root object to traverse.
+     * @param batchRenderer - Renderer that receives each particle system.
      */
     static addToBatchRenderer(obj: Object3D, batchRenderer: BatchedRenderer) {
-        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            batchRenderer.addSystem(ps.system);
-        });
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => batchRenderer.addSystem(ps.system));
     }
 
     /**
-     * Start playing all particle systems in the object and the object's children.
-     * @param obj
+     * Starts every particle system in an object tree.
+     * @param obj - Root object to traverse.
      */
     static play(obj: Object3D) {
-        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            ps.system.play();
-        });
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => ps.system.play());
     }
 
     /**
-     * Stop all particle systems in the object and the object's children.
-     * this call will clear all existing particles.
-     * @param obj
+     * Stops every particle system in an object tree and clears existing particles.
+     * @param obj - Root object to traverse.
      */
     static stop(obj: Object3D) {
-        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            ps.system.stop();
-        });
-    }
-
-    static setAutoDestroy(obj: Object3D, value: boolean) {
-        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            ps.system.autoDestroy = value;
-        });
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => ps.system.stop());
     }
 
     /**
-     * Stop emit new particles from all particle systems and
-     * keep simulating the existing particles in the object and the object's children.
-     * @param obj
+     * Sets auto-destroy on every particle system in an object tree.
+     * @param obj - Root object to traverse.
+     * @param value - Whether each particle system should destroy itself after finishing.
+     */
+    static setAutoDestroy(obj: Object3D, value: boolean) {
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => (ps.system.autoDestroy = value));
+    }
+
+    /**
+     * Stops emission for every particle system in an object tree while keeping existing particles alive.
+     * @param obj - Root object to traverse.
      */
     static endEmit(obj: Object3D) {
-        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            ps.system.endEmit();
-        });
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => ps.system.endEmit());
     }
 
     /**
-     * Restart all particle systems in the object and the object's children.
-     * @param obj
+     * Restarts every particle system in an object tree.
+     * @param obj - Root object to traverse.
      */
     static restart(obj: Object3D) {
-        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            ps.system.restart();
-        });
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => ps.system.restart());
     }
 
     /**
-     * Pause the simulation of all particle systems in the object and the object's children.
-     * @param obj
+     * Pauses every particle system in an object tree.
+     * @param obj - Root object to traverse.
      */
     static pause(obj: Object3D) {
-        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
-            ps.system.pause();
-        });
+        QuarksUtil.runOnAllParticleEmitters(obj, (ps) => ps.system.pause());
     }
 }
