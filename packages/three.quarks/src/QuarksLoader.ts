@@ -1,46 +1,46 @@
+import {Behavior, EmitSubParticleSystem} from 'quarks.core';
 import {
-    Texture,
-    Sprite,
-    Group,
-    Object3D,
-    LoadingManager,
-    ObjectLoader,
-    Material,
+    AmbientLight,
     AnimationClip,
-    Scene,
+    BatchedMesh,
+    Bone,
+    Box3,
+    BufferGeometry,
     Color,
+    DirectionalLight,
     Fog,
     FogExp2,
-    PerspectiveCamera,
-    OrthographicCamera,
-    AmbientLight,
-    DirectionalLight,
-    PointLight,
-    RectAreaLight,
+    Group,
     HemisphereLight,
+    InstancedBufferAttribute,
+    InstancedMesh,
+    LOD,
     LightProbe,
+    Line,
+    LineLoop,
+    LineSegments,
+    LoadingManager,
+    Material,
+    Mesh,
+    Object3D,
+    ObjectLoader,
+    OrthographicCamera,
+    PerspectiveCamera,
+    PointLight,
+    Points,
+    RectAreaLight,
+    Scene,
+    SkinnedMesh,
+    Sphere,
     SphericalHarmonics3,
     SpotLight,
-    SkinnedMesh,
-    Mesh,
-    InstancedMesh,
-    InstancedBufferAttribute,
-    LOD,
-    Line,
-    LineSegments,
-    LineLoop,
-    Points,
+    Sprite,
     SpriteMaterial,
-    Bone,
-    BufferGeometry,
-    BatchedMesh,
-    Sphere,
-    Box3,
+    Texture,
 } from 'three';
-import {ParticleSystem} from './ParticleSystem';
-import {Behavior, EmitSubParticleSystem} from 'quarks.core';
 import {ParticleEmitter} from './ParticleEmitter';
-import { QuarksPrefab } from './QuarksPrefab';
+import {ParticleSystem} from './ParticleSystem';
+import {QuarksPrefab} from './QuarksPrefab';
 
 /**
  * Loader for quarks particle system.
@@ -53,39 +53,43 @@ export class QuarksLoader extends ObjectLoader {
     /**
      * Links the references of the particle system.
      * It's used to link the references of sub particle systems.
-     * @param object the target object to link the references.
+     * @param object - The target object to link the references.
      */
     linkReference(object: Object3D) {
         const objectsMap: {[uuid: string]: Object3D} = {};
-        object.traverse(function (child) {
+        const particleEmitters: ParticleEmitter[] = [];
+
+        object.traverse((child) => {
             objectsMap[child.uuid] = child;
-        });
-        object.traverse(function (child) {
+
             if (child.type === 'ParticleEmitter') {
-                const system = (child as ParticleEmitter).system as ParticleSystem;
-                const shape = system.emitterShape;
-                /*if (shape instanceof MeshSurfaceEmitter) {
-                    shape.geometry = objectsMap[shape.geometry as any] as Mesh;
-                }*/
-                for (let i = 0; i < system.behaviors.length; i++) {
-                    if (system.behaviors[i] instanceof EmitSubParticleSystem) {
-                        (system.behaviors[i] as EmitSubParticleSystem).subParticleSystem = objectsMap[
-                            (system.behaviors[i] as EmitSubParticleSystem).subParticleSystem as any
-                        ] as ParticleEmitter;
-                    }
-                }
+                particleEmitters.push(child as ParticleEmitter);
             }
         });
+
+        for (const emitter of particleEmitters) {
+            const system = emitter.system as ParticleSystem;
+
+            for (const behavior of system.behaviors) {
+                if (!(behavior instanceof EmitSubParticleSystem)) continue;
+
+                const subParticleSystemId = behavior.subParticleSystem as unknown;
+                if (typeof subParticleSystemId !== 'string') continue;
+
+                behavior.subParticleSystem = objectsMap[subParticleSystemId] as ParticleEmitter;
+            }
+        }
     }
 
     /**
      * Parses the json data to create a quarks particle system.
-     * @param json the json data to parse.
-     * @param onLoad the callback function to be called after the object is loaded.
+     * @param json - The json data to parse.
+     * @param onLoad - The callback function to be called after the object is loaded.
      */
     parse<T extends Object3D>(json: any, onLoad?: (object: Object3D) => void): T {
         const object = super.parse(json, onLoad);
         this.linkReference(object);
+
         return object as T;
     }
 
@@ -97,69 +101,35 @@ export class QuarksLoader extends ObjectLoader {
         textures: {[uuid: string]: Texture},
         animations: {[uuid: string]: AnimationClip}
     ): Object3D {
-        let object;
-        function getGeometry(name: string) {
-            if (geometries[name] === undefined) {
-                console.warn('THREE.ObjectLoader: Undefined geometry', name);
-            }
-            return geometries[name];
-        }
-
-        function getMaterial(name: string | string[] | undefined) {
-            if (name === undefined) return undefined;
-            if (Array.isArray(name)) {
-                const array = [];
-                for (let i = 0, l = name.length; i < l; i++) {
-                    const uuid = name[i];
-                    if (materials[uuid] === undefined) {
-                        console.warn('THREE.ObjectLoader: Undefined material', uuid);
-                    }
-                    array.push(materials[uuid]);
-                }
-                return array;
-            }
-
-            if (materials[name] === undefined) {
-                console.warn('THREE.ObjectLoader: Undefined material', name);
-            }
-
-            return materials[name];
-        }
-
-        function getTexture(uuid: string) {
-            if (textures[uuid] === undefined) {
-                console.warn('THREE.ObjectLoader: Undefined texture', uuid);
-            }
-            return textures[uuid];
-        }
-
-        let geometry, material;
-        const meta = {
-            textures: textures,
-            geometries: geometries,
-            materials: materials,
-        };
         const dependencies: {[uuid: string]: Behavior} = {};
+        const meta = {textures, geometries, materials};
+
+        let object, geometry, material;
 
         switch (data.type) {
             case 'QuarksPrefab':
                 object = QuarksPrefab.fromJSON(data);
+
                 break;
+
             case 'ParticleEmitter':
                 object = ParticleSystem.fromJSON(data.ps, meta as any, dependencies).emitter;
+
                 break;
+
             case 'Scene':
                 object = new Scene();
+
                 if (data.background !== undefined) {
                     if (Number.isInteger(data.background)) {
                         object.background = new Color(data.background);
                     } else {
-                        object.background = getTexture(data.background);
+                        object.background = this.resolveTexture(textures, data.background);
                     }
                 }
 
                 if (data.environment !== undefined) {
-                    object.environment = getTexture(data.environment);
+                    object.environment = this.resolveTexture(textures, data.environment);
                 }
 
                 if (data.fog !== undefined) {
@@ -241,16 +211,14 @@ export class QuarksLoader extends ObjectLoader {
 
             case 'LightProbe':
                 object = new LightProbe();
-                if (data.sh !== undefined) {
-                    object.sh = new SphericalHarmonics3().fromArray(data.sh);
-                }
+
+                if (data.sh !== undefined) object.sh = new SphericalHarmonics3().fromArray(data.sh);
 
                 break;
 
             case 'SkinnedMesh':
-                geometry = getGeometry(data.geometry);
-                material = getMaterial(data.material);
-
+                geometry = this.resolveGeometry(geometries, data.geometry);
+                material = this.resolveMaterial(materials, data.material);
                 object = new SkinnedMesh(geometry, material);
 
                 if (data.bindMode !== undefined) object.bindMode = data.bindMode;
@@ -260,32 +228,36 @@ export class QuarksLoader extends ObjectLoader {
                 break;
 
             case 'Mesh':
-                geometry = getGeometry(data.geometry);
-                material = getMaterial(data.material);
-
+                geometry = this.resolveGeometry(geometries, data.geometry);
+                material = this.resolveMaterial(materials, data.material);
                 object = new Mesh(geometry, material);
 
                 break;
 
             case 'InstancedMesh': {
-                geometry = getGeometry(data.geometry);
-                material = getMaterial(data.material);
+                geometry = this.resolveGeometry(geometries, data.geometry);
+                material = this.resolveMaterial(materials, data.material);
+
                 const count = data.count;
                 const instanceMatrix = data.instanceMatrix;
                 const instanceColor = data.instanceColor;
 
                 object = new InstancedMesh(geometry, material, count);
                 object.instanceMatrix = new InstancedBufferAttribute(new Float32Array(instanceMatrix.array), 16);
-                if (instanceColor !== undefined)
+
+                if (instanceColor !== undefined) {
                     object.instanceColor = new InstancedBufferAttribute(
                         new Float32Array(instanceColor.array),
                         instanceColor.itemSize
                     );
+                }
+
                 break;
             }
+
             case 'BatchedMesh':
-                geometry = getGeometry(data.geometry);
-                material = getMaterial(data.material);
+                geometry = this.resolveGeometry(geometries, data.geometry);
+                material = this.resolveMaterial(materials, data.material);
 
                 object = new BatchedMesh(
                     data.maxGeometryCount,
@@ -293,15 +265,16 @@ export class QuarksLoader extends ObjectLoader {
                     data.maxIndexCount,
                     material as Material
                 );
+
                 object.geometry = geometry;
                 object.perObjectFrustumCulled = data.perObjectFrustumCulled;
                 object.sortObjects = data.sortObjects;
 
                 (object as any)._drawRanges = data.drawRanges;
                 (object as any)._reservedRanges = data.reservedRanges;
-
                 (object as any)._visibility = data.visibility;
                 (object as any)._active = data.active;
+
                 (object as any)._bounds = data.bounds.map((bound: any) => {
                     const box = new Box3();
                     box.min.fromArray(bound.boxMin);
@@ -314,7 +287,6 @@ export class QuarksLoader extends ObjectLoader {
                     return {
                         boxInitialized: bound.boxInitialized,
                         box: box,
-
                         sphereInitialized: bound.sphereInitialized,
                         sphere: sphere,
                     };
@@ -323,11 +295,9 @@ export class QuarksLoader extends ObjectLoader {
                 (object as any)._maxGeometryCount = data.maxGeometryCount;
                 (object as any)._maxVertexCount = data.maxVertexCount;
                 (object as any)._maxIndexCount = data.maxIndexCount;
-
                 (object as any)._geometryInitialized = data.geometryInitialized;
                 (object as any)._geometryCount = data.geometryCount;
-
-                (object as any)._matricesTexture = getTexture(data.matricesTexture.uuid);
+                (object as any)._matricesTexture = this.resolveTexture(textures, data.matricesTexture.uuid);
 
                 break;
 
@@ -337,28 +307,40 @@ export class QuarksLoader extends ObjectLoader {
                 break;
 
             case 'Line':
-                object = new Line(getGeometry(data.geometry), getMaterial(data.material));
+                object = new Line(
+                    this.resolveGeometry(geometries, data.geometry),
+                    this.resolveMaterial(materials, data.material)
+                );
 
                 break;
 
             case 'LineLoop':
-                object = new LineLoop(getGeometry(data.geometry), getMaterial(data.material));
+                object = new LineLoop(
+                    this.resolveGeometry(geometries, data.geometry),
+                    this.resolveMaterial(materials, data.material)
+                );
 
                 break;
 
             case 'LineSegments':
-                object = new LineSegments(getGeometry(data.geometry), getMaterial(data.material));
+                object = new LineSegments(
+                    this.resolveGeometry(geometries, data.geometry),
+                    this.resolveMaterial(materials, data.material)
+                );
 
                 break;
 
             case 'PointCloud':
             case 'Points':
-                object = new Points(getGeometry(data.geometry), getMaterial(data.material));
+                object = new Points(
+                    this.resolveGeometry(geometries, data.geometry),
+                    this.resolveMaterial(materials, data.material)
+                );
 
                 break;
 
             case 'Sprite':
-                object = new Sprite(getMaterial(data.material) as SpriteMaterial);
+                object = new Sprite(this.resolveMaterial(materials, data.material) as SpriteMaterial);
 
                 break;
 
@@ -382,12 +364,11 @@ export class QuarksLoader extends ObjectLoader {
 
         if (data.matrix !== undefined) {
             object.matrix.fromArray(data.matrix);
+
             if (data.matrixAutoUpdate !== undefined) object.matrixAutoUpdate = data.matrixAutoUpdate;
             if (object.matrixAutoUpdate) {
                 object.matrix.decompose(object.position, object.quaternion, object.scale);
-                if (isNaN(object.quaternion.x)) {
-                    object.quaternion.set(0, 0, 0, 1);
-                }
+                if (isNaN(object.quaternion.x)) object.quaternion.set(0, 0, 0, 1);
             }
         } else {
             if (data.position !== undefined) object.position.fromArray(data.position);
@@ -426,9 +407,9 @@ export class QuarksLoader extends ObjectLoader {
 
         if (data.animations !== undefined) {
             const objectAnimations = data.animations;
+
             for (let i = 0; i < objectAnimations.length; i++) {
                 const uuid = objectAnimations[i];
-
                 object.animations.push(animations[uuid]);
             }
         }
@@ -437,13 +418,13 @@ export class QuarksLoader extends ObjectLoader {
             if (data.autoUpdate !== undefined) (object as any).autoUpdate = data.autoUpdate;
 
             const levels = data.levels;
+
             for (let l = 0; l < levels.length; l++) {
                 const level = levels[l];
                 const child = object.getObjectByProperty('uuid', level.object);
 
                 if (child !== undefined) {
-                    // @ts-ignore
-                    object.addLevel(child, level.distance);
+                    (object as LOD).addLevel(child, level.distance);
                 }
             }
         } else if (data.type === 'QuarksPrefab') {
@@ -451,5 +432,50 @@ export class QuarksLoader extends ObjectLoader {
         }
 
         return object;
+    }
+
+    private resolveGeometry(geometries: {[uuid: string]: BufferGeometry}, name: string): BufferGeometry {
+        if (geometries[name] === undefined) {
+            console.warn('THREE.ObjectLoader: Undefined geometry', name);
+        }
+
+        return geometries[name];
+    }
+
+    private resolveMaterial(
+        materials: {[uuid: string]: Material},
+        name: string | string[] | undefined
+    ): Material | Material[] | undefined {
+        if (name === undefined) return undefined;
+
+        if (Array.isArray(name)) {
+            const array: Material[] = [];
+
+            for (let i = 0, l = name.length; i < l; i++) {
+                const uuid = name[i];
+
+                if (materials[uuid] === undefined) {
+                    console.warn('THREE.ObjectLoader: Undefined material', uuid);
+                }
+
+                array.push(materials[uuid]);
+            }
+
+            return array;
+        }
+
+        if (materials[name] === undefined) {
+            console.warn('THREE.ObjectLoader: Undefined material', name);
+        }
+
+        return materials[name];
+    }
+
+    private resolveTexture(textures: {[uuid: string]: Texture}, uuid: string): Texture {
+        if (textures[uuid] === undefined) {
+            console.warn('THREE.ObjectLoader: Undefined texture', uuid);
+        }
+
+        return textures[uuid];
     }
 }
