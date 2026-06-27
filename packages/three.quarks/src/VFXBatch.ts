@@ -1,5 +1,5 @@
 import {IParticleSystem} from 'quarks.core';
-import {BufferGeometry, Layers, Material, Mesh, ShaderMaterial, Texture} from 'three';
+import {BufferGeometry, Layers, Material, Mesh, Object3D, ShaderMaterial, Texture} from 'three';
 import {VFXBatchSettings} from './BatchedRenderer';
 
 export interface StoredBatchSettings {
@@ -85,8 +85,28 @@ export abstract class VFXBatch extends Mesh {
         material.needsUpdate = true;
     }
 
+    protected collectVisibleSystems(out: IParticleSystem[]): IParticleSystem[] {
+        out.length = 0;
+
+        for (const system of this.systems) {
+            if (system.emitter.visible) {
+                out.push(system);
+            }
+        }
+
+        return out;
+    }
+
+    protected updateEmitterWorldMatrix(system: IParticleSystem): void {
+        const emitter = system.emitter as unknown as Object3D;
+        if (typeof emitter.updateMatrixWorld !== 'function') return;
+
+        emitter.updateWorldMatrix(true, false);
+        emitter.updateMatrixWorld(true);
+    }
+
     getVisibleSystems(): IParticleSystem[] {
-        return [...this.systems].filter((system) => system.emitter.visible);
+        return this.collectVisibleSystems([]);
     }
 
     abstract setupBuffers(): void;
