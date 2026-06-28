@@ -973,7 +973,8 @@ export class ParticleSystem implements IParticleSystem {
     ): void {
         if (renderMode === RenderMode.Trail && (this.rendererEmitterSettings as TrailSettings).followLocalOrigin) {
             const trail = particle as TrailParticle;
-            trail.localPosition = new Vector3().copy(trail.position);
+            trail.localPosition ??= new Vector3();
+            trail.localPosition.copy(trail.position);
         }
 
         if (this.worldSpace) {
