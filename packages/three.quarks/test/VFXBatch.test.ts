@@ -1,8 +1,8 @@
 import {IParticleSystem} from 'quarks.core';
 import {BufferGeometry, Layers, MeshBasicMaterial, Object3D} from 'three';
 
-import {VFXBatchSettings} from '../src/BatchedRenderer';
 import {RenderMode, VFXBatch} from '../src/VFXBatch';
+import type {VFXBatchSettings} from '../src/VFXBatch';
 
 class TestBatch extends VFXBatch {
     constructor() {

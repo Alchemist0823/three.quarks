@@ -1,72 +1,11 @@
 import {IParticleSystem} from 'quarks.core';
-import {BufferGeometry, Layers, Material, Object3D, Texture} from 'three';
+import {Object3D, Texture} from 'three';
 import {ParticleSystem} from './ParticleSystem';
 import {SpriteBatch} from './SpriteBatch';
 import {TrailBatch} from './TrailBatch';
-import {RenderMode, StoredBatchSettings, VFXBatch} from './VFXBatch';
+import {RenderMode, VFXBatch, type StoredBatchSettings, type VFXBatchSettings} from './VFXBatch';
 
-/**
- * Settings for rendering a batch of VFX systems.
- */
-export interface VFXBatchSettings {
-    /**
-     * Geometry for instancing.
-     * @type {BufferGeometry}
-     */
-    instancingGeometry: BufferGeometry;
-    /**
-     * Material for rendering.
-     * @type {Material}
-     */
-    material: Material;
-    /**
-     * Number of horizontal tiles in the texture.
-     * @type {number}
-     */
-    uTileCount: number;
-    /**
-     * Number of vertical tiles in the texture.
-     * @type {number}
-     */
-    vTileCount: number;
-    /**
-     * Whether to blend tiles.
-     * @type {boolean}
-     */
-    blendTiles: boolean;
-    /**
-     * Enable soft particles.
-     * @type {boolean}
-     */
-    softParticles: boolean;
-    /**
-     * Near fade distance for soft particles.
-     * @type {number}
-     */
-    softNearFade: number;
-    /**
-     * Far fade distance for soft particles.
-     * @type {number}
-     */
-    softFarFade: number;
-    /**
-     * Render mode.
-     * @type {RenderMode}
-     */
-    renderMode: RenderMode;
-    /**
-     * Render order.
-     * @type {number}
-     */
-    renderOrder: number;
-    /**
-     * Layers control the visibility of the object.
-     * @type {Layers}
-     * @see {@link https://threejs.org/docs/index.html#api/en/core/Layers | Official Documentation}
-     * @see {@link https://github.com/mrdoob/three.js/blob/master/src/core/Layers.js | Source}
-     */
-    layers: Layers;
-}
+export type {VFXBatchSettings} from './VFXBatch';
 
 /**
  * Batches particle systems that share compatible render settings.

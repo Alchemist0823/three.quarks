@@ -22,8 +22,7 @@ import {
     WebGLRenderer,
 } from 'three';
 
-import {VFXBatchSettings} from './BatchedRenderer';
-import {RenderMode, VFXBatch} from './VFXBatch';
+import {RenderMode, VFXBatch, type VFXBatchSettings} from './VFXBatch';
 import {ParticleMeshPhysicsMaterial, ParticleMeshStandardMaterial} from './materials/ParticleMaterials';
 import local_particle_physics_vert from './shaders/local_particle_physics_vert.glsl';
 import local_particle_vert from './shaders/local_particle_vert.glsl';

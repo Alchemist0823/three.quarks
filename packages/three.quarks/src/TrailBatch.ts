@@ -10,11 +10,10 @@ import {
     UniformsUtils,
 } from 'three';
 
-import {VFXBatchSettings} from './BatchedRenderer';
 import trail_frag from './shaders/trail_frag.glsl';
 import trail_vert from './shaders/trail_vert.glsl';
 import {getMaterialUVChannelName, updateBufferAttribute} from './util/ThreeUtil';
-import {RenderMode, VFXBatch} from './VFXBatch';
+import {RenderMode, VFXBatch, type VFXBatchSettings} from './VFXBatch';
 
 const DEFAULT_MATERIAL_UNIFORMS = {
     lineWidth: {value: 1},

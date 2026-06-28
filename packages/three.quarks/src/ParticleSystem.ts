@@ -49,11 +49,11 @@ import {
     Texture,
 } from 'three';
 
-import {BatchedRenderer, VFXBatchSettings} from './BatchedRenderer';
+import {BatchedRenderer} from './BatchedRenderer';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
 import {RendererDefaults} from './util/RendererDefaults';
 import {ThreeMetaData} from './util/ThreeUtil';
-import {RenderMode} from './VFXBatch';
+import {RenderMode, type VFXBatchSettings} from './VFXBatch';
 
 export interface BurstParameters {
     time: number;
