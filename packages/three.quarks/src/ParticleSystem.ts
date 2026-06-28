@@ -847,137 +847,147 @@ export class ParticleSystem implements IParticleSystem {
     }
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
-        this._qA.setFromRotationMatrix(matrix as unknown as Matrix4);
+        const renderMode = this.rendererSettings.renderMode;
 
-        const translation = this._vA;
-        const quaternion = this._qA;
-        const scale = this._vB;
-
-        matrix.decompose(translation, quaternion, scale);
+        // vA: position, qA: rotation, vB: scale
+        matrix.decompose(this._vA, this._qA, this._vB);
 
         for (let i = 0; i < count; i++) {
             emissionState.burstParticleIndex = i;
-            this.particleNum++;
+            const particle = this.getNewParticle(renderMode);
+            const normalizedTime = emissionState.time / this.duration;
 
-            while (this.particles.length < this.particleNum) {
-                if (this.rendererSettings.renderMode === RenderMode.Trail) {
-                    this.particles.push(new TrailParticle());
-                } else {
-                    this.particles.push(new SpriteParticle());
-                }
-            }
-
-            const particle = this.particles[this.particleNum - 1];
-            particle.reset();
-            particle.speedModifier = 1;
-
-            this.startColor.startGen(particle.memory);
-            this.startColor.genColor(particle.memory, particle.startColor, this.emissionState.time);
-            particle.color.copy(particle.startColor);
-
-            this.startSpeed.startGen(particle.memory);
-            particle.startSpeed = this.startSpeed.genValue(particle.memory, emissionState.time / this.duration);
-
-            this.startLife.startGen(particle.memory);
-            particle.life = this.startLife.genValue(particle.memory, emissionState.time / this.duration);
-            particle.age = 0;
-
-            this.startSize.startGen(particle.memory);
-
-            if (this.startSize.type === 'vec3function') {
-                (this.startSize as Vector3Generator).genValue(
-                    particle.memory,
-                    particle.startSize,
-                    emissionState.time / this.duration
-                );
-            } else {
-                const size = (this.startSize as FunctionValueGenerator).genValue(
-                    particle.memory,
-                    emissionState.time / this.duration
-                );
-
-                particle.startSize.set(size, size, size);
-            }
-
-            this.startTileIndex.startGen(particle.memory);
-            particle.uvTile = this.startTileIndex.genValue(particle.memory);
-            particle.size.copy(particle.startSize);
-
-            if (
-                this.rendererSettings.renderMode === RenderMode.Mesh ||
-                this.rendererSettings.renderMode === RenderMode.BillBoard ||
-                this.rendererSettings.renderMode === RenderMode.VerticalBillBoard ||
-                this.rendererSettings.renderMode === RenderMode.HorizontalBillBoard ||
-                this.rendererSettings.renderMode === RenderMode.StretchedBillBoard
-            ) {
-                const sprite = particle as SpriteParticle;
-                this.startRotation.startGen(particle.memory);
-
-                if (this.rendererSettings.renderMode === RenderMode.Mesh) {
-                    if (!(sprite.rotation instanceof Quaternion)) {
-                        sprite.rotation = new Quaternion();
-                    }
-
-                    if (this.startRotation.type === 'rotation') {
-                        this.startRotation.genValue(
-                            particle.memory,
-                            sprite.rotation as Quaternion,
-                            1,
-                            emissionState.time / this.duration
-                        );
-                    } else {
-                        (sprite.rotation as Quaternion).setFromAxisAngle(
-                            UP,
-                            this.startRotation.genValue(sprite.memory, (emissionState.time / this.duration) as number)
-                        );
-                    }
-                } else {
-                    if (this.startRotation.type === 'rotation') {
-                        sprite.rotation = 0;
-                    } else {
-                        sprite.rotation = this.startRotation.genValue(
-                            sprite.memory,
-                            emissionState.time / this.duration
-                        );
-                    }
-                }
-            } else if (this.rendererSettings.renderMode === RenderMode.Trail) {
-                const trail = particle as TrailParticle;
-
-                (this.rendererEmitterSettings as TrailSettings).startLength.startGen(trail.memory);
-                trail.length = (this.rendererEmitterSettings as TrailSettings).startLength.genValue(
-                    trail.memory,
-                    emissionState.time / this.duration
-                );
-            }
+            this.initializeParticleBase(particle, normalizedTime);
+            this.initializeParticleRenderState(particle, normalizedTime, renderMode);
 
             this.emitterShape.initialize(particle, emissionState);
 
-            if (
-                this.rendererSettings.renderMode === RenderMode.Trail &&
-                (this.rendererEmitterSettings as TrailSettings).followLocalOrigin
-            ) {
-                const trail = particle as TrailParticle;
-                trail.localPosition = new Vector3().copy(trail.position);
-            }
-
-            if (this.worldSpace) {
-                particle.position.applyMatrix4(matrix);
-                particle.startSize.multiply(scale).abs();
-                particle.size.copy(particle.startSize);
-                particle.velocity.multiply(scale).applyMatrix3(this._normalMatrix);
-
-                if (particle.rotation && particle.rotation instanceof Quaternion) {
-                    particle.rotation.multiplyQuaternions(this._qA, particle.rotation);
-                }
-            } else {
-                if (this.onlyUsedByOther) {
-                    particle.parentMatrix = matrix;
-                }
-            }
+            this.applySpawnTransform(particle, matrix, this._qA, this._vB, renderMode);
 
             for (let j = 0; j < this.behaviors.length; j++) {
                 this.behaviors[j].initialize(particle, this);
+            }
+        }
+    }
+
+    private getNewParticle(renderMode: RenderMode): Particle {
+        this.particleNum++;
+
+        while (this.particles.length < this.particleNum) {
+            if (renderMode === RenderMode.Trail) {
+                this.particles.push(new TrailParticle());
+            } else {
+                this.particles.push(new SpriteParticle());
+            }
+        }
+
+        return this.particles[this.particleNum - 1];
+    }
+
+    private initializeParticleBase(particle: Particle, normalizedTime: number): void {
+        particle.reset();
+        particle.speedModifier = 1;
+
+        this.startColor.startGen(particle.memory);
+        this.startColor.genColor(particle.memory, particle.startColor, this.emissionState.time);
+        particle.color.copy(particle.startColor);
+
+        this.startSpeed.startGen(particle.memory);
+        particle.startSpeed = this.startSpeed.genValue(particle.memory, normalizedTime);
+
+        this.startLife.startGen(particle.memory);
+        particle.life = this.startLife.genValue(particle.memory, normalizedTime);
+        particle.age = 0;
+
+        this.startSize.startGen(particle.memory);
+
+        if (this.startSize.type === 'vec3function') {
+            this.startSize.genValue(particle.memory, particle.startSize, normalizedTime);
+        } else {
+            const size = this.startSize.genValue(particle.memory, normalizedTime);
+            particle.startSize.set(size, size, size);
+        }
+
+        this.startTileIndex.startGen(particle.memory);
+        particle.uvTile = this.startTileIndex.genValue(particle.memory);
+        particle.size.copy(particle.startSize);
+    }
+
+    private initializeParticleRenderState(particle: Particle, normalizedTime: number, renderMode: RenderMode): void {
+        switch (renderMode) {
+            case RenderMode.Mesh:
+            case RenderMode.BillBoard:
+            case RenderMode.VerticalBillBoard:
+            case RenderMode.HorizontalBillBoard:
+            case RenderMode.StretchedBillBoard:
+                this.initializeSpriteParticleRotation(particle as SpriteParticle, normalizedTime, renderMode);
+                break;
+
+            case RenderMode.Trail:
+                this.initializeTrailParticleLength(particle as TrailParticle, normalizedTime);
+                break;
+        }
+    }
+
+    private initializeSpriteParticleRotation(
+        sprite: SpriteParticle,
+        normalizedTime: number,
+        renderMode: RenderMode
+    ): void {
+        this.startRotation.startGen(sprite.memory);
+
+        if (renderMode !== RenderMode.Mesh) {
+            if (this.startRotation.type === 'rotation') {
+                sprite.rotation = 0;
+                return;
+            }
+
+            sprite.rotation = this.startRotation.genValue(sprite.memory, normalizedTime);
+            return;
+        }
+
+        if (!(sprite.rotation instanceof Quaternion)) {
+            sprite.rotation = new Quaternion();
+        }
+
+        if (this.startRotation.type === 'rotation') {
+            this.startRotation.genValue(sprite.memory, sprite.rotation, 1, normalizedTime);
+        } else {
+            sprite.rotation.setFromAxisAngle(UP, this.startRotation.genValue(sprite.memory, normalizedTime));
+        }
+    }
+
+    private initializeTrailParticleLength(trail: TrailParticle, normalizedTime: number): void {
+        const settings = this.rendererEmitterSettings as TrailSettings;
+
+        settings.startLength.startGen(trail.memory);
+        trail.length = settings.startLength.genValue(trail.memory, normalizedTime);
+    }
+
+    private applySpawnTransform(
+        particle: Particle,
+        matrix: Matrix4,
+        rotation: Quaternion,
+        scale: Vector3,
+        renderMode: RenderMode
+    ): void {
+        if (renderMode === RenderMode.Trail && (this.rendererEmitterSettings as TrailSettings).followLocalOrigin) {
+            const trail = particle as TrailParticle;
+            trail.localPosition = new Vector3().copy(trail.position);
+        }
+
+        if (this.worldSpace) {
+            particle.position.applyMatrix4(matrix);
+            particle.startSize.multiply(scale).abs();
+            particle.size.copy(particle.startSize);
+            particle.velocity.multiply(scale).applyMatrix3(this._normalMatrix);
+
+            if (particle.rotation instanceof Quaternion) {
+                particle.rotation.multiplyQuaternions(rotation, particle.rotation);
+            }
+        } else {
+            if (this.onlyUsedByOther) {
+                particle.parentMatrix = matrix;
             }
         }
     }
