@@ -9,6 +9,8 @@ import {
     RenderMode,
     SizeOverLife,
     SphereEmitter,
+    SpriteBatch,
+    TrailBatch,
 } from '../src';
 import {Vector3, Vector4} from 'quarks.core';
 import {MeshBasicMaterial, NormalBlending, Scene, Texture} from 'three';
@@ -111,5 +113,33 @@ describe('BatchedRenderer', () => {
 
         expect(glowBeam.particleNum).toEqual(previousCount);
         expect(renderer.batches[0].systems.size).toEqual(0);
+    });
+
+    test('render mode changes move systems between batch types', () => {
+        const scene = new Scene();
+        const renderer = new BatchedRenderer();
+        const system = new ParticleSystem({
+            material: new MeshBasicMaterial(),
+            renderMode: RenderMode.BillBoard,
+        });
+
+        renderer.addSystem(system);
+        scene.add(system.emitter);
+        scene.add(renderer);
+
+        renderer.update(0);
+        expect(renderer.batches[0]).toBeInstanceOf(SpriteBatch);
+        expect(renderer.batches[0].systems.has(system)).toBe(true);
+
+        system.renderMode = RenderMode.Trail;
+        renderer.update(0);
+        expect(renderer.batches[0].systems.has(system)).toBe(false);
+        expect(renderer.batches[1]).toBeInstanceOf(TrailBatch);
+        expect(renderer.batches[1].systems.has(system)).toBe(true);
+
+        system.renderMode = RenderMode.BillBoard;
+        renderer.update(0);
+        expect(renderer.batches[0].systems.has(system)).toBe(true);
+        expect(renderer.batches[1].systems.has(system)).toBe(false);
     });
 });

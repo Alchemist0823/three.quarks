@@ -620,52 +620,20 @@ export class ParticleSystem implements IParticleSystem {
      * {@link RenderMode}
      */
     set renderMode(renderMode: RenderMode) {
-        if (this.rendererSettings.renderMode !== renderMode) {
-            let needRestart = false;
+        const previousRenderMode = this.rendererSettings.renderMode;
+        if (previousRenderMode === renderMode) return;
 
-            if (this.rendererSettings.renderMode === RenderMode.Trail) {
-                needRestart = true;
-            }
+        const shouldRestart = this.needsRestartForRenderModeChange(previousRenderMode, renderMode);
 
-            if (this.rendererSettings.renderMode === RenderMode.Mesh) {
-                this.startRotation = new ConstantValue(0);
-            }
+        this.applyRenderModeDefaults(previousRenderMode, renderMode);
+        this.rendererSettings.renderMode = renderMode;
 
-            switch (renderMode) {
-                case RenderMode.Trail:
-                    this.rendererEmitterSettings = {
-                        startLength: new ConstantValue(30),
-                        followLocalOrigin: false,
-                    };
-                    needRestart = true;
-                    break;
-                case RenderMode.Mesh:
-                    this.rendererEmitterSettings = {
-                        geometry: DEFAULT_GEOMETRY,
-                    };
-                    this.startRotation = new AxisAngleGenerator(new Vector3(0, 1, 0), new ConstantValue(0));
-                    break;
-                case RenderMode.StretchedBillBoard:
-                    this.rendererEmitterSettings = {speedFactor: 0, lengthFactor: 2};
-                    this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
-                    break;
-                case RenderMode.BillBoard:
-                case RenderMode.VerticalBillBoard:
-                case RenderMode.HorizontalBillBoard:
-                    this.rendererEmitterSettings = {};
-                    this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
-                    break;
-            }
-
-            this.rendererSettings.renderMode = renderMode;
-
-            if (needRestart) {
-                this.restart();
-                this.particles.length = 0;
-            }
-
-            this.neededToUpdateRender = true;
+        if (shouldRestart) {
+            this.restart();
+            this.particles.length = 0;
         }
+
+        this.neededToUpdateRender = true;
     }
 
     /**
@@ -793,6 +761,41 @@ export class ParticleSystem implements IParticleSystem {
     stop() {
         this.restart();
         this.pause();
+    }
+
+    private needsRestartForRenderModeChange(previousRenderMode: RenderMode, renderMode: RenderMode): boolean {
+        // Keep render-mode restart policy named even while it is simple so the setter
+        // does not become the dumping ground for future transition edge cases.
+        return previousRenderMode === RenderMode.Trail || renderMode === RenderMode.Trail;
+    }
+
+    private applyRenderModeDefaults(previousRenderMode: RenderMode, renderMode: RenderMode): void {
+        if (previousRenderMode === RenderMode.Mesh) {
+            this.startRotation = new ConstantValue(0);
+        }
+
+        switch (renderMode) {
+            case RenderMode.Trail:
+                this.rendererEmitterSettings = {
+                    startLength: new ConstantValue(30),
+                    followLocalOrigin: false,
+                };
+                break;
+            case RenderMode.Mesh:
+                this.rendererEmitterSettings = {geometry: DEFAULT_GEOMETRY};
+                this.startRotation = new AxisAngleGenerator(new Vector3(0, 1, 0), new ConstantValue(0));
+                break;
+            case RenderMode.StretchedBillBoard:
+                this.rendererEmitterSettings = {speedFactor: 0, lengthFactor: 2};
+                this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
+                break;
+            case RenderMode.BillBoard:
+            case RenderMode.VerticalBillBoard:
+            case RenderMode.HorizontalBillBoard:
+                this.rendererEmitterSettings = {};
+                this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
+                break;
+        }
     }
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
