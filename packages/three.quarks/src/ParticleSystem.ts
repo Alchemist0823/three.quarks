@@ -674,6 +674,7 @@ export class ParticleSystem implements IParticleSystem {
         this.duration = parameters.duration ?? 1;
         this.looping = parameters.looping === undefined ? true : parameters.looping;
         this.prewarm = parameters.prewarm === undefined ? false : parameters.prewarm;
+        this.startTileIndex = parameters.startTileIndex || new ConstantValue(0);
         this.startLife = parameters.startLife ?? new ConstantValue(5);
         this.startSpeed = parameters.startSpeed ?? new ConstantValue(0);
         this.startRotation = parameters.startRotation ?? new ConstantValue(0);
@@ -686,59 +687,22 @@ export class ParticleSystem implements IParticleSystem {
         this.emitterShape = parameters.shape ?? new SphereEmitter();
         this.behaviors = parameters.behaviors ?? [];
         this.worldSpace = parameters.worldSpace ?? false;
-        this.rendererEmitterSettings = parameters.rendererEmitterSettings ?? {};
 
-        if (parameters.renderMode === RenderMode.StretchedBillBoard) {
-            const stretchedBillboardSettings = this.rendererEmitterSettings as StretchedBillBoardSettings;
-            if (parameters.speedFactor !== undefined) {
-                stretchedBillboardSettings.speedFactor = parameters.speedFactor;
-            }
-
-            stretchedBillboardSettings.speedFactor = stretchedBillboardSettings.speedFactor ?? 0;
-            stretchedBillboardSettings.lengthFactor = stretchedBillboardSettings.lengthFactor ?? 0;
-        }
-
-        this.rendererSettings = {
-            instancingGeometry: parameters.instancingGeometry ?? DEFAULT_GEOMETRY,
-            renderMode: parameters.renderMode ?? RenderMode.BillBoard,
-            renderOrder: parameters.renderOrder ?? 0,
-            material: parameters.material,
-            uTileCount: parameters.uTileCount ?? 1,
-            vTileCount: parameters.vTileCount ?? 1,
-            blendTiles: parameters.blendTiles ?? false,
-            softParticles: parameters.softParticles ?? false,
-            softNearFade: parameters.softNearFade ?? 0,
-            softFarFade: parameters.softFarFade ?? 0,
-            layers: parameters.layers ?? new Layers(),
-        };
-
-        this.neededToUpdateRender = true;
+        this.rendererEmitterSettings = this.createRendererEmitterSettings(parameters);
+        this.rendererSettings = this.createRendererSettings(parameters);
 
         this.particles = [];
-
-        this.startTileIndex = parameters.startTileIndex || new ConstantValue(0);
-        this.emitter = new ParticleEmitter(this);
-
-        this.paused = false;
         this.particleNum = 0;
 
-        this.emissionState = {
-            isBursting: false,
-            burstParticleIndex: 0,
-            burstParticleCount: 0,
-            burstIndex: 0,
-            burstWaveIndex: 0,
-            time: 0,
-            waitEmiting: 0,
-            travelDistance: 0,
-        };
+        this.emitter = new ParticleEmitter(this);
+        this.emissionState = this.createEmissionState();
+        this.startEmissionGenerators();
 
-        this.emissionBursts.forEach((burst) => burst.count.startGen(this.memory));
-        this.emissionOverDistance.startGen(this.memory);
-
+        this.paused = false;
         this.emitEnded = false;
         this.markForDestroy = false;
         this.prewarmed = false;
+        this.neededToUpdateRender = true;
     }
 
     /**
@@ -761,6 +725,55 @@ export class ParticleSystem implements IParticleSystem {
     stop() {
         this.restart();
         this.pause();
+    }
+
+    private createRendererEmitterSettings(parameters: ParticleSystemParameters): RendererEmitterSettings {
+        const rendererEmitterSettings = parameters.rendererEmitterSettings ?? {};
+
+        if (parameters.renderMode === RenderMode.StretchedBillBoard) {
+            const sbbSettings = rendererEmitterSettings as StretchedBillBoardSettings;
+            sbbSettings.speedFactor = parameters.speedFactor ?? sbbSettings.speedFactor ?? 0;
+            sbbSettings.lengthFactor = sbbSettings.lengthFactor ?? 0;
+        }
+
+        return rendererEmitterSettings;
+    }
+
+    private createRendererSettings(parameters: ParticleSystemParameters): VFXBatchSettings {
+        return {
+            instancingGeometry: parameters.instancingGeometry ?? DEFAULT_GEOMETRY,
+            renderMode: parameters.renderMode ?? RenderMode.BillBoard,
+            renderOrder: parameters.renderOrder ?? 0,
+            material: parameters.material,
+            uTileCount: parameters.uTileCount ?? 1,
+            vTileCount: parameters.vTileCount ?? 1,
+            blendTiles: parameters.blendTiles ?? false,
+            softParticles: parameters.softParticles ?? false,
+            softNearFade: parameters.softNearFade ?? 0,
+            softFarFade: parameters.softFarFade ?? 0,
+            layers: parameters.layers ?? new Layers(),
+        };
+    }
+
+    private createEmissionState(): EmissionState {
+        return {
+            isBursting: false,
+            burstParticleIndex: 0,
+            burstParticleCount: 0,
+            burstIndex: 0,
+            burstWaveIndex: 0,
+            time: 0,
+            waitEmiting: 0,
+            travelDistance: 0,
+        };
+    }
+
+    private startEmissionGenerators(): void {
+        for (const burst of this.emissionBursts) {
+            burst.count.startGen(this.memory);
+        }
+
+        this.emissionOverDistance.startGen(this.memory);
     }
 
     private needsRestartForRenderModeChange(previousRenderMode: RenderMode, renderMode: RenderMode): boolean {
@@ -974,8 +987,7 @@ export class ParticleSystem implements IParticleSystem {
         this.emitEnded = false;
         this.markForDestroy = false;
         this.prewarmed = false;
-        this.emissionBursts.forEach((burst) => burst.count.startGen(this.memory));
-        this.emissionOverDistance.startGen(this.memory);
+        this.startEmissionGenerators();
     }
 
     /**

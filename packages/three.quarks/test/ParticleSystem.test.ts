@@ -1,10 +1,35 @@
 /**
  * @jest-environment jsdom
  */
-import {ParticleSystem, RenderMode, SpriteParticle, TrailSettings} from '../src';
+import {ParticleSystem, RenderMode, SpriteParticle, StretchedBillBoardSettings, TrailSettings} from '../src';
 import {BufferGeometry, MeshBasicMaterial} from 'three';
 
 describe('ParticleSystem', () => {
+    test('constructor initializes stretched billboard renderer emitter settings', () => {
+        const rendererEmitterSettings = {} as StretchedBillBoardSettings;
+        const system = new ParticleSystem({
+            material: new MeshBasicMaterial(),
+            renderMode: RenderMode.StretchedBillBoard,
+            rendererEmitterSettings,
+            speedFactor: 3,
+        });
+
+        expect(system.rendererEmitterSettings).toBe(rendererEmitterSettings);
+        expect(rendererEmitterSettings.speedFactor).toBe(3);
+        expect(rendererEmitterSettings.lengthFactor).toBe(0);
+
+        const existingSettings = {speedFactor: 2, lengthFactor: 4};
+        const existingSettingsSystem = new ParticleSystem({
+            material: new MeshBasicMaterial(),
+            renderMode: RenderMode.StretchedBillBoard,
+            rendererEmitterSettings: existingSettings,
+        });
+
+        expect(existingSettingsSystem.rendererEmitterSettings).toBe(existingSettings);
+        expect(existingSettings.speedFactor).toBe(2);
+        expect(existingSettings.lengthFactor).toBe(4);
+    });
+
     test('renderMode applies mode defaults and marks renderer settings dirty', () => {
         const instancingGeometry = new BufferGeometry();
         const system = new ParticleSystem({
