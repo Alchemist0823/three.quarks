@@ -1002,7 +1002,7 @@ export class ParticleSystem implements IParticleSystem {
             this.markForDestroy = true;
         }
 
-        this.fire({type: 'emitEnd', particleSystem: this});
+        this.fire('emitEnd');
     }
 
     /**
@@ -1013,7 +1013,7 @@ export class ParticleSystem implements IParticleSystem {
         this.emitter.removeFromParent();
         this.emitter.dispose();
 
-        this.fire({type: 'destroy', particleSystem: this});
+        this.fire('destroy');
     }
 
     /**
@@ -1042,14 +1042,13 @@ export class ParticleSystem implements IParticleSystem {
     private update(delta: number) {
         if (this.paused) return;
 
-        let currentParent: Object3D = this.emitter;
-
-        while (currentParent.parent) {
-            currentParent = currentParent.parent;
+        if (this.isEmitterDetached()) {
+            this.dispose();
+            return;
         }
 
-        if (currentParent.type !== 'Scene') {
-            this.dispose();
+        if (this.emitEnded && this.particleNum === 0) {
+            if (this.markForDestroy) this.dispose();
             return;
         }
 
@@ -1058,25 +1057,14 @@ export class ParticleSystem implements IParticleSystem {
             this.emitter.updateWorldMatrix(true, false);
         }
 
-        if (this.emitEnded && this.particleNum === 0) {
-            if (this.markForDestroy && this.emitter.parent) this.dispose();
-            return;
-        }
-
-        if (this.looping && this.prewarm && !this.prewarmed) {
-            this.prewarmed = true;
-            for (let i = 0; i < this.duration * PREWARM_FPS; i++) {
-                // Prewarm advances the simulation in fixed steps before the first rendered update.
-                this.update(1.0 / PREWARM_FPS);
-            }
-        }
+        this.prewarmIfNeeded();
 
         if (delta > 0.1) {
             delta = 0.1;
         }
 
         if (this.neededToUpdateRender) {
-            if (this._renderer) this._renderer.updateSystem(this);
+            this._renderer?.updateSystem(this);
             this.neededToUpdateRender = false;
         }
 
@@ -1097,26 +1085,21 @@ export class ParticleSystem implements IParticleSystem {
             }
         }
 
-        for (let i = 0; i < this.particleNum; i++) {
-            if (
-                (this.rendererEmitterSettings as TrailSettings).followLocalOrigin &&
-                (this.particles[i] as TrailParticle).localPosition
-            ) {
-                this.particles[i].position.copy((this.particles[i] as TrailParticle).localPosition!);
+        const followLocalOrigin = (this.rendererEmitterSettings as TrailSettings).followLocalOrigin;
 
-                if (this.particles[i].parentMatrix) {
-                    this.particles[i].position.applyMatrix4(this.particles[i].parentMatrix!);
-                } else {
-                    this.particles[i].position.applyMatrix4(this.emitter.matrixWorld as unknown as Matrix4);
-                }
+        for (let i = 0; i < this.particleNum; i++) {
+            const particle = this.particles[i];
+            const localPosition = (particle as TrailParticle).localPosition;
+
+            if (followLocalOrigin && localPosition) {
+                particle.position
+                    .copy(localPosition)
+                    .applyMatrix4(particle.parentMatrix ?? (this.emitter.matrixWorld as unknown as Matrix4));
             } else {
-                this.particles[i].position.addScaledVector(
-                    this.particles[i].velocity,
-                    delta * this.particles[i].speedModifier
-                );
+                particle.position.addScaledVector(particle.velocity, delta * particle.speedModifier);
             }
 
-            this.particles[i].age += delta;
+            particle.age += delta;
         }
 
         if (this.rendererSettings.renderMode === RenderMode.Trail) {
@@ -1129,15 +1112,40 @@ export class ParticleSystem implements IParticleSystem {
         // Particle died
         for (let i = 0; i < this.particleNum; i++) {
             const particle = this.particles[i];
+            const isTrailParticle = particle instanceof TrailParticle;
+            const hasFinishedTrail = !isTrailParticle || particle.previous.length === 0;
 
-            if (particle.died && (!(particle instanceof TrailParticle) || particle.previous.length === 0)) {
-                this.particles[i] = this.particles[this.particleNum - 1];
-                this.particles[this.particleNum - 1] = particle;
-                this.particleNum--;
-                i--;
-
-                this.fire({type: 'particleDied', particleSystem: this, particle: particle});
+            if (!particle.died || !hasFinishedTrail) {
+                continue;
             }
+
+            this.particles[i] = this.particles[this.particleNum - 1];
+            this.particles[this.particleNum - 1] = particle;
+            this.particleNum--;
+            i--;
+
+            this.fire('particleDied', particle);
+        }
+    }
+
+    private isEmitterDetached(): boolean {
+        let currentParent: Object3D = this.emitter;
+
+        while (currentParent.parent) {
+            currentParent = currentParent.parent;
+        }
+
+        return currentParent.type !== 'Scene';
+    }
+
+    private prewarmIfNeeded(): void {
+        if (!this.looping || !this.prewarm || this.prewarmed) return;
+
+        this.prewarmed = true;
+
+        for (let i = 0; i < this.duration * PREWARM_FPS; i++) {
+            // Prewarm advances the simulation in fixed steps before the first rendered update.
+            this.update(1.0 / PREWARM_FPS);
         }
     }
 
@@ -1432,10 +1440,16 @@ export class ParticleSystem implements IParticleSystem {
         this.listeners[event]?.delete(callback);
     }
 
-    private fire(event: ParticleSystemEvent) {
-        if (this.listeners[event.type] === undefined) return;
+    private fire(type: ParticleSystemEventType, particle?: Particle) {
+        const listeners = this.listeners[type];
+        if (!listeners || listeners.size === 0) return;
 
-        for (const callback of this.listeners[event.type]) {
+        const event: ParticleSystemEvent = {type, particleSystem: this};
+        if (particle !== undefined) {
+            event.particle = particle;
+        }
+
+        for (const callback of listeners) {
             callback(event);
         }
     }
