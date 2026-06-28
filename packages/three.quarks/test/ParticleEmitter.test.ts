@@ -101,14 +101,58 @@ describe('ParticleEmitter', () => {
     });
 
     test('.clone', () => {
-        const newPS = glowBeam.clone();
+        const system = new ParticleSystem({
+            duration: 1,
+            looping: true,
+            prewarm: true,
+            startLife: new IntervalValue(0.1, 0.15),
+            startSpeed: new ConstantValue(0),
+            startSize: new ConstantValue(3.5),
+            startColor: new ConstantColor(new Vector4(1, 0.1509503, 0.07352942, 0.5)),
+            rendererEmitterSettings: {startLength: new ConstantValue(40)},
+            worldSpace: true,
+            emissionOverTime: new ConstantValue(40),
+            emissionBursts: [
+                {
+                    time: 0.5,
+                    count: new ConstantValue(7),
+                    probability: 1,
+                    interval: 0.1,
+                    cycle: 1,
+                },
+            ],
+            shape: new SphereEmitter({
+                radius: 0.0001,
+                thickness: 1,
+                arc: Math.PI * 2,
+            }),
+            material: new MeshBasicMaterial({map: texture, blending: NormalBlending, transparent: true}),
+            startTileIndex: new ConstantValue(1),
+            uTileCount: 10,
+            vTileCount: 10,
+            renderOrder: 2,
+            renderMode: RenderMode.Trail,
+            layers: layers,
+        });
+        system.addBehavior(new SizeOverLife(new PiecewiseBezier([[new Bezier(1, 0.95, 0.75, 0), 0]])));
+        system.addBehavior(new ApplyForce(new Vector3(0, 1, 0), new ConstantValue(10)));
+
+        const newPS = system.clone();
         expect(newPS.layers.mask).toBe(3);
-        expect(newPS.behaviors.length).toBe(glowBeam.behaviors.length);
-        expect(newPS.blending).toBe(glowBeam.blending);
-        expect(newPS.rendererSettings.renderOrder).toBe(glowBeam.rendererSettings.renderOrder);
-        expect((newPS.rendererEmitterSettings as TrailSettings).startLength.type).toBe(
-            (newPS.rendererEmitterSettings as TrailSettings).startLength.type
-        );
+        expect(newPS.behaviors.length).toBe(system.behaviors.length);
+        expect(newPS.blending).toBe(system.blending);
+        expect(newPS.rendererSettings.renderOrder).toBe(system.rendererSettings.renderOrder);
+        const originalTrailSettings = system.rendererEmitterSettings as TrailSettings;
+        const clonedTrailSettings = newPS.rendererEmitterSettings as TrailSettings;
+
+        expect(clonedTrailSettings.startLength).not.toBe(originalTrailSettings.startLength);
+        expect(clonedTrailSettings.startLength.type).toBe(originalTrailSettings.startLength.type);
+        expect(newPS.prewarm).toBe(true);
+        expect(newPS.startTileIndex).not.toBe(system.startTileIndex);
+        expect(newPS.emissionBursts).toHaveLength(1);
+        expect(newPS.emissionBursts[0]).not.toBe(system.emissionBursts[0]);
+        expect(newPS.emissionBursts[0].count).not.toBe(system.emissionBursts[0].count);
+        expect((newPS.emissionBursts[0].count as ConstantValue).value).toBe(7);
     });
 
     test('event listeners are unique and removable', () => {

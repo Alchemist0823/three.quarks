@@ -849,6 +849,7 @@ export class ParticleSystem implements IParticleSystem {
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
         const renderMode = this.rendererSettings.renderMode;
+        const normalizedTime = emissionState.time / this.duration;
 
         // vA: position, qA: rotation, vB: scale
         matrix.decompose(this._vA, this._qA, this._vB);
@@ -856,7 +857,6 @@ export class ParticleSystem implements IParticleSystem {
         for (let i = 0; i < count; i++) {
             emissionState.burstParticleIndex = i;
             const particle = this.getNewParticle(renderMode);
-            const normalizedTime = emissionState.time / this.duration;
 
             this.initializeParticleBase(particle, normalizedTime);
             this.initializeParticleRenderState(particle, normalizedTime, renderMode);
@@ -1485,9 +1485,10 @@ export class ParticleSystem implements IParticleSystem {
         const newBehaviors: Behavior[] = [];
 
         for (const emissionBurst of this.emissionBursts) {
-            const newEmissionBurst = {};
-            Object.assign(newEmissionBurst, emissionBurst);
-            newEmissionBursts.push(newEmissionBurst as BurstParameters);
+            newEmissionBursts.push({
+                ...emissionBurst,
+                count: emissionBurst.count.clone(),
+            });
         }
 
         for (const behavior of this.behaviors) {
@@ -1500,6 +1501,7 @@ export class ParticleSystem implements IParticleSystem {
         return new ParticleSystem({
             autoDestroy: this.autoDestroy,
             looping: this.looping,
+            prewarm: this.prewarm,
             duration: this.duration,
             shape: this.emitterShape.clone(),
             startLife: this.startLife.clone(),
@@ -1516,7 +1518,7 @@ export class ParticleSystem implements IParticleSystem {
             renderOrder: this.renderOrder,
             rendererEmitterSettings: this.cloneRendererEmitterSettings(),
             material: this.rendererSettings.material,
-            startTileIndex: this.startTileIndex,
+            startTileIndex: this.startTileIndex.clone(),
             uTileCount: this.uTileCount,
             vTileCount: this.vTileCount,
             blendTiles: this.blendTiles,
