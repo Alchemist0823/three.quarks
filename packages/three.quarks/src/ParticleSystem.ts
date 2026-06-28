@@ -1024,16 +1024,28 @@ export class ParticleSystem implements IParticleSystem {
         this.memory.length = 0;
         this.paused = false;
         this.particleNum = 0;
-        this.emissionState.isBursting = false;
-        this.emissionState.burstIndex = 0;
-        this.emissionState.burstWaveIndex = 0;
-        this.emissionState.time = 0;
-        this.emissionState.waitEmiting = 0;
-        this.behaviors.forEach((behavior) => behavior.reset());
+        this.resetEmissionState();
+
+        for (const behavior of this.behaviors) {
+            behavior.reset();
+        }
+
         this.emitEnded = false;
         this.markForDestroy = false;
         this.prewarmed = false;
         this.startEmissionGenerators();
+    }
+
+    private resetEmissionState(): void {
+        this.emissionState.isBursting = false;
+        this.emissionState.burstIndex = 0;
+        this.emissionState.burstWaveIndex = 0;
+        this.emissionState.burstParticleIndex = 0;
+        this.emissionState.burstParticleCount = 0;
+        this.emissionState.time = 0;
+        this.emissionState.waitEmiting = 0;
+        this.emissionState.travelDistance = 0;
+        this.emissionState.previousWorldPos = undefined;
     }
 
     /**

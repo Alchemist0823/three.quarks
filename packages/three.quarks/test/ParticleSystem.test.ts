@@ -1,7 +1,15 @@
 /**
  * @jest-environment jsdom
  */
-import {ParticleSystem, RenderMode, SpriteParticle, StretchedBillBoardSettings, TrailSettings} from '../src';
+import {
+    ConstantValue,
+    Matrix4,
+    ParticleSystem,
+    RenderMode,
+    SpriteParticle,
+    StretchedBillBoardSettings,
+    TrailSettings,
+} from '../src';
 import {BufferGeometry, MeshBasicMaterial} from 'three';
 
 describe('ParticleSystem', () => {
@@ -72,5 +80,32 @@ describe('ParticleSystem', () => {
         expect(system.paused).toBe(false);
         expect(system.emissionState.time).toBe(0);
         expect((system.rendererEmitterSettings as TrailSettings).startLength.type).toBe('value');
+    });
+
+    test('restart clears distance emission state', () => {
+        const system = new ParticleSystem({
+            material: new MeshBasicMaterial(),
+            emissionOverTime: new ConstantValue(0),
+            emissionOverDistance: new ConstantValue(0.5),
+        });
+        const emitterMatrix = new Matrix4();
+
+        system.emit(0, system.emissionState, emitterMatrix);
+        emitterMatrix.elements[12] = 1;
+        system.emit(0, system.emissionState, emitterMatrix);
+
+        expect(system.emissionState.travelDistance).toBe(1);
+        expect(system.emissionState.previousWorldPos).toBeDefined();
+
+        system.restart();
+
+        expect(system.emissionState.travelDistance).toBe(0);
+        expect(system.emissionState.previousWorldPos).toBeUndefined();
+
+        emitterMatrix.elements[12] = 3;
+        system.emit(0, system.emissionState, emitterMatrix);
+
+        expect(system.emissionState.waitEmiting).toBe(0);
+        expect(system.emissionState.travelDistance).toBe(0);
     });
 });
