@@ -1156,23 +1156,13 @@ export class ParticleSystem implements IParticleSystem {
      * @param emitterMatrix - The emitter world matrix.
      */
     emit(delta: number, emissionState: EmissionState, emitterMatrix: Matrix4) {
-        if (emissionState.time > this.duration) {
-            if (this.looping) {
-                emissionState.time -= this.duration;
-                emissionState.burstIndex = 0;
-                this.behaviors.forEach((behavior) => behavior.reset());
-            } else {
-                if (!this.emitEnded && !this.onlyUsedByOther) {
-                    this.endEmit();
-                }
-            }
-        }
-
+        this.updateEmissionDuration(emissionState);
         this._normalMatrix.getNormalMatrix(emitterMatrix);
 
         // Spawn
         const totalSpawn = Math.ceil(emissionState.waitEmiting);
         this.spawn(totalSpawn, emissionState, emitterMatrix);
+
         emissionState.waitEmiting -= totalSpawn;
 
         // Spawn burst
@@ -1180,10 +1170,13 @@ export class ParticleSystem implements IParticleSystem {
             emissionState.burstIndex < this.emissionBursts.length &&
             this.emissionBursts[emissionState.burstIndex].time <= emissionState.time
         ) {
-            if (Math.random() < this.emissionBursts[emissionState.burstIndex].probability) {
-                const count = this.emissionBursts[emissionState.burstIndex].count.genValue(this.memory, this.time);
+            const burst = this.emissionBursts[emissionState.burstIndex];
+
+            if (Math.random() < burst.probability) {
+                const count = burst.count.genValue(this.memory, this.time);
                 emissionState.isBursting = true;
                 emissionState.burstParticleCount = count;
+
                 this.spawn(count, emissionState, emitterMatrix);
                 emissionState.isBursting = false;
             }
@@ -1191,36 +1184,52 @@ export class ParticleSystem implements IParticleSystem {
             emissionState.burstIndex++;
         }
 
+        const emitterPosition = this._vA.set(
+            emitterMatrix.elements[12],
+            emitterMatrix.elements[13],
+            emitterMatrix.elements[14]
+        );
+
         if (!this.emitEnded) {
-            emissionState.waitEmiting +=
-                delta * this.emissionOverTime.genValue(this.memory, emissionState.time / this.duration);
+            const normalizedTime = emissionState.time / this.duration;
+            emissionState.waitEmiting += delta * this.emissionOverTime.genValue(this.memory, normalizedTime);
 
-            if (emissionState.previousWorldPos != undefined) {
-                this._vA.set(emitterMatrix.elements[12], emitterMatrix.elements[13], emitterMatrix.elements[14]);
-                emissionState.travelDistance += emissionState.previousWorldPos.distanceTo(this._vA);
+            if (emissionState.previousWorldPos) {
+                emissionState.travelDistance += emissionState.previousWorldPos.distanceTo(emitterPosition);
 
-                const emitPerMeter = this.emissionOverDistance.genValue(
-                    this.memory,
-                    emissionState.time / this.duration
-                );
+                const emitPerMeter = this.emissionOverDistance.genValue(this.memory, normalizedTime);
+                const spawnDistance = emissionState.travelDistance * emitPerMeter;
 
-                if (emissionState.travelDistance * emitPerMeter > 0) {
-                    const count = Math.floor(emissionState.travelDistance * emitPerMeter);
+                if (spawnDistance > 0) {
+                    const count = Math.floor(spawnDistance);
                     emissionState.travelDistance -= count / emitPerMeter;
                     emissionState.waitEmiting += count;
                 }
             }
         }
 
-        if (emissionState.previousWorldPos === undefined) emissionState.previousWorldPos = new Vector3();
-
-        emissionState.previousWorldPos.set(
-            emitterMatrix.elements[12],
-            emitterMatrix.elements[13],
-            emitterMatrix.elements[14]
-        );
-
+        emissionState.previousWorldPos ??= new Vector3();
+        emissionState.previousWorldPos.copy(emitterPosition);
         emissionState.time += delta;
+    }
+
+    private updateEmissionDuration(emissionState: EmissionState): void {
+        if (emissionState.time <= this.duration) return;
+
+        if (this.looping) {
+            emissionState.time -= this.duration;
+            emissionState.burstIndex = 0;
+
+            for (const behavior of this.behaviors) {
+                behavior.reset();
+            }
+
+            return;
+        }
+
+        if (!this.emitEnded && !this.onlyUsedByOther) {
+            this.endEmit();
+        }
     }
 
     /**
