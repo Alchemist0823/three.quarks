@@ -3,14 +3,74 @@
  */
 import {
     ConstantValue,
+    EmissionState,
+    FunctionColorGenerator,
+    FunctionValueGenerator,
+    GeneratorMemory,
     Matrix4,
     ParticleSystem,
     RenderMode,
     SpriteParticle,
     StretchedBillBoardSettings,
     TrailSettings,
+    Vector4,
 } from '../src';
 import {BufferGeometry, MeshBasicMaterial} from 'three';
+
+class RecordingValueGenerator implements FunctionValueGenerator {
+    readonly type = 'function';
+    readonly times: number[] = [];
+
+    constructor(private readonly value: number) {}
+
+    startGen(memory: GeneratorMemory): void {}
+
+    genValue(memory: GeneratorMemory, t: number): number {
+        this.times.push(t);
+        return this.value;
+    }
+
+    toJSON() {
+        return {type: 'RecordingValueGenerator'};
+    }
+
+    clone(): FunctionValueGenerator {
+        return new RecordingValueGenerator(this.value);
+    }
+}
+
+class RecordingColorGenerator implements FunctionColorGenerator {
+    readonly type = 'function';
+    readonly times: number[] = [];
+
+    startGen(memory: GeneratorMemory): void {}
+
+    genColor(memory: GeneratorMemory, color: Vector4, t: number): Vector4 {
+        this.times.push(t);
+        return color.set(1, 1, 1, 1);
+    }
+
+    toJSON() {
+        return {type: 'RecordingColorGenerator'};
+    }
+
+    clone(): FunctionColorGenerator {
+        return new RecordingColorGenerator();
+    }
+}
+
+function createEmissionState(time: number): EmissionState {
+    return {
+        isBursting: false,
+        burstIndex: 0,
+        burstWaveIndex: 0,
+        burstParticleIndex: 0,
+        burstParticleCount: 0,
+        time,
+        waitEmiting: 0,
+        travelDistance: 0,
+    };
+}
 
 describe('ParticleSystem', () => {
     test('constructor initializes stretched billboard renderer emitter settings', () => {
@@ -107,5 +167,32 @@ describe('ParticleSystem', () => {
 
         expect(system.emissionState.waitEmiting).toBe(0);
         expect(system.emissionState.travelDistance).toBe(0);
+    });
+
+    test('emit uses the provided emission state time for sub-emission generators', () => {
+        const burstCount = new RecordingValueGenerator(1);
+        const startColor = new RecordingColorGenerator();
+        const system = new ParticleSystem({
+            material: new MeshBasicMaterial(),
+            duration: 0.5,
+            startColor,
+            emissionOverTime: new ConstantValue(0),
+            emissionOverDistance: new ConstantValue(0),
+            emissionBursts: [
+                {
+                    time: 0.25,
+                    count: burstCount,
+                    cycle: 1,
+                    interval: 0.1,
+                    probability: 1,
+                },
+            ],
+        });
+
+        system.emissionState.time = 0.75;
+        system.emit(0, createEmissionState(0.25), new Matrix4());
+
+        expect(burstCount.times).toEqual([0.25]);
+        expect(startColor.times).toEqual([0.5]);
     });
 });

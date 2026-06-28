@@ -410,7 +410,8 @@ export class ParticleSystem implements IParticleSystem {
     behaviors: Behavior[];
 
     /**
-     * Mutable emission playback state shared with emitter shapes and sub-emitters.
+     * Default mutable emission playback state used by this particle system.
+     * Sub-emitter calls may pass alternate EmissionState instances to emit.
      * @type {EmissionState}
      */
     emissionState: EmissionState;
@@ -889,7 +890,7 @@ export class ParticleSystem implements IParticleSystem {
         particle.speedModifier = 1;
 
         this.startColor.startGen(particle.memory);
-        this.startColor.genColor(particle.memory, particle.startColor, this.emissionState.time);
+        this.startColor.genColor(particle.memory, particle.startColor, normalizedTime);
         particle.color.copy(particle.startColor);
 
         this.startSpeed.startGen(particle.memory);
@@ -1186,7 +1187,7 @@ export class ParticleSystem implements IParticleSystem {
             const burst = this.emissionBursts[emissionState.burstIndex];
 
             if (Math.random() < burst.probability) {
-                const count = burst.count.genValue(this.memory, this.time);
+                const count = burst.count.genValue(this.memory, emissionState.time);
                 emissionState.isBursting = true;
                 emissionState.burstParticleCount = count;
 
