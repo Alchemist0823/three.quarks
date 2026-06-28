@@ -111,6 +111,25 @@ describe('ParticleEmitter', () => {
         );
     });
 
+    test('event listeners are unique and removable', () => {
+        const system = new ParticleSystem({material: new MeshBasicMaterial()});
+        const listener = jest.fn();
+
+        system.addEventListener('emitEnd', listener);
+        system.addEventListener('emitEnd', listener);
+        system.endEmit();
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        system.removeEventListener('emitEnd', listener);
+        system.endEmit();
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        system.addEventListener('emitEnd', listener);
+        system.removeAllEventListeners('emitEnd');
+        system.endEmit();
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
     test('.fromJSON', () => {
         // const meta = { geometries: {}, materials: {}, textures: {}, images: {} };
         const json = glowBeam.emitter.toJSON();

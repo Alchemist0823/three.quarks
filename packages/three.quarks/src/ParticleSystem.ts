@@ -428,7 +428,7 @@ export class ParticleSystem implements IParticleSystem {
     private readonly _qA = new Quaternion();
     private readonly _normalMatrix = new Matrix3();
 
-    private listeners: {[event: string]: ((event: ParticleSystemEvent) => void)[]} = {};
+    private listeners: {[event: string]: Set<(event: ParticleSystemEvent) => void>} = {};
 
     /**
      * @internal
@@ -1391,8 +1391,8 @@ export class ParticleSystem implements IParticleSystem {
      * @param callback - Callback invoked when the event fires.
      */
     addEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void {
-        if (!this.listeners[event]) this.listeners[event] = [];
-        this.listeners[event].push(callback);
+        if (!this.listeners[event]) this.listeners[event] = new Set();
+        this.listeners[event].add(callback);
     }
 
     /**
@@ -1400,7 +1400,7 @@ export class ParticleSystem implements IParticleSystem {
      * @param event - Event type to clear.
      */
     removeAllEventListeners(event: ParticleSystemEventType): void {
-        if (this.listeners[event]) this.listeners[event] = [];
+        this.listeners[event]?.clear();
     }
 
     /**
@@ -1409,17 +1409,15 @@ export class ParticleSystem implements IParticleSystem {
      * @param callback - Callback to remove.
      */
     removeEventListener(event: ParticleSystemEventType, callback: (event: ParticleSystemEvent) => void): void {
-        if (this.listeners[event]) {
-            const index = this.listeners[event].indexOf(callback);
-
-            if (index !== -1) {
-                this.listeners[event].splice(index, 1);
-            }
-        }
+        this.listeners[event]?.delete(callback);
     }
 
     private fire(event: ParticleSystemEvent) {
-        this.listeners[event.type]?.forEach((callback) => callback(event));
+        if (this.listeners[event.type] === undefined) return;
+
+        for (const callback of this.listeners[event.type]) {
+            callback(event);
+        }
     }
 
     /**
