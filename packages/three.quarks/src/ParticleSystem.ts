@@ -1,5 +1,4 @@
 import {
-    AxisAngleGenerator,
     Behavior,
     BehaviorFromJSON,
     ColorGenerator,
@@ -47,12 +46,12 @@ import {
     MeshBasicMaterial,
     Object3D,
     Object3DEventMap,
-    PlaneGeometry,
     Texture,
 } from 'three';
 
 import {BatchedRenderer, VFXBatchSettings} from './BatchedRenderer';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
+import {RendererDefaults} from './util/RendererDefaults';
 import {ThreeMetaData} from './util/ThreeUtil';
 import {RenderMode} from './VFXBatch';
 
@@ -259,7 +258,6 @@ export interface ParticleSystemJSONParameters {
 }
 
 const PREWARM_FPS = 60;
-const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
 const UP = new Vector3(0, 0, 1);
 
 /**
@@ -624,8 +622,12 @@ export class ParticleSystem implements IParticleSystem {
         if (previousRenderMode === renderMode) return;
 
         const shouldRestart = this.needsRestartForRenderModeChange(previousRenderMode, renderMode);
+        const defaults = RendererDefaults.createRenderModeTransitionDefaults(previousRenderMode, renderMode);
 
-        this.applyRenderModeDefaults(previousRenderMode, renderMode);
+        if (defaults.rendererEmitterSettings) this.rendererEmitterSettings = defaults.rendererEmitterSettings;
+        if (defaults.startRotation) this.startRotation = defaults.startRotation;
+        if (defaults.instancingGeometry) this.rendererSettings.instancingGeometry = defaults.instancingGeometry;
+
         this.rendererSettings.renderMode = renderMode;
 
         if (shouldRestart) {
@@ -731,9 +733,10 @@ export class ParticleSystem implements IParticleSystem {
         const rendererEmitterSettings = parameters.rendererEmitterSettings ?? {};
 
         if (parameters.renderMode === RenderMode.StretchedBillBoard) {
-            const sbbSettings = rendererEmitterSettings as StretchedBillBoardSettings;
-            sbbSettings.speedFactor = parameters.speedFactor ?? sbbSettings.speedFactor ?? 0;
-            sbbSettings.lengthFactor = sbbSettings.lengthFactor ?? 0;
+            const stretchedSettings = rendererEmitterSettings as StretchedBillBoardSettings;
+
+            stretchedSettings.speedFactor = parameters.speedFactor ?? stretchedSettings.speedFactor ?? 0;
+            stretchedSettings.lengthFactor = stretchedSettings.lengthFactor ?? 0;
         }
 
         return rendererEmitterSettings;
@@ -741,7 +744,7 @@ export class ParticleSystem implements IParticleSystem {
 
     private createRendererSettings(parameters: ParticleSystemParameters): VFXBatchSettings {
         return {
-            instancingGeometry: parameters.instancingGeometry ?? DEFAULT_GEOMETRY,
+            instancingGeometry: parameters.instancingGeometry ?? RendererDefaults.getDefaultGeometry(),
             renderMode: parameters.renderMode ?? RenderMode.BillBoard,
             renderOrder: parameters.renderOrder ?? 0,
             material: parameters.material,
@@ -753,6 +756,67 @@ export class ParticleSystem implements IParticleSystem {
             softFarFade: parameters.softFarFade ?? 0,
             layers: parameters.layers ?? new Layers(),
         };
+    }
+
+    private static createRendererEmitterSettingsFromJSON(json: ParticleSystemJSONParameters): RendererEmitterSettings {
+        switch (json.renderMode) {
+            case RenderMode.Trail: {
+                const trailSettings = json.rendererEmitterSettings as TrailSettings;
+
+                return {
+                    startLength:
+                        trailSettings.startLength != undefined
+                            ? ValueGeneratorFromJSON(trailSettings.startLength)
+                            : new ConstantValue(30),
+                    followLocalOrigin: trailSettings.followLocalOrigin,
+                };
+            }
+            case RenderMode.StretchedBillBoard: {
+                const rendererEmitterSettings = json.rendererEmitterSettings;
+
+                if (json.speedFactor != undefined) {
+                    (rendererEmitterSettings as StretchedBillBoardSettings).speedFactor = json.speedFactor;
+                }
+
+                return rendererEmitterSettings;
+            }
+            default:
+                return {};
+        }
+    }
+
+    private rendererEmitterSettingsToJSON(): any {
+        switch (this.renderMode) {
+            case RenderMode.Trail:
+                return {
+                    startLength: (this.rendererEmitterSettings as TrailSettings).startLength.toJSON(),
+                    followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
+                };
+            case RenderMode.StretchedBillBoard:
+                return {
+                    speedFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).speedFactor,
+                    lengthFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).lengthFactor,
+                };
+            default:
+                return {};
+        }
+    }
+
+    private cloneRendererEmitterSettings(): RendererEmitterSettings {
+        switch (this.renderMode) {
+            case RenderMode.Trail:
+                return {
+                    startLength: (this.rendererEmitterSettings as TrailSettings).startLength.clone(),
+                    followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
+                };
+            case RenderMode.StretchedBillBoard:
+                return {
+                    lengthFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).lengthFactor,
+                    speedFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).speedFactor,
+                };
+            default:
+                return {};
+        }
     }
 
     private createEmissionState(): EmissionState {
@@ -780,35 +844,6 @@ export class ParticleSystem implements IParticleSystem {
         // Keep render-mode restart policy named even while it is simple so the setter
         // does not become the dumping ground for future transition edge cases.
         return previousRenderMode === RenderMode.Trail || renderMode === RenderMode.Trail;
-    }
-
-    private applyRenderModeDefaults(previousRenderMode: RenderMode, renderMode: RenderMode): void {
-        if (previousRenderMode === RenderMode.Mesh) {
-            this.startRotation = new ConstantValue(0);
-        }
-
-        switch (renderMode) {
-            case RenderMode.Trail:
-                this.rendererEmitterSettings = {
-                    startLength: new ConstantValue(30),
-                    followLocalOrigin: false,
-                };
-                break;
-            case RenderMode.Mesh:
-                this.rendererEmitterSettings = {geometry: DEFAULT_GEOMETRY};
-                this.startRotation = new AxisAngleGenerator(new Vector3(0, 1, 0), new ConstantValue(0));
-                break;
-            case RenderMode.StretchedBillBoard:
-                this.rendererEmitterSettings = {speedFactor: 0, lengthFactor: 2};
-                this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
-                break;
-            case RenderMode.BillBoard:
-            case RenderMode.VerticalBillBoard:
-            case RenderMode.HorizontalBillBoard:
-                this.rendererEmitterSettings = {};
-                this.rendererSettings.instancingGeometry = DEFAULT_GEOMETRY;
-                break;
-        }
     }
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
@@ -860,6 +895,7 @@ export class ParticleSystem implements IParticleSystem {
                     particle.memory,
                     emissionState.time / this.duration
                 );
+
                 particle.startSize.set(size, size, size);
             }
 
@@ -963,8 +999,7 @@ export class ParticleSystem implements IParticleSystem {
      * Remove the particle system's emitter from the scene and release emitter resources.
      */
     dispose() {
-        if (this._renderer) this._renderer.deleteSystem(this);
-
+        this._renderer?.deleteSystem(this);
         this.emitter.removeFromParent();
         this.emitter.dispose();
 
@@ -1044,6 +1079,7 @@ export class ParticleSystem implements IParticleSystem {
 
         for (let j = 0; j < this.behaviors.length; j++) {
             this.behaviors[j].frameUpdate(delta);
+
             for (let i = 0; i < this.particleNum; i++) {
                 if (!this.particles[i].died) {
                     this.behaviors[j].update(this.particles[i], delta);
@@ -1089,6 +1125,7 @@ export class ParticleSystem implements IParticleSystem {
                 this.particles[this.particleNum - 1] = particle;
                 this.particleNum--;
                 i--;
+
                 this.fire({type: 'particleDied', particleSystem: this, particle: particle});
             }
         }
@@ -1105,9 +1142,7 @@ export class ParticleSystem implements IParticleSystem {
             if (this.looping) {
                 emissionState.time -= this.duration;
                 emissionState.burstIndex = 0;
-                this.behaviors.forEach((behavior) => {
-                    behavior.reset();
-                });
+                this.behaviors.forEach((behavior) => behavior.reset());
             } else {
                 if (!this.emitEnded && !this.onlyUsedByOther) {
                     this.endEmit();
@@ -1205,24 +1240,6 @@ export class ParticleSystem implements IParticleSystem {
 
         // TODO: support URL
 
-        let rendererSettingsJSON;
-
-        if (this.renderMode === RenderMode.Trail) {
-            rendererSettingsJSON = {
-                startLength: (this.rendererEmitterSettings as TrailSettings).startLength.toJSON(),
-                followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
-            };
-        } else if (this.renderMode === RenderMode.Mesh) {
-            rendererSettingsJSON = {};
-        } else if (this.renderMode === RenderMode.StretchedBillBoard) {
-            rendererSettingsJSON = {
-                speedFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).speedFactor,
-                lengthFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).lengthFactor,
-            };
-        } else {
-            rendererSettingsJSON = {};
-        }
-
         const geometry = this.rendererSettings.instancingGeometry;
 
         if (meta.geometries && !meta.geometries[geometry.uuid]) {
@@ -1254,7 +1271,7 @@ export class ParticleSystem implements IParticleSystem {
             instancingGeometry: this.rendererSettings.instancingGeometry.uuid,
             renderOrder: this.renderOrder,
             renderMode: this.renderMode,
-            rendererEmitterSettings: rendererSettingsJSON,
+            rendererEmitterSettings: this.rendererEmitterSettingsToJSON(),
             material: this.rendererSettings.material.uuid,
             layers: this.layers.mask,
             startTileIndex: this.startTileIndex.toJSON(),
@@ -1281,28 +1298,6 @@ export class ParticleSystem implements IParticleSystem {
         dependencies: {[uuid: string]: Behavior}
     ): ParticleSystem {
         const shape = EmitterFromJSON(json.shape, meta);
-        let rendererEmitterSettings;
-
-        if (json.renderMode === RenderMode.Trail) {
-            const trailSettings = json.rendererEmitterSettings as TrailSettings;
-            rendererEmitterSettings = {
-                startLength:
-                    trailSettings.startLength != undefined
-                        ? ValueGeneratorFromJSON(trailSettings.startLength)
-                        : new ConstantValue(30),
-                followLocalOrigin: trailSettings.followLocalOrigin,
-            };
-        } else if (json.renderMode === RenderMode.Mesh) {
-            rendererEmitterSettings = {};
-        } else if (json.renderMode === RenderMode.StretchedBillBoard) {
-            rendererEmitterSettings = json.rendererEmitterSettings;
-            if (json.speedFactor != undefined) {
-                (rendererEmitterSettings as StretchedBillBoardSettings).speedFactor = json.speedFactor;
-            }
-        } else {
-            rendererEmitterSettings = {};
-        }
-
         const layers = new Layers();
 
         if (json.layers) {
@@ -1339,7 +1334,7 @@ export class ParticleSystem implements IParticleSystem {
             onlyUsedByOther: json.onlyUsedByOther,
             instancingGeometry: meta.geometries[json.instancingGeometry],
             renderMode: json.renderMode,
-            rendererEmitterSettings: rendererEmitterSettings,
+            rendererEmitterSettings: ParticleSystem.createRendererEmitterSettingsFromJSON(json),
             renderOrder: json.renderOrder,
             layers: layers,
             material: json.material
@@ -1452,22 +1447,6 @@ export class ParticleSystem implements IParticleSystem {
             newBehaviors.push(behavior.clone());
         }
 
-        let rendererEmitterSettings;
-
-        if (this.renderMode === RenderMode.Trail) {
-            rendererEmitterSettings = {
-                startLength: (this.rendererEmitterSettings as TrailSettings).startLength.clone(),
-                followLocalOrigin: (this.rendererEmitterSettings as TrailSettings).followLocalOrigin,
-            };
-        } else if (this.renderMode === RenderMode.StretchedBillBoard) {
-            rendererEmitterSettings = {
-                lengthFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).lengthFactor,
-                speedFactor: (this.rendererEmitterSettings as StretchedBillBoardSettings).speedFactor,
-            };
-        } else {
-            rendererEmitterSettings = {};
-        }
-
         const layers = new Layers();
         layers.mask = this.layers.mask;
 
@@ -1488,7 +1467,7 @@ export class ParticleSystem implements IParticleSystem {
             instancingGeometry: this.rendererSettings.instancingGeometry,
             renderMode: this.renderMode,
             renderOrder: this.renderOrder,
-            rendererEmitterSettings: rendererEmitterSettings,
+            rendererEmitterSettings: this.cloneRendererEmitterSettings(),
             material: this.rendererSettings.material,
             startTileIndex: this.startTileIndex,
             uTileCount: this.uTileCount,
