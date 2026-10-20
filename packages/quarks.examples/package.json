@@ -12,7 +12,7 @@
   "devDependencies": {
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "@types/three": "^0.182.0",
+    "@types/three": "^0.184.0",
     "@vitejs/plugin-react": "^4.3.0",
     "vite": "^7.3.1"
   },
@@ -22,7 +22,7 @@
     "quarks.r3f": "*",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "three": "^0.182.0",
+    "three": "^0.184.0",
     "three.quarks": "*"
   }
 }

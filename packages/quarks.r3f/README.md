@@ -66,6 +66,31 @@ Required wrapper component that manages the `BatchedRenderer` for all child part
 </Canvas>
 ```
 
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `createBatchedRenderer` | `() => BatchedRenderer` | Creates the batched renderer, once. Defaults to `new BatchedRenderer()` |
+
+With three's `WebGPURenderer` (React Three Fiber 9), render with the `NodeBatchedRenderer` from `three.quarks/webgpu`:
+
+```tsx
+import { WebGPURenderer } from 'three/webgpu'
+import { NodeBatchedRenderer } from 'three.quarks/webgpu'
+
+<Canvas
+    gl={async (props) => {
+        const renderer = new WebGPURenderer(props)
+        await renderer.init()
+        return renderer
+    }}
+>
+    <QuarksProvider createBatchedRenderer={() => new NodeBatchedRenderer()}>
+        <ParticleSystem ... />
+    </QuarksProvider>
+</Canvas>
+```
+
 ### `<ParticleSystem>`
 
 Declarative particle system component with flexible prop types.

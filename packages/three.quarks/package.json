@@ -12,6 +12,10 @@
       "import": "./dist/three.quarks.esm.js",
       "require": "./dist/three.quarks.cjs",
       "types": "./dist/types/index.d.ts"
+    },
+    "./webgpu": {
+      "import": "./dist/three.quarks.webgpu.esm.js",
+      "types": "./dist/types/webgpu/index.d.ts"
     }
   },
   "files": [
@@ -54,14 +58,14 @@
   },
   "homepage": "https://quarks.art",
   "peerDependencies": {
-    "three": ">=0.182.0"
+    "three": ">=0.184.0"
   },
   "dependencies": {
     "quarks.core": "*"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@types/three": "^0.182.0",
-    "three": "^0.182.0"
+    "@types/three": "^0.184.0",
+    "three": "^0.184.0"
   }
 }

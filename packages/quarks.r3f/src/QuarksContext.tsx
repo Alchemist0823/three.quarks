@@ -19,6 +19,11 @@ const QuarksContext = createContext<QuarksContextValue | null>(null);
  */
 export interface QuarksProviderProps {
     children: ReactNode;
+    /**
+     * Creates the batched renderer, once, on the first render. Defaults to `new BatchedRenderer()`; with three's
+     * WebGPURenderer, pass `() => new NodeBatchedRenderer()` from `three.quarks/webgpu`.
+     */
+    createBatchedRenderer?: () => BatchedRenderer;
 }
 
 /**
@@ -42,14 +47,14 @@ export interface QuarksProviderProps {
  * }
  * ```
  */
-export function QuarksProvider({ children }: QuarksProviderProps) {
+export function QuarksProvider({ children, createBatchedRenderer }: QuarksProviderProps) {
     const { scene } = useThree();
     const rendererRef = useRef<BatchedRenderer | null>(null);
     const contextRef = useRef<QuarksContextValue | null>(null);
 
     // Create renderer once (synchronously to avoid flicker)
     if (!rendererRef.current) {
-        rendererRef.current = new BatchedRenderer();
+        rendererRef.current = createBatchedRenderer ? createBatchedRenderer() : new BatchedRenderer();
         scene.add(rendererRef.current);
         contextRef.current = { batchedRenderer: rendererRef.current };
     }

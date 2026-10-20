@@ -117,6 +117,37 @@ QuarksUtil.setAutoDestroy(instance, true); // Auto-cleanup when finished
 QuarksUtil.play(instance);
 ```
 
+## 🖥️ WebGPURenderer
+
+three's `WebGPURenderer` compiles node materials rather than `ShaderMaterial`, so render with the batched renderer from the `three.quarks/webgpu` entry. Particle systems, behaviors and effect JSON stay the same, and it runs on both of `WebGPURenderer`'s backends (WebGPU and WebGL 2):
+
+```javascript
+import { WebGPURenderer } from 'three/webgpu';
+import { QuarksLoader, QuarksUtil } from 'three.quarks';
+import { NodeBatchedRenderer } from 'three.quarks/webgpu';
+
+const renderer = new WebGPURenderer();
+const batchRenderer = new NodeBatchedRenderer();
+scene.add(batchRenderer);
+
+new QuarksLoader().load('effects/explosion.json', (effect) => {
+    QuarksUtil.addToBatchRenderer(effect, batchRenderer);
+    scene.add(effect);
+});
+```
+
+The node batches draw what the WebGL batches draw. With the default sRGB output, though, `WebGPURenderer` blends and tone maps in linear space, so faint or overlapping transparent particles come out brighter than with `WebGLRenderer`.
+
+Transparent soft particles need no `setDepthTexture` here: without one they fade against the depth the render has drawn before them, the opaque objects, which saves rendering the scene a second time. Opaque soft particles still need a depth texture. three cannot copy that depth with `stencil: true`, nor when it draws straight to the canvas (linear output and no tone mapping) on the WebGL 2 backend or with a reversed depth buffer; give the particles a depth texture there.
+
+A new kind of effect builds its shaders the first time it is drawn. To keep that out of the frame where it appears, compile it once it is in the scene, for instance while loading:
+
+```javascript
+QuarksUtil.addToBatchRenderer(effect, batchRenderer);
+scene.add(effect);
+await renderer.compileAsync(scene, camera);
+```
+
 ## ⚛️ React Three Fiber
 
 Use the `quarks.r3f` package for declarative React integration:
@@ -234,7 +265,7 @@ This project is a monorepo with modular packages:
 
 ## 🗺️ Roadmap
 
-- 🔲 WebGPU rendering support
+- ✅ WebGPU rendering support (`three.quarks/webgpu`)
 - 🔲 WebAssembly particle simulation
 - 🔲 Node-based scriptable particle systems
 - 🔲 Cross-platform native plugins

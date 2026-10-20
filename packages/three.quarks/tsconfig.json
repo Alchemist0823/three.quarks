@@ -5,7 +5,11 @@
     "rootDir": "src",
     "outDir": "dist",
     "typeRoots": ["./types", "./node_modules/@types", "../../node_modules/@types"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "paths": {
+      "three.quarks": ["./src/index.ts"]
+    }
   },
   "include": ["src", "types"],
   "exclude": ["node_modules/", "test/", "dist/"]

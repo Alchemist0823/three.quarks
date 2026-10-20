@@ -7,9 +7,9 @@
     "three.quarks": "*"
   },
   "devDependencies": {
-    "@types/three": "^0.182.0",
+    "@types/three": "^0.184.0",
     "@types/webxr": "^0.5.24",
-    "three": "^0.182.0"
+    "three": "^0.184.0"
   },
   "types": "./dist/types/index.d.ts",
   "main": "./dist/quarks.nodes.cjs",

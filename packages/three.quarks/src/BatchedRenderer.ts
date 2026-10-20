@@ -143,19 +143,7 @@ export class BatchedRenderer extends Object3D {
                 return;
             }
         }
-        let batch;
-        switch (settings.renderMode) {
-            case RenderMode.Trail:
-                batch = new TrailBatch(settings);
-                break;
-            case RenderMode.Mesh:
-            case RenderMode.BillBoard:
-            case RenderMode.VerticalBillBoard:
-            case RenderMode.HorizontalBillBoard:
-            case RenderMode.StretchedBillBoard:
-                batch = new SpriteBatch(settings);
-                break;
-        }
+        const batch = this.createBatch(settings);
         if (this.depthTexture) {
             batch.applyDepthTexture(this.depthTexture);
         }
@@ -163,6 +151,24 @@ export class BatchedRenderer extends Object3D {
         this.batches.push(batch);
         this.systemToBatchIndex.set(system, this.batches.length - 1);
         this.add(batch);
+    }
+
+    /**
+     * Creates the batch for systems with the given settings. Subclasses override it to render with other batches.
+     * @param {VFXBatchSettings} settings - The settings of the batch.
+     * @returns {VFXBatch} The new batch.
+     */
+    protected createBatch(settings: VFXBatchSettings): VFXBatch {
+        switch (settings.renderMode) {
+            case RenderMode.Trail:
+                return new TrailBatch(settings);
+            case RenderMode.Mesh:
+            case RenderMode.BillBoard:
+            case RenderMode.VerticalBillBoard:
+            case RenderMode.HorizontalBillBoard:
+            case RenderMode.StretchedBillBoard:
+                return new SpriteBatch(settings);
+        }
     }
 
     /**
