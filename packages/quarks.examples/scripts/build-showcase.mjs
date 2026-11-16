@@ -91,6 +91,34 @@ fs.writeFileSync(path.join(outDir, 'benchmark.html'), processHtml(path.join(exam
 // static assets
 copyDir(path.join(examples, 'public'), outDir);
 
+// Some static hosts only serve common web types. Convert the binary glTF of the alpha test demo to a
+// self-contained glTF JSON (buffer embedded as a data URI); GLTFLoader detects the format by content.
+function glbToEmbeddedGltf(glbPath) {
+    const glb = fs.readFileSync(glbPath);
+    let offset = 12;
+    let json = null;
+    let bin = null;
+    while (offset < glb.length) {
+        const length = glb.readUInt32LE(offset);
+        const type = glb.readUInt32LE(offset + 4);
+        const chunk = glb.subarray(offset + 8, offset + 8 + length);
+        if (type === 0x4e4f534a) json = JSON.parse(chunk.toString('utf8'));
+        else if (type === 0x004e4942) bin = chunk;
+        offset += 8 + length;
+    }
+    if (bin && json.buffers && json.buffers[0]) {
+        json.buffers[0].uri = 'data:application/octet-stream;base64,' + bin.toString('base64');
+    }
+    return JSON.stringify(json);
+}
+const glbSource = path.join(examples, 'public', 'leave.glb');
+if (fs.existsSync(glbSource)) {
+    fs.writeFileSync(path.join(outDir, 'leave.gltf.json'), glbToEmbeddedGltf(glbSource));
+    fs.rmSync(path.join(outDir, 'leave.glb'));
+    const demo = path.join(outDir, 'alphaTestDemo.js');
+    fs.writeFileSync(demo, fs.readFileSync(demo, 'utf8').replace("'leave.glb'", "'leave.gltf.json'"));
+}
+
 // optional report / landing page
 const report = path.join(examples, 'showcase', 'index.html');
 if (fs.existsSync(report)) {
