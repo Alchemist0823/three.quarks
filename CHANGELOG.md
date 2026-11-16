@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## Version 0.18.0
 
 - Add `three.quarks/webgpu`: batch renderer for three.js `WebGPURenderer`, built on TSL node materials (also runs on the WebGL2 fallback backend)
   - Supports every render mode (billboard, vertical, horizontal, stretched, mesh, trail), lit mesh particles (`MeshStandardMaterial` / `MeshPhysicalMaterial`), sprite sheets with frame blending, alpha test, custom blending, layers and render order
