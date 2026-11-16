@@ -30,8 +30,23 @@ import {FollowObjectDemo} from './followObjectDemo.js';
  *   ?forceWebGL=1                 run WebGPURenderer on its WebGL2 backend (fallback path)
  */
 const params = new URLSearchParams(window.location.search);
-const requestedTarget = params.get('target') ?? 'auto';
-const forceWebGL = params.get('forceWebGL') === '1';
+// the target buttons also remember the choice, for hosts that drop query strings
+function stored(key) {
+    try {
+        return window.localStorage.getItem(key);
+    } catch (e) {
+        return null;
+    }
+}
+function store(key, value) {
+    try {
+        window.localStorage.setItem(key, value);
+    } catch (e) {
+        // storage unavailable (private mode, sandbox): the query string still works
+    }
+}
+const requestedTarget = params.get('target') ?? stored('quarks.target') ?? 'auto';
+const forceWebGL = (params.get('forceWebGL') ?? stored('quarks.forceWebGL')) === '1';
 
 const demos = [
     MuzzleFlashDemo,
@@ -149,8 +164,19 @@ async function init() {
         const target = button.getAttribute('data-target');
         button.classList.toggle('active', target === requestedTarget);
         button.addEventListener('click', () => {
+            store('quarks.target', target);
             const url = new URL(window.location.href);
             url.searchParams.set('target', target);
+            window.location.href = url.toString();
+        });
+    }
+    for (const button of document.querySelectorAll('[data-backend]')) {
+        const backend = button.getAttribute('data-backend');
+        button.classList.toggle('active', (backend === 'webgl2') === forceWebGL);
+        button.addEventListener('click', () => {
+            store('quarks.forceWebGL', backend === 'webgl2' ? '1' : '0');
+            const url = new URL(window.location.href);
+            url.searchParams.set('forceWebGL', backend === 'webgl2' ? '1' : '0');
             window.location.href = url.toString();
         });
     }

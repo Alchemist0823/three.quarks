@@ -120,9 +120,19 @@
             position: fixed;
             right: 16px;
             bottom: 16px;
+            left: 16px;
             z-index: 100;
             display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
             gap: 6px;
+            pointer-events: none;
+        }
+        .targets button {
+            pointer-events: auto;
+        }
+        @media (max-width: 640px) {
+            #hud { bottom: 64px; }
         }
         .targets button {
             font: 12px sans-serif;
@@ -148,6 +158,8 @@
 <div id="previousBtn" class="previous btn">&#60;</div>
 <div id="hud">initializing WebGPURenderer…</div>
 <div class="targets">
+    <button data-backend="webgpu" title="WebGPURenderer on the WebGPU backend">WebGPU</button>
+    <button data-backend="webgl2" title="WebGPURenderer on its WebGL2 fallback backend">WebGL2 fallback</button>
     <button data-target="desktop">desktop</button>
     <button data-target="mobile">mobile</button>
     <button data-target="auto">auto</button>
