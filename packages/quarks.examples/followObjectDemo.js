@@ -25,7 +25,7 @@ export class FollowObjectDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         // Create a moving object

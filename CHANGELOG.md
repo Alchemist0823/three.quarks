@@ -1,5 +1,19 @@
 # Change Log
 
+## Unreleased
+
+- Add `three.quarks/webgpu`: batch renderer for three.js `WebGPURenderer`, built on TSL node materials (also runs on the WebGL2 fallback backend)
+  - Supports every render mode (billboard, vertical, horizontal, stretched, mesh, trail), lit mesh particles (`MeshStandardMaterial` / `MeshPhysicalMaterial`), sprite sheets with frame blending, alpha test, custom blending, layers and render order
+  - Soft particles read the framebuffer depth automatically, so the depth pre-pass WebGL needs is gone (`setDepthTexture` is still supported)
+  - `desktop` / `mobile` / `auto` performance profiles (`new BatchedRenderer({target})`), `setProfile()` at runtime, `getRecommendedRendererSettings()`
+  - `colorSpaceMode: 'webgl-compatible' | 'linear'`
+- Refactor: renderer-agnostic `BaseBatchedRenderer`, `BaseSpriteBatch` and `BaseTrailBatch` hold the shared CPU code; the WebGL and WebGPU batches only build materials
+- Performance (both renderers): all per-instance data of a batch lives in one interleaved buffer, so each frame uploads 1 buffer instead of 5–6 (sprites) and 2 instead of 8 (trails). Trails use 16-bit indices while they fit. The fill loop writes typed arrays directly, with no per-frame allocations. Batch fill is 1.1–2.7× faster.
+- Fix lit mesh particles on three.js r187+: use three's own `meshphysical` fragment shader instead of a copy (`cube_uv_reflection_fragment` was removed)
+- `QuarksProvider` (quarks.r3f) accepts `createBatchedRenderer` so you can supply the WebGPU batch renderer
+- Upgrade three.js to 0.187.0; Jest now transforms three's ESM-only build
+- Examples: WebGPU demo page (`vanilla-webgpu.html`), benchmark page (`benchmark.html`), static showcase builder; vendor the helvetiker font (no longer shipped by three)
+
 ## Version 0.17.1
 
 - Emit ESM/NodeNext-compatible `.d.ts` files so consumers on `moduleResolution: "nodenext"` resolve types cleanly (#108, thanks @regnaio)

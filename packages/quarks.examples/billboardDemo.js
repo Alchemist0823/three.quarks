@@ -34,7 +34,7 @@ export class BillboardDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         const texture = new TextureLoader().load('textures/triangle_curve.png');

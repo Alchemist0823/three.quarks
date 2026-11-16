@@ -7,7 +7,7 @@ export class NodeBasedVFXDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         const emissionGraph = new NodeGraph('emission');

@@ -47,10 +47,7 @@ import {
     MeshBasicMaterial,
 } from 'three';
 import {RenderMode} from './VFXBatch';
-import {
-    BatchedRenderer,
-    VFXBatchSettings,
-} from './BatchedRenderer';
+import type {BaseBatchedRenderer, VFXBatchSettings} from './BaseBatchedRenderer';
 import { ThreeMetaData } from './util/ThreeUtil';
 export interface BurstParameters {
     time: number;
@@ -457,7 +454,7 @@ export class ParticleSystem implements IParticleSystem {
     private memory: GeneratorMemory = [];
     private listeners: {[event: string]: Array<(event: ParticleSystemEvent)=>void>} = {};
     /** @internal **/
-    _renderer?: BatchedRenderer;
+    _renderer?: BaseBatchedRenderer;
 
     /**
      * set the time of the playback of the particle system

@@ -2,7 +2,7 @@
     "preset": "ts-jest",
     "testEnvironment": "node",
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js"],
+    "moduleFileExtensions": ["ts", "tsx", "js", "mjs"],
     "coveragePathIgnorePatterns": ["/node_modules/", "/test/"],
     "coverageThreshold": {
         "global": {
@@ -13,5 +13,23 @@
         }
     },
     "extensionsToTreatAsEsm": [".ts"],
-    "collectCoverageFrom": ["src/**/*.{js,ts}"]
+    "collectCoverageFrom": ["src/**/*.{js,ts}"],
+    "transform": {
+        "^.+\\.tsx?$": ["ts-jest", {}],
+        "^.+\\.m?js$": [
+            "babel-jest",
+            {
+                "babelrc": false,
+                "configFile": false,
+                "presets": [["@babel/preset-env", {"targets": {"node": "current"}, "modules": "commonjs"}]]
+            }
+        ]
+    },
+    "transformIgnorePatterns": ["/node_modules/(?!three/)"],
+    "moduleNameMapper": {
+        "^three$": "<rootDir>/../../node_modules/three/build/three.module.js",
+        "^three/webgpu$": "<rootDir>/../../node_modules/three/build/three.webgpu.js",
+        "^three/tsl$": "<rootDir>/../../node_modules/three/build/three.tsl.js",
+        "^three\\.quarks$": "<rootDir>/src/index.ts"
+    }
 }

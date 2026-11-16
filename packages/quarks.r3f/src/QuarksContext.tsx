@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { BatchedRenderer } from 'three.quarks';
+import type { BaseBatchedRenderer } from 'three.quarks';
 import type { QuarksContextValue } from './types';
 
 /**
@@ -19,6 +20,16 @@ const QuarksContext = createContext<QuarksContextValue | null>(null);
  */
 export interface QuarksProviderProps {
     children: ReactNode;
+    /**
+     * Factory for the batch renderer. Defaults to the WebGL `BatchedRenderer`.
+     * Use the WebGPU renderer when the R3F canvas renders with three.js `WebGPURenderer`:
+     *
+     * ```tsx
+     * import { WebGPUBatchedRenderer } from 'three.quarks/webgpu'
+     * <QuarksProvider createBatchedRenderer={() => new WebGPUBatchedRenderer({ target: 'auto' })}>
+     * ```
+     */
+    createBatchedRenderer?: () => BaseBatchedRenderer;
 }
 
 /**
@@ -42,14 +53,14 @@ export interface QuarksProviderProps {
  * }
  * ```
  */
-export function QuarksProvider({ children }: QuarksProviderProps) {
+export function QuarksProvider({ children, createBatchedRenderer }: QuarksProviderProps) {
     const { scene } = useThree();
-    const rendererRef = useRef<BatchedRenderer | null>(null);
+    const rendererRef = useRef<BaseBatchedRenderer | null>(null);
     const contextRef = useRef<QuarksContextValue | null>(null);
 
     // Create renderer once (synchronously to avoid flicker)
     if (!rendererRef.current) {
-        rendererRef.current = new BatchedRenderer();
+        rendererRef.current = createBatchedRenderer ? createBatchedRenderer() : new BatchedRenderer();
         scene.add(rendererRef.current);
         contextRef.current = { batchedRenderer: rendererRef.current };
     }

@@ -15,6 +15,8 @@ export default defineConfig({
             input: {
                 main: resolve(__dirname, 'index.html'),
                 vanilla: resolve(__dirname, 'vanilla.html'),
+                vanillaWebgpu: resolve(__dirname, 'vanilla-webgpu.html'),
+                benchmark: resolve(__dirname, 'benchmark.html'),
                 r3f: resolve(__dirname, 'r3fDemo.html'),
                 // webgpu.html uses import maps and is not bundled
             },

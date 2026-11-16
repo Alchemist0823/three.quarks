@@ -9,9 +9,13 @@
   "browser_NO_NPM": "./dist/three.quarks.min.js",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/three.quarks.esm.js",
-      "require": "./dist/three.quarks.cjs",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/three.quarks.cjs"
+    },
+    "./webgpu": {
+      "types": "./dist/types/webgpu/index.d.ts",
+      "import": "./dist/three.quarks.webgpu.esm.js"
     }
   },
   "files": [
@@ -61,7 +65,14 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@types/three": "^0.182.0",
-    "three": "^0.182.0"
+    "@types/three": "^0.187.0",
+    "three": "^0.187.0"
+  },
+  "typesVersions": {
+    "*": {
+      "webgpu": [
+        "./dist/types/webgpu/index.d.ts"
+      ]
+    }
   }
 }

@@ -292,7 +292,7 @@ export class MuzzleFlashDemo extends Demo {
 
         this.texture = new TextureLoader().load('textures/texture1.png', (texture) => {
             this.texture.name = 'textures/texture1.png';
-            this.batchRenderer = new BatchedParticleRenderer();
+            this.batchRenderer = this.createBatchRenderer();
             this.scene.add(this.batchRenderer);
 
             for (let i = 0; i < 100; i++) {

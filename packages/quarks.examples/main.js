@@ -198,5 +198,28 @@ function previousDemo() {
     updateSourceLink();
 }
 
+// expose for debugging / automated testing
+window.quarksApp = {
+    get renderer() {
+        return renderer;
+    },
+    get demo() {
+        return demo;
+    },
+    get scene() {
+        return scene;
+    },
+    demos,
+    goTo(index) {
+        if (demo && demo.deinitScene) demo.deinitScene();
+        demoIndex = (index + demos.length) % demos.length;
+        demo = new demos[demoIndex](camera, renderer, controls);
+        document.querySelector('#demo-name').innerText = demo.name;
+        scene = demo.initScene();
+        updateSourceLink();
+        onResize();
+    },
+};
+
 init();
 animate();

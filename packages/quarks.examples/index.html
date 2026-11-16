@@ -108,6 +108,14 @@
             background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
         }
 
+        .webgpu .card-icon {
+            background: linear-gradient(135deg, #e879f9 0%, #8b5cf6 100%);
+        }
+
+        .bench .card-icon {
+            background: linear-gradient(135deg, #22d3ee 0%, #6366f1 100%);
+        }
+
         .card-title {
             font-size: 1.5rem;
             font-weight: 600;
@@ -189,6 +197,35 @@
                 <li>Interactive navigation</li>
             </ul>
             <span class="card-badge">three.quarks</span>
+        </a>
+
+        <a href="./vanilla-webgpu.html?target=auto" class="card webgpu">
+            <div class="card-icon">GPU</div>
+            <h2 class="card-title">WebGPU</h2>
+            <p class="card-description">
+                The same demos rendered with three.js WebGPURenderer and TSL node materials.
+            </p>
+            <ul class="card-features">
+                <li>three.quarks/webgpu BatchedRenderer</li>
+                <li>Desktop / mobile performance targets</li>
+                <li>Soft particles without a depth pre-pass</li>
+                <li>Automatic WebGL2 fallback</li>
+            </ul>
+            <span class="card-badge">three.quarks/webgpu</span>
+        </a>
+
+        <a href="./benchmark.html" class="card bench">
+            <div class="card-icon">ms</div>
+            <h2 class="card-title">Benchmark</h2>
+            <p class="card-description">
+                Per-frame CPU (simulation, batch fill, submit) and GPU timings, WebGL vs WebGPU.
+            </p>
+            <ul class="card-features">
+                <li>Billboards, stretched, mesh, trails, soft particles</li>
+                <li>GPU timestamp queries</li>
+                <li>Run it on your own device</li>
+            </ul>
+            <span class="card-badge">benchmark</span>
         </a>
 
         <a href="./r3fDemo.html" class="card r3f">

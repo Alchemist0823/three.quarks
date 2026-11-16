@@ -25,7 +25,7 @@ export class AlphaTestDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         new GLTFLoader().load('leave.glb', (gltf) => {

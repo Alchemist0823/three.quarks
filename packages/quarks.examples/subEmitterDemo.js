@@ -7,7 +7,7 @@ export class SubEmitterDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         new QuarksLoader().load('AcidBoiling.json', (obj) => {

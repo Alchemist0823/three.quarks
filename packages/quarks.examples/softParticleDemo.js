@@ -33,8 +33,15 @@ export class SoftParticleDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
+
+        // WebGPURenderer: soft particles read the scene depth straight from the framebuffer
+        // (viewportDepthTexture), no depth pre-pass / render target is needed.
+        if (this.isWebGPU) {
+            this.texture = new TextureLoader().load('textures/cfxr smoke cloud x4.png', () => this.setupPost());
+            return this.scene;
+        }
 
         // Create a multi render target with Float buffers
         this.target = new WebGLRenderTarget(window.innerWidth, window.innerHeight);
@@ -62,7 +69,7 @@ export class SoftParticleDemo extends Demo {
     }
 
     deinitScene() {
-        this.target.dispose();
+        if (this.target) this.target.dispose();
     }
 
     setupPost() {
@@ -104,12 +111,14 @@ export class SoftParticleDemo extends Demo {
     }
 
     onWindowResize = () => {
+        if (!this.target) return;
         const dpr = this.renderer.getPixelRatio();
         this.target.setSize( window.innerWidth * dpr, window.innerHeight * dpr );
     }
 
     render(delta) {
         super.render(delta);
+        if (!this.target) return;
         // render scene into target
         this.renderer.setRenderTarget( this.target );
         this.batchRenderer.visible = false;
