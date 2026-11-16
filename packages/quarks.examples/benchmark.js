@@ -427,6 +427,8 @@ export const DEFAULT_MATRIX = [
     ...['webgl', 'webgpu'].map((renderer) => ({renderer, scenario: 'soft', count: 3000})),
     {renderer: 'webgpu', scenario: 'soft', count: 3000, target: 'mobile'},
     {renderer: 'webgpu-webgl2', scenario: 'billboard', count: 50000},
+    // shader builds with many distinct batches (see compile ms)
+    ...['webgl', 'webgpu'].map((renderer) => ({renderer, scenario: 'batches', count: 10000})),
     // half-float instance data (native Float16Array)
     ...[
         {scenario: 'billboard', count: 10000},

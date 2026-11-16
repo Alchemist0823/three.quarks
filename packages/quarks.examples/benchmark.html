@@ -27,7 +27,7 @@
 <div class="table-wrap">
     <table>
         <thead>
-        <tr><th>scenario</th><th>renderer</th><th>target</th><th>particles</th><th>draws</th><th>sim ms</th><th>fill ms</th><th>submit ms</th><th>CPU ms</th><th>GPU ms</th><th>synced render ms</th><th>fps</th></tr>
+        <tr><th>scenario</th><th>renderer</th><th>target</th><th>particles</th><th>draws</th><th>sim ms</th><th>fill ms</th><th>submit ms</th><th>CPU ms</th><th>GPU ms</th><th>compile ms</th><th>fps</th></tr>
         </thead>
         <tbody id="results"></tbody>
     </table>
@@ -55,7 +55,7 @@
             tr.innerHTML = r.error
                 ? `<td>${r.scenario}</td><td>${r.renderer}</td><td colspan="10">${r.error}</td>`
                 : `<td>${r.scenario}</td><td>${r.rendererLabel} [${r.backend}]</td><td>${r.target}</td><td>${r.particles}</td><td>${r.drawCalls}</td>` +
-                  `<td>${fmt(r.simMs)}</td><td>${fmt(r.fillMs)}</td><td>${fmt(r.submitMs)}</td><td>${fmt(r.cpuMs)}</td><td>${fmt(r.gpuMs)}</td><td>${fmt(r.syncMs)}</td><td>${fmt(r.fps, 0)}</td>`;
+                  `<td>${fmt(r.simMs)}</td><td>${fmt(r.fillMs)}</td><td>${fmt(r.submitMs)}</td><td>${fmt(r.cpuMs)}</td><td>${fmt(r.gpuMs)}</td><td>${fmt(r.compileMs, 0)}</td><td>${fmt(r.fps, 0)}</td>`;
             tbody.appendChild(tr);
         });
         status.textContent = 'done';
