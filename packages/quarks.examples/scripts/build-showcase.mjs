@@ -15,7 +15,11 @@ import {fileURLToPath} from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const examples = path.resolve(here, '..');
 const packages = path.resolve(examples, '..');
-const outDir = path.resolve(process.argv[2] ?? path.join(examples, 'showcase-dist'));
+const args = process.argv.slice(2);
+const prevIndex = args.indexOf('--prev');
+// optional baseline build (dist folder of another three.quarks checkout) for A/B benchmarking
+const prevDist = prevIndex >= 0 ? path.resolve(args.splice(prevIndex, 2)[1]) : null;
+const outDir = path.resolve(args[0] ?? path.join(examples, 'showcase-dist'));
 
 const THREE_VERSION = JSON.parse(fs.readFileSync(path.join(packages, '..', 'node_modules', 'three', 'package.json'), 'utf8')).version;
 const CDN = `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}`;
@@ -34,6 +38,11 @@ const importMap = {
         'three.quarks-legacy': 'https://cdn.jsdelivr.net/npm/three.quarks@0.17.1/dist/three.quarks.esm.js',
     },
 };
+if (prevDist) {
+    // the baseline webgpu bundle imports its own `three.quarks` main bundle
+    importMap.imports['three.quarks-prev/webgpu'] = './lib/prev/three.quarks.webgpu.esm.js';
+    importMap.scopes = {'./lib/prev/': {'three.quarks': './lib/prev/three.quarks.esm.js'}};
+}
 
 function copy(src, dst) {
     fs.mkdirSync(path.dirname(dst), {recursive: true});
@@ -71,6 +80,11 @@ copy(
     path.join(packages, 'three.quarks', 'dist', 'three.quarks.webgpu.esm.js'),
     path.join(outDir, 'lib', 'three.quarks.webgpu.esm.js')
 );
+
+if (prevDist) {
+    copy(path.join(prevDist, 'three.quarks.esm.js'), path.join(outDir, 'lib', 'prev', 'three.quarks.esm.js'));
+    copy(path.join(prevDist, 'three.quarks.webgpu.esm.js'), path.join(outDir, 'lib', 'prev', 'three.quarks.webgpu.esm.js'));
+}
 
 // example sources (plain ES modules)
 for (const file of fs.readdirSync(examples)) {

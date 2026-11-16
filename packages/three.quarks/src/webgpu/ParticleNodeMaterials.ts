@@ -1,50 +1,53 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {MeshPhysicalNodeMaterial, MeshStandardNodeMaterial, NodeMaterial} from 'three/webgpu';
 import {
+    Fn,
+    If,
     all,
     attribute,
     cameraProjectionMatrix,
     equal,
     float,
-    floor,
-    ceil,
-    fract,
     modelViewMatrix,
     normalLocal,
-    positionGeometry,
+    normalize,
     positionLocal,
+    sRGBTransferOETF,
     select,
     transpose,
-    uniform,
-    uv,
-    varying,
+    vec2,
     vec4,
 } from 'three/tsl';
-import {Vector2} from 'three';
 import type {Material, Texture} from 'three';
 import {RenderMode} from 'three.quarks';
 import {
     applyParticleMeshTransform,
     billboardPositionView,
     decodeDisplayColor,
-    sampleTiled,
+    inFrontOfScene,
+    materialProperty,
+    materialTextureAt,
+    sampleMap,
     softParticleFade,
     stretchedBillboardPositionView,
-    tileUV,
+    tileUVContext,
+    trailVertex,
 } from './ParticleNodes';
 
 type N = any;
 
 /**
- * How particle colors are written to the (linear) framebuffer of `WebGPURenderer`.
+ * How particle colors are written to the framebuffer of `WebGPURenderer`.
  *
- * - `'webgl-compatible'` (default): particle colors / textures are treated as display (sRGB) values,
- *   exactly like the GLSL particle shaders do in `WebGLRenderer`. Effects authored for the WebGL
- *   renderer (and the quarks editor / Unity exports) look the same.
+ * - `'webgl-compatible'` (default): particle colors / textures are treated as display (sRGB) values, exactly like
+ *   the GLSL particle shaders do in `WebGLRenderer`. Effects authored for the WebGL renderer (and the quarks editor /
+ *   Unity exports) look the same for every pixel a single particle covers.
  * - `'linear'`: particle colors are treated as linear values (physically based workflow; set
  *   `texture.colorSpace = SRGBColorSpace` on color textures yourself).
+ * - `'display'`: raw display values, used by {@link QuarksCompositor}, which blends particles in a display-space
+ *   target exactly like `WebGLRenderer` does.
  */
-export type ParticleColorSpaceMode = 'webgl-compatible' | 'linear';
+export type ParticleColorSpaceMode = 'webgl-compatible' | 'linear' | 'display';
 
 /**
  * Options shared by the particle node materials. They are derived from the batch settings.
@@ -64,25 +67,72 @@ export interface ParticleNodeMaterialOptions {
     colorSpaceMode: ParticleColorSpaceMode;
     /** use the polynomial sRGB decode instead of `pow` (mobile profile) */
     fastColorDecode: boolean;
+    /** discard fragments behind `depthTexture` (display-space compositor: the particle target has no depth buffer) */
+    manualDepthTest?: boolean;
 }
 
+const ONE = float(1.0);
+
+function encodeColor(rgba: N, options: ParticleNodeMaterialOptions): N {
+    if (options.colorSpaceMode === 'webgl-compatible') {
+        return vec4(decodeDisplayColor(rgba.rgb, options.fastColorDecode), rgba.a);
+    }
+    return rgba;
+}
+
+// ---- unlit sprites / meshes ---------------------------------------------------------------------------------
+
+interface SpriteGraph {
+    color: N;
+    mask: N | null;
+}
+
+const spriteGraphs = new Map<string, SpriteGraph>();
+
 /**
- * Builds the (frame blended) tile UV varyings. Computed in the vertex stage.
+ * The fragment graph of a sprite material. Materials with the same structure share one graph (and therefore one
+ * shader build); the values come from the material through `materialReference()`.
  */
-function buildTileUVs(options: ParticleNodeMaterialOptions) {
+function spriteGraph(options: ParticleNodeMaterialOptions): SpriteGraph {
     const tiled = options.uTileCount > 1 || options.vTileCount > 1;
-    if (!tiled) {
-        return {uvNode: uv(), uvNextNode: null, blendNode: null};
+    const hasMap = options.map !== null;
+    const blend = hasMap && tiled && options.blendTiles;
+    const key = [
+        hasMap,
+        tiled,
+        blend,
+        options.colorAsAlpha,
+        options.alphaTest > 0,
+        options.softParticles,
+        options.depthTexture !== null,
+        options.colorSpaceMode,
+        options.fastColorDecode,
+        !!options.manualDepthTest,
+    ].join('|');
+    let graph = spriteGraphs.get(key);
+    if (graph === undefined) {
+        let color: N = attribute('color', 'vec4');
+        if (hasMap) color = color.mul(sampleMap(tiled, blend));
+        const diffuse = color.toVar('quarksDiffuse');
+
+        let mask: N | null = null;
+        if (options.alphaTest > 0) {
+            // alphatest_fragment: discard if diffuse.a < alphaTest (evaluated before color-as-alpha)
+            mask = diffuse.a.greaterThanEqual(materialProperty('quarksAlphaTest', 'float'));
+        }
+        if (options.manualDepthTest) {
+            const visible = inFrontOfScene();
+            mask = mask ? mask.and(visible) : visible;
+        }
+
+        let rgba: N = vec4(diffuse.rgb, options.colorAsAlpha ? diffuse.r : diffuse.a);
+        if (options.softParticles) {
+            rgba = rgba.mul(softParticleFade(options.depthTexture !== null));
+        }
+        graph = {color: encodeColor(rgba, options), mask};
+        spriteGraphs.set(key, graph);
     }
-    const tileCount = uniform(new Vector2(options.uTileCount, options.vTileCount));
-    const uvTile = attribute('uvTile', 'float');
-    const uvNode = varying(tileUV(uv(), floor(uvTile), tileCount), 'vQuarksUv');
-    if (!options.blendTiles || !options.map) {
-        return {uvNode, uvNextNode: null, blendNode: null};
-    }
-    const uvNextNode = varying(tileUV(uv(), ceil(uvTile), tileCount), 'vQuarksUvNext');
-    const blendNode = varying(fract(uvTile), 'vQuarksUvBlend');
-    return {uvNode, uvNextNode, blendNode};
+    return graph;
 }
 
 /**
@@ -96,54 +146,42 @@ export class ParticleSpriteNodeMaterial extends NodeMaterial {
 
     readonly isParticleSpriteNodeMaterial = true;
     readonly renderMode: RenderMode;
-    /** soft particle fade start (uniform) */
-    readonly softNearFadeNode: N;
-    /** 1 / (far fade - near fade) (uniform) */
-    readonly softInvFadeDistanceNode: N;
-    /** alpha test threshold (uniform) */
-    readonly alphaTestValueNode: N;
     /** whether this material fades against the scene depth */
     readonly softParticles: boolean;
+
+    // per-batch values, read by the shared node graph through materialReference()
+    map: Texture | null;
+    uTileCount: number;
+    vTileCount: number;
+    quarksAlphaTest: number;
+    softNearFade: number;
+    softInvFadeDistance: number;
+    depthTexture: Texture | null;
 
     constructor(options: ParticleNodeMaterialOptions) {
         super();
         this.renderMode = options.renderMode;
         this.softParticles = options.softParticles;
+        this.map = options.map;
+        this.uTileCount = options.uTileCount;
+        this.vTileCount = options.vTileCount;
+        this.quarksAlphaTest = options.alphaTest;
+        this.softNearFade = options.softNearFade;
+        this.softInvFadeDistance = 1.0 / (options.softFarFade - options.softNearFade);
+        this.depthTexture = options.depthTexture;
         this.lights = false;
         this.fog = false;
 
-        this.softNearFadeNode = uniform(options.softNearFade);
-        this.softInvFadeDistanceNode = uniform(1.0 / (options.softFarFade - options.softNearFade));
-        this.alphaTestValueNode = uniform(options.alphaTest);
+        const graph = spriteGraph(options);
+        this.colorNode = graph.color;
+        this.maskNode = graph.mask;
+        this.opacityNode = ONE;
+    }
 
-        const {uvNode, uvNextNode, blendNode} = buildTileUVs(options);
-
-        let color: N = attribute('color', 'vec4');
-        if (options.map) {
-            color = color.mul(sampleTiled(options.map, uvNode, uvNextNode, blendNode));
-        }
-        const diffuse = color.toVar('quarksDiffuse');
-
-        if (options.alphaTest > 0) {
-            // alphatest_fragment: discard if diffuse.a < alphaTest (evaluated before color-as-alpha)
-            this.maskNode = diffuse.a.greaterThanEqual(this.alphaTestValueNode);
-        }
-
-        let rgba: N = vec4(diffuse.rgb, options.colorAsAlpha ? diffuse.r : diffuse.a);
-        if (options.softParticles) {
-            rgba = rgba.mul(
-                softParticleFade({
-                    depthTexture: options.depthTexture,
-                    nearFade: this.softNearFadeNode,
-                    invFadeDistance: this.softInvFadeDistanceNode,
-                })
-            );
-        }
-        if (options.colorSpaceMode === 'webgl-compatible') {
-            rgba = vec4(decodeDisplayColor(rgba.rgb, options.fastColorDecode), rgba.a);
-        }
-        this.colorNode = rgba;
-        this.opacityNode = float(1.0);
+    // three keys numeric properties only as zero / non-zero, but the vertex stage depends on the render mode and
+    // an opaque material writes alpha 1 only with NormalBlending.
+    customProgramCacheKey(): string {
+        return `${super.customProgramCacheKey()}:${this.renderMode}:${this.blending}`;
     }
 
     setupPositionView(builder: N): N {
@@ -169,24 +207,25 @@ export class ParticleSpriteNodeMaterial extends NodeMaterial {
         return result;
     }
 
-    // The WebGL particle shaders never premultiply in the shader; `premultipliedAlpha` only selects
-    // the blend factors. Keep that behaviour so effects blend identically.
+    // The WebGL particle shaders never premultiply in the shader; `premultipliedAlpha` only selects the blend
+    // factors. Keep that behaviour so effects blend identically.
     setupPremultipliedAlpha(_builder: N, outputNode: N): N {
         return outputNode;
     }
 }
 
+// ---- lit meshes ---------------------------------------------------------------------------------------------
+
 /**
- * Copies the user facing properties of a classic material onto a node material
- * (the same approach `NodeLibrary.fromMaterial` uses), skipping identity / internal fields.
+ * Copies the user facing properties of a classic material onto a node material (the same approach
+ * `NodeLibrary.fromMaterial` uses), skipping identity / internal fields. Accessor backed properties
+ * (`_alphaTest`, `_clearcoat`, ...) are copied through their public accessor.
  */
 function copyMaterialProperties(target: Material, source: Material) {
     const skip = new Set(['uuid', 'id', 'type', 'name', 'version', 'userData', 'defines', 'onBeforeCompile']);
     for (const key in source) {
         let property = key;
         if (key.startsWith('_')) {
-            // accessor backed fields (`_alphaTest` -> `alphaTest`, `_clearcoat`, `_transmission`, ...): copy
-            // through the public accessor so version bookkeeping of the target material stays correct
             property = key.slice(1);
             if (!(property in target)) continue;
         }
@@ -198,17 +237,36 @@ function copyMaterialProperties(target: Material, source: Material) {
     target.name = source.name;
 }
 
-function setupLitParticleColor(material: N, options: ParticleNodeMaterialOptions) {
-    // The per-instance `color` attribute (vec4) is applied by three.js' own vertex color path
-    // (`diffuseColor *= vertexColor()`), exactly like `USE_COLOR` + `USE_COLOR_ALPHA` in the WebGL
-    // shader. This keeps the map alpha intact for alpha test / transparency.
+interface LitParticleOptions {
+    uTileCount: number;
+    vTileCount: number;
+    displaySpace: boolean;
+    manualDepthTest: boolean;
+    depthTexture: Texture | null;
+}
+
+function setupLitParticle(material: N, source: Material, options: LitParticleOptions) {
+    copyMaterialProperties(material, source);
+    // the per-instance `color` attribute (vec4) goes through three's vertex color path, like USE_COLOR +
+    // USE_COLOR_ALPHA in the WebGL shader; this keeps the map alpha intact for alpha test / transparency
     material.vertexColors = true;
-    const tiled = options.uTileCount > 1 || options.vTileCount > 1;
-    if (tiled && options.map) {
-        const {uvNode, uvNextNode, blendNode} = buildTileUVs(options);
-        const base = (vec4 as N)(uniform(material.color), 1.0);
-        material.colorNode = base.mul(sampleTiled(options.map, uvNode, uvNextNode, blendNode));
+    material.uTileCount = options.uTileCount;
+    material.vTileCount = options.vTileCount;
+    material.depthTexture = options.depthTexture;
+    material.displaySpace = options.displaySpace;
+    if (options.uTileCount > 1 || options.vTileCount > 1) {
+        // every 2D texture of the material (map, normal map, roughness map, ...) samples the particle's tile
+        material.contextNode = tileUVContext;
     }
+    if (options.manualDepthTest) {
+        material.maskNode = inFrontOfScene();
+    }
+}
+
+function litSetupOutput(material: N, superSetupOutput: (builder: N, output: N) => N, builder: N, output: N): N {
+    const result = superSetupOutput(builder, output);
+    // display-space compositor: lit particles encode their color like the WebGL `colorspace_fragment` does
+    return material.displaySpace ? (vec4 as N)(sRGBTransferOETF(result.rgb), result.a) : result;
 }
 
 /**
@@ -220,17 +278,34 @@ export class ParticleMeshStandardNodeMaterial extends MeshStandardNodeMaterial {
     }
 
     readonly isParticleMeshNodeMaterial = true;
+    uTileCount = 1;
+    vTileCount = 1;
+    depthTexture: Texture | null = null;
+    displaySpace = false;
 
-    constructor(source: Material, options: ParticleNodeMaterialOptions) {
+    constructor(source: Material, options: LitParticleOptions) {
         super();
-        copyMaterialProperties(this, source);
-        setupLitParticleColor(this, options);
+        setupLitParticle(this, source, options);
+    }
+
+    customProgramCacheKey(): string {
+        return `${super.customProgramCacheKey()}:${this.blending}:${this.displaySpace}`;
     }
 
     setupPosition(builder: N): N {
         const result = (super.setupPosition as any)(builder);
         applyParticleMeshTransform(builder, positionLocal, normalLocal);
         return result;
+    }
+
+    // three builds normals outside the material's context; apply the tile context to normal maps too
+    setupNormal(): N {
+        const normal = (super.setupNormal as any)();
+        return this.contextNode ? normal.context((this.contextNode as N).value) : normal;
+    }
+
+    setupOutput(builder: N, output: N): N {
+        return litSetupOutput(this, (b, o) => (super.setupOutput as any)(b, o), builder, output);
     }
 }
 
@@ -243,11 +318,18 @@ export class ParticleMeshPhysicalNodeMaterial extends MeshPhysicalNodeMaterial {
     }
 
     readonly isParticleMeshNodeMaterial = true;
+    uTileCount = 1;
+    vTileCount = 1;
+    depthTexture: Texture | null = null;
+    displaySpace = false;
 
-    constructor(source: Material, options: ParticleNodeMaterialOptions) {
+    constructor(source: Material, options: LitParticleOptions) {
         super();
-        copyMaterialProperties(this, source);
-        setupLitParticleColor(this, options);
+        setupLitParticle(this, source, options);
+    }
+
+    customProgramCacheKey(): string {
+        return `${super.customProgramCacheKey()}:${this.blending}:${this.displaySpace}`;
     }
 
     setupPosition(builder: N): N {
@@ -255,11 +337,27 @@ export class ParticleMeshPhysicalNodeMaterial extends MeshPhysicalNodeMaterial {
         applyParticleMeshTransform(builder, positionLocal, normalLocal);
         return result;
     }
+
+    setupNormal(): N {
+        const normal = (super.setupNormal as any)();
+        return this.contextNode ? normal.context((this.contextNode as N).value) : normal;
+    }
+
+    setupOutput(builder: N, output: N): N {
+        return litSetupOutput(this, (b, o) => (super.setupOutput as any)(b, o), builder, output);
+    }
+}
+
+// ---- trails -------------------------------------------------------------------------------------------------
+
+function allEqual(a: N, b: N): N {
+    return (all as N)((equal as N)(a, b));
 }
 
 /**
- * Trail (ribbon) material. Port of `trail_vert.glsl` / `trail_frag.glsl`: the ribbon is extruded in
- * clip space perpendicular to the projected trail direction.
+ * Trail (ribbon) material. Port of `trail_vert.glsl` / `trail_frag.glsl`: the ribbon is extruded in clip space
+ * perpendicular to the projected trail direction. The ribbon vertices are decoded by vertex index from a storage
+ * buffer holding one record per trail point (no vertex attributes, no index buffer; approach from PR #115).
  */
 export class ParticleTrailNodeMaterial extends NodeMaterial {
     static get type() {
@@ -267,53 +365,79 @@ export class ParticleTrailNodeMaterial extends NodeMaterial {
     }
 
     readonly isParticleTrailNodeMaterial = true;
-    /** global width multiplier (uniform, `lineWidth` in the GLSL shader) */
-    readonly lineWidthNode: N;
+    map: Texture | null;
+    depthTexture: Texture | null;
+    readonly pointsNode: N;
 
-    constructor(options: ParticleNodeMaterialOptions) {
+    constructor(options: ParticleNodeMaterialOptions, pointsNode: N) {
         super();
         this.lights = false;
         this.fog = false;
-        this.lineWidthNode = uniform(1.0);
+        this.map = options.map;
+        this.depthTexture = options.depthTexture;
+        this.pointsNode = pointsNode;
 
-        let color: N = attribute('color', 'vec4');
-        if (options.map) {
-            color = color.mul(sampleTiled(options.map, uv(), null, null));
-        }
-        if (options.colorSpaceMode === 'webgl-compatible') {
-            color = vec4(decodeDisplayColor(color.rgb, options.fastColorDecode), color.a);
-        }
-        this.colorNode = color;
-        this.opacityNode = float(1.0);
+        const vertex = trailVertex(pointsNode);
+        let color: N = vertex.color;
+        if (options.map) color = color.mul(materialTextureAt('map', vertex.uv));
+        this.colorNode = encodeColor(color, options);
+        this.opacityNode = ONE;
+        if (options.manualDepthTest) this.maskNode = inFrontOfScene();
+    }
+
+    customProgramCacheKey(): string {
+        return `${super.customProgramCacheKey()}:${this.blending}`;
+    }
+
+    // the geometry has no position attribute: these replace the defaults that read it
+    setupPosition(): N {
+        return trailVertex(this.pointsNode).position;
+    }
+
+    setupPositionView(): N {
+        return modelViewMatrix.mul(vec4(trailVertex(this.pointsNode).position, 1.0)).xyz;
     }
 
     setupModelViewProjection(): N {
-        const m = cameraProjectionMatrix.mul(modelViewMatrix);
-        const finalPosition = m.mul(vec4(positionGeometry, 1.0));
-        const prevPos = m.mul(vec4(attribute('previous', 'vec3'), 1.0));
-        const nextPos = m.mul(vec4(attribute('next', 'vec3'), 1.0));
+        const vertex = trailVertex(this.pointsNode);
+        return Fn(() => {
+            const position = vertex.position.toVar();
+            const previousPosition = vertex.previous.toVar();
+            const nextPosition = vertex.next.toVar();
+            const mvp = cameraProjectionMatrix.mul(modelViewMatrix);
+            const clip = mvp.mul(vec4(position, 1.0)).toVar();
+            const previousClip = mvp.mul(vec4(previousPosition, 1.0));
+            const nextClip = mvp.mul(vec4(nextPosition, 1.0));
 
-        // resolution is (1, 1) in the WebGL implementation => aspect 1
-        const currentP = finalPosition.xy.div(finalPosition.w);
-        const prevP = prevPos.xy.div(prevPos.w);
-        const nextP = nextPos.xy.div(nextPos.w);
+            // A neighbour stored at the same position takes the point's own projection, so the equality tests below
+            // stay exact where the compiler rounds two projections of one position differently.
+            const current = clip.xy.div(clip.w).toVar();
+            const previous = select(
+                allEqual(previousPosition, position),
+                current,
+                previousClip.xy.div(previousClip.w)
+            ).toVar();
+            const next = select(allEqual(nextPosition, position), current, nextClip.xy.div(nextClip.w)).toVar();
 
-        const w = this.lineWidthNode.mul(attribute('width', 'float'));
+            const dir = (vec2 as N)().toVar();
+            (If as N)(allEqual(next, current), () => {
+                dir.assign(normalize(current.sub(previous)));
+            })
+                .ElseIf(allEqual(previous, current), () => {
+                    dir.assign(normalize(next.sub(current)));
+                })
+                .Else(() => {
+                    dir.assign(normalize(normalize(current.sub(previous)).add(normalize(next.sub(current)))));
+                });
 
-        const dirA = currentP.sub(prevP).normalize();
-        const dirB = nextP.sub(currentP).normalize();
-        const dir = select(
-            all(equal(nextP, currentP)),
-            dirA,
-            select(all(equal(prevP, currentP)), dirB, dirA.add(dirB).normalize())
-        );
-
-        // normal *= projectionMatrix  (row-vector multiply == transpose(P) * normal)
-        const normal = (transpose(cameraProjectionMatrix) as N).mul(
-            (vec4 as N)(dir.y.negate().mul(w).mul(0.5), dir.x.mul(w).mul(0.5), 0.0, 1.0)
-        );
-        const side = attribute('side', 'float');
-        return (vec4 as N)(finalPosition.xy.add(normal.xy.mul(side)), finalPosition.zw);
+            // normal *= projectionMatrix (row-vector multiply == transpose(P) * normal)
+            const normal = (transpose(cameraProjectionMatrix) as N).mul(
+                (vec4 as N)(dir.y.negate().mul(vertex.width).mul(0.5), dir.x.mul(vertex.width).mul(0.5), 0.0, 1.0)
+            );
+            const widened = (vec4 as N)(clip.xy.add(normal.xy.mul(vertex.side)), clip.zw);
+            // all six vertices of the empty segment after a trail's last point land on one spot
+            return select(vertex.skipped, vec4(0.0), widened);
+        })();
     }
 
     setupPremultipliedAlpha(_builder: N, outputNode: N): N {

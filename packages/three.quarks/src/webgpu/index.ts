@@ -17,6 +17,7 @@ export * from './ParticleNodeMaterials';
 export * from './PerformanceProfile';
 export * from './WebGPUBatches';
 export * from './WebGPUBatchedRenderer';
+export * from './QuarksCompositor';
 
 /**
  * WebGPU batch renderer (alias of {@link WebGPUBatchedRenderer}).

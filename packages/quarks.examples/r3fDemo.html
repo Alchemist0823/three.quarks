@@ -132,6 +132,7 @@
         <button id="playBtn">Play</button>
         <button id="pauseBtn">Pause</button>
         <button id="restartBtn">Restart</button>
+        <button id="rendererBtn" onclick="(function(){const u=new URL(location.href);u.searchParams.set('renderer',u.searchParams.get('renderer')==='webgpu'?'webgl':'webgpu');location.href=u.toString();})()">Switch WebGL / WebGPU</button>
     </div>
     <script type="module" src="./r3fDemo.jsx"></script>
 </body>

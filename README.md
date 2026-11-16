@@ -119,7 +119,34 @@ renderer.setAnimationLoop(() => {
 
 **Targets.** `desktop` gives the same output as WebGL. `mobile` is tuned for tile-based GPUs: soft particles are off by default (they force a depth resolve and a render-pass split), the sRGB decode uses a pow-free polynomial, and buffers start smaller. Options can be overridden one by one, for example `new BatchedRenderer({target: 'mobile', softParticles: true})`. `getRecommendedRendererSettings(profile)` returns a pixel-ratio cap and `WebGPURenderer` parameters for the target.
 
-**Colors.** WebGPURenderer blends in a linear framebuffer, while the WebGL particle shaders write display-space colors directly. The default `colorSpaceMode: 'webgl-compatible'` decodes particle colors so opaque and single-layer pixels look exactly like WebGL. Semi-transparent overlaps blend in linear space and look slightly softer/lighter; this is a property of WebGPURenderer. Use `colorSpaceMode: 'linear'` for a fully physically based workflow.
+**Colors and blending.** WebGPURenderer blends in a linear framebuffer, while the WebGL particle shaders write display-space colors directly. The default `colorSpaceMode: 'webgl-compatible'` decodes particle colors so opaque and single-layer pixels look exactly like WebGL. Semi-transparent overlaps blend in linear space and look slightly lighter. For WebGL-identical blending, render through the optional `QuarksCompositor`: it composites transparent particles in a display-space target, at the cost of two extra full-screen passes.
+
+```javascript
+import {QuarksCompositor} from 'three.quarks/webgpu';
+
+const compositor = new QuarksCompositor(renderer, batchRenderer);
+renderer.setAnimationLoop(() => {
+    batchRenderer.update(clock.getDelta());
+    compositor.render(scene, camera); // instead of renderer.render(scene, camera)
+});
+```
+
+Use `colorSpaceMode: 'linear'` for a fully physically based workflow.
+
+**Data layout.** Each sprite batch uploads one interleaved buffer per frame (48–64 bytes per particle). WebGPU trails upload one 48-byte storage-buffer record per trail point and are expanded in the vertex shader. Batches of the same kind share one shader build. `halfFloat: true` packs color, size and velocity as float16 (native `Float16Array` required). It uploads 25–38% fewer bytes, but in desktop Chrome the conversion costs more CPU than the upload saves, so it is off by default; measure it with `benchmark.html` on your target device.
+
+**React Three Fiber 9.** Pass the WebGPU batch renderer to the provider and create `WebGPURenderer` in the canvas:
+
+```jsx
+import {WebGPURenderer} from 'three/webgpu';
+import {WebGPUBatchedRenderer} from 'three.quarks/webgpu';
+
+<Canvas gl={async (props) => { const r = new WebGPURenderer(props); await r.init(); return r; }}>
+    <QuarksProvider createBatchedRenderer={() => new WebGPUBatchedRenderer({target: 'auto'})}>
+        ...
+    </QuarksProvider>
+</Canvas>
+```
 
 ## 📂 Loading VFX from JSON
 

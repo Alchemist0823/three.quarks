@@ -65,7 +65,8 @@ export class EmitterShapeDemo extends Demo {
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
             vTileCount: 10,
-            renderMode: RenderMode.Mesh,
+            // sprites face the camera; only RenderMode.Mesh particles take the emitter shape's orientation
+            renderMode: RenderMode.BillBoard,
             renderOrder: 1,
         });
     }

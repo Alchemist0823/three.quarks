@@ -3,6 +3,7 @@ import {WebGPURenderer} from 'three/webgpu';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {
     WebGPUBatchedRenderer,
+    QuarksCompositor,
     createPerformanceProfile,
     getRecommendedRendererSettings,
     ParticleEmitter,
@@ -47,6 +48,10 @@ function store(key, value) {
 }
 const requestedTarget = params.get('target') ?? stored('quarks.target') ?? 'auto';
 const forceWebGL = (params.get('forceWebGL') ?? stored('quarks.forceWebGL')) === '1';
+// 'exact': QuarksCompositor blends transparent particles in display space, exactly like WebGLRenderer
+const blendMode = (params.get('blend') ?? stored('quarks.blend')) === 'exact' ? 'exact' : 'linear';
+// halfFloat=1: pack color / size as float16 (native Float16Array required)
+const halfFloat = (params.get('halfFloat') ?? stored('quarks.halfFloat')) === '1';
 
 const demos = [
     MuzzleFlashDemo,
@@ -82,9 +87,9 @@ const demoFiles = [
 ];
 const GITHUB_BASE = 'https://github.com/Alchemist0823/three.quarks/blob/master/packages/quarks.examples/';
 
-let renderer, camera, clock, controls, scene, demo;
+let renderer, camera, clock, controls, scene, demo, compositor = null;
 let demoIndex = 0;
-const profile = createPerformanceProfile({target: requestedTarget});
+const profile = createPerformanceProfile({target: requestedTarget, halfFloat});
 
 // frame statistics for the HUD
 const frameStats = {frames: 0, cpu: 0, elapsed: 0};
@@ -104,7 +109,8 @@ function updateHud() {
     const cpu = (frameStats.cpu / frameStats.frames).toFixed(2);
     const backend = renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL2 (fallback)';
     hud.innerText =
-        `${backend} · target: ${profile.target}${requestedTarget === 'auto' ? ' (auto)' : ''}\n` +
+        `${backend} · target: ${profile.target}${requestedTarget === 'auto' ? ' (auto)' : ''}` +
+        ` · blending: ${blendMode === 'exact' ? 'WebGL-exact' : 'linear'}${halfFloat ? ' · f16' : ''}\n` +
         `${fps} fps · CPU ${cpu} ms/frame\n` +
         `draw calls ${renderer.info.render.drawCalls} · particles ${countParticles(scene)}`;
     frameStats.frames = 0;
@@ -114,11 +120,15 @@ function updateHud() {
 
 function createDemo(index) {
     if (demo && demo.deinitScene) demo.deinitScene();
+    if (compositor) {
+        compositor.dispose();
+        compositor = null;
+    }
     if (demo && demo.batchRenderer && demo.batchRenderer.dispose) demo.batchRenderer.dispose();
     demoIndex = (index + demos.length) % demos.length;
     demo = new demos[demoIndex](camera, renderer, controls, {
         BatchedRenderer: WebGPUBatchedRenderer,
-        batchRendererOptions: {target: requestedTarget},
+        batchRendererOptions: {target: requestedTarget, halfFloat},
     });
     document.querySelector('#demo-name').innerText = demo.name;
     document.getElementById('source-link').href = GITHUB_BASE + demoFiles[demoIndex];
@@ -170,6 +180,16 @@ async function init() {
             window.location.href = url.toString();
         });
     }
+    for (const button of document.querySelectorAll('[data-blend]')) {
+        const mode = button.getAttribute('data-blend');
+        button.classList.toggle('active', mode === blendMode);
+        button.addEventListener('click', () => {
+            store('quarks.blend', mode);
+            const url = new URL(window.location.href);
+            url.searchParams.set('blend', mode);
+            window.location.href = url.toString();
+        });
+    }
     for (const button of document.querySelectorAll('[data-backend]')) {
         const backend = button.getAttribute('data-backend');
         button.classList.toggle('active', (backend === 'webgl2') === forceWebGL);
@@ -197,7 +217,16 @@ function render() {
     const delta = Math.min(clock.getDelta(), 0.1);
     const t0 = performance.now();
     demo.render(delta);
-    renderer.render(scene, camera);
+    if (blendMode === 'exact' && demo.batchRenderer) {
+        // demos may create their batch renderer asynchronously (after textures load)
+        if (!compositor || compositor.batchRenderer !== demo.batchRenderer) {
+            if (compositor) compositor.dispose();
+            compositor = new QuarksCompositor(renderer, demo.batchRenderer);
+        }
+        compositor.render(scene, camera);
+    } else {
+        renderer.render(scene, camera);
+    }
     frameStats.cpu += performance.now() - t0;
     frameStats.elapsed += delta;
     frameStats.frames++;
@@ -213,6 +242,9 @@ window.quarksApp = {
     },
     get scene() {
         return scene;
+    },
+    get compositor() {
+        return compositor;
     },
     demos,
     goTo: (index) => createDemo(index),

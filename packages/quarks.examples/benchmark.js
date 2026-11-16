@@ -40,6 +40,7 @@ const RENDERERS = {
     'webgl-legacy': 'WebGL (three.quarks 0.17.1, npm)',
     webgpu: 'WebGPU (three.quarks/webgpu)',
     'webgpu-webgl2': 'WebGPURenderer, WebGL2 fallback backend',
+    'webgpu-prev': 'WebGPU (baseline build, A/B)',
 };
 
 const SCENARIOS = {
@@ -48,7 +49,45 @@ const SCENARIOS = {
     mesh: {label: 'Lit mesh particles (MeshStandardMaterial)', renderMode: 'Mesh'},
     trail: {label: 'Trails (30 segments)', renderMode: 'Trail'},
     soft: {label: 'Soft particles + 400 opaque meshes', renderMode: 'BillBoard'},
+    batches: {label: '50 batches (distinct textures)', renderMode: 'BillBoard'},
 };
+
+/**
+ * three r187 restarts a render pass after a mid-pass framebuffer copy (e.g. the depth copy of soft particles)
+ * with the same timestamp query slots, so `resolveTimestampsAsync()` only times the last segment. Give the
+ * resumed pass its own slots; the query pool sums all of them. (Benchmark-only patch, reported upstream.)
+ */
+function patchSplitPassTimestamps(renderer) {
+    const backend = renderer.backend;
+    if (!backend.isWebGPUBackend || !backend.trackTimestamp || backend.__quarksTimestampPatch) return;
+    backend.__quarksTimestampPatch = true;
+    const original = backend.copyFramebufferToTexture.bind(backend);
+    backend.copyFramebufferToTexture = function (texture, renderContext, rectangle) {
+        const data = backend.get(renderContext);
+        const pool = backend.timestampQueryPool && backend.timestampQueryPool.render;
+        if (data && data.currentPass && data.descriptor && data.descriptor.timestampWrites && pool) {
+            // the pool groups slots per frame through the uid's ":f<frame>" suffix
+            const uid = backend.getTimestampUID(renderContext).replace(/:f(\d+)$/, '_resumed:f$1');
+            const base = pool.allocateQueriesForContext(uid);
+            if (base !== null && base !== undefined) {
+                data.descriptor.timestampWrites = {
+                    querySet: pool.querySet,
+                    beginningOfPassWriteIndex: base,
+                    endOfPassWriteIndex: base + 1,
+                };
+            }
+        }
+        return original(texture, renderContext, rectangle);
+    };
+}
+
+let prevModulePromise = null;
+async function loadPrev() {
+    // only available when the showcase was built with `--prev <dist>`
+    const specifier = 'three.quarks-prev/webgpu';
+    if (!prevModulePromise) prevModulePromise = import(/* @vite-ignore */ specifier);
+    return prevModulePromise;
+}
 
 let legacyModulePromise = null;
 async function loadLegacy() {
@@ -100,7 +139,7 @@ function buildSystems(lib, scenario, count, texture) {
         RandomQuatGenerator,
     } = lib;
     const systems = [];
-    const systemCount = scenario === 'trail' ? 10 : 20;
+    const systemCount = scenario === 'trail' ? 10 : scenario === 'batches' ? 50 : 20;
     const perSystem = Math.max(1, Math.round(count / systemCount));
     const life = 4;
     for (let i = 0; i < systemCount; i++) {
@@ -113,7 +152,8 @@ function buildSystems(lib, scenario, count, texture) {
             startRotation = new RandomQuatGenerator();
         } else {
             material = new MeshBasicMaterial({
-                map: texture,
+                // 'batches': a distinct texture object per system => one batch (and material) per system
+                map: scenario === 'batches' && texture ? texture.clone() : texture,
                 blending: scenario === 'soft' ? NormalBlending : AdditiveBlending,
                 transparent: true,
                 side: DoubleSide,
@@ -190,10 +230,10 @@ export async function runCase(
     host.innerHTML = '';
     host.appendChild(canvas);
 
-    const isWebGPURenderer = rendererKind === 'webgpu' || rendererKind === 'webgpu-webgl2';
+    const isWebGPURenderer = rendererKind === 'webgpu' || rendererKind === 'webgpu-webgl2' || rendererKind === 'webgpu-prev';
     let lib = quarks;
     if (rendererKind === 'webgl-legacy') lib = await loadLegacy();
-    if (isWebGPURenderer) lib = quarksWebGPU;
+    if (isWebGPURenderer) lib = rendererKind === 'webgpu-prev' ? await loadPrev() : quarksWebGPU;
 
     let renderer;
     let gpuTimer = null;
@@ -206,6 +246,7 @@ export async function runCase(
             outputBufferType: outputBuffer === 'ubyte' ? UnsignedByteType : HalfFloatType,
         });
         await renderer.init();
+        patchSplitPassTimestamps(renderer);
         // diagnostic only: skip the linear half-float framebuffer + output pass (colors will look wrong)
         if (directOutput) renderer.outputColorSpace = LinearSRGBColorSpace;
     } else {
@@ -244,7 +285,10 @@ export async function runCase(
         batchRenderer.setDepthTexture(depthTarget.depthTexture);
     }
 
-    if (isWebGPURenderer) await renderer.compileAsync(scene, camera);
+    // time to build every material / pipeline of the scene (shader builds dominate with many batches)
+    const compileStart = performance.now();
+    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    const compileMs = performance.now() - compileStart;
 
     const stats = {sim: [], fill: [], submit: [], cpu: [], gpu: [], frameTimes: [], drawCalls: 0};
     const delta = 1 / 60;
@@ -360,6 +404,7 @@ export async function runCase(
         cpuMs: trimmedMean(stats.cpu),
         gpuMs: trimmedMean(stats.gpu),
         syncMs: trimmedMean(syncSamples),
+        compileMs,
         fps: 1000 / median(stats.frameTimes),
     };
 
@@ -382,6 +427,13 @@ export const DEFAULT_MATRIX = [
     ...['webgl', 'webgpu'].map((renderer) => ({renderer, scenario: 'soft', count: 3000})),
     {renderer: 'webgpu', scenario: 'soft', count: 3000, target: 'mobile'},
     {renderer: 'webgpu-webgl2', scenario: 'billboard', count: 50000},
+    // half-float instance data (native Float16Array)
+    ...[
+        {scenario: 'billboard', count: 10000},
+        {scenario: 'billboard', count: 50000},
+        {scenario: 'stretched', count: 20000},
+        {scenario: 'mesh', count: 5000},
+    ].map((c) => ({renderer: 'webgpu', ...c, profile: {halfFloat: true}})),
 ];
 
 export async function runMatrix(cases, host, onResult) {

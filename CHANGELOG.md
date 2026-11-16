@@ -13,6 +13,14 @@
 - `QuarksProvider` (quarks.r3f) accepts `createBatchedRenderer` so you can supply the WebGPU batch renderer
 - Upgrade three.js to 0.187.0; Jest now transforms three's ESM-only build
 - Examples: WebGPU demo page (`vanilla-webgpu.html`), benchmark page (`benchmark.html`), static showcase builder; vendor the helvetiker font (no longer shipped by three)
+- WebGPU: trails upload one 48-byte storage-buffer record per point and are expanded by vertex index (no index buffer, about 3x less upload), and their bounding sphere follows the trail every frame (from PR #115)
+- WebGPU: per-batch values are read through `materialReference()`, so batches of the same kind share one node graph and one shader build. Building 50 distinct batches took 97-111 ms instead of 329-373 ms (from PR #115)
+- WebGPU: lit mesh particles tile every 2D texture, normal maps included, through a material UV context (from PR #115)
+- WebGPU: optional `QuarksCompositor` blends transparent particles in a display-space target, identical to WebGLRenderer
+- WebGPU: optional `halfFloat` profile switch packs color / size / velocity as float16 (opt-in; slower on desktop Chrome)
+- WebGPU: work around three r187's validation error for still-loading CubeTexture env maps; new batches draw nothing until filled, and rebuilt batches refill immediately
+- Fix the emitter shape demo: sprites are billboards again (camera facing); only `RenderMode.Mesh` particles take the emitter shape's orientation
+- Examples: React 19 + React Three Fiber 9 + drei 10; the R3F demo runs on WebGPURenderer with `?renderer=webgpu`; benchmark A/B mode against a baseline build (`build-showcase.mjs --prev <dist>`)
 
 ## Version 0.17.1
 

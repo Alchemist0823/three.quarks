@@ -36,6 +36,8 @@ export abstract class BaseTrailBatch extends VFXBatch {
     setupBuffers(): void {
         if (this.geometry) this.geometry.dispose();
         this.geometry = new BufferGeometry();
+        // three defaults to an infinite draw range; draw nothing until the first update() fills the buffers
+        this.geometry.setDrawRange(0, 0);
 
         const vertexCapacity = this.maxParticles * 2;
         const indexArray =

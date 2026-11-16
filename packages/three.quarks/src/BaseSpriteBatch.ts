@@ -10,20 +10,36 @@ import type {VFXBatchSettings} from './BaseBatchedRenderer';
 import {RenderMode, VFXBatch} from './VFXBatch';
 import {getSpriteInstanceLayout, SpriteInstanceLayout} from './BatchLayouts';
 
+type WritableArray = {[index: number]: number; length: number};
+
 /**
  * Renderer-agnostic sprite / mesh batch.
  *
- * Owns the instanced geometry and fills one interleaved per-instance buffer from the CPU particle
- * simulation every frame. The concrete subclasses only build the material:
- * {@link SpriteBatch} (WebGL / GLSL) and `WebGPUSpriteBatch` (WebGPU / TSL).
+ * Owns the instanced geometry and fills the interleaved per-instance buffer(s) from the CPU particle simulation every
+ * frame. The concrete subclasses only build the material: {@link SpriteBatch} (WebGL / GLSL) and `WebGPUSpriteBatch`
+ * (WebGPU / TSL).
+ *
+ * The fill loop always writes the single float32 layout of the render mode, directly into the GPU buffer. Only the
+ * optional half-float layout adds a second, table driven pass that repacks the values into its float32 and float16
+ * buffers, so the default path keeps one tight loop over one typed array.
  */
 export abstract class BaseSpriteBatch extends VFXBatch {
     declare geometry: InstancedBufferGeometry;
 
-    /** Interleaved per-instance layout of this batch. */
-    readonly layout: SpriteInstanceLayout;
-    /** Interleaved per-instance buffer (all instance attributes of this batch). */
-    instanceBuffer!: InstancedInterleavedBuffer;
+    /** Per-instance layout of this batch (what is uploaded). */
+    layout: SpriteInstanceLayout;
+    /** Interleaved per-instance buffers, one per {@link SpriteInstanceLayout.buffers} entry. */
+    instanceBuffers: InstancedInterleavedBuffer[] = [];
+
+    /** float32 scratch in the full layout, only used when `layout` is a split (half-float) layout */
+    private scratch_: Float32Array | null = null;
+    /** repack table: [dstBuffer, dstOffset, srcOffset, count] per attribute of the split layout */
+    private repack_: Int32Array | null = null;
+
+    /** The first (float32) per-instance buffer. */
+    get instanceBuffer(): InstancedInterleavedBuffer {
+        return this.instanceBuffers[0];
+    }
 
     protected constructor(settings: VFXBatchSettings) {
         super(settings);
@@ -31,25 +47,48 @@ export abstract class BaseSpriteBatch extends VFXBatch {
         this.layout = getSpriteInstanceLayout(settings.renderMode);
     }
 
+    private get fullLayout(): SpriteInstanceLayout {
+        return getSpriteInstanceLayout(this.settings.renderMode);
+    }
+
     buildExpandableBuffers(): void {
-        const layout = this.layout;
-        this.instanceBuffer = new InstancedInterleavedBuffer(
-            new Float32Array(this.maxParticles * layout.stride),
-            layout.stride,
-            1
-        );
-        this.instanceBuffer.setUsage(DynamicDrawUsage);
-        for (const attribute of layout.attributes) {
-            this.geometry.setAttribute(
-                attribute.name,
-                new InterleavedBufferAttribute(this.instanceBuffer, attribute.itemSize, attribute.offset)
-            );
+        this.instanceBuffers = this.layout.buffers.map((bufferLayout) => {
+            const length = this.maxParticles * bufferLayout.stride;
+            const array = bufferLayout.half ? new (globalThis as any).Float16Array(length) : new Float32Array(length);
+            const buffer = new InstancedInterleavedBuffer(array, bufferLayout.stride, 1);
+            buffer.setUsage(DynamicDrawUsage);
+            for (const attribute of bufferLayout.attributes) {
+                this.geometry.setAttribute(
+                    attribute.name,
+                    new InterleavedBufferAttribute(buffer, attribute.itemSize, attribute.offset)
+                );
+            }
+            return buffer;
+        });
+
+        const full = this.fullLayout;
+        if (this.layout !== full) {
+            this.scratch_ = new Float32Array(this.maxParticles * full.buffers[0].stride);
+            const sources = full.buffers[0].attributes;
+            const table: number[] = [];
+            this.layout.buffers.forEach((bufferLayout, b) => {
+                for (const attribute of bufferLayout.attributes) {
+                    const source = sources.find((s) => s.name === attribute.name)!;
+                    table.push(b, attribute.offset, source.offset, Math.min(attribute.itemSize, source.itemSize));
+                }
+            });
+            this.repack_ = new Int32Array(table);
+        } else {
+            this.scratch_ = null;
+            this.repack_ = null;
         }
     }
 
     setupBuffers(): void {
         if (this.geometry) this.geometry.dispose();
         this.geometry = new InstancedBufferGeometry();
+        // three defaults to Infinity; draw nothing until the first update() fills the buffers
+        this.geometry.instanceCount = 0;
         this.geometry.setIndex(this.settings.instancingGeometry.getIndex());
         if (this.settings.instancingGeometry.hasAttribute('normal')) {
             this.geometry.setAttribute('normal', this.settings.instancingGeometry.getAttribute('normal'));
@@ -88,16 +127,16 @@ export abstract class BaseSpriteBatch extends VFXBatch {
             this.expandBuffers(particleCount);
         }
 
-        const layout = this.layout;
-        const stride = layout.stride;
-        const oOffset = layout.offset;
-        const oRotation = layout.rotation;
-        const oSize = layout.size;
-        const oUvTile = layout.uvTile;
-        const oColor = layout.color;
-        const oVelocity = layout.velocity;
+        const full = this.fullLayout;
+        const stride = full.buffers[0].stride;
+        const oOffset = full.offset.offset;
+        const oRotation = full.rotation.offset;
+        const oSize = full.size.offset;
+        const oUvTile = full.uvTile.offset;
+        const oColor = full.color.offset;
+        const oVelocity = full.velocity ? full.velocity.offset : -1;
         const isMesh = this.settings.renderMode === RenderMode.Mesh;
-        const array = this.instanceBuffer.array as Float32Array;
+        const array = this.scratch_ ?? (this.instanceBuffers[0].array as Float32Array);
 
         let index = 0;
         for (let s = 0; s < visibleSystems.length; s++) {
@@ -218,11 +257,36 @@ export abstract class BaseSpriteBatch extends VFXBatch {
         }
         this.geometry.instanceCount = index;
 
+        if (this.repack_ !== null) this.repack(index, stride);
+
         if (index > 0) {
-            // upload only the part of the buffer that is actually used this frame
-            this.instanceBuffer.clearUpdateRanges();
-            this.instanceBuffer.addUpdateRange(0, index * stride);
-            this.instanceBuffer.needsUpdate = true;
+            // upload only the part of the buffers that is actually used this frame
+            for (let b = 0; b < this.instanceBuffers.length; b++) {
+                const buffer = this.instanceBuffers[b];
+                buffer.clearUpdateRanges();
+                buffer.addUpdateRange(0, index * this.layout.buffers[b].stride);
+                buffer.needsUpdate = true;
+            }
+        }
+    }
+
+    /** Copies the float32 scratch (full layout) into the buffers of the split (half-float) layout. */
+    private repack(count: number, sourceStride: number) {
+        const source = this.scratch_!;
+        const table = this.repack_!;
+        const buffers = this.layout.buffers;
+        for (let t = 0; t < table.length; t += 4) {
+            const b = table[t];
+            const target = this.instanceBuffers[b].array as WritableArray;
+            const targetStride = buffers[b].stride;
+            const dstOffset = table[t + 1];
+            const srcOffset = table[t + 2];
+            const n = table[t + 3];
+            for (let i = 0; i < count; i++) {
+                const d = i * targetStride + dstOffset;
+                const s = i * sourceStride + srcOffset;
+                for (let k = 0; k < n; k++) target[d + k] = source[s + k];
+            }
         }
     }
 

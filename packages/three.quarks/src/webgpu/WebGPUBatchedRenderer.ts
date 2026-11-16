@@ -1,6 +1,7 @@
 import {BaseBatchedRenderer, RenderMode, VFXBatch, VFXBatchSettings} from 'three.quarks';
 import type {IParticleSystem} from 'three.quarks';
-import {WebGPUSpriteBatch, WebGPUTrailBatch} from './WebGPUBatches';
+import type {Texture} from 'three';
+import {CompositingState, WebGPUSpriteBatch, WebGPUTrailBatch} from './WebGPUBatches';
 import {createPerformanceProfile, QuarksPerformanceProfile, QuarksPerformanceProfileOptions} from './PerformanceProfile';
 
 /**
@@ -29,6 +30,9 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer {
     /** resolved performance profile used by all batches */
     profile: QuarksPerformanceProfile;
 
+    /** display-space compositing state, set by {@link QuarksCompositor} */
+    compositing: CompositingState | null = null;
+
     constructor(options: WebGPUBatchedRendererOptions = {}) {
         super();
         this.profile = createPerformanceProfile(options);
@@ -37,13 +41,13 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer {
     protected createBatch(settings: VFXBatchSettings): VFXBatch {
         switch (settings.renderMode) {
             case RenderMode.Trail:
-                return new WebGPUTrailBatch(settings, this.profile);
+                return new WebGPUTrailBatch(settings, this.profile, this);
             case RenderMode.Mesh:
             case RenderMode.BillBoard:
             case RenderMode.VerticalBillBoard:
             case RenderMode.HorizontalBillBoard:
             case RenderMode.StretchedBillBoard:
-                return new WebGPUSpriteBatch(settings, this.profile);
+                return new WebGPUSpriteBatch(settings, this.profile, this);
         }
         throw new Error('render mode unavailable');
     }
@@ -54,6 +58,22 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer {
      */
     setProfile(options: WebGPUBatchedRendererOptions) {
         this.profile = createPerformanceProfile(options);
+        this.rebuildBatches();
+    }
+
+    /**
+     * Enables (depth texture of the scene pass) or disables (`null`) display-space compositing of transparent
+     * batches. Called by {@link QuarksCompositor}.
+     */
+    setCompositing(depthTexture: Texture | null) {
+        const current = this.compositing ? this.compositing.depthTexture : null;
+        if (current === depthTexture) return;
+        this.compositing = depthTexture ? {depthTexture} : null;
+        this.rebuildBatches();
+    }
+
+    /** Recreates all batches (keeps the particle systems and their simulation state). */
+    rebuildBatches() {
         const systems: IParticleSystem[] = Array.from(this.systemToBatchIndex.keys());
         for (const batch of this.batches) {
             this.remove(batch);
@@ -64,6 +84,8 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer {
         for (const system of systems) {
             this.addSystem(system);
         }
+        // refill the new batches from the preserved particle state so the next frame is not empty
+        for (const batch of this.batches) batch.update();
     }
 
     /**

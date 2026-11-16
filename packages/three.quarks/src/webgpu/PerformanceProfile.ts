@@ -29,6 +29,11 @@ export interface QuarksPerformanceProfile {
     frameBlending: boolean;
     /** use a pow-free polynomial for the sRGB decode in `webgl-compatible` color mode (≤0.3% error) */
     fastColorDecode: boolean;
+    /**
+     * Pack color, size, velocity and mesh rotation as half floats (native `Float16Array` required; ignored
+     * otherwise). Uploads 25-38% fewer bytes per particle but the float32 -> float16 conversion costs CPU time.
+     */
+    halfFloat: boolean;
     /** how particle colors are written to the framebuffer, see {@link ParticleColorSpaceMode} */
     colorSpaceMode: ParticleColorSpaceMode;
     /** initial instance capacity of a sprite batch (grows by doubling) */
@@ -71,6 +76,7 @@ export function createPerformanceProfile(options: QuarksPerformanceProfileOption
                   softParticles: false,
                   frameBlending: true,
                   fastColorDecode: true,
+                  halfFloat: false,
                   colorSpaceMode: 'webgl-compatible',
                   initialSpriteCapacity: 256,
                   initialTrailCapacity: 4096,
@@ -80,6 +86,7 @@ export function createPerformanceProfile(options: QuarksPerformanceProfileOption
                   softParticles: true,
                   frameBlending: true,
                   fastColorDecode: false,
+                  halfFloat: false,
                   colorSpaceMode: 'webgl-compatible',
                   initialSpriteCapacity: 1000,
                   initialTrailCapacity: 10000,

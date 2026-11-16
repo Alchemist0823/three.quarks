@@ -1,4 +1,6 @@
 import {
+    CubeTexture,
+    Vector3,
     MeshBasicMaterial,
     MeshPhysicalMaterial,
     MeshStandardMaterial,
@@ -22,6 +24,7 @@ import {
     TrailBatch,
     getSpriteInstanceLayout,
     TRAIL_VERTEX_LAYOUT,
+    TRAIL_POINT_LAYOUT,
     Vector4,
     SphereEmitter,
 } from '../../src';
@@ -158,19 +161,35 @@ describe('three.quarks/webgpu', () => {
         const glBatch = webgl.batches[0];
         const gpuBatch = webgpu.batches[0];
         if (mode === RenderMode.Trail) {
+            // WebGL: two vertices per point (17 floats each) + indices; WebGPU: one 12 float record per point
             expect(glBatch).toBeInstanceOf(TrailBatch);
-            const a = (glBatch as TrailBatch).vertexBuffer.array;
-            const b = (gpuBatch as WebGPUTrailBatch).vertexBuffer.array;
-            const count = (glBatch as TrailBatch).geometry.drawRange.count;
-            expect(count).toBeGreaterThan(0);
-            expect(Array.from(a.slice(0, 2000))).toEqual(Array.from(b.slice(0, 2000)));
+            const a = (glBatch as TrailBatch).vertexBuffer.array as Float32Array;
+            const b = (gpuBatch as WebGPUTrailBatch).points.array as Float32Array;
+            const V = TRAIL_VERTEX_LAYOUT;
+            const P = TRAIL_POINT_LAYOUT;
+            const points = (gpuBatch as WebGPUTrailBatch).geometry.drawRange.count / 6;
+            expect(points).toBeGreaterThan(0);
+            expect((glBatch as TrailBatch).geometry.drawRange.count).toBeGreaterThan(0);
+            for (let k = 0; k < points; k++) {
+                const v = 2 * k * V.stride;
+                const w = (2 * k + 1) * V.stride;
+                const r = k * P.stride;
+                for (let c = 0; c < 3; c++) expect(b[r + P.position + c]).toBeCloseTo(a[v + V.position + c], 5);
+                expect(b[r + P.width]).toBeCloseTo(a[v + V.width], 5);
+                for (let c = 0; c < 4; c++) expect(b[r + P.color + c]).toBe(a[v + V.color + c]);
+                expect(b[r + P.u]).toBe(a[v + V.uv]);
+                expect(b[r + P.v0]).toBe(a[v + V.uv + 1]);
+                expect(b[r + P.v1]).toBe(a[w + V.uv + 1]);
+            }
+            // 48 bytes per point instead of 2 x 68 bytes + 12 bytes of indices
+            expect(P.stride * 4).toBe(48);
         } else {
             expect(glBatch).toBeInstanceOf(SpriteBatch);
             const glSprite = glBatch as SpriteBatch;
             const gpuSprite = gpuBatch as WebGPUSpriteBatch;
             expect(glSprite.geometry.instanceCount).toBe(system.particleNum);
             expect(gpuSprite.geometry.instanceCount).toBe(system.particleNum);
-            const used = system.particleNum * glSprite.layout.stride;
+            const used = system.particleNum * glSprite.layout.buffers[0].stride;
             expect(Array.from(glSprite.instanceBuffer.array.slice(0, used))).toEqual(
                 Array.from(gpuSprite.instanceBuffer.array.slice(0, used))
             );
@@ -188,20 +207,22 @@ describe('three.quarks/webgpu', () => {
         const batch = renderer.batches[0] as WebGPUSpriteBatch;
         const layout = getSpriteInstanceLayout(RenderMode.StretchedBillBoard);
         expect(batch.layout).toBe(layout);
-        expect(layout.stride % 4).toBe(0);
+        expect(layout.buffers.length).toBe(1);
+        expect(layout.bytesPerInstance).toBe(64);
         const array = batch.instanceBuffer.array as Float32Array;
         const p = system.particles[0];
-        const base = 0;
         // local space system: offset = emitter world matrix * position
-        expect(array[base + layout.offset]).toBeCloseTo(p.position.x + 10, 4);
-        expect(array[base + layout.offset + 1]).toBeCloseTo(p.position.y, 4);
-        expect(array[base + layout.color]).toBeCloseTo(p.color.x);
-        expect(array[base + layout.color + 3]).toBeCloseTo(p.color.w);
-        expect(array[base + layout.uvTile]).toBeCloseTo(p.uvTile);
-        expect(array[base + layout.velocity + 3]).toBeCloseTo(2); // lengthFactor
-        expect(array[base + layout.velocity]).toBeCloseTo(p.velocity.x * 0.5, 4); // speedFactor
+        expect(array[layout.offset.offset]).toBeCloseTo(p.position.x + 10, 4);
+        expect(array[layout.offset.offset + 1]).toBeCloseTo(p.position.y, 4);
+        expect(array[layout.color.offset]).toBeCloseTo(p.color.x);
+        expect(array[layout.color.offset + 3]).toBeCloseTo(p.color.w);
+        expect(array[layout.uvTile.offset]).toBeCloseTo(p.uvTile);
+        expect(array[layout.velocity!.offset + 3]).toBeCloseTo(2); // lengthFactor
+        expect(array[layout.velocity!.offset]).toBeCloseTo(p.velocity.x * 0.5, 4); // speedFactor
         // the whole batch is one interleaved buffer with a single update range
-        expect(batch.instanceBuffer.updateRanges).toEqual([{start: 0, count: system.particleNum * layout.stride}]);
+        expect(batch.instanceBuffer.updateRanges).toEqual([
+            {start: 0, count: system.particleNum * layout.buffers[0].stride},
+        ]);
     });
 
     test('local space mesh particles: rotation = emitter rotation * particle rotation, size scaled', () => {
@@ -223,16 +244,19 @@ describe('three.quarks/webgpu', () => {
         const p = system.particles[0] as any;
         const q = system.emitter.quaternion.clone().multiply(p.rotation);
         const pos = p.position.clone().applyMatrix4(system.emitter.matrixWorld);
-        expect(array[layout.offset]).toBeCloseTo(pos.x, 4);
-        expect(array[layout.offset + 1]).toBeCloseTo(pos.y, 4);
-        expect(array[layout.offset + 2]).toBeCloseTo(pos.z, 4);
-        expect(array[layout.rotation]).toBeCloseTo(q.x, 4);
-        expect(array[layout.rotation + 1]).toBeCloseTo(q.y, 4);
-        expect(array[layout.rotation + 2]).toBeCloseTo(q.z, 4);
-        expect(array[layout.rotation + 3]).toBeCloseTo(q.w, 4);
-        expect(array[layout.size]).toBeCloseTo(p.size.x * 2, 4);
-        expect(array[layout.size + 1]).toBeCloseTo(p.size.y * 3, 4);
-        expect(array[layout.size + 2]).toBeCloseTo(p.size.z * 4, 4);
+        const o = layout.offset.offset,
+            r = layout.rotation.offset,
+            z = layout.size.offset;
+        expect(array[o]).toBeCloseTo(pos.x, 4);
+        expect(array[o + 1]).toBeCloseTo(pos.y, 4);
+        expect(array[o + 2]).toBeCloseTo(pos.z, 4);
+        expect(array[r]).toBeCloseTo(q.x, 4);
+        expect(array[r + 1]).toBeCloseTo(q.y, 4);
+        expect(array[r + 2]).toBeCloseTo(q.z, 4);
+        expect(array[r + 3]).toBeCloseTo(q.w, 4);
+        expect(array[z]).toBeCloseTo(p.size.x * 2, 4);
+        expect(array[z + 1]).toBeCloseTo(p.size.y * 3, 4);
+        expect(array[z + 2]).toBeCloseTo(p.size.z * 4, 4);
         // GLSL attribute names are unchanged, now backed by one interleaved buffer
         for (const name of ['offset', 'rotation', 'size', 'uvTile', 'color']) {
             expect((batch.geometry.getAttribute(name) as any).isInterleavedBufferAttribute).toBe(true);
@@ -240,15 +264,154 @@ describe('three.quarks/webgpu', () => {
         }
     });
 
-    test('trail batches use 16 bit indices while possible', () => {
-        const renderer = new WebGPUBatchedRenderer();
+    test('WebGL trail batches use 16 bit indices while possible', () => {
+        const renderer = new WebGLBatchedRenderer();
         renderer.addSystem(makeSystem(RenderMode.Trail));
-        const batch = renderer.batches[0] as WebGPUTrailBatch;
+        const batch = renderer.batches[0] as TrailBatch;
         expect(batch.indexBuffer.array).toBeInstanceOf(Uint16Array);
         expect(batch.vertexBuffer.stride).toBe(TRAIL_VERTEX_LAYOUT.stride);
         batch.expandBuffers(70000);
         expect(batch.indexBuffer.array).toBeInstanceOf(Uint32Array);
     });
+
+    test('WebGPU trails: one storage record per point, six vertices per segment, live bounds', () => {
+        const scene = new Scene();
+        const renderer = new WebGPUBatchedRenderer();
+        const system = makeSystem(RenderMode.Trail, {worldSpace: true});
+        scene.add(system.emitter, renderer);
+        renderer.addSystem(system);
+        for (let i = 0; i < 8; i++) renderer.update(0.05);
+        const batch = renderer.batches[0] as WebGPUTrailBatch;
+        let points = 0;
+        for (let j = 0; j < system.particleNum; j++) points += (system.particles[j] as any).previous.length;
+        expect(points).toBeGreaterThan(0);
+        expect(batch.geometry.drawRange.count).toBe(points * 6);
+        expect(batch.geometry.getIndex()).toBeNull();
+        expect(Object.keys(batch.geometry.attributes)).toHaveLength(0);
+        expect(batch.points.updateRanges).toEqual([{start: 0, count: points * TRAIL_POINT_LAYOUT.stride}]);
+        // first / last flags of the first trail
+        const data = batch.points.array as Float32Array;
+        const first = (system.particles[0] as any).previous.length;
+        expect(data[TRAIL_POINT_LAYOUT.flags] % 2).toBe(1);
+        expect(data[(first - 1) * TRAIL_POINT_LAYOUT.stride + TRAIL_POINT_LAYOUT.flags]).toBeGreaterThanOrEqual(2);
+        // bounding sphere follows the points (used for transparent sorting)
+        const sphere = batch.geometry.boundingSphere!;
+        expect(sphere.radius).toBeGreaterThan(0);
+        expect(sphere.containsPoint(new Vector3(data[0], data[1], data[2]))).toBe(true);
+        expect(batch.material).toBeInstanceOf(ParticleTrailNodeMaterial);
+    });
+
+    test('half float layout splits float32 / float16 data (stand-in Float16Array)', () => {
+        const g = globalThis as any;
+        const original = g.Float16Array;
+        // Node has no native Float16Array: a Float32Array subclass is enough to verify the placement of every field
+        g.Float16Array = class extends Float32Array {};
+        try {
+            for (const mode of [RenderMode.BillBoard, RenderMode.StretchedBillBoard, RenderMode.Mesh]) {
+                const half = getSpriteInstanceLayout(mode, {halfFloat: true});
+                const full = getSpriteInstanceLayout(mode);
+                expect(half.buffers.length).toBe(2);
+                expect(half.buffers[1].half).toBe(true);
+                expect(half.bytesPerInstance).toBeLessThan(full.bytesPerInstance);
+                for (const b of half.buffers) {
+                    for (const attribute of b.attributes) {
+                        if (b.half) expect([2, 4]).toContain(attribute.itemSize); // no float16x3 vertex format
+                    }
+                }
+
+                const scene = new Scene();
+                const renderer = new WebGPUBatchedRenderer({halfFloat: true});
+                const extra: Record<string, unknown> = {worldSpace: true};
+                if (mode === RenderMode.Mesh) extra.startRotation = new RandomQuatGenerator();
+                const system = makeSystem(mode, extra);
+                scene.add(system.emitter, renderer);
+                renderer.addSystem(system);
+                renderer.update(0.1);
+                const batch = renderer.batches[0] as WebGPUSpriteBatch;
+                expect(batch.instanceBuffers.length).toBe(2);
+                const p = system.particles[0] as any;
+                const field = (f: {buffer: number; offset: number}, k = 0) =>
+                    (batch.instanceBuffers[f.buffer].array as Float32Array)[f.offset + k];
+                expect(field(half.offset)).toBeCloseTo(p.position.x, 5);
+                expect(field(half.color, 1)).toBeCloseTo(p.color.y, 5);
+                expect(field(half.size, 2)).toBeCloseTo(p.size.z, 5);
+                expect(field(half.uvTile)).toBeCloseTo(p.uvTile, 5);
+                if (mode === RenderMode.Mesh) expect(field(half.rotation, 3)).toBeCloseTo(p.rotation.w, 5);
+                else expect(field(half.rotation)).toBeCloseTo(p.rotation, 5);
+                for (let b = 0; b < 2; b++) {
+                    expect(batch.instanceBuffers[b].updateRanges).toEqual([
+                        {start: 0, count: system.particleNum * half.buffers[b].stride},
+                    ]);
+                }
+            }
+        } finally {
+            g.Float16Array = original;
+        }
+    });
+
+    test('batches of the same kind share one node graph (one shader build)', () => {
+        const renderer = new WebGPUBatchedRenderer();
+        const a = makeSystem(RenderMode.BillBoard);
+        const b = makeSystem(RenderMode.BillBoard, {
+            material: new MeshBasicMaterial({map: new Texture(), blending: NormalBlending, transparent: true}),
+            uTileCount: 4,
+            vTileCount: 4,
+        });
+        const c = makeSystem(RenderMode.StretchedBillBoard);
+        renderer.addSystem(a);
+        renderer.addSystem(b);
+        renderer.addSystem(c);
+        expect(renderer.batches.length).toBe(3);
+        const [ma, mb, mc] = renderer.batches.map((x) => x.material as ParticleSpriteNodeMaterial);
+        // different textures and tile counts, same structure => same graph and program key
+        expect(ma.colorNode).toBe(mb.colorNode);
+        expect(ma.customProgramCacheKey()).toBe(mb.customProgramCacheKey());
+        expect((mb as any).uTileCount).toBe(4);
+        expect((ma as any).map).not.toBe((mb as any).map);
+        // a different render mode builds its own vertex stage
+        expect(mc.customProgramCacheKey()).not.toBe(ma.customProgramCacheKey());
+    });
+
+    test('compositing: transparent batches blend in display space with a shader depth test', () => {
+        const renderer = new WebGPUBatchedRenderer();
+        const transparent = makeSystem(RenderMode.BillBoard, {softParticles: true, softNearFade: 0, softFarFade: 1});
+        const opaque = makeSystem(RenderMode.BillBoard, {
+            material: new MeshBasicMaterial({map: new Texture(), transparent: false}),
+        });
+        renderer.addSystem(transparent);
+        renderer.addSystem(opaque);
+        const depth = new DepthTexture(4, 4);
+        renderer.setCompositing(depth);
+        const t = renderer.batches[0].material as any;
+        const o = renderer.batches[1].material as any;
+        expect(t.depthTest).toBe(false);
+        expect(t.maskNode).not.toBeNull();
+        expect(t.depthTexture).toBe(depth);
+        expect(t.softParticles).toBe(true);
+        expect(o.depthTest).toBe(true);
+        expect(o.maskNode).toBeNull();
+        renderer.setCompositing(null);
+        expect((renderer.batches[0].material as any).depthTest).toBe(true);
+    });
+
+    test('lit particles wait for a still-loading CubeTexture env map (three r187 workaround)', () => {
+        const envMap = new CubeTexture();
+        const scene = new Scene();
+        const renderer = new WebGPUBatchedRenderer();
+        const system = makeSystem(RenderMode.Mesh, {
+            instancingGeometry: new BoxGeometry(),
+            startRotation: new RandomQuatGenerator(),
+            material: new MeshStandardMaterial({envMap}),
+        });
+        scene.add(system.emitter, renderer);
+        renderer.addSystem(system);
+        renderer.update(0.016);
+        expect((renderer.batches[0].material as any).envMap).toBeNull();
+        envMap.needsUpdate = true; // what CubeTextureLoader does once all six images are loaded
+        renderer.update(0.016);
+        expect((renderer.batches[0].material as any).envMap).toBe(envMap);
+    });
+
 
     test('performance profiles', () => {
         const desktop = createPerformanceProfile({target: 'desktop'});
