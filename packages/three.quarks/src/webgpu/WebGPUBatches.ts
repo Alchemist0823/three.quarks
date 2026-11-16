@@ -24,7 +24,11 @@ function buildMaterialOptions(
         blendTiles: settings.blendTiles && profile.frameBlending,
         colorAsAlpha: !!material.defines && material.defines['USE_COLOR_AS_ALPHA'] !== undefined,
         alphaTest: material.alphaTest || 0,
-        softParticles: settings.softParticles && profile.softParticles,
+        // Without a depth texture the depth is copied from the framebuffer before the draw. Only for transparent
+        // particles (drawn after all opaque objects) is that the complete opaque scene, so opaque soft particles
+        // are drawn hard until a depth texture is set.
+        softParticles:
+            settings.softParticles && profile.softParticles && (depthTexture !== null || settings.material.transparent),
         softNearFade: settings.softNearFade,
         softFarFade: settings.softFarFade,
         depthTexture,

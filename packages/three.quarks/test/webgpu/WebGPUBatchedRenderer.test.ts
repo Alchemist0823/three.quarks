@@ -295,6 +295,23 @@ describe('three.quarks/webgpu', () => {
         expect(renderer.batches[0].material).toBe(after);
     });
 
+    test('opaque soft particles fade only against a depth texture', () => {
+        const renderer = new WebGPUBatchedRenderer();
+        const opaque = makeSystem(RenderMode.BillBoard, {
+            softParticles: true,
+            softNearFade: 0,
+            softFarFade: 1,
+            material: new MeshBasicMaterial({map: new Texture(), transparent: false}),
+        });
+        const transparent = makeSystem(RenderMode.BillBoard, {softParticles: true, softNearFade: 0, softFarFade: 1});
+        renderer.addSystem(opaque);
+        renderer.addSystem(transparent);
+        expect((renderer.batches[0].material as ParticleSpriteNodeMaterial).softParticles).toBe(false);
+        expect((renderer.batches[1].material as ParticleSpriteNodeMaterial).softParticles).toBe(true);
+        renderer.setDepthTexture(new DepthTexture(4, 4));
+        expect((renderer.batches[0].material as ParticleSpriteNodeMaterial).softParticles).toBe(true);
+    });
+
     test('same settings are batched together, different textures are not', () => {
         const scene = new Scene();
         const renderer = new WebGPUBatchedRenderer();

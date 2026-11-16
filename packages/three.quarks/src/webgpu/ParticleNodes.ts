@@ -13,9 +13,9 @@ import {
     cameraNear,
     cameraViewMatrix,
     cross,
-
     floor,
     logarithmicDepthToViewZ,
+    orthographicDepthToViewZ,
     mix,
     modelNormalMatrix,
     modelViewMatrix,
@@ -31,6 +31,7 @@ import {
     vec4,
     viewportDepthTexture,
 } from 'three/tsl';
+import {LinearSRGBColorSpace} from 'three';
 import type {Texture} from 'three';
 
 type N = any;
@@ -130,10 +131,15 @@ export function applyParticleMeshTransform(builder: N, positionLocal: N, normalL
  * mobile GPUs where transcendental functions run on a quarter-rate special function unit.
  */
 export function decodeDisplayColor(rgb: N, fast: boolean): N {
-    if (fast) {
-        return rgb.mul(rgb.mul(rgb.mul(0.305306011).add(0.682171111)).add(0.012522878));
-    }
-    return sRGBTransferEOTF(rgb);
+    return Fn((builder: N) => {
+        // With linear output nothing is encoded at the end, so there is nothing to undo either
+        // (same as the WebGL shaders, which write their raw color in that case too).
+        if (builder.renderer.outputColorSpace === LinearSRGBColorSpace) return rgb;
+        if (fast) {
+            return rgb.mul(rgb.mul(rgb.mul(0.305306011).add(0.682171111)).add(0.012522878));
+        }
+        return sRGBTransferEOTF(rgb);
+    })();
 }
 
 export interface SoftParticleNodeOptions {
@@ -156,9 +162,14 @@ export function softParticleFade(options: SoftParticleNodeOptions): N {
         const depthSample = options.depthTexture
             ? texture(options.depthTexture, screenUV).x
             : viewportDepthTexture(screenUV).x;
-        const sceneViewZ = builder.renderer.logarithmicDepthBuffer
-            ? logarithmicDepthToViewZ(depthSample, cameraNear, cameraFar)
-            : perspectiveDepthToViewZ(depthSample, cameraNear, cameraFar);
+        let sceneViewZ;
+        if (builder.renderer.logarithmicDepthBuffer) {
+            sceneViewZ = logarithmicDepthToViewZ(depthSample, cameraNear, cameraFar);
+        } else if (builder.camera && builder.camera.isOrthographicCamera) {
+            sceneViewZ = orthographicDepthToViewZ(depthSample, cameraNear, cameraFar);
+        } else {
+            sceneViewZ = perspectiveDepthToViewZ(depthSample, cameraNear, cameraFar);
+        }
         const sceneDepth = sceneViewZ.negate();
         const particleDepth = positionView.z.negate();
         return options.invFadeDistance.mul(sceneDepth.sub(options.nearFade).sub(particleDepth)).saturate();

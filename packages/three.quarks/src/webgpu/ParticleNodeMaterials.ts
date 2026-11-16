@@ -102,10 +102,13 @@ export class ParticleSpriteNodeMaterial extends NodeMaterial {
     readonly softInvFadeDistanceNode: N;
     /** alpha test threshold (uniform) */
     readonly alphaTestValueNode: N;
+    /** whether this material fades against the scene depth */
+    readonly softParticles: boolean;
 
     constructor(options: ParticleNodeMaterialOptions) {
         super();
         this.renderMode = options.renderMode;
+        this.softParticles = options.softParticles;
         this.lights = false;
         this.fog = false;
 
