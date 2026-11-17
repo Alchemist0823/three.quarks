@@ -163,9 +163,10 @@ const batchRenderer = new BatchedRenderer({renderer, gpuSimulation: 'auto'}); //
 - Stays on the CPU automatically: trails, ApplySequences, EmitSubParticleSystem parents, local-space sub-emitter
   targets, systems with `particleDied` listeners, custom behaviors (register a GPU version with `registerGPUBehavior`),
   and the WebGL2 fallback backend. `batchRenderer.getGPUSimulationSupport(system)` says why.
-- Measured with 20 systems on an Intel UHD (Gen12) iGPU, same draw calls as CPU simulation: 50k billboards 5.3 → 0.44 ms
-  CPU per frame (172 → 250 fps, capped), 200k billboards 19.2 → 0.81 ms (50 → 85 fps); 600 tiny muzzle-flash systems
-  share 10 draw calls and 5 kernels.
+- Measured with 20 systems, same draw calls as CPU simulation. RTX 4080 Laptop GPU: 200k billboards 38.8 → 1.3 ms CPU
+  per frame (25 → 250 fps, capped), 500k billboards 126 → 2.1 ms (8 → 250 fps) with 1.5 ms of GPU time. Intel UHD
+  (Gen12) iGPU: 50k billboards 5.3 → 0.44 ms, 200k 19.2 → 0.81 ms (50 → 85 fps). 600 tiny muzzle-flash systems share
+  10 draw calls and 5 kernels.
 
 **React Three Fiber 9.** Pass the WebGPU batch renderer to the provider and create `WebGPURenderer` in the canvas:
 
