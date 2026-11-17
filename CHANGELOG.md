@@ -7,10 +7,13 @@
   particles in a storage buffer that the batch draws from directly. No GPU readback (CPU slot allocator).
   - GPU versions of the over-life, by-speed, force, orbit, speed limit, noise and turbulence behaviors and of every
     value / color / vector / rotation generator; `registerGPUBehavior()` for custom behaviors
-  - `'auto'` takes systems with at least `gpuSimulationThreshold` (default 512) estimated live particles; unsupported
+  - GPU systems are batched like CPU ones: equal renderer settings share one particle buffer and one draw call;
+    systems whose behaviors have the same shape share one compute kernel (per-system parameter rows)
+  - `'auto'` takes systems with at least `gpuSimulationThreshold` (default 128) estimated live particles; unsupported
     systems, edits that make a system unsupported and the WebGL2 backend fall back to the CPU automatically
-  - particles are kept across renderer setting changes and CPU ↔ GPU switches
-  - 50k billboards: 11.8 → 1.3 ms CPU per frame; 200k: 43 → 2.4 ms (Intel UHD Gen12)
+  - particles are kept across renderer setting changes (copied on the GPU between batches) and CPU ↔ GPU switches
+  - 20 systems, Intel UHD Gen12: 50k billboards 5.3 → 0.44 ms CPU per frame, 200k 19.2 → 0.81 ms, same draw calls;
+    600 muzzle-flash systems: 10 draw calls and 5 kernels
 - `ParticleSystem.simulationDelegate` / `ParticleSimulationDelegate`: renderer-agnostic hook for external simulation
 - `QuarksLoader` loads registered particle system types (`ParticleSystemTypes`, e.g. `NodeVFX`)
 - quarks.nodes: node graph mode completed

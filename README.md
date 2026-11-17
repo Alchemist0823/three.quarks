@@ -139,17 +139,22 @@ Use `colorSpaceMode: 'linear'` for a fully physically based workflow.
 
 With the WebGPU backend, particles can be simulated by compute shaders instead of the CPU. Emission stays on the CPU and
 is unchanged (emitter shapes, start values, bursts, every behavior's `initialize()`), and only the particles spawned in a
-frame are uploaded. A TSL compute kernel generated from the system's behaviors updates every particle in a storage
-buffer, and the batch draws straight from it. Nothing is read back: lifetimes are known at spawn, so the CPU frees
-particle slots on its own.
+frame are uploaded. A TSL compute kernel generated from the behaviors updates every particle in a storage buffer, and
+the batch draws straight from it. Nothing is read back: lifetimes are known at spawn, so the CPU frees particle slots
+on its own.
+
+GPU simulated systems are batched like CPU ones: systems with equal renderer settings share one particle buffer and
+**one draw call**, and systems whose behaviors have the same shape (e.g. many instances of one effect) share **one
+compute kernel**. Per-system values (emitter transform, curve keys, force magnitudes) live in small per-system buffers,
+so editing an effect never recompiles a shader and instances with different values still share the kernel.
 
 ```javascript
 const batchRenderer = new BatchedRenderer({renderer, gpuSimulation: 'auto'}); // 'off' (default) | 'auto' | 'all'
 ```
 
-- `'auto'` simulates large systems on the GPU: at least `gpuSimulationThreshold` (default 512) live particles, estimated
-  from emission rate, lifetime and bursts. Each GPU system has its own draw call and dispatch, so small systems stay on
-  the CPU, where many of them share one draw call. `'all'` takes every supported system.
+- `'auto'` simulates systems with at least `gpuSimulationThreshold` (default 128) live particles on the GPU, estimated
+  from emission rate, lifetime and bursts; tiny systems are slightly cheaper on the CPU. `'all'` takes every supported
+  system.
 - Supported: billboard, vertical / horizontal / stretched billboard and mesh particles; ColorOverLife, SizeOverLife,
   RotationOverLife, Rotation3DOverLife, SpeedOverLife, FrameOverLife, ColorBySpeed, SizeBySpeed, RotationBySpeed,
   ApplyForce, GravityForce, ForceOverLife, OrbitOverLife, LimitSpeedOverLife, Noise, TurbulenceField,
@@ -158,8 +163,9 @@ const batchRenderer = new BatchedRenderer({renderer, gpuSimulation: 'auto'}); //
 - Stays on the CPU automatically: trails, ApplySequences, EmitSubParticleSystem parents, local-space sub-emitter
   targets, systems with `particleDied` listeners, custom behaviors (register a GPU version with `registerGPUBehavior`),
   and the WebGL2 fallback backend. `batchRenderer.getGPUSimulationSupport(system)` says why.
-- Measured on an Intel UHD (Gen12) iGPU: 50k billboards 11.8 → 1.3 ms CPU per frame (83 → 250 fps), 200k billboards
-  43 → 2.4 ms (23 → 120 fps).
+- Measured with 20 systems on an Intel UHD (Gen12) iGPU, same draw calls as CPU simulation: 50k billboards 5.3 → 0.44 ms
+  CPU per frame (172 → 250 fps, capped), 200k billboards 19.2 → 0.81 ms (50 → 85 fps); 600 tiny muzzle-flash systems
+  share 10 draw calls and 5 kernels.
 
 **React Three Fiber 9.** Pass the WebGPU batch renderer to the provider and create `WebGPURenderer` in the canvas:
 

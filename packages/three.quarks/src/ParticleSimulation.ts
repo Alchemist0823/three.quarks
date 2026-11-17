@@ -2,7 +2,7 @@ import type {ParticleSystem} from './ParticleSystem';
 
 /**
  * Takes over the per-particle simulation of a {@link ParticleSystem}, for example on the GPU
- * (see `GPUParticleSimulation` in `three.quarks/webgpu`).
+ * (see `GPUParticleBatchSimulation` in `three.quarks/webgpu`).
  *
  * Emission stays on the CPU and is unchanged: emission rates, bursts, emitter shapes, start values and every
  * behavior's `initialize()` / `frameUpdate()` run exactly as before. Particles spawned since the last step (by the

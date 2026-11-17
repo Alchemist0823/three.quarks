@@ -271,12 +271,12 @@ describe('NodeVFX (GPU)', () => {
         scene.add(vfx.emitter as any);
         batchRenderer.update(0.1);
         batchRenderer.update(0.1);
-        const simulation = (batchRenderer.batches[0] as GPUParticleBatch).simulation!;
-        const records = (simulation as any).staging_.array as Float32Array;
-        // start color falls back to color (1, 1, 1, 1), speed modifier to 1
-        expect(Array.from(records.subarray(16, 20))).toEqual([1, 1, 1, 1]);
-        expect(records[26]).toBe(1);
-        expect(Number.isNaN(records[25])).toBe(false);
+        const simulation = (batchRenderer.batches[0] as GPUParticleBatch).simulation;
+        const records = (simulation as any).stagingData_ as Float32Array;
+        // [slot header vec4][record]: start color falls back to color (1, 1, 1, 1), speed modifier to 1
+        expect(Array.from(records.subarray(4 + 16, 4 + 20))).toEqual([1, 1, 1, 1]);
+        expect(records[4 + 26]).toBe(1);
+        expect(Number.isNaN(records[4 + 25])).toBe(false);
     });
 });
 

@@ -165,7 +165,7 @@ describe('GPU particle records', () => {
         expect(mesh.noiseQuaternion).toBe(9);
     });
 
-    test('spawn records hold the particle state and the target slot', () => {
+    test('spawn records hold the particle state and the system index', () => {
         const layout = createGPUParticleLayout({mesh: false, noise: false});
         const particle = new SpriteParticle();
         particle.position.set(1, 2, 3);
@@ -181,7 +181,8 @@ describe('GPU particle records', () => {
         particle.speedModifier = 1;
         particle.uvTile = 7;
         const array = new Float32Array(layout.stride * 4 * 2);
-        writeSpawnRecord(array, 1, layout, particle, 42, 99);
+        // record at float offset stride * 4, system 42 of its batch
+        writeSpawnRecord(array, layout.stride * 4, layout, particle, 42, 99);
         const r = (slot: number, c: number) => array[(layout.stride + slot) * 4 + c];
         expect([r(GPU_SLOT.POSITION_AGE, 0), r(GPU_SLOT.POSITION_AGE, 2), r(GPU_SLOT.POSITION_AGE, 3)]).toEqual([1, 3, 0]);
         expect(r(GPU_SLOT.VELOCITY_LIFE, 3)).toBe(2);
@@ -330,8 +331,11 @@ describe('WebGPUBatchedRenderer GPU simulation', () => {
         expect(system.particleNum).toBe(0);
         batchRenderer.update(0.05);
         // the clear kernel runs first in the next dispatch
-        const simulation = system.simulationDelegate as any;
-        expect(renderer.dispatches[renderer.dispatches.length - 1][0]).toBe(simulation.clearNode_);
+        // dead records over the old particles go out with the spawn kernel
+        const batch = batchRenderer.batches[0] as GPUParticleBatch;
+        const spawn = (batch.simulation as any).spawnNode_;
+        expect(renderer.dispatches[renderer.dispatches.length - 1]).toContain(spawn);
+        expect(spawn.count).toBeGreaterThanOrEqual(40);
         batchRenderer.update(0.05);
         expect(system.particleNum).toBeGreaterThan(0);
         expect(system.particleNum).toBeLessThanOrEqual(40);
@@ -349,12 +353,87 @@ describe('WebGPUBatchedRenderer GPU simulation', () => {
         batchRenderer.update(0.01);
         expect(system.particleNum).toBeGreaterThanOrEqual(cpuParticles);
 
-        const simulation = system.simulationDelegate;
+        // new settings: the particles are copied on the GPU into the batch of the new settings
+        const before = batchRenderer.batches[batchRenderer.systemToBatchIndex.get(system)!];
         system.renderMode = RenderMode.StretchedBillBoard;
         batchRenderer.update(0.01);
         expect(batchRenderer.isGPUSimulated(system)).toBe(true);
-        expect(system.simulationDelegate).toBe(simulation);
+        const after = batchRenderer.batches[batchRenderer.systemToBatchIndex.get(system)!];
+        expect(after).not.toBe(before);
+        expect(batchRenderer.batches.includes(before)).toBe(false);
         expect(system.particleNum).toBeGreaterThanOrEqual(cpuParticles);
+    });
+
+    test('systems with equal settings share one GPU batch, one draw call and one kernel', () => {
+        const systems = Array.from({length: 20}, () => makeSystem(RenderMode.BillBoard));
+        const shared = new MeshBasicMaterial({map: new Texture(), blending: NormalBlending, transparent: true});
+        for (const system of systems) system.material = shared;
+        const {renderer, batchRenderer} = setup({gpuSimulation: 'all'}, ...systems);
+        expect(batchRenderer.batches.length).toBe(1);
+        const batch = batchRenderer.batches[0] as GPUParticleBatch;
+        expect(batch.simulation.members.length).toBe(20);
+        expect(batch.simulation.groupCount).toBe(1);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        // one compute call: spawn kernel + one update kernel for all 20 systems
+        expect(renderer.dispatches[renderer.dispatches.length - 1].length).toBe(2);
+        for (const system of systems) expect(system.particleNum).toBe(40);
+        expect(batch.geometry.instanceCount).toBeGreaterThanOrEqual(800);
+    });
+
+    test('systems with different behaviors share the draw call with one kernel per kind', () => {
+        const plain = makeSystem(RenderMode.BillBoard);
+        const fading = makeSystem(RenderMode.BillBoard);
+        fading.addBehavior(new ColorOverLife(new Gradient()));
+        const fading2 = makeSystem(RenderMode.BillBoard);
+        fading2.addBehavior(new ColorOverLife(new Gradient()));
+        const shared = new MeshBasicMaterial({map: new Texture(), blending: NormalBlending, transparent: true});
+        for (const system of [plain, fading, fading2]) system.material = shared;
+        const {renderer, batchRenderer} = setup({gpuSimulation: 'all'}, plain, fading, fading2);
+        expect(batchRenderer.batches.length).toBe(1);
+        const batch = batchRenderer.batches[0] as GPUParticleBatch;
+        expect(batch.simulation.groupCount).toBe(2);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        // spawn + 2 update kernels
+        expect(renderer.dispatches[renderer.dispatches.length - 1].length).toBe(3);
+    });
+
+    test('removing a system keeps the batch for the others; the last one removes the batch', () => {
+        const a = makeSystem(RenderMode.BillBoard);
+        const b = makeSystem(RenderMode.BillBoard);
+        const shared = new MeshBasicMaterial({map: new Texture(), blending: NormalBlending, transparent: true});
+        a.material = shared;
+        b.material = shared;
+        const {batchRenderer} = setup({gpuSimulation: 'all'}, a, b);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        batchRenderer.deleteSystem(a);
+        expect(batchRenderer.batches.length).toBe(1);
+        expect(a.simulationDelegate).toBeNull();
+        batchRenderer.update(0.1);
+        expect(b.particleNum).toBe(80);
+        batchRenderer.deleteSystem(b);
+        expect(batchRenderer.batches.length).toBe(0);
+    });
+
+    test('per-system emitter transforms let local space systems share a batch', () => {
+        const a = makeSystem(RenderMode.BillBoard, {worldSpace: false});
+        const b = makeSystem(RenderMode.BillBoard, {worldSpace: false});
+        const shared = new MeshBasicMaterial({map: new Texture(), blending: NormalBlending, transparent: true});
+        a.material = shared;
+        b.material = shared;
+        a.emitter.position.set(5, 0, 0);
+        b.emitter.position.set(0, 0, -3);
+        const {batchRenderer} = setup({gpuSimulation: 'all'}, a, b);
+        batchRenderer.update(0.1);
+        const batch = batchRenderer.batches[0] as GPUParticleBatch;
+        const data = batch.simulation.systems.array as Float32Array;
+        const ia = batch.memberOf(a)!.index;
+        const ib = batch.memberOf(b)!.index;
+        // translation column of each system's emitter matrix
+        expect(data[ia * 32 + 12]).toBe(5);
+        expect(data[ib * 32 + 14]).toBe(-3);
     });
 
     test('world space sub-emitter children are emitted into the GPU simulation', () => {

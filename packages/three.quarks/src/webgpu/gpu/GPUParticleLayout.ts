@@ -3,7 +3,7 @@ import type {Particle, SpriteParticle} from 'three.quarks';
 
 /**
  * vec4 slots of a GPU particle record. The same record layout is used by the state buffer and by the spawn records
- * the CPU uploads.
+ * the CPU uploads (which have one more vec4 in front: the target slot).
  */
 export const GPU_SLOT = {
     /** position.xyz, age */
@@ -16,7 +16,7 @@ export const GPU_SLOT = {
     SIZE_ROTATION: 3,
     /** startColor.rgba */
     START_COLOR: 4,
-    /** startSize.xyz, target slot (spawn records only) */
+    /** startSize.xyz, index of the particle's system in its batch */
     START_SIZE: 5,
     /** seed, startSpeed, speedModifier, uvTile */
     MISC: 6,
@@ -50,21 +50,20 @@ export function createGPUParticleLayout(options: {mesh: boolean; noise: boolean}
 export const GPU_SEED_RANGE = 1 << 24;
 
 /**
- * Writes the spawn record of a freshly spawned particle (after the emitter shape and every behavior's `initialize()`).
- * @param array float array of records
- * @param index record index
- * @param slot target slot in the state buffer
+ * Writes the GPU record of a freshly spawned particle (after the emitter shape and every behavior's `initialize()`).
+ * @param array float array
+ * @param o float offset of the record
+ * @param systemIndex index of the particle's system in its batch
  * @param seed per-particle random seed, integer in `[0, 2^24)`
  */
 export function writeSpawnRecord(
     array: Float32Array,
-    index: number,
+    o: number,
     layout: GPUParticleLayout,
     particle: Particle,
-    slot: number,
+    systemIndex: number,
     seed: number
 ) {
-    const o = index * layout.stride * 4;
     const sprite = particle as SpriteParticle;
     const p = particle.position;
     const v = particle.velocity;
@@ -97,7 +96,7 @@ export function writeSpawnRecord(
     array[o + 20] = ss.x;
     array[o + 21] = ss.y;
     array[o + 22] = ss.z;
-    array[o + 23] = slot;
+    array[o + 23] = systemIndex;
     array[o + 24] = seed;
     array[o + 25] = particle.startSpeed ?? 0;
     array[o + 26] = particle.speedModifier ?? 1;

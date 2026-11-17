@@ -8,18 +8,22 @@ import {GPUParticleBatch} from './gpu/GPUParticleBatch';
 import {
     estimateParticleCount,
     getGPUSimulationSupport,
-    GPUParticleSimulation,
+    GPUParticleBatchSimulation,
     GPUSimulatedSystem,
     GPUSimulationHost,
+    usesNoiseState,
 } from './gpu/GPUParticleSimulation';
 
 /**
  * Where particles are simulated.
  * - `'off'` (default): on the CPU, like the WebGL renderer.
- * - `'auto'`: large systems (at least `gpuSimulationThreshold` live particles estimated from emission rate, lifetime
+ * - `'auto'`: systems with at least `gpuSimulationThreshold` live particles (estimated from emission rate, lifetime
  *   and bursts) whose behaviors all have a GPU version are simulated by compute shaders (see
- *   {@link GPUParticleSimulation}); small systems stay on the CPU, where many of them share one draw call.
+ *   {@link GPUParticleBatchSimulation}); tiny systems stay on the CPU, where they are slightly cheaper.
  * - `'all'`: every system whose behaviors all have a GPU version.
+ *
+ * GPU simulated systems are batched like CPU ones: systems with equal renderer settings share one buffer and one draw
+ * call, and systems with the same kind of behaviors also share one compute kernel.
  *
  * GPU simulation needs the `renderer` and its WebGPU backend; anything else falls back to the CPU.
  */
@@ -34,9 +38,9 @@ export interface WebGPUBatchedRendererOptions extends QuarksPerformanceProfileOp
     /** where particles are simulated, default `'off'` */
     gpuSimulation?: GPUSimulationMode;
     /**
-     * `'auto'` mode: minimum estimated number of live particles for a system to be simulated on the GPU,
-     * default 512. Each GPU simulated system has its own draw call and compute dispatch, which only pays off for
-     * systems with many particles.
+     * `'auto'` mode: minimum estimated number of live particles for a system to be simulated on the GPU, default 128.
+     * Below that the per-system CPU work of the GPU path (parameters, emitter transform) costs about as much as
+     * simulating the particles on the CPU.
      */
     gpuSimulationThreshold?: number;
 }
@@ -76,7 +80,7 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
     /** the `WebGPURenderer` used to dispatch the GPU simulation */
     renderer: any;
 
-    private queued_: GPUParticleSimulation[] = [];
+    private queued_: GPUParticleBatchSimulation[] = [];
     private gpuUnavailable_ = false;
 
     constructor(options: WebGPUBatchedRendererOptions = {}) {
@@ -84,7 +88,7 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         this.profile = createPerformanceProfile(options);
         this.renderer = options.renderer ?? null;
         this.gpuSimulation = options.gpuSimulation ?? 'off';
-        this.gpuSimulationThreshold = options.gpuSimulationThreshold ?? 512;
+        this.gpuSimulationThreshold = options.gpuSimulationThreshold ?? 128;
     }
 
     protected createBatch(settings: VFXBatchSettings): VFXBatch {
@@ -149,19 +153,62 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         return !!backend && backend.isWebGPUBackend === true;
     }
 
+    /** The particle layout a GPU simulated system needs. */
+    private layoutOf(system: GPUSimulatedSystem) {
+        return {mesh: system.rendererSettings.renderMode === RenderMode.Mesh, noise: usesNoiseState(system)};
+    }
+
+    /** A GPU batch that can take `system` (equal renderer settings, same particle layout), if any. */
+    private findGPUBatch(system: GPUSimulatedSystem): GPUParticleBatch | null {
+        const settings = system.getRendererSettings();
+        const layout = this.layoutOf(system);
+        for (const batch of this.batches) {
+            const gpu = batch as GPUParticleBatch;
+            if (
+                gpu.isGPUParticleBatch &&
+                BaseBatchedRenderer.equals(gpu.settings, settings) &&
+                gpu.simulation.layout.mesh === layout.mesh &&
+                gpu.simulation.layout.noise >= 0 === layout.noise
+            ) {
+                return gpu;
+            }
+        }
+        return null;
+    }
+
+    /** A GPU batch for `system`: an existing one with equal settings, or a new one. */
+    private gpuBatchFor(system: GPUSimulatedSystem): GPUParticleBatch {
+        const existing = this.findGPUBatch(system);
+        if (existing) return existing;
+        const batch = new GPUParticleBatch(system.getRendererSettings(), this, this.layoutOf(system), this.profile, this);
+        if (this.depthTexture) batch.applyDepthTexture(this.depthTexture);
+        this.batches.push(batch);
+        this.add(batch);
+        return batch;
+    }
+
+    /** Removes an empty GPU batch and shifts the indices of the batches after it. */
+    private removeBatch(batch: VFXBatch) {
+        const index = this.batches.indexOf(batch);
+        if (index === -1) return;
+        this.batches.splice(index, 1);
+        this.systemToBatchIndex.forEach((value, key) => {
+            if (value > index) this.systemToBatchIndex.set(key, value - 1);
+        });
+        this.queued_ = this.queued_.filter((simulation) => simulation !== (batch as GPUParticleBatch).simulation);
+        this.remove(batch);
+        batch.dispose();
+    }
+
     addSystem(system: IParticleSystem) {
         if (this.getGPUSimulationSupport(system) !== null) {
             super.addSystem(system);
             return;
         }
         (system as any)._renderer = this;
-        const settings = (system as unknown as GPUSimulatedSystem).getRendererSettings();
-        const batch = new GPUParticleBatch(settings, this, this.profile, this);
-        if (this.depthTexture) batch.applyDepthTexture(this.depthTexture);
+        const batch = this.gpuBatchFor(system as unknown as GPUSimulatedSystem);
         batch.addSystem(system);
-        this.batches.push(batch);
-        this.systemToBatchIndex.set(system, this.batches.length - 1);
-        this.add(batch);
+        this.systemToBatchIndex.set(system, this.batches.indexOf(batch));
     }
 
     deleteSystem(system: IParticleSystem) {
@@ -172,64 +219,69 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
             super.deleteSystem(system);
             return;
         }
-        // a GPU batch belongs to one system: remove it and shift the indices of the batches after it
+        batch.removeSystem(system);
         this.systemToBatchIndex.delete(system);
-        this.batches.splice(index, 1);
-        this.systemToBatchIndex.forEach((value, key) => {
-            if (value > index) this.systemToBatchIndex.set(key, value - 1);
-        });
-        this.queued_ = this.queued_.filter((simulation) => simulation !== (batch as GPUParticleBatch).simulation);
-        this.remove(batch);
-        batch.dispose();
+        if (batch.systems.size === 0) this.removeBatch(batch);
     }
 
     /**
-     * Moves a system to a batch matching its changed renderer settings. GPU simulated systems keep their particles
-     * when the new settings still fit their simulation.
+     * Moves a system to the batch matching its (changed) renderer settings. A GPU simulated system that stays on the
+     * GPU keeps its particles: it stays in its batch when the settings still match, or its particles are copied on
+     * the GPU into the new batch.
      */
     updateSystem(system: IParticleSystem) {
         const index = this.systemToBatchIndex.get(system);
         const batch = index !== undefined ? (this.batches[index] as GPUParticleBatch) : null;
-        const simulation = batch && batch.isGPUParticleBatch ? batch.simulation : null;
         const particleSystem = system as unknown as GPUSimulatedSystem;
-        if (
-            simulation &&
-            simulation.invalidReason === null &&
-            this.getGPUSimulationSupport(system) === null &&
-            simulation.isCompatible(particleSystem)
-        ) {
-            batch!.detachSimulation();
-            const replacement = new GPUParticleBatch(particleSystem.getRendererSettings(), this, this.profile, this);
-            if (this.depthTexture) replacement.applyDepthTexture(this.depthTexture);
-            replacement.addSystem(system, simulation);
-            this.batches[index!] = replacement;
-            this.remove(batch!);
-            batch!.dispose();
-            this.add(replacement);
-            return;
+        const member = batch && batch.isGPUParticleBatch ? batch.memberOf(system) : undefined;
+        if (member && member.invalidReason === null && this.getGPUSimulationSupport(system) === null) {
+            const layout = this.layoutOf(particleSystem);
+            const sameLayout = (target: GPUParticleBatch) =>
+                target.simulation.layout.mesh === layout.mesh && target.simulation.layout.noise >= 0 === layout.noise;
+            if (BaseBatchedRenderer.equals(batch!.settings, particleSystem.getRendererSettings()) && sameLayout(batch!)) {
+                return;
+            }
+            if (sameLayout(batch!)) {
+                const target = this.gpuBatchFor(particleSystem);
+                target.adoptSystem(system, batch!);
+                this.systemToBatchIndex.set(system, this.batches.indexOf(target));
+                if (batch!.systems.size === 0) this.removeBatch(batch!);
+                return;
+            }
         }
-        super.updateSystem(system);
+        this.deleteSystem(system);
+        this.addSystem(system);
     }
 
     /** @internal {@link GPUSimulationHost} */
-    enqueue(simulation: GPUParticleSimulation) {
-        this.queued_.push(simulation);
+    enqueue(batch: GPUParticleBatchSimulation) {
+        this.queued_.push(batch);
     }
 
     /**
-     * Dispatches the queued GPU simulation work (all systems in one compute pass). Called by {@link update};
-     * call it yourself only if you step particle systems without `update()`.
+     * Dispatches the queued GPU simulation work of all batches in one compute call. Called by {@link update}; call
+     * it yourself only if you step particle systems without `update()`.
      */
     flush() {
         if (this.queued_.length === 0) return;
         const queued = this.queued_;
         this.queued_ = [];
         const nodes: any[] = [];
-        for (const simulation of queued) nodes.push(...simulation.takePending());
+        for (const batch of queued) nodes.push(...batch.takePending());
         const renderer = this.renderer;
         // compute work before the backend is ready is dropped: those particles are not drawn
-        if (nodes.length === 0 || !renderer || (renderer.hasInitialized && !renderer.hasInitialized())) return;
-        renderer.compute(nodes);
+        if (nodes.length > 0 && renderer && !(renderer.hasInitialized && !renderer.hasInitialized())) {
+            renderer.compute(nodes);
+        }
+        for (const batch of queued) batch.afterDispatch();
+    }
+
+    /** @internal {@link GPUSimulationHost} */
+    dispatch(nodes: any[]) {
+        const renderer = this.renderer;
+        if (nodes.length > 0 && renderer && !(renderer.hasInitialized && !renderer.hasInitialized())) {
+            renderer.compute(nodes);
+        }
     }
 
     /**
@@ -250,9 +302,11 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         }
         let invalid: IParticleSystem[] | null = null;
         for (const batch of this.batches) {
-            const simulation = (batch as GPUParticleBatch).simulation;
-            if (simulation && (simulation.invalidReason !== null || this.gpuUnavailable_)) {
-                (invalid ??= []).push(simulation.system as unknown as IParticleSystem);
+            if (!(batch as GPUParticleBatch).isGPUParticleBatch) continue;
+            for (const member of (batch as GPUParticleBatch).simulation.members) {
+                if (member.invalidReason !== null || this.gpuUnavailable_) {
+                    (invalid ??= []).push(member.system as unknown as IParticleSystem);
+                }
             }
         }
         if (invalid) for (const system of invalid) this.updateSystem(system);
@@ -292,20 +346,22 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
      * rebuild their material.
      */
     rebuildBatches() {
-        const kept: VFXBatch[] = [];
+        const kept = new Set<VFXBatch>();
         const cpuSystems: IParticleSystem[] = [];
         this.systemToBatchIndex.forEach((index, system) => {
             const batch = this.batches[index];
             if ((batch as any).isGPUParticleBatch) {
-                (batch as GPUParticleBatch).profile = this.profile;
-                batch.rebuildMaterial();
-                kept.push(batch);
+                kept.add(batch);
             } else {
                 cpuSystems.push(system);
             }
         });
+        for (const batch of kept) {
+            (batch as GPUParticleBatch).profile = this.profile;
+            batch.rebuildMaterial();
+        }
         for (const batch of this.batches) {
-            if (kept.includes(batch)) continue;
+            if (kept.has(batch)) continue;
             this.remove(batch);
             batch.dispose();
         }
@@ -313,7 +369,7 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         this.systemToBatchIndex.clear();
         for (const batch of kept) {
             this.batches.push(batch);
-            this.systemToBatchIndex.set(Array.from(batch.systems)[0], this.batches.length - 1);
+            for (const system of batch.systems) this.systemToBatchIndex.set(system, this.batches.length - 1);
         }
         for (const system of cpuSystems) {
             super.addSystem(system);

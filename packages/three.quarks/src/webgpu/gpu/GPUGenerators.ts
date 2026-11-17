@@ -129,6 +129,7 @@ function compilePiecewiseBezier(ctx: GPUCompileContext, gen: PiecewiseBezier, t:
  * A `ValueGenerator` / `FunctionValueGenerator` evaluated at `t` (normalized age or speed).
  */
 export function compileValue(ctx: GPUCompileContext, gen: unknown, t: N): N {
+    ctx.token((gen as any)?.constructor?.name ?? 'none');
     if (gen instanceof ConstantValue) {
         return ctx.float(() => gen.value);
     }
@@ -155,6 +156,7 @@ export function canCompileVector3(gen: unknown): boolean {
 }
 
 export function compileVector3(ctx: GPUCompileContext, gen: Vector3Function, t: N): N {
+    ctx.token('Vector3Function');
     return vec3(compileValue(ctx, gen.x, t), compileValue(ctx, gen.y, t), compileValue(ctx, gen.z, t));
 }
 
@@ -215,6 +217,7 @@ function compileGradient(ctx: GPUCompileContext, gen: Gradient, t: N): N {
  * A `ColorGenerator` / `FunctionColorGenerator` evaluated at `t`, as vec4.
  */
 export function compileColor(ctx: GPUCompileContext, gen: unknown, t: N): N {
+    ctx.token((gen as any)?.constructor?.name ?? 'none');
     if (gen instanceof ConstantColor) {
         return ctx.vec4(() => gen.color);
     }
@@ -259,6 +262,7 @@ export function canCompileRotation(gen: unknown): boolean {
  * A `RotationGenerator` evaluated for one step (`delta` seconds) at `t`, as a quaternion.
  */
 export function compileRotation(ctx: GPUCompileContext, gen: unknown, delta: N, t: N): N {
+    ctx.token((gen as any)?.constructor?.name ?? 'none');
     if (gen instanceof AxisAngleGenerator) {
         return quatFromAxisAngle(
             ctx.vec3(() => gen.axis),

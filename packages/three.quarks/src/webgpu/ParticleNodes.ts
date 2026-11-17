@@ -84,7 +84,7 @@ export function rotateByQuaternion(q: N, v: N): N {
  * Where a particle material reads the per-particle values from.
  *
  * The default source is the batch's per-instance attributes (CPU simulation, {@link attributeFields}). GPU simulated
- * systems read the simulation's storage buffer instead (`GPUParticleSimulation.createRenderFields()`); those values
+ * systems read the simulation's storage buffer instead (`GPUParticleBatchSimulation.createRenderFields()`); those values
  * must be wrapped in `vertexStage()` where the fragment stage uses them (`color`, `uvTile`).
  */
 export interface ParticleFields {

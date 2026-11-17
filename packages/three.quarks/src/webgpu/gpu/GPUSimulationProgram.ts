@@ -90,7 +90,7 @@ export function createBehaviorProgram(system: ParticleSystem): GPUSimulationProg
             return estimate;
         },
         watch(ctx) {
-            // the behavior list and every behavior are part of the generated code
+            // the behavior list and every behavior (by class) are part of the generated code
             ctx.watch(() => system.behaviors.length);
             system.behaviors.forEach((_, i) => ctx.watch(() => system.behaviors[i]));
         },

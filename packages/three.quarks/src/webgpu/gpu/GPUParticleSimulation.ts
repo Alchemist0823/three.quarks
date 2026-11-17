@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {Matrix4, Quaternion, Vector3, Vector4} from 'three';
-import {StorageBufferAttribute} from 'three/webgpu';
+import {Matrix4, Quaternion, Vector3} from 'three';
+import {StackNode, StorageBufferAttribute} from 'three/webgpu';
 import * as TSL from 'three/tsl';
 import {RenderMode} from 'three.quarks';
 import type {
@@ -13,33 +13,16 @@ import type {
 import type {ParticleFields} from '../ParticleNodes';
 import {GPUCompileContext} from './GPUCompileContext';
 import type {GPUParticleState} from './GPUBehaviors';
-import {createGPUSimulationProgram, GPUSimulationProgram} from './GPUSimulationProgram';
 import {quatMul} from './GPUGenerators';
 import {createGPUParticleLayout, GPU_SEED_RANGE, GPU_SLOT, GPUParticleLayout, writeSpawnRecord} from './GPUParticleLayout';
-import {GPUSlotAllocator} from './GPUSlotAllocator';
+import {GPUDeathQueue, GPUSlotPool} from './GPUSlotAllocator';
+import {createGPUSimulationProgram, GPUSimulationProgram} from './GPUSimulationProgram';
 
 // untyped TSL: the generated graphs mix node types the typings cannot follow
-const {Fn, If, instanceIndex, select, storage, uniform, vec3, vec4, vertexStage} = TSL as any;
+const {Fn, If, float, getCurrentStack, instanceIndex, select, setCurrentStack, storage, uint, uniform, vec3, vec4, vertexStage} =
+    TSL as any;
 
 type N = any;
-
-/**
- * Collects the compute work of the GPU simulated systems and dispatches it (implemented by `WebGPUBatchedRenderer`).
- */
-export interface GPUSimulationHost {
-    /** a simulation has compute work queued for the next dispatch */
-    enqueue(simulation: GPUParticleSimulation): void;
-    /** dispatches all queued compute work now */
-    flush(): void;
-}
-
-const SPRITE_MODES = new Set([
-    RenderMode.BillBoard,
-    RenderMode.StretchedBillBoard,
-    RenderMode.HorizontalBillBoard,
-    RenderMode.VerticalBillBoard,
-    RenderMode.Mesh,
-]);
 
 /**
  * What a GPU simulation needs from a particle system (`ParticleSystem`, or another system type with a registered
@@ -58,6 +41,26 @@ export interface GPUSimulatedSystem {
     rendererEmitterSettings: unknown;
     getRendererSettings(): VFXBatchSettings;
 }
+
+/**
+ * Collects the compute work of the GPU simulation and dispatches it (implemented by `WebGPUBatchedRenderer`).
+ */
+export interface GPUSimulationHost {
+    /** a batch has compute work queued for the next dispatch */
+    enqueue(batch: GPUParticleBatchSimulation): void;
+    /** dispatches all queued compute work now */
+    flush(): void;
+    /** dispatches `nodes` right away (call {@link flush} first) */
+    dispatch(nodes: N[]): void;
+}
+
+const SPRITE_MODES = new Set([
+    RenderMode.BillBoard,
+    RenderMode.StretchedBillBoard,
+    RenderMode.HorizontalBillBoard,
+    RenderMode.VerticalBillBoard,
+    RenderMode.Mesh,
+]);
 
 /**
  * Whether a particle system can be simulated on the GPU.
@@ -97,229 +100,548 @@ export function estimateParticleCount(system: GPUSimulatedSystem): number | null
 }
 
 /**
- * Initial number of particle slots: {@link estimateParticleCount} with some headroom, rounded up to a power of two.
- * The buffer grows when this is not enough (emission over distance, generators with no known bound).
+ * Particle slots for a system: {@link estimateParticleCount} with some headroom, rounded up to a power of two.
+ * Buffers grow when this is not enough (emission over distance, generators with no known bound).
  */
 export function estimateGPUCapacity(system: GPUSimulatedSystem): number {
     const estimate = estimateParticleCount(system);
     const slots = estimate === null ? 1024 : estimate * 1.25 + 64;
-    return Math.min(1 << 22, Math.max(256, nextPowerOfTwo(slots)));
+    return Math.min(1 << 22, Math.max(64, nextPowerOfTwo(slots)));
 }
 
-const IDENTITY = new Matrix4();
+/** Whether a system's particles need the Noise slot of the particle layout. */
+export function usesNoiseState(system: GPUSimulatedSystem): boolean {
+    const program = createGPUSimulationProgram(system);
+    return !!program && program.usesNoiseState();
+}
+
+/**
+ * vec4 per system in the systems buffer of a batch:
+ * 0-3 emitter matrix columns, 4 emitter scale (xyz), 5 emitter rotation (quaternion),
+ * 6 (step delta, stepped flag, parameter row offset, compute group), 7 (speed factor, length factor, visible flag)
+ */
+export const GPU_SYSTEM_STRIDE = 8;
+const CONTROL = 6;
+const RENDER = 7;
+
 const tempPosition = new Vector3();
 const tempRotation = new Quaternion();
 const tempScale = new Vector3();
+const IDENTITY = new Matrix4();
+
+/** Systems of a batch that share one update kernel (their code has the same shape). */
+export interface GPUComputeGroup {
+    id: number;
+    signature: string;
+    members: Set<GPUSimulationMember>;
+    node: N | null;
+}
 
 /**
- * Hybrid GPU simulation of one particle system (`ParticleSimulationDelegate`).
- *
- * The CPU keeps emitting particles exactly like before (shapes, start values, `initialize()` of every behavior) and
- * uploads only the particles spawned in a step (112-160 bytes each) instead of every live particle every frame. A TSL
- * compute kernel generated from the system's {@link GPUSimulationProgram} (a `ParticleSystem`'s behaviors, a
- * `NodeVFX`'s update graph) updates all particles in a storage buffer, and the system's batch draws straight from it.
- *
- * Per step:
- * 1. spawned particles get the lowest free slots ({@link GPUSlotAllocator}) and are packed into the spawn buffer;
- * 2. the spawn kernel scatters them into their slots;
- * 3. the update kernel runs the behaviors on slots `[0, highWater)`, integrates and ages them;
- * 4. the batch draws `highWater` instances; dead slots collapse to zero size.
- *
- * Nothing is read back from the GPU: lifetimes are known at spawn, so the CPU frees slots on its own.
+ * A system of a {@link GPUParticleBatchSimulation}: its {@link ParticleSimulationDelegate}, the lifetimes of its
+ * particles and its parameter row.
  */
-export class GPUParticleSimulation implements ParticleSimulationDelegate {
-    readonly layout: GPUParticleLayout;
-    readonly allocator: GPUSlotAllocator;
-    /** particle records, `capacity * layout.stride` vec4 */
-    state!: StorageBufferAttribute;
-    /** incremented when {@link state} is replaced (growth); materials reading it are rebuilt */
-    generation = 0;
-    /**
-     * Set when an edit invalidated this simulation (a behavior with no GPU version, a change of the particle
-     * layout). The host then re-adds the system, which picks the CPU or a new GPU simulation.
-     */
+export class GPUSimulationMember implements ParticleSimulationDelegate {
+    /** death times of the system's particles, on the system's own clock */
+    readonly deaths = new GPUDeathQueue();
+    /** recorded parameters, watches and code signature of the system's program */
+    context!: GPUCompileContext;
+    /** compute group (systems whose code has the same shape) */
+    group: GPUComputeGroup | null = null;
+    /** first float of the system's row in the parameter buffer */
+    parameterBase = 0;
+    /** stepped since the last dispatch */
+    stepped = false;
+    /** set when an edit invalidated the simulation; the host re-adds the system */
     invalidReason: string | null = null;
 
-    // per-system render transform (identity for world space systems)
-    readonly emitterMatrix: N = uniform(new Matrix4());
-    readonly emitterScale: N = uniform(new Vector3(1, 1, 1));
-    readonly emitterRotation: N = uniform(new Vector4(0, 0, 0, 1));
-    readonly speedFactor: N = uniform(0);
-    readonly lengthFactor: N = uniform(0);
+    constructor(
+        readonly batch: GPUParticleBatchSimulation,
+        readonly system: GPUSimulatedSystem,
+        public index: number,
+        readonly program: GPUSimulationProgram
+    ) {}
 
-    private stateNode_: N = null;
+    /** number of live particles */
+    get liveCount(): number {
+        return this.deaths.size;
+    }
+
+    step(system: GPUSimulatedSystem, spawnCount: number, delta: number): number {
+        void system;
+        return this.batch.stepMember(this, spawnCount, delta);
+    }
+
+    clear() {
+        this.batch.clearMember(this);
+    }
+}
+
+/**
+ * Hybrid GPU simulation of the particle systems of one batch.
+ *
+ * Systems with equal renderer settings share one particle buffer, one draw call (`GPUParticleBatch`) and, when their
+ * update code has the same shape, one compute kernel; each particle record holds the index of its system. Per-system
+ * values (emitter transform, step delta, curve keys, force magnitudes, ...) live in a systems buffer and a parameter
+ * buffer, so systems that differ only in values (e.g. instances of one effect) run the same kernel.
+ *
+ * The CPU keeps emitting particles exactly like before (shapes, start values, `initialize()` of every behavior) and
+ * uploads only the particles spawned in a step. Per dispatch:
+ * 1. spawned particles get the lowest free slots of the batch ({@link GPUSlotPool}) and their records are uploaded;
+ * 2. the spawn kernel scatters them into their slots;
+ * 3. one update kernel per compute group runs the program of each particle's system on slots `[0, highWater)`,
+ *    integrates and ages the particles of the systems that stepped;
+ * 4. the batch draws `highWater` instances; dead slots collapse to zero size.
+ *
+ * Nothing is read back from the GPU: lifetimes are known at spawn, so each system frees its slots on its own clock.
+ */
+export class GPUParticleBatchSimulation {
+    readonly layout: GPUParticleLayout;
+    readonly pool: GPUSlotPool;
+    /** particle records, `capacity * layout.stride` vec4 */
+    state!: StorageBufferAttribute;
+    /** per-system values, {@link GPU_SYSTEM_STRIDE} vec4 per system */
+    systems!: StorageBufferAttribute;
+    /** incremented when {@link state} or {@link systems} is replaced; materials reading them are rebuilt */
+    generation = 0;
+    readonly members: GPUSimulationMember[] = [];
+    /** shared step counter (per-step random values) */
+    readonly frame: N = uniform(0);
+
+    private memberSlots_ = 0;
+    private freeIndices_: number[] = [];
+    private releasedIndices_: number[] = [];
+    private releasedSlots_: number[] = [];
+    private systemsData_!: Float32Array;
+    private systemCapacity_ = 0;
+    private params_!: StorageBufferAttribute;
+    private paramsData_!: Float32Array;
+    private paramCapacity_ = 0;
+    private parameterSize_ = 0;
     private staging_!: StorageBufferAttribute;
+    private stagingData_!: Float32Array;
     private stagingCapacity_ = 0;
+    private stagingCount_ = 0;
+    private readonly groups_ = new Map<string, GPUComputeGroup>();
+    private nextGroupId_ = 0;
+    private stateNode_: N = null;
     private spawnNode_: N = null;
-    private updateNode_: N = null;
-    private clearNode_: N = null;
-    private ctx_!: GPUCompileContext;
-    private worldSpace_: boolean;
     private pending_: N[] = [];
-    private queued_ = false;
-    private needsClear_ = false;
-    private disposed_ = false;
-    /** one-shot kernels to dispose once they were dispatched */
     private retired_: N[] = [];
-
-    /** the per-particle update of the system */
-    readonly program: GPUSimulationProgram;
+    private queued_ = false;
+    /** the buffers update kernels read (state / systems / parameters) were replaced: rebuild every kernel */
+    private kernelsDirty_ = true;
+    /** the spawn buffer was replaced: rebuild the spawn kernel */
+    private spawnDirty_ = true;
+    private disposed_ = false;
 
     constructor(
-        readonly system: GPUSimulatedSystem,
+        layoutOptions: {mesh: boolean; noise: boolean},
         private readonly host: GPUSimulationHost,
-        capacity: number = estimateGPUCapacity(system)
+        capacity = 1024
     ) {
-        const program = createGPUSimulationProgram(system);
-        if (!program) throw new Error('GPUParticleSimulation: no GPU simulation program for this particle system');
-        this.program = program;
-        const noise = program.usesNoiseState();
-        this.layout = createGPUParticleLayout({mesh: system.rendererSettings.renderMode === RenderMode.Mesh, noise});
-        this.worldSpace_ = system.worldSpace;
-        this.allocator = new GPUSlotAllocator(nextPowerOfTwo(capacity));
-        this.state = this.createState(this.allocator.capacity);
+        this.layout = createGPUParticleLayout(layoutOptions);
+        this.pool = new GPUSlotPool(nextPowerOfTwo(capacity));
+        this.state = this.createState(this.pool.capacity);
+        this.resizeSystems(16);
+        this.resizeParameters(256);
         this.resizeStaging(64);
-        this.buildKernels();
     }
 
     /** number of slots */
     get capacity(): number {
-        return this.allocator.capacity;
+        return this.pool.capacity;
     }
 
     /** slots `[0, highWater)` hold every live particle: the draw's instance count */
     get highWater(): number {
-        return this.allocator.highWater;
+        return this.pool.highWater;
     }
 
-    // ---- ParticleSimulationDelegate ------------------------------------------------------------------------
-
-    step(system: GPUSimulatedSystem, spawnCount: number, delta: number): number {
-        if (this.disposed_ || this.invalidReason !== null) return this.allocator.liveCount;
-        // a second step before the frame's dispatch (prewarm): run the queued step first
-        if (this.queued_) this.host.flush();
-        for (const node of this.retired_) node.dispose();
-        this.retired_.length = 0;
-
-        if (system.worldSpace !== this.worldSpace_ || this.ctx_.isStale()) {
-            const reason = getGPUSimulationSupport(system) ?? (this.layoutChanged(system) ? 'particle layout changed' : null);
-            if (reason !== null) {
-                this.invalidReason = reason;
-                return this.allocator.liveCount;
-            }
-            this.worldSpace_ = system.worldSpace;
-            this.buildKernels();
-        }
-
-        if (this.needsClear_) {
-            this.needsClear_ = false;
-            this.pending_.push(this.clearNode_);
-        }
-
-        // 1. slots and spawn records
-        if (spawnCount > this.stagingCapacity_) this.resizeStaging(spawnCount);
-        const records = this.staging_.array as Float32Array;
-        const particles = system.particles;
-        for (let i = 0; i < spawnCount; i++) {
-            const particle = particles[i];
-            // particles handed over from the CPU simulation keep their age
-            const remaining = particle.life - particle.age;
-            let slot = this.allocator.allocate(remaining);
-            if (slot < 0) {
-                this.grow(this.allocator.capacity * 2);
-                slot = this.allocator.allocate(remaining);
-            }
-            writeSpawnRecord(records, i, this.layout, particle, slot, Math.floor(Math.random() * GPU_SEED_RANGE));
-        }
-        if (spawnCount > 0) {
-            this.staging_.clearUpdateRanges();
-            this.staging_.addUpdateRange(0, spawnCount * this.layout.stride * 4);
-            this.staging_.needsUpdate = true;
-            this.spawnNode_.count = spawnCount;
-            this.pending_.push(this.spawnNode_);
-        }
-
-        // 2. clock and deaths
-        this.allocator.advance(delta);
-
-        // 3. update kernel
-        const ctx = this.ctx_;
-        ctx.delta.value = delta;
-        ctx.frame.value = (ctx.frame.value + 1) % GPU_SEED_RANGE;
-        ctx.sync();
-        const highWater = this.allocator.highWater;
-        if (highWater > 0) {
-            this.updateNode_.count = highWater;
-            this.pending_.push(this.updateNode_);
-        }
-
-        if (this.pending_.length > 0) {
-            this.queued_ = true;
-            this.host.enqueue(this);
-        }
-        return this.allocator.liveCount;
+    /** number of update kernels (groups of systems with differently shaped code) */
+    get groupCount(): number {
+        return this.groups_.size;
     }
 
-    clear() {
-        this.allocator.clear();
-        this.needsClear_ = true;
+    /** The member of `system`, if it is simulated here. */
+    memberOf(system: unknown): GPUSimulationMember | undefined {
+        return this.members.find((member) => member.system === system);
     }
 
-    /** Compute nodes queued since the last dispatch (in order); clears the queue. */
-    takePending(): N[] {
-        const nodes = this.pending_;
-        this.pending_ = [];
-        this.queued_ = false;
-        return nodes;
+    /** Whether a system's particles fit this batch's particle layout. */
+    fits(system: GPUSimulatedSystem): boolean {
+        const mesh = system.rendererSettings.renderMode === RenderMode.Mesh;
+        return mesh === this.layout.mesh && usesNoiseState(system) === this.layout.noise >= 0;
     }
 
-    /** Refreshes the render transform from the emitter (call after the system's update, before rendering). */
-    updateRenderUniforms() {
-        const system = this.system;
-        const matrix = this.emitterMatrix.value as Matrix4;
-        if (system.worldSpace) {
-            matrix.copy(IDENTITY);
-            (this.emitterScale.value as Vector3).set(1, 1, 1);
-            (this.emitterRotation.value as Vector4).set(0, 0, 0, 1);
-        } else {
-            const emitter = system.emitter as any;
-            if (emitter.updateWorldMatrix) emitter.updateWorldMatrix(true, false);
-            matrix.copy(emitter.matrixWorld);
-            matrix.decompose(tempPosition, tempRotation, tempScale);
-            (this.emitterScale.value as Vector3).set(Math.abs(tempScale.x), Math.abs(tempScale.y), Math.abs(tempScale.z));
-            (this.emitterRotation.value as Vector4).set(tempRotation.x, tempRotation.y, tempRotation.z, tempRotation.w);
-        }
-        if (system.rendererSettings.renderMode === RenderMode.StretchedBillBoard) {
-            const settings = system.rendererEmitterSettings as StretchedBillBoardSettings;
-            this.speedFactor.value = settings.speedFactor === 0 ? 0.001 : settings.speedFactor;
-            this.lengthFactor.value = settings.lengthFactor;
-        }
+    // ---- membership ---------------------------------------------------------------------------------------
+
+    /** Adds a system (with no particles yet) and returns its member. */
+    addSystem(system: GPUSimulatedSystem): GPUSimulationMember {
+        const program = createGPUSimulationProgram(system);
+        if (!program) throw new Error('GPUParticleBatchSimulation: no GPU simulation program for this particle system');
+        const index = this.freeIndices_.length > 0 ? this.freeIndices_.pop()! : this.memberSlots_++;
+        if (index >= this.systemCapacity_) this.resizeSystems(this.systemCapacity_ * 2);
+        const member = new GPUSimulationMember(this, system, index, program);
+        this.members.push(member);
+        // grow ahead for the expected particles of the system
+        const wanted = this.pool.usedCount + estimateGPUCapacity(system);
+        if (wanted > this.pool.capacity) this.grow(nextPowerOfTwo(wanted));
+        this.record(member);
+        this.layoutParameters();
+        return member;
+    }
+
+    /** Removes a system; its particles disappear with the next dispatch. */
+    removeSystem(member: GPUSimulationMember) {
+        const at = this.members.indexOf(member);
+        if (at === -1) return;
+        this.killParticles(member);
+        this.members.splice(at, 1);
+        const control = (member.index * GPU_SYSTEM_STRIDE + CONTROL) * 4;
+        this.systemsData_.fill(0, control, control + 4);
+        this.releasedIndices_.push(member.index);
+        this.setGroup(member, null);
+        this.layoutParameters();
+        this.enqueue();
     }
 
     /**
-     * Per-particle values for the batch's material, read from {@link state} by instance index.
-     * Rebuild the material when {@link generation} changes.
+     * Moves `member`'s live particles into `target` (same particle layout) as a new member there, then removes it
+     * here. Used when a system's renderer settings move it to another batch.
+     */
+    transferTo(member: GPUSimulationMember, target: GPUParticleBatchSimulation): GPUSimulationMember {
+        const system = member.system;
+        const count = member.liveCount;
+        // the target buffer must not grow (a pending copy) after the transfer writes it
+        if (target.pool.freeCount < count) target.grow(nextPowerOfTwo(target.pool.usedCount + count));
+        const moved = target.addSystem(system);
+        this.host.flush();
+        if (count > 0) {
+            const pairs = new Float32Array(count * 2);
+            let n = 0;
+            member.deaths.forEach((slot, remaining) => {
+                const destination = target.pool.allocate();
+                moved.deaths.push(remaining, destination);
+                pairs[n++] = slot;
+                pairs[n++] = destination;
+            });
+            const map = (storage as any)(new StorageBufferAttribute(pairs, 2), 'vec2', count).toReadOnly();
+            const source = (storage as any)(this.state, 'vec4', this.state.count).toReadOnly();
+            const destinationState = (storage as any)(target.state, 'vec4', target.state.count);
+            const S = this.layout.stride;
+            const index = moved.index;
+            const transfer = Fn(() => {
+                const pair = map.element(instanceIndex);
+                const from = pair.x.toUint().mul(S).toVar();
+                const to = pair.y.toUint().mul(S).toVar();
+                for (let k = 0; k < S; k++) {
+                    const value = source.element(from.add(k));
+                    destinationState
+                        .element(to.add(k))
+                        .assign(k === GPU_SLOT.START_SIZE ? vec4(value.xyz, float(index)) : value);
+                }
+            })().compute(count);
+            this.host.dispatch([transfer]);
+            transfer.dispose();
+        }
+        this.removeSystem(member);
+        return moved;
+    }
+
+    // ---- recording ----------------------------------------------------------------------------------------
+
+    /**
+     * Runs the system's program in a recording context (a throwaway TSL stack): parameter layout and getters,
+     * structural watches and the code signature. The update kernel later generates the same code for its group.
+     */
+    private record(member: GPUSimulationMember) {
+        const system = member.system;
+        const ctx = new GPUCompileContext(system.worldSpace, null, this.frame);
+        member.program.watch(ctx);
+        ctx.watch(() => system.rendererSettings.renderMode);
+        const previous = getCurrentStack();
+        setCurrentStack(new (StackNode as any)());
+        try {
+            member.program.compile(ctx, this.recordingState());
+        } finally {
+            setCurrentStack(previous);
+        }
+        member.context = ctx;
+        this.setGroup(member, ctx.signature());
+    }
+
+    private recordingState(): GPUParticleState {
+        const layout = this.layout;
+        return {
+            layout,
+            position: vec3(0).toVar(),
+            age: float(0).toVar(),
+            velocity: vec3(0).toVar(),
+            life: float(1),
+            color: vec4(1).toVar(),
+            size: vec3(1).toVar(),
+            rotation: float(0).toVar(),
+            quaternion: layout.quaternion >= 0 ? vec4(0, 0, 0, 1).toVar() : null,
+            startColor: vec4(1),
+            startSize: vec3(1),
+            seed: uint(0),
+            startSpeed: float(0),
+            speedModifier: float(1).toVar(),
+            uvTile: float(0).toVar(),
+            noise: layout.noise >= 0 ? vec4(0).toVar() : null,
+            noiseQuaternion: layout.noiseQuaternion >= 0 ? vec4(0, 0, 0, 1).toVar() : null,
+            t: float(0),
+        };
+    }
+
+    private setGroup(member: GPUSimulationMember, signature: string | null) {
+        const current = member.group;
+        if (current && current.signature === signature) return;
+        if (current) {
+            // the group's kernel stays valid while other members use it (its code does not depend on the member)
+            current.members.delete(member);
+            if (current.members.size === 0) {
+                this.groups_.delete(current.signature);
+                if (current.node) this.retired_.push(current.node);
+                current.node = null;
+            }
+        }
+        member.group = null;
+        if (signature === null) return;
+        let group = this.groups_.get(signature);
+        if (!group) {
+            // a new kind of system: only its kernel is built (on the next dispatch)
+            group = {id: this.nextGroupId_++, signature, members: new Set(), node: null};
+            this.groups_.set(signature, group);
+        }
+        group.members.add(member);
+        member.group = group;
+    }
+
+    /** Parameter rows: one per member, back to back. */
+    private layoutParameters() {
+        let base = 0;
+        for (const member of this.members) {
+            member.parameterBase = base;
+            base += member.context.parameterSize;
+        }
+        this.parameterSize_ = base;
+        if (base > this.paramCapacity_) this.resizeParameters(nextPowerOfTwo(base));
+        for (const member of this.members) {
+            const control = (member.index * GPU_SYSTEM_STRIDE + CONTROL) * 4;
+            this.systemsData_[control + 2] = member.parameterBase;
+            this.systemsData_[control + 3] = member.group ? member.group.id : -1;
+            // rows moved: refresh them before the next dispatch
+            member.context.writeParameters(this.paramsData_, member.parameterBase);
+        }
+    }
+
+    // ---- stepping -----------------------------------------------------------------------------------------
+
+    stepMember(member: GPUSimulationMember, spawnCount: number, delta: number): number {
+        if (this.disposed_ || member.invalidReason !== null) return member.liveCount;
+        // a second step before the frame's dispatch (prewarm): run the queued work first
+        if (member.stepped) this.host.flush();
+        const system = member.system;
+
+        if (system.worldSpace !== member.context.worldSpace || member.context.isStale()) {
+            const reason = getGPUSimulationSupport(system) ?? (this.fits(system) ? null : 'particle layout changed');
+            if (reason !== null) {
+                member.invalidReason = reason;
+                return member.liveCount;
+            }
+            this.record(member);
+            this.layoutParameters();
+        }
+
+        // 1. slots and spawn records
+        if (this.stagingCount_ + spawnCount > this.stagingCapacity_) this.resizeStaging(this.stagingCount_ + spawnCount);
+        const records = this.stagingData_;
+        const recordFloats = (this.layout.stride + 1) * 4;
+        const particles = system.particles;
+        for (let i = 0; i < spawnCount; i++) {
+            const particle = particles[i];
+            let slot = this.pool.allocate();
+            if (slot < 0) {
+                this.grow(this.pool.capacity * 2);
+                slot = this.pool.allocate();
+            }
+            const o = this.stagingCount_++ * recordFloats;
+            records[o] = slot;
+            writeSpawnRecord(records, o + 4, this.layout, particle, member.index, Math.floor(Math.random() * GPU_SEED_RANGE));
+            // particles handed over from the CPU simulation keep their age
+            member.deaths.push(particle.life - particle.age, slot);
+        }
+
+        // 2. clock and deaths
+        member.deaths.advance(delta, (slot) => this.pool.free(slot));
+
+        // 3. per-system step values
+        const control = (member.index * GPU_SYSTEM_STRIDE + CONTROL) * 4;
+        this.systemsData_[control] = delta;
+        this.systemsData_[control + 1] = 1;
+        member.context.writeParameters(this.paramsData_, member.parameterBase);
+        member.stepped = true;
+        this.enqueue();
+        return member.liveCount;
+    }
+
+    /** Removes all particles of a member (restart / stop). */
+    clearMember(member: GPUSimulationMember) {
+        this.killParticles(member);
+        this.enqueue();
+    }
+
+    /** Writes dead records over the member's particles; their slots are freed after the dispatch. */
+    private killParticles(member: GPUSimulationMember) {
+        const count = member.liveCount;
+        if (count === 0) return;
+        if (this.stagingCount_ + count > this.stagingCapacity_) this.resizeStaging(this.stagingCount_ + count);
+        const records = this.stagingData_;
+        const recordFloats = (this.layout.stride + 1) * 4;
+        member.deaths.forEach((slot) => {
+            const o = this.stagingCount_++ * recordFloats;
+            records.fill(0, o, o + recordFloats);
+            records[o] = slot;
+            // reused only after the dispatch, so no spawn targets the slot in the same dispatch
+            this.releasedSlots_.push(slot);
+        });
+        member.deaths.clear();
+    }
+
+    private enqueue() {
+        if (this.queued_ || this.disposed_) return;
+        this.queued_ = true;
+        this.host.enqueue(this);
+    }
+
+    /** Compute nodes for the next dispatch, in order. Call {@link afterDispatch} once they ran. */
+    takePending(): N[] {
+        this.buildKernels();
+        const nodes = this.pending_;
+        this.pending_ = [];
+        if (this.stagingCount_ > 0) {
+            this.staging_.clearUpdateRanges();
+            this.staging_.addUpdateRange(0, this.stagingCount_ * (this.layout.stride + 1) * 4);
+            this.staging_.needsUpdate = true;
+            this.spawnNode_.count = this.stagingCount_;
+            nodes.push(this.spawnNode_);
+        }
+        this.uploadSystems();
+        if (this.parameterSize_ > 0) {
+            this.params_.clearUpdateRanges();
+            this.params_.addUpdateRange(0, this.parameterSize_);
+            this.params_.needsUpdate = true;
+        }
+        const highWater = this.pool.highWater;
+        if (highWater > 0) {
+            for (const group of this.groups_.values()) {
+                let stepped = false;
+                for (const member of group.members) stepped ||= member.stepped;
+                if (stepped && group.node) {
+                    group.node.count = highWater;
+                    nodes.push(group.node);
+                }
+            }
+        }
+        return nodes;
+    }
+
+    /** Resets the per-dispatch state after {@link takePending}'s nodes ran. */
+    afterDispatch() {
+        for (const member of this.members) {
+            if (!member.stepped) continue;
+            member.stepped = false;
+            const control = (member.index * GPU_SYSTEM_STRIDE + CONTROL) * 4;
+            this.systemsData_[control] = 0;
+            this.systemsData_[control + 1] = 0;
+        }
+        this.stagingCount_ = 0;
+        for (const slot of this.releasedSlots_) this.pool.free(slot);
+        this.releasedSlots_.length = 0;
+        for (const index of this.releasedIndices_) this.freeIndices_.push(index);
+        this.releasedIndices_.length = 0;
+        for (const node of this.retired_) node.dispose();
+        this.retired_.length = 0;
+        this.frame.value = (this.frame.value + 1) % GPU_SEED_RANGE;
+        this.queued_ = false;
+    }
+
+    // ---- rendering ----------------------------------------------------------------------------------------
+
+    /** Refreshes the emitter transform and visibility of every system (call before rendering). */
+    updateRenderData() {
+        const data = this.systemsData_;
+        for (const member of this.members) {
+            const system = member.system;
+            const o = member.index * GPU_SYSTEM_STRIDE * 4;
+            let matrix = IDENTITY;
+            if (system.worldSpace) {
+                tempScale.set(1, 1, 1);
+                tempRotation.set(0, 0, 0, 1);
+            } else {
+                const emitter = system.emitter as any;
+                if (emitter.updateWorldMatrix) emitter.updateWorldMatrix(true, false);
+                matrix = emitter.matrixWorld;
+                matrix.decompose(tempPosition, tempRotation, tempScale);
+            }
+            const e = matrix.elements;
+            for (let k = 0; k < 16; k++) data[o + k] = e[k];
+            data[o + 16] = Math.abs(tempScale.x);
+            data[o + 17] = Math.abs(tempScale.y);
+            data[o + 18] = Math.abs(tempScale.z);
+            data[o + 20] = tempRotation.x;
+            data[o + 21] = tempRotation.y;
+            data[o + 22] = tempRotation.z;
+            data[o + 23] = tempRotation.w;
+            const render = o + RENDER * 4;
+            if (system.rendererSettings.renderMode === RenderMode.StretchedBillBoard) {
+                const settings = system.rendererEmitterSettings as StretchedBillBoardSettings;
+                data[render] = settings.speedFactor === 0 ? 0.001 : settings.speedFactor;
+                data[render + 1] = settings.lengthFactor;
+            }
+            data[render + 2] = system.emitter.visible ? 1 : 0;
+        }
+        this.uploadSystems();
+    }
+
+    private uploadSystems() {
+        this.systems.clearUpdateRanges();
+        this.systems.addUpdateRange(0, Math.max(1, this.memberSlots_) * GPU_SYSTEM_STRIDE * 4);
+        this.systems.needsUpdate = true;
+    }
+
+    /**
+     * Per-particle values for the batch's material, read from {@link state} by instance index and from
+     * {@link systems} by the particle's system. Rebuild the material when {@link generation} changes.
      */
     createRenderFields(): ParticleFields {
         const layout = this.layout;
         const state = (storage as any)(this.state, 'vec4', this.state.count).toReadOnly();
+        const systems = (storage as any)(this.systems, 'vec4', this.systems.count).toReadOnly();
         const base = (instanceIndex as N).mul(layout.stride);
         const at = (slot: number) => state.element(base.add(slot));
         const head = at(GPU_SLOT.POSITION_AGE);
         const motion = at(GPU_SLOT.VELOCITY_LIFE);
         const sizeRotation = at(GPU_SLOT.SIZE_ROTATION);
-        const alive = head.w.lessThan(motion.w);
+        const system = at(GPU_SLOT.START_SIZE).w.toUint().mul(GPU_SYSTEM_STRIDE);
+        const row = (k: number) => systems.element(system.add(k));
+        const c0 = row(0).xyz;
+        const c1 = row(1).xyz;
+        const c2 = row(2).xyz;
+        const c3 = row(3).xyz;
+        const transformDirection = (v: N) => c0.mul(v.x).add(c1.mul(v.y)).add(c2.mul(v.z));
+        const render = row(RENDER);
+        const visible = head.w.lessThan(motion.w).and(render.z.greaterThan(0.5));
         return {
-            offset: this.emitterMatrix.mul(vec4(head.xyz, 1.0)).xyz,
-            // dead and never used slots collapse to a point
-            size: select(alive, sizeRotation.xyz.mul(this.emitterScale), vec3(0)),
-            rotation: layout.quaternion >= 0 ? quatMul(this.emitterRotation, at(layout.quaternion)) : sizeRotation.w,
+            offset: transformDirection(head.xyz).add(c3),
+            // dead, never used and hidden slots collapse to a point
+            size: select(visible, sizeRotation.xyz.mul(row(4).xyz), vec3(0)),
+            rotation: layout.quaternion >= 0 ? quatMul(row(5), at(layout.quaternion)) : sizeRotation.w,
             color: (vertexStage as N)(at(GPU_SLOT.COLOR)),
             uvTile: (vertexStage as N)(at(GPU_SLOT.MISC).w),
-            velocity: vec4(
-                this.emitterMatrix.mul(vec4(motion.xyz, 0.0)).xyz.mul(this.speedFactor),
-                this.lengthFactor
-            ),
+            velocity: vec4(transformDirection(motion.xyz).mul(render.x), render.y),
             shared: false,
         };
     }
@@ -327,112 +649,125 @@ export class GPUParticleSimulation implements ParticleSimulationDelegate {
     dispose() {
         this.disposed_ = true;
         this.pending_ = [];
-        this.queued_ = false;
-        for (const node of [this.spawnNode_, this.updateNode_, this.clearNode_, ...this.retired_]) node?.dispose();
+        for (const node of [this.spawnNode_, ...this.retired_]) node?.dispose();
+        for (const group of this.groups_.values()) group.node?.dispose();
         this.retired_.length = 0;
     }
 
-    // ---- buffers and kernels -------------------------------------------------------------------------------
-
-    private layoutChanged(system: GPUSimulatedSystem): boolean {
-        return !this.isCompatible(system);
-    }
-
-    /** Whether this simulation's particle layout still fits the system (render mode / behaviors changed). */
-    isCompatible(system: GPUSimulatedSystem): boolean {
-        const noise = this.program.usesNoiseState();
-        const mesh = system.rendererSettings.renderMode === RenderMode.Mesh;
-        return noise === this.layout.noise >= 0 && mesh === this.layout.mesh;
-    }
+    // ---- buffers and kernels ------------------------------------------------------------------------------
 
     private createState(capacity: number): StorageBufferAttribute {
         return new StorageBufferAttribute(new Float32Array(capacity * this.layout.stride * 4), 4);
     }
 
-    private resizeStaging(count: number) {
-        this.stagingCapacity_ = nextPowerOfTwo(Math.max(64, count));
-        this.staging_ = new StorageBufferAttribute(new Float32Array(this.stagingCapacity_ * this.layout.stride * 4), 4);
-        if (this.stateNode_) this.rebuildSpawnKernel();
+    private resizeSystems(capacity: number) {
+        const data = new Float32Array(capacity * GPU_SYSTEM_STRIDE * 4);
+        if (this.systemsData_) data.set(this.systemsData_);
+        this.systemsData_ = data;
+        this.systemCapacity_ = capacity;
+        this.systems = new StorageBufferAttribute(data, 4);
+        this.kernelsDirty_ = true;
+        this.generation++;
     }
 
-    /**
-     * Grows the state buffer. Called while packing spawn records, when at most the clear kernel is queued for this
-     * step; the live particles are copied first in the next dispatch.
-     */
+    private resizeParameters(capacity: number) {
+        const data = new Float32Array(capacity);
+        if (this.paramsData_) data.set(this.paramsData_.subarray(0, Math.min(this.paramsData_.length, capacity)));
+        this.paramsData_ = data;
+        this.paramCapacity_ = capacity;
+        this.params_ = new StorageBufferAttribute(data, 1);
+        this.kernelsDirty_ = true;
+    }
+
+    private resizeStaging(count: number) {
+        const capacity = nextPowerOfTwo(Math.max(64, count));
+        const data = new Float32Array(capacity * (this.layout.stride + 1) * 4);
+        if (this.stagingData_) data.set(this.stagingData_.subarray(0, this.stagingCount_ * (this.layout.stride + 1) * 4));
+        this.stagingData_ = data;
+        this.stagingCapacity_ = capacity;
+        this.staging_ = new StorageBufferAttribute(data, 4);
+        this.spawnDirty_ = true;
+    }
+
+    /** Grows the state buffer; the copy of the live particles runs first in the next dispatch. */
     private grow(capacity: number) {
         const S = this.layout.stride;
         const previous = this.state;
-        const oldCount = this.allocator.capacity * S;
-        const clearing = this.pending_.includes(this.clearNode_);
-        this.allocator.grow(capacity);
-        this.state = this.createState(this.allocator.capacity);
-        this.pending_ = [];
-        if (clearing) {
-            // restarted this step: the new, zeroed buffer is already clear
-            this.retired_.push(this.clearNode_);
-            this.clearNode_ = null;
-        } else {
+        const oldCount = this.pool.capacity * S;
+        const empty = this.pool.usedCount === 0 && this.pending_.length === 0;
+        this.pool.grow(capacity);
+        this.state = this.createState(this.pool.capacity);
+        if (!empty) {
             const source = (storage as any)(previous, 'vec4', oldCount).toReadOnly();
             const target = (storage as any)(this.state, 'vec4', this.state.count);
-            const copy = (Fn as N)(() => {
+            const copy = Fn(() => {
                 target.element(instanceIndex).assign(source.element(instanceIndex));
             })().compute(oldCount);
             this.pending_.push(copy);
             this.retired_.push(copy);
         }
-        this.buildKernels();
+        this.kernelsDirty_ = true;
         this.generation++;
     }
 
+    private systemsNode_: N = null;
+    private paramsNode_: N = null;
+
+    /** Builds the kernels that are missing or read a replaced buffer. */
     private buildKernels() {
-        for (const node of [this.spawnNode_, this.updateNode_, this.clearNode_]) node?.dispose();
         const S = this.layout.stride;
-        this.stateNode_ = (storage as any)(this.state, 'vec4', this.state.count);
-        this.rebuildSpawnKernel();
-        this.updateNode_ = this.buildUpdateKernel();
-        const state = this.stateNode_;
-        this.clearNode_ = (Fn as N)(() => {
-            const base = (instanceIndex as N).mul(S);
-            state.element(base.add(GPU_SLOT.POSITION_AGE)).assign(vec4(0));
-            state.element(base.add(GPU_SLOT.VELOCITY_LIFE)).assign(vec4(0));
-        })().compute(this.allocator.capacity);
-    }
-
-    private rebuildSpawnKernel() {
-        this.spawnNode_?.dispose();
-        const S = this.layout.stride;
-        const state = this.stateNode_;
-        const staging = (storage as any)(this.staging_, 'vec4', this.staging_.count).toReadOnly();
-        this.spawnNode_ = (Fn as N)(() => {
-            const source = (instanceIndex as N).mul(S).toVar();
-            const slot = staging.element(source.add(GPU_SLOT.START_SIZE)).w.toUint();
-            const target = slot.mul(S).toVar();
-            for (let k = 0; k < S; k++) {
-                state.element(target.add(k)).assign(staging.element(source.add(k)));
+        if (this.kernelsDirty_) {
+            this.stateNode_ = (storage as any)(this.state, 'vec4', this.state.count);
+            this.systemsNode_ = (storage as any)(this.systems, 'vec4', this.systems.count).toReadOnly();
+            this.paramsNode_ = (storage as any)(this.params_, 'float', this.params_.count).toReadOnly();
+            for (const group of this.groups_.values()) {
+                if (group.node) this.retired_.push(group.node);
+                group.node = null;
             }
-        })().compute(this.stagingCapacity_);
+            this.spawnDirty_ = true;
+            this.kernelsDirty_ = false;
+        }
+        if (this.spawnDirty_) {
+            if (this.spawnNode_) this.retired_.push(this.spawnNode_);
+            const state = this.stateNode_;
+            const staging = (storage as any)(this.staging_, 'vec4', this.staging_.count).toReadOnly();
+            this.spawnNode_ = Fn(() => {
+                const source = (instanceIndex as N).mul(S + 1).toVar();
+                const target = staging.element(source).x.toUint().mul(S).toVar();
+                for (let k = 0; k < S; k++) {
+                    state.element(target.add(k)).assign(staging.element(source.add(k + 1)));
+                }
+            })().compute(this.stagingCapacity_);
+            this.spawnDirty_ = false;
+        }
+        for (const group of this.groups_.values()) {
+            if (!group.node) group.node = this.buildUpdateKernel(group, this.systemsNode_, this.paramsNode_);
+        }
     }
 
-    private buildUpdateKernel(): N {
-        const system = this.system;
+    private buildUpdateKernel(group: GPUComputeGroup, systems: N, params: N): N {
+        const representative = group.members.values().next().value as GPUSimulationMember;
+        const program = representative.program;
+        const worldSpace = representative.system.worldSpace;
         const layout = this.layout;
         const S = layout.stride;
         const state = this.stateNode_;
-        const program = this.program;
-        const ctx = new GPUCompileContext(system.worldSpace);
-        program.watch(ctx);
-        ctx.watch(() => system.rendererSettings.renderMode);
-        if (this.ctx_) {
-            ctx.frame.value = this.ctx_.frame.value;
-        }
-        this.ctx_ = ctx;
+        const frame = this.frame;
 
-        return (Fn as N)(() => {
+        return Fn(() => {
             const base = (instanceIndex as N).mul(S).toVar();
             const at = (slot: number) => state.element(base.add(slot));
             const head = at(GPU_SLOT.POSITION_AGE).toVar();
             const motion = at(GPU_SLOT.VELOCITY_LIFE).toVar();
-            (If as N)(head.w.lessThan(motion.w), () => {
+            const system = at(GPU_SLOT.START_SIZE).w.toUint().toVar();
+            const control = systems.element(system.mul(GPU_SYSTEM_STRIDE).add(CONTROL)).toVar();
+            const run = head.w
+                .lessThan(motion.w)
+                .and(control.y.greaterThan(0.5))
+                .and(control.w.equal(float(group.id)));
+            (If as N)(run, () => {
+                const ctx = new GPUCompileContext(worldSpace, {params, base: control.z.toUint()}, frame);
+                ctx.delta = control.x;
                 const sizeRotation = at(GPU_SLOT.SIZE_ROTATION).toVar();
                 const misc = at(GPU_SLOT.MISC).toVar();
                 const p: GPUParticleState = {
@@ -473,6 +808,6 @@ export class GPUParticleSimulation implements ParticleSimulationDelegate {
                     if (p.noiseQuaternion) at(layout.noiseQuaternion).assign(p.noiseQuaternion);
                 }
             });
-        })().compute(this.allocator.capacity);
+        })().compute(this.pool.capacity);
     }
 }

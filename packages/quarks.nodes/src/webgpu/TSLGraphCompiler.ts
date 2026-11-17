@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Compiles node graphs to three.js TSL, so the update graph of a {@link NodeVFX} runs in the GPU simulation of
- * `three.quarks/webgpu` (`GPUParticleSimulation`) instead of the CPU {@link Interpreter}.
+ * `three.quarks/webgpu` (`GPUParticleBatchSimulation`) instead of the CPU {@link Interpreter}.
  *
  * Every node becomes TSL code in execution order; each output is stored in a shader variable, so later
  * `particleProperty` writes do not change values that were already read (same semantics as the interpreter). Constant
@@ -365,7 +365,21 @@ export function compileGraphToTSL(graph: NodeGraph, scope: TSLGraphScope) {
         return results.get(source)![index];
     };
 
-    for (const node of graphOrder.getExecutionOrder(graph)) {
+    const order = graphOrder.getExecutionOrder(graph);
+    const indexOf = new Map<Node, number>(order.map((node, i) => [node, i]));
+    for (const node of order) {
+        // the shape of the graph: node type, signature, settings and wiring (constants are parameters)
+        const wiring = node.inputs.map((input) => {
+            if (input instanceof Wire) {
+                const source = input.input instanceof Adapter ? input.input.node : input.input;
+                return `${indexOf.get(source as Node)}.${input.inputIndex}${input.input instanceof Adapter ? 'a' : ''}`;
+            }
+            if (input instanceof Adapter) return 'adapter';
+            return input === undefined ? '-' : 'c';
+        });
+        scope.ctx.token(
+            [node.definition.name, node.signatureIndex, node.data.property, node.data.type, ...wiring].join(':')
+        );
         const inputTypes = node.inputTypes;
         const inputs = node.inputs.map((input, j) => {
             if (input instanceof Wire) return sourceValue(input.input, input.inputIndex);
@@ -413,8 +427,9 @@ export function createNodeGraphProgram(system: NodeVFX): GPUSimulationProgram {
             return system.maxParticles;
         },
         watch(ctx) {
-            ctx.watch(() => system.updateGraph);
-            ctx.watch(() => system.updateGraph.revision);
+            // edits rebuild the code; the code's shape is recorded node by node in compileGraphToTSL
+            ctx.watch(() => system.updateGraph, false);
+            ctx.watch(() => system.updateGraph.revision, false);
         },
         compile(ctx, p) {
             compileGraphToTSL(system.updateGraph, {ctx, p, system});
