@@ -30,7 +30,7 @@ export class CustomBlendingDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         const texture = new TextureLoader().load('textures/particle_default.png');

@@ -27,7 +27,8 @@ import {
 import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 import {Demo} from './demo.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
-import helvetikerRegularUrl from 'three/examples/fonts/helvetiker_regular.typeface.json?url';
+// three >= 0.187 no longer ships examples/fonts, the font is vendored in public/fonts
+const helvetikerRegularUrl = 'fonts/helvetiker_regular.typeface.json';
 
 export class EmitterShapeDemo extends Demo {
     name = 'Different Emitter Shapes';
@@ -64,14 +65,15 @@ export class EmitterShapeDemo extends Demo {
             startTileIndex: new ConstantValue(0),
             uTileCount: 10,
             vTileCount: 10,
-            renderMode: RenderMode.Mesh,
+            // sprites face the camera; only RenderMode.Mesh particles take the emitter shape's orientation
+            renderMode: RenderMode.BillBoard,
             renderOrder: 1,
         });
     }
 
     initScene() {
         this.scene = super.initScene();
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         const loader = new FontLoader();

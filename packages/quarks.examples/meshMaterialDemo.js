@@ -28,12 +28,21 @@ export class MeshMaterialDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         const loader = new CubeTextureLoader();
         loader.setPath( 'textures/cube/' );
-        let  textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+        // create the particle system once the env map is loaded (WebGPURenderer r187 reports a
+        // validation error when a still-loading CubeTexture is bound as an env map)
+        loader.load(['posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg'], (textureCube) =>
+            this.createParticles(textureCube)
+        );
+
+        return this.scene;
+    }
+
+    createParticles(textureCube) {
 
         const geo = new CapsuleGeometry(1.0, 3.0);
         const mat = new MeshStandardMaterial({
@@ -70,7 +79,5 @@ export class MeshMaterialDemo extends Demo {
         ps.addBehavior(new Rotation3DOverLife(new EulerGenerator(new IntervalValue(0, Math.PI), new ConstantValue(0), new ConstantValue(0))));
         this.batchRenderer.addSystem(ps);
         this.scene.add(ps.emitter);
-
-        return this.scene;
     }
 }

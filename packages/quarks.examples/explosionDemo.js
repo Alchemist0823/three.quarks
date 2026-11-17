@@ -35,7 +35,7 @@ export class ExplosionDemo extends Demo {
     initScene() {
         super.initScene();
 
-        this.batchRenderer = new BatchedParticleRenderer();
+        this.batchRenderer = this.createBatchRenderer();
         this.scene.add(this.batchRenderer);
 
         new QuarksLoader().load('ps.json', (obj) => {

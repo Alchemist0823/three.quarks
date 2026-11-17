@@ -66,6 +66,19 @@ Required wrapper component that manages the `BatchedRenderer` for all child part
 </Canvas>
 ```
 
+With React Three Fiber 9 and three.js `WebGPURenderer`, pass the WebGPU batch renderer from `three.quarks/webgpu`:
+
+```tsx
+import { WebGPURenderer } from 'three/webgpu'
+import { WebGPUBatchedRenderer } from 'three.quarks/webgpu'
+
+<Canvas gl={async (props) => { const renderer = new WebGPURenderer(props); await renderer.init(); return renderer }}>
+    <QuarksProvider createBatchedRenderer={() => new WebGPUBatchedRenderer({ target: 'auto' })}>
+        <ParticleSystem ... />
+    </QuarksProvider>
+</Canvas>
+```
+
 ### `<ParticleSystem>`
 
 Declarative particle system component with flexible prop types.

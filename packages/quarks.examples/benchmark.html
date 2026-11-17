@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>three.quarks benchmark – WebGL vs WebGPU</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root { color-scheme: dark; }
+        body { margin: 0; padding: 16px; background: #111; color: #eee; font: 14px/1.5 system-ui, sans-serif; }
+        h1 { font-size: 20px; margin: 0 0 8px; }
+        #stage { margin: 12px 0; min-height: 60px; }
+        table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+        th, td { padding: 4px 8px; border-bottom: 1px solid #333; text-align: right; white-space: nowrap; }
+        th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+        button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid #555; background: #6366f1; color: white; cursor: pointer; }
+        .table-wrap { overflow-x: auto; }
+        #status { color: #aaa; margin-left: 8px; }
+    </style>
+</head>
+<body>
+<h1>three.quarks renderer benchmark</h1>
+<div>
+    <button id="run">Run benchmark</button>
+    <span id="status">idle</span>
+</div>
+<div id="stage"></div>
+<div class="table-wrap">
+    <table>
+        <thead>
+        <tr><th>scenario</th><th>renderer</th><th>target</th><th>particles</th><th>draws</th><th>sim ms</th><th>fill ms</th><th>submit ms</th><th>CPU ms</th><th>GPU ms</th><th>compile ms</th><th>fps</th></tr>
+        </thead>
+        <tbody id="results"></tbody>
+    </table>
+</div>
+<script type="module">
+    import {runMatrix, DEFAULT_MATRIX} from './benchmark.js';
+
+    const params = new URLSearchParams(location.search);
+    const cases = params.get('cases') ? JSON.parse(params.get('cases')) : DEFAULT_MATRIX;
+    const tbody = document.getElementById('results');
+    const status = document.getElementById('status');
+    const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v) ? v.toFixed(d) : '–');
+    window.benchResults = [];
+
+    async function run() {
+        tbody.innerHTML = '';
+        window.benchResults = [];
+        window.benchDone = false;
+        let i = 0;
+        await runMatrix(cases, document.getElementById('stage'), (r) => {
+            i++;
+            status.textContent = `${i} / ${cases.length}`;
+            window.benchResults.push(r);
+            const tr = document.createElement('tr');
+            tr.innerHTML = r.error
+                ? `<td>${r.scenario}</td><td>${r.renderer}</td><td colspan="10">${r.error}</td>`
+                : `<td>${r.scenario}</td><td>${r.rendererLabel} [${r.backend}]</td><td>${r.target}</td><td>${r.particles}</td><td>${r.drawCalls}</td>` +
+                  `<td>${fmt(r.simMs)}</td><td>${fmt(r.fillMs)}</td><td>${fmt(r.submitMs)}</td><td>${fmt(r.cpuMs)}</td><td>${fmt(r.gpuMs)}</td><td>${fmt(r.compileMs, 0)}</td><td>${fmt(r.fps, 0)}</td>`;
+            tbody.appendChild(tr);
+        });
+        status.textContent = 'done';
+        window.benchDone = true;
+    }
+    document.getElementById('run').addEventListener('click', run);
+    if (params.get('auto') === '1') run();
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 # Builds
 dist/
+showcase-dist/
 
 # Dependency directories
 node_modules/

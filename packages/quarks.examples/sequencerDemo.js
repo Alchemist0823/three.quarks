@@ -88,7 +88,7 @@ export class SequencerDemo extends Demo {
 
     finishLoading() {
         if (this.load1 && this.load2 && this.load3) {
-            this.batchRenderer = new BatchedParticleRenderer();
+            this.batchRenderer = this.createBatchRenderer();
             this.scene.add(this.batchRenderer);
             this.initDemo();
         }

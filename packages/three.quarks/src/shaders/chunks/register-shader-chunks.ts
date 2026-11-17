@@ -1,4 +1,4 @@
-import {ShaderChunk as ShaderChunkReadOnly} from 'three';
+import * as THREE from 'three';
 import soft_fragment from './soft_fragment.glsl';
 import soft_pars_fragment from './soft_pars_fragment.glsl';
 import soft_pars_vertex from './soft_pars_vertex.glsl';
@@ -9,9 +9,11 @@ import tile_pars_fragment from './tile_pars_fragment.glsl';
 import tile_pars_vertex from './tile_pars_vertex.glsl';
 import tile_vertex from './tile_vertex.glsl';
 
-const ShaderChunk = ShaderChunkReadOnly as Record<string, string>;
-
 export function registerShaderChunks() {
+    // `ShaderChunk` only exists in the WebGL build of three.js. When an application aliases `three` to
+    // `three/webgpu` there is nothing to register (the WebGPU path uses TSL node materials instead).
+    const ShaderChunk = (THREE as any)['ShaderChunk'] as Record<string, string> | undefined;
+    if (!ShaderChunk) return;
     ShaderChunk['tile_pars_vertex'] = tile_pars_vertex;
     ShaderChunk['tile_vertex'] = tile_vertex;
 

@@ -87,6 +87,67 @@ function animate() {
 }
 ```
 
+## 🌐 WebGPU (three.js `WebGPURenderer`)
+
+three.quarks also renders with three.js' [`WebGPURenderer`](https://threejs.org/docs/#api/en/renderers/webgpu/WebGPURenderer).
+Particle systems, behaviors, emitters and JSON effects are shared; only the batch renderer changes.
+It is built on TSL node materials, so it runs on the WebGPU backend **and** on WebGPURenderer's WebGL2 fallback.
+
+```javascript
+import {WebGPURenderer} from 'three/webgpu';
+import {BatchedRenderer, ParticleSystem /* ... */} from 'three.quarks/webgpu';
+
+const renderer = new WebGPURenderer({antialias: true});
+await renderer.init();
+
+// 'desktop' (default, full fidelity) | 'mobile' | 'auto'
+const batchRenderer = new BatchedRenderer({target: 'auto'});
+scene.add(batchRenderer);
+
+renderer.setAnimationLoop(() => {
+    batchRenderer.update(clock.getDelta());
+    renderer.render(scene, camera);
+});
+```
+
+| | WebGL `BatchedRenderer` | WebGPU `BatchedRenderer` (`three.quarks/webgpu`) |
+|---|---|---|
+| Billboard / vertical / horizontal / stretched / mesh / trail | ✅ | ✅ |
+| Lit mesh particles (`MeshStandardMaterial`, `MeshPhysicalMaterial`, env maps) | ✅ | ✅ |
+| Sprite sheets, frame blending, alpha test, custom blending, layers, render order | ✅ | ✅ |
+| Soft particles | needs a depth pre-pass + `setDepthTexture` | automatic (reads the framebuffer depth), `setDepthTexture` still supported |
+
+**Targets.** `desktop` gives the same output as WebGL. `mobile` is tuned for tile-based GPUs: soft particles are off by default (they force a depth resolve and a render-pass split), the sRGB decode uses a pow-free polynomial, and buffers start smaller. Options can be overridden one by one, for example `new BatchedRenderer({target: 'mobile', softParticles: true})`. `getRecommendedRendererSettings(profile)` returns a pixel-ratio cap and `WebGPURenderer` parameters for the target.
+
+**Colors and blending.** WebGPURenderer blends in a linear framebuffer, while the WebGL particle shaders write display-space colors directly. The default `colorSpaceMode: 'webgl-compatible'` decodes particle colors so opaque and single-layer pixels look exactly like WebGL. Semi-transparent overlaps blend in linear space and look slightly lighter. For WebGL-identical blending, render through the optional `QuarksCompositor`: it composites transparent particles in a display-space target, at the cost of two extra full-screen passes.
+
+```javascript
+import {QuarksCompositor} from 'three.quarks/webgpu';
+
+const compositor = new QuarksCompositor(renderer, batchRenderer);
+renderer.setAnimationLoop(() => {
+    batchRenderer.update(clock.getDelta());
+    compositor.render(scene, camera); // instead of renderer.render(scene, camera)
+});
+```
+
+Use `colorSpaceMode: 'linear'` for a fully physically based workflow.
+
+**Data layout.** Each sprite batch uploads one interleaved buffer per frame (48–64 bytes per particle). WebGPU trails upload one 48-byte storage-buffer record per trail point and are expanded in the vertex shader. Batches of the same kind share one shader build. `halfFloat: true` packs color, size and velocity as float16 (native `Float16Array` required). It uploads 25–38% fewer bytes, but in desktop Chrome the conversion costs more CPU than the upload saves, so it is off by default; measure it with `benchmark.html` on your target device.
+
+**React Three Fiber 9.** Pass the WebGPU batch renderer to the provider and create `WebGPURenderer` in the canvas:
+
+```jsx
+import {WebGPURenderer} from 'three/webgpu';
+import {WebGPUBatchedRenderer} from 'three.quarks/webgpu';
+
+<Canvas gl={async (props) => { const r = new WebGPURenderer(props); await r.init(); return r; }}>
+    <QuarksProvider createBatchedRenderer={() => new WebGPUBatchedRenderer({target: 'auto'})}>
+        ...
+    </QuarksProvider>
+</Canvas>
+```
+
 ## 📂 Loading VFX from JSON
 
 Export effects from the visual editor and load them at runtime:
@@ -170,6 +231,7 @@ See [quarks.r3f documentation](./packages/quarks.r3f/README.md) for full API ref
 ## ✨ Features
 
 ### 🎬 Renderers
+- **WebGL** (`three.quarks`) and **WebGPU** (`three.quarks/webgpu`) batch renderers
 - **Billboard** - Camera-facing sprites
 - **Stretched Billboard** - Velocity-aligned sprites
 - **Mesh** - 3D geometry particles
@@ -205,6 +267,10 @@ npm install
 npm run build
 npm run examples
 ```
+
+Open `vanilla.html` (WebGL), `vanilla-webgpu.html` (same demos on WebGPU, `?target=desktop|mobile|auto`) or
+`benchmark.html` (WebGL vs WebGPU frame timings). `node packages/quarks.examples/scripts/build-showcase.mjs` builds
+a static, bundler-free copy of the demos and the benchmark.
 
 ## 📦 Packages
 

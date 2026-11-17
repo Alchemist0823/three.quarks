@@ -20,6 +20,7 @@ import type {
     BurstParameters,
     RenderMode,
     BatchedRenderer,
+    BaseBatchedRenderer,
 } from 'three.quarks';
 import type { BufferGeometry, Layers, Material } from 'three';
 
@@ -29,6 +30,7 @@ export type {
     BurstParameters,
     RenderMode,
     BatchedRenderer,
+    BaseBatchedRenderer,
     ParticleEmitter,
     Behavior,
     EmitterShape,
@@ -207,8 +209,11 @@ export interface QuarksEffectRef {
  * Context value for QuarksProvider
  */
 export interface QuarksContextValue {
-    /** The singleton BatchedRenderer */
-    batchedRenderer: BatchedRenderer;
+    /**
+     * The singleton batch renderer: the WebGL `BatchedRenderer` by default, or the WebGPU one from
+     * `three.quarks/webgpu` when passed to `QuarksProvider` via `createBatchedRenderer`.
+     */
+    batchedRenderer: BaseBatchedRenderer;
 }
 
 /**

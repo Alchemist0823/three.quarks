@@ -1,5 +1,5 @@
 import {Mesh, ShaderMaterial, BufferGeometry, Material, Layers, Texture, Object3D} from 'three';
-import {VFXBatchSettings} from './BatchedRenderer';
+import type {VFXBatchSettings} from './BaseBatchedRenderer';
 import {IParticleSystem} from 'quarks.core';
 
 export interface StoredBatchSettings {
@@ -102,6 +102,22 @@ export abstract class VFXBatch extends Mesh {
 
     getVisibleSystems(): IParticleSystem[] {
         return Array.from(this.systems).filter((system) => system.emitter.visible);
+    }
+
+    private visibleSystems_: IParticleSystem[] = [];
+
+    /**
+     * Same as {@link getVisibleSystems} but reuses an internal array to avoid a per-frame allocation.
+     * The returned array is only valid until the next call.
+     * @internal
+     */
+    protected collectVisibleSystems(): IParticleSystem[] {
+        const result = this.visibleSystems_;
+        result.length = 0;
+        for (const system of this.systems) {
+            if (system.emitter.visible) result.push(system);
+        }
+        return result;
     }
 
     abstract setupBuffers(): void;

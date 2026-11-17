@@ -1,6 +1,8 @@
 import React, { useRef, useMemo, useEffect, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Canvas } from '@react-three/fiber';
+import { WebGPURenderer } from 'three/webgpu';
+import { WebGPUBatchedRenderer } from 'three.quarks/webgpu';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import {
@@ -21,6 +23,10 @@ import {
     RenderMode,
     Vector4,
 } from 'three.quarks';
+
+// ?renderer=webgpu renders the same scene with WebGPURenderer (React Three Fiber 9) and the WebGPU batch renderer
+const useWebGPU = new URLSearchParams(window.location.search).get('renderer') === 'webgpu';
+const createWebGPUBatchedRenderer = () => new WebGPUBatchedRenderer({ target: 'auto' });
 
 // Load textures
 const textureLoader = new THREE.TextureLoader();
@@ -305,7 +311,7 @@ function AcidBoilingEffect({ effectRef }) {
  */
 function ParticleSystems({ refs }) {
     return (
-        <QuarksProvider>
+        <QuarksProvider createBatchedRenderer={useWebGPU ? createWebGPUBatchedRenderer : undefined}>
             <FireParticles systemRef={refs.fire} />
             <SmokeParticles systemRef={refs.smoke} />
             <SparkParticles systemRef={refs.sparks} />
@@ -371,6 +377,15 @@ function App() {
         <Canvas
             camera={{ position: [0, 4, 10], fov: 60 }}
             style={{ background: '#171717' }}
+            gl={
+                useWebGPU
+                    ? async (props) => {
+                          const renderer = new WebGPURenderer(props);
+                          await renderer.init();
+                          return renderer;
+                      }
+                    : undefined
+            }
         >
             <Scene refs={refs} />
         </Canvas>

@@ -1,15 +1,15 @@
 {
   "name": "quarks.nodes",
-  "version": "0.17.1",
+  "version": "0.18.0",
   "description": "node based behavior and render system for quarks engine",
   "type": "module",
   "dependencies": {
     "three.quarks": "*"
   },
   "devDependencies": {
-    "@types/three": "^0.182.0",
+    "@types/three": "^0.187.0",
     "@types/webxr": "^0.5.24",
-    "three": "^0.182.0"
+    "three": "^0.187.0"
   },
   "types": "./dist/types/index.d.ts",
   "main": "./dist/quarks.nodes.cjs",

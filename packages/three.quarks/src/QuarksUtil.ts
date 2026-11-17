@@ -1,6 +1,6 @@
 import {Object3D} from 'three';
 import {ParticleEmitter} from './ParticleEmitter';
-import {BatchedRenderer} from './BatchedRenderer';
+import type {BaseBatchedRenderer} from './BaseBatchedRenderer';
 
 export class QuarksUtil {
     /**
@@ -24,7 +24,7 @@ export class QuarksUtil {
      * @param obj
      * @param batchRenderer
      */
-    static addToBatchRenderer(obj: Object3D, batchRenderer: BatchedRenderer) {
+    static addToBatchRenderer(obj: Object3D, batchRenderer: BaseBatchedRenderer) {
         QuarksUtil.runOnAllParticleEmitters(obj, (ps) => {
             batchRenderer.addSystem(ps.system);
         });

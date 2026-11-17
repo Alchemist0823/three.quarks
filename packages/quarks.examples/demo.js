@@ -10,7 +10,7 @@ import {
     Color,
     MeshBasicMaterial,
 } from 'three';
-import {ParticleEmitter} from 'three.quarks';
+import {ParticleEmitter, BatchedRenderer} from 'three.quarks';
 
 export class Demo {
     batchRenderer;
@@ -26,11 +26,28 @@ export class Demo {
 
     name = 'Unname';
 
-    constructor(camera, renderer, controls) {
+    /**
+     * @param camera
+     * @param renderer WebGLRenderer or WebGPURenderer
+     * @param controls
+     * @param options {{BatchedRenderer?: Function, batchRendererOptions?: object}} lets the same demo run on the
+     * WebGL `BatchedRenderer` (default) or the WebGPU one from `three.quarks/webgpu`.
+     */
+    constructor(camera, renderer, controls, options = {}) {
         camera.position.set(0, 10, 10);
         this.camera = camera;
         this.renderer = renderer;
         this.controls = controls;
+        this.options = options;
+    }
+
+    createBatchRenderer() {
+        const BatchedRendererClass = this.options.BatchedRenderer ?? BatchedRenderer;
+        return new BatchedRendererClass(this.options.batchRendererOptions);
+    }
+
+    get isWebGPU() {
+        return this.renderer.isWebGPURenderer === true;
     }
 
     render(delta) {

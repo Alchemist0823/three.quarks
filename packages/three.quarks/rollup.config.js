@@ -96,6 +96,29 @@ export const lib = {
             },
         ],
     },
+    // `three.quarks/webgpu`: WebGPURenderer (TSL node material) batches.
+    // Shared classes are imported from `three.quarks` at runtime instead of being bundled twice.
+    webgpu: {
+        input: './src/webgpu/index.ts',
+        external: ['three', 'three/webgpu', 'three/tsl', 'quarks.core', 'three.quarks'],
+        plugins: [
+            nodeResolve({
+                extensions: extensions,
+            }),
+            typescript({
+                typescript: ts,
+                declaration: false,
+                composite: false,
+            }),
+        ],
+        output: [
+            {
+                file: pkg.exports['./webgpu'].import,
+                format: 'es',
+                banner,
+            },
+        ],
+    },
     min: {
         input: pkg.main,
         external: Object.keys(globals),
@@ -122,4 +145,4 @@ export const lib = {
         ],
     },
 };
-export default production ? [lib.main, lib.browser, lib.min] : [lib.main];
+export default production ? [lib.main, lib.webgpu, lib.browser, lib.min] : [lib.main, lib.webgpu];

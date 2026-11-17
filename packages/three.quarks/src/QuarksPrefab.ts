@@ -1,6 +1,6 @@
 import {IPrefab, IAnimationData} from 'quarks.core';
 import { Group, Object3D, Clock, AnimationClip, AnimationMixer, AnimationAction, LoopOnce } from 'three';
-import { BatchedRenderer } from './BatchedRenderer';
+import type {BaseBatchedRenderer} from './BaseBatchedRenderer';
 import { ParticleEmitter } from './ParticleEmitter';
 
 /**
@@ -48,7 +48,7 @@ export class QuarksPrefab extends Group implements IPrefab {
 
     private _clock: Clock;
     private _mixers: Map<Object3D, AnimationMixer> = new Map();
-    private _batchedRenderer?: BatchedRenderer;
+    private _batchedRenderer?: BaseBatchedRenderer;
     private _tempAnimationJSON: Array<AnimationJSON> = [];
     /**
      * Creates a new AnimationPrefab
@@ -58,7 +58,7 @@ export class QuarksPrefab extends Group implements IPrefab {
         this._clock = new Clock(true);
     }
 
-    private registerBatchedRenderer(renderer: BatchedRenderer): void {
+    private registerBatchedRenderer(renderer: BaseBatchedRenderer): void {
         this._batchedRenderer = renderer;
     }
 

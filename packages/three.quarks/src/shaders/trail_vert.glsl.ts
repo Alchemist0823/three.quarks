@@ -67,10 +67,9 @@ void main() {
 
     gl_Position = finalPosition;
 
+    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+
 	#include <logdepthbuf_vertex>
 	#include <clipping_planes_vertex>
-	
-    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-    
 	#include <fog_vertex>
 }`;

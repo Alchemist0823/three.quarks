@@ -43,6 +43,8 @@
     "lerna": "^9.0.3",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "rimraf": "^6.1.2",
     "rollup": "^4.57.1",
     "ts-jest": "^29.4.6",
@@ -66,7 +68,9 @@
       "yaml": "^2.9.0"
     },
     "markdown-it": "^14.1.1",
-    "minimatch": "^9.0.7"
+    "minimatch": "^9.0.7",
+    "react": "$react",
+    "react-dom": "$react-dom"
   },
   "lint-staged": {
     "**/*.ts": "prettier --write --ignore-unknown"
