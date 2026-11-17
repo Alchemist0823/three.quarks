@@ -55,6 +55,11 @@ export abstract class VFXBatch extends Mesh {
 
     settings: StoredBatchSettings;
     protected maxParticles;
+    /**
+     * Whether other systems with equal settings may be added to this batch. Batches that render a single system
+     * (e.g. GPU simulated systems) set this to `false`.
+     */
+    shareable = true;
 
     protected constructor(settings: VFXBatchSettings) {
         super();

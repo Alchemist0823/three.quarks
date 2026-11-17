@@ -143,7 +143,7 @@ export abstract class BaseBatchedRenderer extends Object3D {
         (system as unknown as ParticleSystem)._renderer = this;
         const settings = (system as unknown as ParticleSystem).getRendererSettings();
         for (let i = 0; i < this.batches.length; i++) {
-            if (BaseBatchedRenderer.equals(this.batches[i].settings, settings)) {
+            if (this.batches[i].shareable && BaseBatchedRenderer.equals(this.batches[i].settings, settings)) {
                 this.batches[i].addSystem(system);
                 this.systemToBatchIndex.set(system, i);
                 return;

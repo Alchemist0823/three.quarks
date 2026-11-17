@@ -33,6 +33,7 @@ import {
     Vector3Generator, ParticleSystemEvent, ParticleSystemEventType,
 } from 'quarks.core';
 import {MetaData, ParticleEmitter} from './ParticleEmitter';
+import type {ParticleSimulationDelegate} from './ParticleSimulation';
 import {
     AdditiveBlending,
     Object3DEventMap,
@@ -407,6 +408,19 @@ export class ParticleSystem implements IParticleSystem {
      * @type {Array<Particle>}
      */
     particles: Array<Particle>;
+
+    /**
+     * Simulates the particles instead of the CPU loop in `update()` when set (GPU simulation of
+     * `three.quarks/webgpu`). Emission stays on the CPU. See {@link ParticleSimulationDelegate}.
+     */
+    simulationDelegate: ParticleSimulationDelegate | null = null;
+
+    /**
+     * With a {@link simulationDelegate}: number of particles spawned since the last step (by this system's emission
+     * or by a parent system's `EmitSubParticleSystem`), in `particles[0 .. pendingSpawnCount)`.
+     * @internal
+     */
+    pendingSpawnCount = 0;
 
     /**
      * the shape of the emitter.
@@ -809,15 +823,16 @@ export class ParticleSystem implements IParticleSystem {
         matrix.decompose(translation, quaternion, scale);
         for (let i = 0; i < count; i++) {
             emissionState.burstParticleIndex = i;
-            this.particleNum++;
-            while (this.particles.length < this.particleNum) {
+            // with a simulation delegate, `particles` only holds the particles spawned since the last step
+            const index = this.simulationDelegate ? this.pendingSpawnCount++ : this.particleNum++;
+            while (this.particles.length <= index) {
                 if (this.rendererSettings.renderMode === RenderMode.Trail) {
                     this.particles.push(new TrailParticle());
                 } else {
                     this.particles.push(new SpriteParticle());
                 }
             }
-            const particle = this.particles[this.particleNum - 1];
+            const particle = this.particles[index];
             particle.reset();
             particle.speedModifier = 1;
             this.startColor.startGen(particle.memory);
@@ -937,6 +952,8 @@ export class ParticleSystem implements IParticleSystem {
      * and restart the particle system
      */
     restart() {
+        if (this.simulationDelegate) this.simulationDelegate.clear();
+        this.pendingSpawnCount = 0;
         this.memory.length = 0;
         this.paused = false;
         this.particleNum = 0;
@@ -1001,6 +1018,11 @@ export class ParticleSystem implements IParticleSystem {
             this.neededToUpdateRender = false;
         }
 
+        if (this.simulationDelegate) {
+            this.updateDelegated(this.simulationDelegate, delta);
+            return;
+        }
+
         if (!this.onlyUsedByOther) {
             this.emit(delta, this.emissionState, this.emitter.matrixWorld as unknown as Matrix4);
         }
@@ -1055,6 +1077,23 @@ export class ParticleSystem implements IParticleSystem {
                 this.fire({type: "particleDied", particleSystem: this, particle: particle});
             }
         }
+    }
+
+    /**
+     * One update step with an external simulation: emission and the per-frame hooks run here, the particles spawned
+     * in this step (`particles[0 .. n)`) are handed to the delegate, which owns all live particles.
+     */
+    private updateDelegated(delegate: ParticleSimulationDelegate, delta: number) {
+        if (!this.onlyUsedByOther) {
+            this.emit(delta, this.emissionState, this.emitter.matrixWorld as unknown as Matrix4);
+        }
+        this.emitterShape.update(this, delta);
+        for (let j = 0; j < this.behaviors.length; j++) {
+            this.behaviors[j].frameUpdate(delta);
+        }
+        const spawned = this.pendingSpawnCount;
+        this.pendingSpawnCount = 0;
+        this.particleNum = delegate.step(this, spawned, delta);
     }
 
     /**
