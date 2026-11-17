@@ -23,6 +23,7 @@ export * from './gpu/GPUParticleLayout';
 export * from './gpu/GPUCompileContext';
 export * from './gpu/GPUGenerators';
 export * from './gpu/GPUBehaviors';
+export * from './gpu/GPUSimulationProgram';
 export * from './gpu/GPUParticleSimulation';
 export * from './gpu/GPUParticleBatch';
 

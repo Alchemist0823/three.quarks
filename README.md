@@ -135,6 +135,32 @@ Use `colorSpaceMode: 'linear'` for a fully physically based workflow.
 
 **Data layout.** Each sprite batch uploads one interleaved buffer per frame (48–64 bytes per particle). WebGPU trails upload one 48-byte storage-buffer record per trail point and are expanded in the vertex shader. Batches of the same kind share one shader build. `halfFloat: true` packs color, size and velocity as float16 (native `Float16Array` required). It uploads 25–38% fewer bytes, but in desktop Chrome the conversion costs more CPU than the upload saves, so it is off by default; measure it with `benchmark.html` on your target device.
 
+### GPU simulation
+
+With the WebGPU backend, particles can be simulated by compute shaders instead of the CPU. Emission stays on the CPU and
+is unchanged (emitter shapes, start values, bursts, every behavior's `initialize()`), and only the particles spawned in a
+frame are uploaded. A TSL compute kernel generated from the system's behaviors updates every particle in a storage
+buffer, and the batch draws straight from it. Nothing is read back: lifetimes are known at spawn, so the CPU frees
+particle slots on its own.
+
+```javascript
+const batchRenderer = new BatchedRenderer({renderer, gpuSimulation: 'auto'}); // 'off' (default) | 'auto' | 'all'
+```
+
+- `'auto'` simulates large systems on the GPU: at least `gpuSimulationThreshold` (default 512) live particles, estimated
+  from emission rate, lifetime and bursts. Each GPU system has its own draw call and dispatch, so small systems stay on
+  the CPU, where many of them share one draw call. `'all'` takes every supported system.
+- Supported: billboard, vertical / horizontal / stretched billboard and mesh particles; ColorOverLife, SizeOverLife,
+  RotationOverLife, Rotation3DOverLife, SpeedOverLife, FrameOverLife, ColorBySpeed, SizeBySpeed, RotationBySpeed,
+  ApplyForce, GravityForce, ForceOverLife, OrbitOverLife, LimitSpeedOverLife, Noise, TurbulenceField,
+  ChangeEmitDirection and every value / color / vector / rotation generator. Curves and other parameters are uniforms,
+  so editing an effect does not rebuild a shader.
+- Stays on the CPU automatically: trails, ApplySequences, EmitSubParticleSystem parents, local-space sub-emitter
+  targets, systems with `particleDied` listeners, custom behaviors (register a GPU version with `registerGPUBehavior`),
+  and the WebGL2 fallback backend. `batchRenderer.getGPUSimulationSupport(system)` says why.
+- Measured on an Intel UHD (Gen12) iGPU: 50k billboards 11.8 → 1.3 ms CPU per frame (83 → 250 fps), 200k billboards
+  43 → 2.4 ms (23 → 120 fps).
+
 **React Three Fiber 9.** Pass the WebGPU batch renderer to the provider and create `WebGPURenderer` in the canvas:
 
 ```jsx
@@ -142,11 +168,31 @@ import {WebGPURenderer} from 'three/webgpu';
 import {WebGPUBatchedRenderer} from 'three.quarks/webgpu';
 
 <Canvas gl={async (props) => { const r = new WebGPURenderer(props); await r.init(); return r; }}>
-    <QuarksProvider createBatchedRenderer={() => new WebGPUBatchedRenderer({target: 'auto'})}>
+    <QuarksProvider createBatchedRenderer={(gl) => new WebGPUBatchedRenderer({target: 'auto', renderer: gl, gpuSimulation: 'auto'})}>
         ...
     </QuarksProvider>
 </Canvas>
 ```
+
+### Node graph effects (`quarks.nodes`)
+
+`NodeVFX` describes an effect with three node graphs: the emission graph spawns particles (`rate`, `startEvent`,
+`repeater` → `emit`), the init graph sets up every spawned particle and the update graph runs on every particle every
+step (`particleProperty` nodes read and write position, velocity, color, size, rotation, uv tile, age, life). The graphs
+run in a CPU interpreter with any renderer. Importing `quarks.nodes/webgpu` compiles update graphs to TSL, so with
+`gpuSimulation` they run in the same GPU simulation as regular particle systems. Effects serialize to JSON and load
+through `QuarksLoader`.
+
+```javascript
+import {NodeVFX} from 'quarks.nodes';
+import 'quarks.nodes/webgpu'; // GPU simulation of update graphs
+
+const vfx = new NodeVFX({emissionGraph, initGraph, updateGraph, material, maxParticles: 5000});
+batchRenderer.addSystem(vfx);
+scene.add(vfx.emitter);
+```
+
+See `nodeBasedVFXDemo.js` for a complete effect built in code.
 
 ## 📂 Loading VFX from JSON
 
@@ -281,7 +327,7 @@ This project is a monorepo with modular packages:
 | **[three.quarks](https://www.npmjs.com/package/three.quarks)** | 🎯 Main package - Three.js particle system with batched rendering, shaders, and full VFX toolkit |
 | **[quarks.core](https://www.npmjs.com/package/quarks.core)** | 🧱 Core library - Framework-agnostic math, behaviors, emitter shapes, and functions (zero dependencies) |
 | **[quarks.r3f](https://www.npmjs.com/package/quarks.r3f)** | ⚛️ React Three Fiber - Declarative R3F components with hooks, Suspense support, and flexible props API |
-| **[quarks.nodes](https://www.npmjs.com/package/quarks.nodes)** | 🔮 Node system - Experimental node-based VFX with visual programming and WebGPU compute support |
+| **[quarks.nodes](https://www.npmjs.com/package/quarks.nodes)** | 🔮 Node system - Node graph based VFX (`NodeVFX`), CPU interpreter and TSL compiler for GPU simulation (`quarks.nodes/webgpu`) |
 | **quarks.examples** | 🎮 Examples - Interactive demos showcasing particle effects and features |
 | **quarks.playground** | 🧪 Playground - Development sandbox for testing and experimenting with effects |
 
@@ -300,9 +346,11 @@ This project is a monorepo with modular packages:
 
 ## 🗺️ Roadmap
 
-- 🔲 WebGPU rendering support
+- ✅ WebGPU rendering support
+- ✅ GPU (compute shader) particle simulation
+- ✅ Node-based scriptable particle systems
+- 🔲 GPU emission and GPU trails
 - 🔲 WebAssembly particle simulation
-- 🔲 Node-based scriptable particle systems
 - 🔲 Cross-platform native plugins
 
 ## 📄 License

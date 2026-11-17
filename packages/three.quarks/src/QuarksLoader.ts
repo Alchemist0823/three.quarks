@@ -39,8 +39,17 @@ import {
 } from 'three';
 import {ParticleSystem} from './ParticleSystem';
 import {Behavior, EmitSubParticleSystem} from 'quarks.core';
+import type {IParticleSystem} from 'quarks.core';
 import {ParticleEmitter} from './ParticleEmitter';
 import { QuarksPrefab } from './QuarksPrefab';
+
+/**
+ * Loaders of particle system types other than `ParticleSystem`, keyed by the `type` of their JSON (`ps.type`).
+ * Packages like `quarks.nodes` register their system type here so `QuarksLoader` can load it.
+ */
+export const ParticleSystemTypes: {
+    [type: string]: (json: any, meta: any, dependencies: {[uuid: string]: Behavior}) => IParticleSystem;
+} = {};
 
 /**
  * Loader for quarks particle system.
@@ -63,6 +72,7 @@ export class QuarksLoader extends ObjectLoader {
         object.traverse(function (child) {
             if (child.type === 'ParticleEmitter') {
                 const system = (child as ParticleEmitter).system as ParticleSystem;
+                if (!system.behaviors) return;
                 const shape = system.emitterShape;
                 /*if (shape instanceof MeshSurfaceEmitter) {
                     shape.geometry = objectsMap[shape.geometry as any] as Mesh;
@@ -145,9 +155,12 @@ export class QuarksLoader extends ObjectLoader {
             case 'QuarksPrefab':
                 object = QuarksPrefab.fromJSON(data);
                 break;
-            case 'ParticleEmitter':
-                object = ParticleSystem.fromJSON(data.ps, meta as any, dependencies).emitter;
+            case 'ParticleEmitter': {
+                // `ps.type` selects a registered particle system type (e.g. 'NodeVFX' from quarks.nodes)
+                const loadSystem = (data.ps && data.ps.type && ParticleSystemTypes[data.ps.type]) || ParticleSystem.fromJSON;
+                object = loadSystem(data.ps, meta as any, dependencies).emitter as unknown as Object3D;
                 break;
+            }
             case 'Scene':
                 object = new Scene();
                 if (data.background !== undefined) {

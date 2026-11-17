@@ -3,67 +3,52 @@ import {Adapter, Node, Wire} from './Node';
 import {ExecutionContext} from './NodeDef';
 
 export abstract class BaseCompiler {
+    /** the shared {@link Interpreter} (set by the first interpreter created) */
     static Instance: BaseCompiler;
-
-    constructor() {
-        BaseCompiler.Instance = this;
-    }
 
     visited: Set<string> = new Set<string>();
     debug: boolean = false;
 
-    protected buildExecutionOrder(graph: NodeGraph, context: ExecutionContext): void {
+    /**
+     * Orders the nodes the output nodes depend on so that every node comes after its inputs
+     * (`graph.nodesInOrder`).
+     */
+    protected buildExecutionOrder(graph: NodeGraph, context?: ExecutionContext): void {
         graph.nodesInOrder.length = 0;
         this.visited.clear();
         for (let i = 0; i < graph.outputNodes.length; i++) {
             const node = graph.outputNodes[i];
-            if (node.inputs[0] !== undefined) {
-                this._traverse(node, graph, context);
+            if (node.inputs.length === 0 || node.inputs[0] !== undefined) {
+                if (!this.visited.has(node.id)) this._traverse(node, graph);
             }
         }
         graph.compiled = true;
+        void context;
     }
 
-    private _traverseWire(wire: Wire, graph: NodeGraph, context: ExecutionContext) {
-
+    /** The nodes of `graph` in execution order. */
+    getExecutionOrder(graph: NodeGraph): Node[] {
+        if (!graph.compiled) this.buildExecutionOrder(graph);
+        return graph.nodesInOrder;
     }
 
-    private _traverse(node: Node, graph: NodeGraph, context: ExecutionContext) {
+    private _visitSource(source: Node | Adapter, graph: NodeGraph) {
+        const node = source instanceof Adapter ? source.node : source;
+        if (!this.visited.has(node.id)) this._traverse(node, graph);
+    }
+
+    private _traverse(node: Node, graph: NodeGraph) {
         this.visited.add(node.id);
-        const inputValues = [];
         for (let i = 0; i < node.inputs.length; i++) {
-            if (node.inputs[i] instanceof Wire) {
-                const input = (node.inputs[i] as Wire).input;
-                //if (input) {
-                if (input instanceof Node) {
-                    if (!this.visited.has(input.id)) {
-                        this._traverse(input, graph, context);
-                    }
-                } else if (input instanceof Adapter) {
-                    if (!input.isInput) {
-                        this._traverse(input.node, graph, context);
-                    }
-                }
-            } else if (node.inputs[i] instanceof Adapter) {
-                const input = node.inputs[i] as Adapter;
-                for (let j = 0; j < input.inputs.length; j++) {
-                    const wireOrNot = input.inputs[j];
-                    if (wireOrNot !== undefined) {
-                        if (wireOrNot.input instanceof Node) {
-                            if (!this.visited.has(wireOrNot.input.id)) {
-                                this._traverse(wireOrNot.input, graph, context);
-                            }
-                        } else {
-                            if (!this.visited.has(wireOrNot.input.node.id)) {
-                                this._traverse(wireOrNot.input.node, graph, context);
-                            }
-                        }
-                    }
+            const input = node.inputs[i];
+            if (input instanceof Wire) {
+                this._visitSource(input.input, graph);
+            } else if (input instanceof Adapter) {
+                for (const wire of input.inputs) {
+                    if (wire !== undefined) this._visitSource(wire.input, graph);
                 }
             }
         }
-        // calculation
-        //node.func(context, inputValues, node.outputValues);
         graph.nodesInOrder.push(node);
     }
 

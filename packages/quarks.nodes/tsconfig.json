@@ -4,6 +4,11 @@
     "declarationDir": "./dist/types",
     "typeRoots": ["./node_modules/@webgpu/types" ,"./types", "./node_modules/@types", "../../node_modules/@types"],
     "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "quarks.nodes": ["./src/index.ts"]
+    },
     "rootDir": "src",
     "outDir": "dist"
   },

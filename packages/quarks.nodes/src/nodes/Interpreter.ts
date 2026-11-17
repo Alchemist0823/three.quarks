@@ -1,68 +1,85 @@
+import {Vector2, Vector3, Vector4} from 'quarks.core';
 import {NodeGraph} from './NodeGraph';
 import {Adapter, ConstInput, Node, Wire} from './Node';
 import {ExecutionContext} from './NodeDef';
 import {BaseCompiler} from './BaseCompiler';
-import {genDefaultForNodeValueType} from './NodeValueType';
+import {genDefaultForNodeValueType, NodeValueType} from './NodeValueType';
 
+const COMPONENTS = ['x', 'y', 'z', 'w'];
+
+/**
+ * Value of output `index` of `source`: a node output, or one component of a node output split by an adapter.
+ */
+function sourceValue(source: Node | Adapter, index: number): any {
+    if (source instanceof Adapter) {
+        const vector = source.node.outputValues[source.paramIndex];
+        return vector ? vector[COMPONENTS[index]] : undefined;
+    }
+    return source.outputValues[index];
+}
+
+/** The vector an input adapter builds from its component wires. */
+function adapterValue(adapter: Adapter): any {
+    if (adapter.value === undefined) {
+        adapter.value =
+            adapter.type === NodeValueType.Vec2
+                ? new Vector2()
+                : adapter.type === NodeValueType.Vec3
+                  ? new Vector3()
+                  : adapter.type === NodeValueType.Vec4
+                    ? new Vector4()
+                    : 0;
+    }
+    if (typeof adapter.value === 'number') {
+        const wire = adapter.inputs[0];
+        adapter.value = wire ? sourceValue(wire.input, wire.inputIndex) : 0;
+        return adapter.value;
+    }
+    for (let k = 0; k < adapter.inputs.length; k++) {
+        const wire = adapter.inputs[k];
+        adapter.value[COMPONENTS[k]] = wire ? sourceValue(wire.input, wire.inputIndex) : 0;
+    }
+    return adapter.value;
+}
+
+/**
+ * Runs a node graph on the CPU, node by node in execution order.
+ */
 export class Interpreter extends BaseCompiler {
     constructor() {
         super();
+        if (!BaseCompiler.Instance) BaseCompiler.Instance = this;
     }
 
-    /*private traverse(node: Node, graph: NodeGraph, context: ExecutionContext) {
-        this.visited.add(node.id);
-        const inputValues = [];
-        for (let i = 0; i < node.inputs.length; i++) {
-            if (node.inputs[i] instanceof Wire) {
-                const inputNode = (node.inputs[i] as Wire).input;
-                //if (inputNode) {
-                if (!this.visited.has(inputNode.id)) {
-                    this.traverse(inputNode, graph, context);
-                }
-                inputValues.push(inputNode.outputValues[(node.inputs[i] as Wire).inputIndex]);
-            } else if (node.inputs[i] !== undefined) {
-                inputValues.push((node.inputs[i] as ConstInput).getValue(context));
-            } else {
-                inputValues.push(undefined);
-            }
-        }
-        // calculation
-        node.func(context, inputValues, node.outputValues);
-        graph.nodesInOrder.push(node);
-    }*/
+    private inputValues_: any[] = [];
 
     private executeCompiledGraph(graph: NodeGraph, context: ExecutionContext) {
         const nodes = graph.nodesInOrder;
+        const inputValues = this.inputValues_;
         for (let i = 0; i < nodes.length; i++) {
-            const inputValues = [];
             const node = nodes[i];
             if (this.debug) {
                 console.log('Node:', node);
             }
+            inputValues.length = 0;
             for (let j = 0; j < node.inputs.length; j++) {
-                if (node.inputs[j] instanceof Wire) {
-                    if ((node.inputs[j] as Wire).input instanceof Node) {
-                        inputValues.push(
-                            ((node.inputs[j] as Wire).input as Node).outputValues[(node.inputs[j] as Wire).inputIndex]
-                        );
-                    } // TODO: handle adapter
-                } else if (node.inputs[j] instanceof Adapter) {
-                    // TODO: handle adapter
-                    //inputValues.push((node.inputs[j] as Adapter).input.outputValues[(node.inputs[j] as Wire).inputIndex]);
-                } else if (node.inputs[j] !== undefined) {
-                    inputValues.push((node.inputs[j] as ConstInput).getValue(context));
+                const input = node.inputs[j];
+                if (input instanceof Wire) {
+                    inputValues.push(sourceValue(input.input, input.inputIndex));
+                } else if (input instanceof Adapter) {
+                    inputValues.push(adapterValue(input));
+                } else if (input !== undefined) {
+                    inputValues.push((input as ConstInput).getValue(context));
                 } else {
                     inputValues.push(undefined);
                 }
             }
             if (node.outputValues.length === 0) {
-                const signatureIndex = node.signatureIndex < 0 ? 0 : node.signatureIndex;
-                for (let i = 0; i < node.definition.nodeTypeSignatures[signatureIndex].outputTypes.length; i++) {
-                    node.outputValues.push(
-                        genDefaultForNodeValueType(node.definition.nodeTypeSignatures[signatureIndex].outputTypes[i])
-                    );
-                    if (node.outputValues[i] === undefined) {
-                        node.outputValues[i] = genDefaultForNodeValueType(node.data.type);
+                const outputTypes = node.outputTypes;
+                for (let k = 0; k < outputTypes.length; k++) {
+                    node.outputValues.push(genDefaultForNodeValueType(outputTypes[k]));
+                    if (node.outputValues[k] === undefined) {
+                        node.outputValues[k] = genDefaultForNodeValueType(node.data.type);
                     }
                 }
             }
@@ -77,7 +94,13 @@ export class Interpreter extends BaseCompiler {
         this.executeCompiledGraph(graph, context);
     }
 
-    build(graph: NodeGraph, context: ExecutionContext): string {
+    build(): string {
         return '';
     }
+}
+
+/** The shared interpreter. */
+export function getInterpreter(): Interpreter {
+    if (!(BaseCompiler.Instance instanceof Interpreter)) BaseCompiler.Instance = new Interpreter();
+    return BaseCompiler.Instance as Interpreter;
 }

@@ -1,5 +1,31 @@
 # Change Log
 
+## Unreleased
+
+- WebGPU: hybrid GPU particle simulation (`new BatchedRenderer({renderer, gpuSimulation: 'auto' | 'all'})`). Emission
+  stays on the CPU; only spawned particles are uploaded; a TSL compute kernel generated from the behaviors updates the
+  particles in a storage buffer that the batch draws from directly. No GPU readback (CPU slot allocator).
+  - GPU versions of the over-life, by-speed, force, orbit, speed limit, noise and turbulence behaviors and of every
+    value / color / vector / rotation generator; `registerGPUBehavior()` for custom behaviors
+  - `'auto'` takes systems with at least `gpuSimulationThreshold` (default 512) estimated live particles; unsupported
+    systems, edits that make a system unsupported and the WebGL2 backend fall back to the CPU automatically
+  - particles are kept across renderer setting changes and CPU ↔ GPU switches
+  - 50k billboards: 11.8 → 1.3 ms CPU per frame; 200k: 43 → 2.4 ms (Intel UHD Gen12)
+- `ParticleSystem.simulationDelegate` / `ParticleSimulationDelegate`: renderer-agnostic hook for external simulation
+- `QuarksLoader` loads registered particle system types (`ParticleSystemTypes`, e.g. `NodeVFX`)
+- quarks.nodes: node graph mode completed
+  - `NodeVFX`: init graph, once-per-loop `startEvent`, `rate` emission, trail particles, graph properties,
+    `particleDied` events, JSON (`toJSON` / `fromJSON` / `clone`)
+  - `quarks.nodes/webgpu`: TSL compiler of update graphs; NodeVFX effects run in the GPU simulation
+  - interpreter: adapters, recompilation after edits, no global compiler hijacking; fixed `smoothstep`; new nodes `rate`,
+    `split`, `noise`, `pow`, `sqrt`, `exp`, `log`, `floor`, `ceil`, `fract`, `sign`, `negate`, `mod`, `step`, `atan2`,
+    `input`, component-wise vector `mul`
+  - `NodeGraph` / `NodeGraphBehavior` JSON; `ConstantInput` for serializable constants
+  - the bundle no longer inlines three.quarks / quarks.core
+- quarks.r3f: `createBatchedRenderer` receives the canvas renderer (`gl`)
+- Examples: node graph vortex demo (WebGL and WebGPU pages); CPU / GPU simulation switch on the WebGPU page; GPU
+  simulation cases in `benchmark.html`
+
 ## Version 0.18.0
 
 - Add `three.quarks/webgpu`: batch renderer for three.js `WebGPURenderer`, built on TSL node materials (also runs on the WebGL2 fallback backend)

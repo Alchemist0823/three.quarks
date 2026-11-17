@@ -2,11 +2,18 @@
 import {Matrix4, Quaternion, Vector3, Vector4} from 'three';
 import {StorageBufferAttribute} from 'three/webgpu';
 import * as TSL from 'three/tsl';
-import {ConstantValue, IntervalValue, PiecewiseBezier, RenderMode} from 'three.quarks';
-import type {ParticleSimulationDelegate, ParticleSystem, StretchedBillBoardSettings} from 'three.quarks';
+import {RenderMode} from 'three.quarks';
+import type {
+    IEmitter,
+    Particle,
+    ParticleSimulationDelegate,
+    StretchedBillBoardSettings,
+    VFXBatchSettings,
+} from 'three.quarks';
 import type {ParticleFields} from '../ParticleNodes';
 import {GPUCompileContext} from './GPUCompileContext';
-import {getGPUBehaviorCompiler, GPUParticleState} from './GPUBehaviors';
+import type {GPUParticleState} from './GPUBehaviors';
+import {createGPUSimulationProgram, GPUSimulationProgram} from './GPUSimulationProgram';
 import {quatMul} from './GPUGenerators';
 import {createGPUParticleLayout, GPU_SEED_RANGE, GPU_SLOT, GPUParticleLayout, writeSpawnRecord} from './GPUParticleLayout';
 import {GPUSlotAllocator} from './GPUSlotAllocator';
@@ -35,10 +42,28 @@ const SPRITE_MODES = new Set([
 ]);
 
 /**
+ * What a GPU simulation needs from a particle system (`ParticleSystem`, or another system type with a registered
+ * {@link GPUSimulationProgram}, such as `NodeVFX`). The system emits on the CPU into `particles[0 .. pendingSpawnCount)`
+ * and calls its `simulationDelegate.step()` instead of simulating its particles.
+ */
+export interface GPUSimulatedSystem {
+    particles: Particle[];
+    particleNum: number;
+    pendingSpawnCount: number;
+    simulationDelegate: ParticleSimulationDelegate | null;
+    worldSpace: boolean;
+    onlyUsedByOther?: boolean;
+    emitter: IEmitter;
+    rendererSettings: VFXBatchSettings;
+    rendererEmitterSettings: unknown;
+    getRendererSettings(): VFXBatchSettings;
+}
+
+/**
  * Whether a particle system can be simulated on the GPU.
  * @returns `null` when it can, otherwise the reason it stays on the CPU
  */
-export function getGPUSimulationSupport(system: ParticleSystem): string | null {
+export function getGPUSimulationSupport(system: GPUSimulatedSystem): string | null {
     if (!SPRITE_MODES.has(system.rendererSettings.renderMode)) {
         return 'trail particles are simulated on the CPU';
     }
@@ -49,24 +74,12 @@ export function getGPUSimulationSupport(system: ParticleSystem): string | null {
     if (listeners && listeners.length > 0) {
         return 'particleDied listeners receive CPU particles';
     }
-    for (const behavior of system.behaviors) {
-        const compiler = getGPUBehaviorCompiler(behavior);
-        if (!compiler) return `behavior ${behavior.type} has no GPU version`;
-        if (!compiler.supports(behavior, system)) return `behavior ${behavior.type} uses a generator with no GPU version`;
+    if (!('simulationDelegate' in (system as any))) {
+        return 'the particle system type does not support simulation delegates';
     }
-    return null;
-}
-
-/** Upper bound of a value generator, or `null` if unknown. */
-function maxValue(gen: unknown): number | null {
-    if (gen instanceof ConstantValue) return gen.value;
-    if (gen instanceof IntervalValue) return Math.max(gen.a, gen.b);
-    if (gen instanceof PiecewiseBezier) {
-        let max = -Infinity;
-        for (const [bezier] of gen.functions) for (const p of bezier.p) max = Math.max(max, p);
-        return Number.isFinite(max) ? max : null;
-    }
-    return null;
+    const program = createGPUSimulationProgram(system);
+    if (!program) return 'no GPU simulation program for this particle system type';
+    return program.support();
 }
 
 function nextPowerOfTwo(n: number): number {
@@ -74,27 +87,20 @@ function nextPowerOfTwo(n: number): number {
 }
 
 /**
- * Upper estimate of the number of live particles of a system: max emission rate x max lifetime + bursts.
- * @returns `null` when a generator has no known bound
+ * Upper estimate of the number of live particles of a system (for a `ParticleSystem`: max emission rate x max
+ * lifetime + bursts).
+ * @returns `null` when unknown
  */
-export function estimateParticleCount(system: ParticleSystem): number | null {
-    const rate = maxValue(system.emissionOverTime);
-    const life = maxValue(system.startLife);
-    if (rate === null || life === null) return null;
-    let estimate = Math.max(0, rate) * Math.max(0, life);
-    for (const burst of system.emissionBursts) {
-        const count = maxValue(burst.count);
-        if (count === null) return null;
-        estimate += Math.max(0, count) * Math.max(1, burst.cycle ?? 1);
-    }
-    return estimate;
+export function estimateParticleCount(system: GPUSimulatedSystem): number | null {
+    const program = createGPUSimulationProgram(system);
+    return program ? program.estimateParticleCount() : null;
 }
 
 /**
  * Initial number of particle slots: {@link estimateParticleCount} with some headroom, rounded up to a power of two.
  * The buffer grows when this is not enough (emission over distance, generators with no known bound).
  */
-export function estimateGPUCapacity(system: ParticleSystem): number {
+export function estimateGPUCapacity(system: GPUSimulatedSystem): number {
     const estimate = estimateParticleCount(system);
     const slots = estimate === null ? 1024 : estimate * 1.25 + 64;
     return Math.min(1 << 22, Math.max(256, nextPowerOfTwo(slots)));
@@ -106,12 +112,12 @@ const tempRotation = new Quaternion();
 const tempScale = new Vector3();
 
 /**
- * Hybrid GPU simulation of one {@link ParticleSystem} (`ParticleSimulationDelegate`).
+ * Hybrid GPU simulation of one particle system (`ParticleSimulationDelegate`).
  *
  * The CPU keeps emitting particles exactly like before (shapes, start values, `initialize()` of every behavior) and
  * uploads only the particles spawned in a step (112-160 bytes each) instead of every live particle every frame. A TSL
- * compute kernel generated from the system's behaviors updates all particles in a storage buffer, and the system's
- * batch draws straight from that buffer.
+ * compute kernel generated from the system's {@link GPUSimulationProgram} (a `ParticleSystem`'s behaviors, a
+ * `NodeVFX`'s update graph) updates all particles in a storage buffer, and the system's batch draws straight from it.
  *
  * Per step:
  * 1. spawned particles get the lowest free slots ({@link GPUSlotAllocator}) and are packed into the spawn buffer;
@@ -156,12 +162,18 @@ export class GPUParticleSimulation implements ParticleSimulationDelegate {
     /** one-shot kernels to dispose once they were dispatched */
     private retired_: N[] = [];
 
+    /** the per-particle update of the system */
+    readonly program: GPUSimulationProgram;
+
     constructor(
-        readonly system: ParticleSystem,
+        readonly system: GPUSimulatedSystem,
         private readonly host: GPUSimulationHost,
         capacity: number = estimateGPUCapacity(system)
     ) {
-        const noise = system.behaviors.some((b) => getGPUBehaviorCompiler(b)?.usesNoiseState === true);
+        const program = createGPUSimulationProgram(system);
+        if (!program) throw new Error('GPUParticleSimulation: no GPU simulation program for this particle system');
+        this.program = program;
+        const noise = program.usesNoiseState();
         this.layout = createGPUParticleLayout({mesh: system.rendererSettings.renderMode === RenderMode.Mesh, noise});
         this.worldSpace_ = system.worldSpace;
         this.allocator = new GPUSlotAllocator(nextPowerOfTwo(capacity));
@@ -182,7 +194,7 @@ export class GPUParticleSimulation implements ParticleSimulationDelegate {
 
     // ---- ParticleSimulationDelegate ------------------------------------------------------------------------
 
-    step(system: ParticleSystem, spawnCount: number, delta: number): number {
+    step(system: GPUSimulatedSystem, spawnCount: number, delta: number): number {
         if (this.disposed_ || this.invalidReason !== null) return this.allocator.liveCount;
         // a second step before the frame's dispatch (prewarm): run the queued step first
         if (this.queued_) this.host.flush();
@@ -322,13 +334,13 @@ export class GPUParticleSimulation implements ParticleSimulationDelegate {
 
     // ---- buffers and kernels -------------------------------------------------------------------------------
 
-    private layoutChanged(system: ParticleSystem): boolean {
+    private layoutChanged(system: GPUSimulatedSystem): boolean {
         return !this.isCompatible(system);
     }
 
     /** Whether this simulation's particle layout still fits the system (render mode / behaviors changed). */
-    isCompatible(system: ParticleSystem): boolean {
-        const noise = system.behaviors.some((b) => getGPUBehaviorCompiler(b)?.usesNoiseState === true);
+    isCompatible(system: GPUSimulatedSystem): boolean {
+        const noise = this.program.usesNoiseState();
         const mesh = system.rendererSettings.renderMode === RenderMode.Mesh;
         return noise === this.layout.noise >= 0 && mesh === this.layout.mesh;
     }
@@ -406,10 +418,9 @@ export class GPUParticleSimulation implements ParticleSimulationDelegate {
         const layout = this.layout;
         const S = layout.stride;
         const state = this.stateNode_;
+        const program = this.program;
         const ctx = new GPUCompileContext(system.worldSpace);
-        // the behavior list and every behavior are part of the generated code
-        ctx.watch(() => system.behaviors.length);
-        system.behaviors.forEach((_, i) => ctx.watch(() => system.behaviors[i]));
+        program.watch(ctx);
         ctx.watch(() => system.rendererSettings.renderMode);
         if (this.ctx_) {
             ctx.frame.value = this.ctx_.frame.value;
@@ -445,9 +456,7 @@ export class GPUParticleSimulation implements ParticleSimulationDelegate {
                     t: head.w.div(motion.w),
                 };
                 ctx.seed = p.seed;
-                for (const behavior of system.behaviors) {
-                    getGPUBehaviorCompiler(behavior)!.compile(ctx, behavior, p, system);
-                }
+                program.compile(ctx, p);
                 // integrate and age, like the end of ParticleSystem.update()
                 p.position.addAssign(p.velocity.mul(ctx.delta.mul(p.speedModifier)));
                 p.age.addAssign(ctx.delta);

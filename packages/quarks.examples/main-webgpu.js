@@ -22,6 +22,9 @@ import {BillboardDemo} from './billboardDemo.js';
 import {SoftParticleDemo} from './softParticleDemo.js';
 import {CustomBlendingDemo} from './customBlendingDemo.js';
 import {FollowObjectDemo} from './followObjectDemo.js';
+import {NodeBasedVFXDemo} from './nodeBasedVFXDemo.js';
+// registers the TSL compiler of node graphs: NodeVFX effects can then be simulated on the GPU
+import 'quarks.nodes/webgpu';
 
 /*
  * Same demos as vanilla.html, rendered with three.js WebGPURenderer + three.quarks/webgpu.
@@ -72,6 +75,7 @@ const demos = [
     SoftParticleDemo,
     CustomBlendingDemo,
     FollowObjectDemo,
+    NodeBasedVFXDemo,
 ];
 const demoFiles = [
     'muzzleFlashDemo.js',
@@ -88,6 +92,7 @@ const demoFiles = [
     'softParticleDemo.js',
     'customBlendingDemo.js',
     'followObjectDemo.js',
+    'nodeBasedVFXDemo.js',
 ];
 const GITHUB_BASE = 'https://github.com/Alchemist0823/three.quarks/blob/master/packages/quarks.examples/';
 

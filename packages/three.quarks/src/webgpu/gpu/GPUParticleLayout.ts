@@ -70,8 +70,9 @@ export function writeSpawnRecord(
     const v = particle.velocity;
     const c = particle.color;
     const s = particle.size;
-    const sc = particle.startColor;
-    const ss = particle.startSize;
+    // particles of other system types (e.g. NodeParticle) may not have the start values
+    const sc = particle.startColor ?? c;
+    const ss = particle.startSize ?? s;
 
     array[o] = p.x;
     array[o + 1] = p.y;
@@ -98,8 +99,8 @@ export function writeSpawnRecord(
     array[o + 22] = ss.z;
     array[o + 23] = slot;
     array[o + 24] = seed;
-    array[o + 25] = particle.startSpeed;
-    array[o + 26] = particle.speedModifier;
+    array[o + 25] = particle.startSpeed ?? 0;
+    array[o + 26] = particle.speedModifier ?? 1;
     array[o + 27] = particle.uvTile;
     if (layout.quaternion >= 0) {
         const q = sprite.rotation instanceof Quaternion ? sprite.rotation : null;

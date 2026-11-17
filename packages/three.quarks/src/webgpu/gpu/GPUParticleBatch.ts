@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {InstancedBufferGeometry, Material, Texture} from 'three';
 import {VFXBatch} from 'three.quarks';
-import type {IParticleSystem, ParticleSystem, VFXBatchSettings} from 'three.quarks';
+import type {IParticleSystem, VFXBatchSettings} from 'three.quarks';
 import {CompositingSource, createSpriteBatchMaterial, isPendingCubeTexture} from '../WebGPUBatches';
 import {createPerformanceProfile, QuarksPerformanceProfile} from '../PerformanceProfile';
-import {GPUParticleSimulation, GPUSimulationHost} from './GPUParticleSimulation';
+import {GPUParticleSimulation, GPUSimulatedSystem, GPUSimulationHost} from './GPUParticleSimulation';
 
 /**
  * Renders one GPU simulated particle system ({@link GPUParticleSimulation}): an instanced draw of `highWater`
@@ -37,7 +37,7 @@ export class GPUParticleBatch extends VFXBatch {
     }
 
     /** the simulated system */
-    get system(): ParticleSystem | null {
+    get system(): GPUSimulatedSystem | null {
         return this.simulation ? this.simulation.system : null;
     }
 
@@ -49,7 +49,7 @@ export class GPUParticleBatch extends VFXBatch {
     addSystem(system: IParticleSystem, simulation?: GPUParticleSimulation) {
         if (this.systems.size > 0) throw new Error('GPUParticleBatch renders a single particle system');
         super.addSystem(system);
-        const particleSystem = system as unknown as ParticleSystem;
+        const particleSystem = system as unknown as GPUSimulatedSystem;
         if (simulation && simulation.system === particleSystem) {
             this.simulation = simulation;
         } else {
@@ -70,7 +70,7 @@ export class GPUParticleBatch extends VFXBatch {
      */
     removeSystem(system: IParticleSystem) {
         super.removeSystem(system);
-        const particleSystem = system as unknown as ParticleSystem;
+        const particleSystem = system as unknown as GPUSimulatedSystem;
         if (this.simulation && particleSystem.simulationDelegate === this.simulation) {
             particleSystem.simulationDelegate = null;
             particleSystem.particleNum = particleSystem.pendingSpawnCount;

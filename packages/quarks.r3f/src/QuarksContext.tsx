@@ -28,8 +28,14 @@ export interface QuarksProviderProps {
      * import { WebGPUBatchedRenderer } from 'three.quarks/webgpu'
      * <QuarksProvider createBatchedRenderer={() => new WebGPUBatchedRenderer({ target: 'auto' })}>
      * ```
+     *
+     * The factory receives the canvas renderer (`gl`), which GPU simulation needs:
+     *
+     * ```tsx
+     * <QuarksProvider createBatchedRenderer={(gl) => new WebGPUBatchedRenderer({ renderer: gl, gpuSimulation: 'auto' })}>
+     * ```
      */
-    createBatchedRenderer?: () => BaseBatchedRenderer;
+    createBatchedRenderer?: (gl: any) => BaseBatchedRenderer;
 }
 
 /**
@@ -54,13 +60,13 @@ export interface QuarksProviderProps {
  * ```
  */
 export function QuarksProvider({ children, createBatchedRenderer }: QuarksProviderProps) {
-    const { scene } = useThree();
+    const { scene, gl } = useThree();
     const rendererRef = useRef<BaseBatchedRenderer | null>(null);
     const contextRef = useRef<QuarksContextValue | null>(null);
 
     // Create renderer once (synchronously to avoid flicker)
     if (!rendererRef.current) {
-        rendererRef.current = createBatchedRenderer ? createBatchedRenderer() : new BatchedRenderer();
+        rendererRef.current = createBatchedRenderer ? createBatchedRenderer(gl) : new BatchedRenderer();
         scene.add(rendererRef.current);
         contextRef.current = { batchedRenderer: rendererRef.current };
     }

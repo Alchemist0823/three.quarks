@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {BaseBatchedRenderer, RenderMode, VFXBatch, VFXBatchSettings} from 'three.quarks';
-import type {IParticleSystem, ParticleSystem} from 'three.quarks';
+import type {IParticleSystem} from 'three.quarks';
 import type {Texture} from 'three';
 import {CompositingState, WebGPUSpriteBatch, WebGPUTrailBatch} from './WebGPUBatches';
 import {createPerformanceProfile, QuarksPerformanceProfile, QuarksPerformanceProfileOptions} from './PerformanceProfile';
@@ -9,6 +9,7 @@ import {
     estimateParticleCount,
     getGPUSimulationSupport,
     GPUParticleSimulation,
+    GPUSimulatedSystem,
     GPUSimulationHost,
 } from './gpu/GPUParticleSimulation';
 
@@ -132,7 +133,7 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         if (this.gpuUnavailable_ || !this.hasWebGPUBackend()) {
             return 'GPU simulation needs the WebGPU backend';
         }
-        const particleSystem = system as unknown as ParticleSystem;
+        const particleSystem = system as unknown as GPUSimulatedSystem;
         const support = getGPUSimulationSupport(particleSystem);
         if (support !== null || this.gpuSimulation === 'all') return support;
         const estimate = estimateParticleCount(particleSystem);
@@ -153,8 +154,8 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
             super.addSystem(system);
             return;
         }
-        (system as unknown as ParticleSystem)._renderer = this;
-        const settings = (system as unknown as ParticleSystem).getRendererSettings();
+        (system as any)._renderer = this;
+        const settings = (system as unknown as GPUSimulatedSystem).getRendererSettings();
         const batch = new GPUParticleBatch(settings, this, this.profile, this);
         if (this.depthTexture) batch.applyDepthTexture(this.depthTexture);
         batch.addSystem(system);
@@ -190,7 +191,7 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         const index = this.systemToBatchIndex.get(system);
         const batch = index !== undefined ? (this.batches[index] as GPUParticleBatch) : null;
         const simulation = batch && batch.isGPUParticleBatch ? batch.simulation : null;
-        const particleSystem = system as unknown as ParticleSystem;
+        const particleSystem = system as unknown as GPUSimulatedSystem;
         if (
             simulation &&
             simulation.invalidReason === null &&
