@@ -85,8 +85,9 @@ const DEFAULT_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
  * Three graphs describe it: the emission graph spawns particles (`emit` events from `startEvent`, `rate`,
  * `repeater`, ...), the init graph sets up each spawned particle and the update graph runs on every particle every
  * step (`particleProperty` nodes read and write the particle). The graphs run in the CPU {@link Interpreter}; with
- * `three.quarks/webgpu` and `quarks.nodes/webgpu`, the update graph is compiled to a TSL compute shader and the
- * particles are simulated on the GPU (`gpuSimulation` option of the batch renderer).
+ * `three.quarks/webgpu` and `quarks.nodes/webgpu` (`gpuSimulation` option of the batch renderer), the init and update
+ * graphs are compiled to TSL compute shaders and the particles are emitted and simulated on the GPU. Only the
+ * emission graph, which decides how many particles to emit, runs on the CPU then.
  */
 export class NodeVFX implements IParticleSystem {
     readonly isNodeVFX = true;
@@ -501,13 +502,29 @@ export class NodeVFX implements IParticleSystem {
         context.delta = delta;
         context.graph = this.properties;
         context.isStart = this.isStart;
+        // a simulation delegate that can emit (e.g. on the GPU) gets the step's particles as one batch
+        let batched = 0;
+        if (this.simulationDelegate && this.simulationDelegate.emit) {
+            context.signal = () => batched++;
+            context.signalCount = (count: number) => (batched += count);
+        } else {
+            context.signalCount = undefined;
+        }
         if (!this.emitEnded) {
             this.interpreter.run(this.emissionGraph, context);
         }
+        if (batched > 0) this.emitBatch(batched, emissionState, emitterMatrix);
         this.isStart = false;
         if (emissionState.previousWorldPos === undefined) emissionState.previousWorldPos = new Vector3();
         (this.emitter as unknown as Object3D).getWorldPosition(emissionState.previousWorldPos as any);
         emissionState.time += delta;
+    }
+
+    /** Emits `count` particles through the simulation delegate, or on the CPU when it declines them. */
+    private emitBatch(count: number, emissionState: EmissionState, matrix: Matrix4) {
+        const delegate = this.simulationDelegate;
+        if (delegate && delegate.emit && delegate.emit(this as any, count, emissionState, matrix as any)) return;
+        for (let i = 0; i < count; i++) this.spawn(emissionState, matrix);
     }
 
     toJSON(meta: any, options: SerializationOptions = {}): any {

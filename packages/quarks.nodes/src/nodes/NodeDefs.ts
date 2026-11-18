@@ -425,9 +425,15 @@ particlePropertyNode.addSignature(
 NodeTypes['particleProperty'] = particlePropertyNode;
 
 // emit
+// one particle per event: `context.signalCount(n)` when the runner takes a whole batch at once (GPU emission),
+// otherwise `context.signal(index, event)` per event
 const emitNode = new NodeDef('emit', NodeType.Function);
 emitNode.addSignature([NodeValueType.EventStream], [], (context, data, inputs, outputs) => {
     const arr = inputs[0] as Array<any>;
+    if (context.signalCount) {
+        if (arr.length > 0) context.signalCount(arr.length);
+        return;
+    }
     for (let i = 0; i < arr.length; i++) {
         context.signal(i, arr[i]);
     }
@@ -471,13 +477,9 @@ repeaterNode.addSignature(
     [NodeValueType.EventStream],
     (context, data, inputs, outputs) => {
         const arr = inputs[0] as Array<any>;
-        const count = inputs[1] as number;
-        const result = [];
-        for (let j = 0; j < arr.length; j++) {
-            for (let i = 0; i < count; i++) {
-                result.push(arr[j]);
-            }
-        }
+        const count = Math.max(0, Math.floor(inputs[1] as number));
+        const result = new Array(arr.length * count);
+        for (let j = 0; j < arr.length; j++) result.fill(arr[j], j * count, (j + 1) * count);
         outputs[0] = result;
     }
 );
@@ -704,14 +706,13 @@ NodeTypes['bsdf'] = bsdfNode;
 // ---- emission -----------------------------------------------------------------------------------------------
 
 // `rate` particles per second: events accumulated over `context.delta` (continuous emission)
+const RATE_EVENT = Object.freeze({type: 'rate'});
 const rateNode = new NodeDef('rate', NodeType.Expression);
 rateNode.addSignature([NodeValueType.Number], [NodeValueType.EventStream], (context, data, inputs, outputs) => {
     data._accumulated = (data._accumulated ?? 0) + Math.max(0, inputs[0] as number) * (context.delta ?? 0);
     const count = Math.floor(data._accumulated);
     data._accumulated -= count;
-    const events = [];
-    for (let i = 0; i < count; i++) events.push({type: 'rate'});
-    outputs[0] = events;
+    outputs[0] = new Array(count).fill(RATE_EVENT);
 });
 NodeTypes['rate'] = rateNode;
 
@@ -807,6 +808,8 @@ const PERMUTATION = [
 ];
 const P = new Uint8Array(512);
 for (let i = 0; i < 512; i++) P[i] = PERMUTATION[i & 255];
+/** permutation table of {@link perlinNoise3}, 512 entries (the GPU version reads the same table) */
+export const PERLIN_PERMUTATION: Readonly<Uint8Array> = P;
 const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const grad = (hash: number, x: number, y: number, z: number) => {
     const h = hash & 15;

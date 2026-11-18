@@ -1,7 +1,7 @@
 import {MeshBasicMaterial, Scene} from 'three';
 import {Vector3, Vector4} from 'quarks.core';
 import {ParticleSystemTypes, RenderMode} from 'three.quarks';
-import {WebGPUBatchedRenderer, GPUParticleBatch} from 'three.quarks/webgpu';
+import {WebGPUBatchedRenderer, GPUParticleBatch, getGPUEmissionSupport} from 'three.quarks/webgpu';
 import {
     Adapter,
     ConstantInput,
@@ -14,7 +14,7 @@ import {
     Wire,
     NodeGraphBehavior,
 } from '../../src';
-import {createNodeGraphProgram, getTSLGraphSupport} from '../../src/webgpu';
+import {createNodeGraphProgram, getTSLGraphSupport, maxNodeVFXLife} from '../../src/webgpu';
 import {createParticleGraph1} from './GraphUtil';
 
 const c = (value: any) => new ConstantInput(value);
@@ -135,6 +135,23 @@ describe('node graph interpreter', () => {
         expect(starts).toBe(1);
     });
 
+    test('emit hands a whole batch to signalCount; repeater multiplies events', () => {
+        const graph = new NodeGraph('burst');
+        const s = node(graph, 'startEvent');
+        const repeat = node(graph, 'repeater');
+        repeat.inputs[1] = c(1000);
+        const emit = node(graph, 'emit');
+        wire(graph, s, 0, repeat, 0);
+        wire(graph, repeat, 0, emit, 0);
+        const counts: number[] = [];
+        let signals = 0;
+        new Interpreter().run(graph, {signal: () => signals++, signalCount: (n: number) => counts.push(n)});
+        expect(counts).toEqual([1000]);
+        expect(signals).toBe(0);
+        new Interpreter().run(graph, {signal: () => signals++});
+        expect(signals).toBe(1000);
+    });
+
     test('editing a graph recompiles its execution order', () => {
         const graph = new NodeGraph('g');
         const a = node(graph, 'number', 0, {value: 2});
@@ -241,7 +258,8 @@ describe('NodeVFX (GPU)', () => {
         expect(vfx.particleNum).toBe(20);
         expect(renderer.dispatches.length).toBe(2);
         const batch = batchRenderer.batches[0] as GPUParticleBatch;
-        expect(batch.geometry.instanceCount).toBe(64);
+        expect(batch.geometry.indirect).toBe(batch.simulation.drawArgs);
+        expect(batch.simulation.liveCount).toBe(20);
         expect(createNodeGraphProgram(vfx).estimateParticleCount()).toBeNull();
     });
 
@@ -251,20 +269,75 @@ describe('NodeVFX (GPU)', () => {
         scene.add(batchRenderer);
         const unknown = makeVFX();
         const large = makeVFX({maxParticles: 5000});
+        // particles die on the GPU: the update graph may change their life
         const writesLife = makeVFX({maxParticles: 5000, updateGraph: initGraph(2)});
-        for (const vfx of [unknown, large, writesLife]) {
+        const writesGraph = new NodeGraph('update');
+        node(writesGraph, 'graphProperty', 0, {property: 'p', type: NodeValueType.Number}).inputs[0] = c(1);
+        const unsupported = makeVFX({maxParticles: 5000, updateGraph: writesGraph, properties: {p: 0}});
+        for (const vfx of [unknown, large, writesLife, unsupported]) {
             batchRenderer.addSystem(vfx);
             scene.add(vfx.emitter as any);
         }
         expect(batchRenderer.isGPUSimulated(unknown)).toBe(false);
         expect(batchRenderer.isGPUSimulated(large)).toBe(true);
-        expect(batchRenderer.isGPUSimulated(writesLife)).toBe(false);
-        expect(batchRenderer.getGPUSimulationSupport(writesLife)).toMatch(/life/);
+        expect(batchRenderer.isGPUSimulated(writesLife)).toBe(true);
+        expect(batchRenderer.isGPUSimulated(unsupported)).toBe(false);
+        expect(batchRenderer.getGPUSimulationSupport(unsupported)).toMatch(/graph properties/);
     });
 
-    test('spawned NodeParticles become GPU records with default start values', () => {
+    test('particles are emitted on the GPU: the init graph runs in the spawn kernel', () => {
         const scene = new Scene();
-        const batchRenderer = new WebGPUBatchedRenderer({renderer: fakeRenderer(), gpuSimulation: 'all'});
+        const renderer = fakeRenderer();
+        const batchRenderer = new WebGPUBatchedRenderer({renderer, gpuSimulation: 'all'});
+        scene.add(batchRenderer);
+        const vfx = makeVFX();
+        batchRenderer.addSystem(vfx);
+        scene.add(vfx.emitter as any);
+        expect(getGPUEmissionSupport(vfx as any)).toBeNull();
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        const simulation = (batchRenderer.batches[0] as GPUParticleBatch).simulation as any;
+        expect(simulation.emissionGroupCount).toBe(1);
+        // the step's 10 `rate` events went to the GPU as one emission range, no CPU particle was made
+        expect(vfx.pendingSpawnCount).toBe(0);
+        expect(Array.from((simulation.rangesData_ as Float32Array).subarray(0, 3))).toEqual([0, 0, 10]);
+        expect(simulation.stagingCount_).toBe(0);
+        const nodes = renderer.dispatches[renderer.dispatches.length - 1];
+        expect(nodes).toContain(Array.from(simulation.emissionGroups_.values() as Iterable<any>)[0].node);
+        expect(nodes).not.toContain(simulation.recordNode_);
+        expect(vfx.particleNum).toBe(20);
+        // lifetime 1 s: the CPU bound retires them without a readback
+        for (let i = 0; i < 20; i++) batchRenderer.update(0.1);
+        expect(vfx.particleNum).toBeGreaterThanOrEqual(90);
+        expect(vfx.particleNum).toBeLessThanOrEqual(110);
+    });
+
+    test('the particle lifetime bound comes from the life the graphs write', () => {
+        expect(maxNodeVFXLife(makeVFX())).toBe(1);
+        // random(2, 3.2)
+        const init = new NodeGraph('init');
+        const random = node(init, 'random');
+        random.inputs[0] = c(2);
+        random.inputs[1] = c(3.2);
+        wire(init, random, 0, property(init, 'life', NodeValueType.Number), 0);
+        expect(maxNodeVFXLife(makeVFX({initGraph: init}))).toBeCloseTo(3.2);
+        // the update graph raises it to 5
+        expect(maxNodeVFXLife(makeVFX({initGraph: init, updateGraph: initGraph(5)}))).toBe(5);
+        // a life computed from the particle has no CPU bound
+        const grow = new NodeGraph('init');
+        const age = property(grow, 'age', NodeValueType.Number);
+        const longer = node(grow, 'add');
+        wire(grow, age, 0, longer, 0);
+        longer.inputs[1] = c(1);
+        wire(grow, longer, 0, property(grow, 'life', NodeValueType.Number), 0);
+        expect(maxNodeVFXLife(makeVFX({updateGraph: grow, initGraph: init}))).toBe(Infinity);
+        // no init graph and no life write: the NodeParticle default
+        expect(maxNodeVFXLife(makeVFX({initGraph: undefined}))).toBe(1);
+    });
+
+    test('with gpuEmission: false, spawned NodeParticles become GPU records with default start values', () => {
+        const scene = new Scene();
+        const batchRenderer = new WebGPUBatchedRenderer({renderer: fakeRenderer(), gpuSimulation: 'all', gpuEmission: false});
         scene.add(batchRenderer);
         const vfx = makeVFX();
         batchRenderer.addSystem(vfx);
@@ -273,10 +346,10 @@ describe('NodeVFX (GPU)', () => {
         batchRenderer.update(0.1);
         const simulation = (batchRenderer.batches[0] as GPUParticleBatch).simulation;
         const records = (simulation as any).stagingData_ as Float32Array;
-        // [slot header vec4][record]: start color falls back to color (1, 1, 1, 1), speed modifier to 1
-        expect(Array.from(records.subarray(4 + 16, 4 + 20))).toEqual([1, 1, 1, 1]);
-        expect(records[4 + 26]).toBe(1);
-        expect(Number.isNaN(records[4 + 25])).toBe(false);
+        // NodeVFX emits on the CPU: start color falls back to color (1, 1, 1, 1), speed modifier to 1
+        expect(Array.from(records.subarray(16, 20))).toEqual([1, 1, 1, 1]);
+        expect(records[26]).toBe(1);
+        expect(Number.isNaN(records[25])).toBe(false);
     });
 });
 

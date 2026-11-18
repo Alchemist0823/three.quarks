@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Compiles node graphs to three.js TSL, so the update graph of a {@link NodeVFX} runs in the GPU simulation of
- * `three.quarks/webgpu` (`GPUParticleBatchSimulation`) instead of the CPU {@link Interpreter}.
+ * Compiles node graphs to three.js TSL, so a {@link NodeVFX} runs in the GPU simulation of `three.quarks/webgpu`
+ * (`GPUParticleBatchSimulation`) instead of the CPU {@link Interpreter}: its init graph runs in the spawn kernel (GPU
+ * emission) and its update graph in the update kernel. Only the emission graph, which decides how many particles to
+ * emit, stays on the CPU.
  *
  * Every node becomes TSL code in execution order; each output is stored in a shader variable, so later
  * `particleProperty` writes do not change values that were already read (same semantics as the interpreter). Constant
@@ -9,17 +11,26 @@
  * structural edits do (the kernel watches the graph's `revision`).
  */
 import * as TSL from 'three/tsl';
+import {StorageBufferAttribute} from 'three/webgpu';
 import {Vector2, Vector3, Vector4} from 'quarks.core';
-import {registerGPUSimulationProgram} from 'three.quarks/webgpu';
-import type {GPUCompileContext, GPUParticleState, GPUSimulationProgram} from 'three.quarks/webgpu';
+import {applyEmitterTransform, registerGPUSimulationProgram} from 'three.quarks/webgpu';
+import type {
+    GPUCompileContext,
+    GPUEmissionInput,
+    GPUEmissionProgram,
+    GPUParticleState,
+    GPUSimulationProgram,
+} from 'three.quarks/webgpu';
 import {
     Adapter,
     BaseCompiler,
+    ConstantInput,
     EventNodeTypeNames,
     NOISE_CHANNEL_OFFSETS,
     Node,
     NodeGraph,
     NodeValueType,
+    PERLIN_PERMUTATION,
     Wire,
 } from 'quarks.nodes';
 import type {ConstInput, NodeVFX} from 'quarks.nodes';
@@ -45,7 +56,6 @@ const {
     max,
     min,
     mix,
-    mx_noise_float,
     normalize,
     pow,
     select,
@@ -54,7 +64,9 @@ const {
     smoothstep,
     sqrt,
     step,
+    storage,
     tan,
+    int,
     vec2,
     vec3,
     vec4,
@@ -69,6 +81,8 @@ export interface TSLGraphScope {
     ctx: GPUCompileContext;
     p: GPUParticleState;
     system: NodeVFX;
+    /** set when the graph runs at emission (spawn kernel): the values of the particle's emission call */
+    emission?: GPUEmissionInput;
 }
 
 interface TSLNodeArgs {
@@ -93,7 +107,8 @@ const PARTICLE_FIELDS: {[property: string]: {field: keyof GPUParticleState; writ
     position: {field: 'position', written: null},
     velocity: {field: 'velocity', written: 'velocity'},
     age: {field: 'age', written: null},
-    life: {field: 'life', written: null},
+    // stored with the velocity (same vec4)
+    life: {field: 'life', written: 'velocity'},
     size: {field: 'size', written: 'sizeRotation'},
     rotation: {field: 'rotation', written: 'sizeRotation'},
     color: {field: 'color', written: 'color'},
@@ -143,7 +158,10 @@ registerTSLNode('vec3', op((x, y, z) => vec3(x, y, z)));
 registerTSLNode('vec4', op((x, y, z, w) => vec4(x, y, z, w)));
 registerTSLNode('output', op((a) => a));
 registerTSLNode('bsdf', () => []);
-registerTSLNode('time', ({scope}) => [scope.ctx.float(() => scope.system.emissionState.time)]);
+// at emission: the time of the emission call (the CPU runs the init graph while the emission graph runs)
+registerTSLNode('time', ({scope}) => [
+    scope.emission ? scope.emission.time : scope.ctx.float(() => scope.system.emissionState.time),
+]);
 registerTSLNode('delta', ({scope}) => [scope.ctx.delta]);
 registerTSLNode('lerp', op((a, b, t) => mix(a, b, t)));
 registerTSLNode('clamp', op((x, lo, hi) => clamp(x, lo, hi)));
@@ -231,18 +249,81 @@ registerTSLNode('mod', op((a, b) => a.sub(b.mul(floor(a.div(b))))));
 registerTSLNode('step', op((edge, x) => step(edge, x)));
 registerTSLNode('atan2', op((y, x) => atan(y, x)));
 registerTSLNode('split', ({node, inputs: [v]}) => node.outputTypes.map((_, i) => v[COMPONENTS[i]]));
+// ---- noise: the CPU `perlinNoise3` (Ken Perlin's improved noise, same permutation table), so GPU and CPU effects
+// move through the same field
+
+let permutation: N = null;
+
+/** The permutation table as a read-only storage buffer (shared by every kernel). */
+function permutationTable(): N {
+    if (!permutation) {
+        const table = new StorageBufferAttribute(new Uint32Array(PERLIN_PERMUTATION), 1);
+        permutation = (storage as any)(table, 'uint', table.count).toReadOnly();
+    }
+    return permutation;
+}
+
+const fade = (t: N) => t.mul(t).mul(t).mul(t.mul(t.mul(6).sub(15)).add(10));
+
+function gradient(hash: N, x: N, y: N, z: N): N {
+    const h = hash.bitAnd(15);
+    const u = select(h.lessThan(8), x, y);
+    const v = select(h.lessThan(4), y, select(h.equal(12).or(h.equal(14)), x, z));
+    return select(h.bitAnd(1).equal(0), u, u.negate()).add(select(h.bitAnd(2).equal(0), v, v.negate()));
+}
+
+/** `perlinNoise3(p)` in TSL. */
+export function perlinNoise3TSL(p: N): N {
+    const P = permutationTable();
+    const at = (i: N) => P.element(i).toInt();
+    const cell = floor(p).toVar();
+    const X = int(cell.x).bitAnd(255);
+    const Y = int(cell.y).bitAnd(255);
+    const Z = int(cell.z).bitAnd(255);
+    const f = p.sub(cell).toVar();
+    const x = f.x,
+        y = f.y,
+        z = f.z;
+    const u = fade(x),
+        v = fade(y),
+        w = fade(z);
+    const A = at(X).add(Y).toVar();
+    const AA = at(A).add(Z).toVar();
+    const AB = at(A.add(1)).add(Z).toVar();
+    const B = at(X.add(1)).add(Y).toVar();
+    const BA = at(B).add(Z).toVar();
+    const BB = at(B.add(1)).add(Z).toVar();
+    return mix(
+        mix(
+            mix(gradient(at(AA), x, y, z), gradient(at(BA), x.sub(1), y, z), u),
+            mix(gradient(at(AB), x, y.sub(1), z), gradient(at(BB), x.sub(1), y.sub(1), z), u),
+            v
+        ),
+        mix(
+            mix(gradient(at(AA.add(1)), x, y, z.sub(1)), gradient(at(BA.add(1)), x.sub(1), y, z.sub(1)), u),
+            mix(
+                gradient(at(AB.add(1)), x, y.sub(1), z.sub(1)),
+                gradient(at(BB.add(1)), x.sub(1), y.sub(1), z.sub(1)),
+                u
+            ),
+            v
+        ),
+        w
+    );
+}
+
 registerTSLNode('noise', ({node, inputs: [position]}) => {
     if (node.outputTypes[0] === NodeValueType.Vec3) {
         const o = NOISE_CHANNEL_OFFSETS;
         return [
             vec3(
-                mx_noise_float(position.add(o[0])),
-                mx_noise_float(position.add(o[1])),
-                mx_noise_float(position.add(o[2]))
+                perlinNoise3TSL(position.add(o[0])),
+                perlinNoise3TSL(position.add(o[1])),
+                perlinNoise3TSL(position.add(o[2]))
             ),
         ];
     }
-    return [mx_noise_float(position)];
+    return [perlinNoise3TSL(position)];
 });
 registerTSLNode('particleProperty', ({node, inputs: [value], scope}) => {
     const target = PARTICLE_FIELDS[node.data.property];
@@ -284,7 +365,7 @@ class GraphOrder extends BaseCompiler {
 
 const graphOrder = new GraphOrder();
 
-/** Why `graph` cannot run as a GPU update graph, or `null`. */
+/** Why `graph` cannot run as a GPU update or init graph, or `null`. */
 export function getTSLGraphSupport(graph: NodeGraph): string | null {
     for (const node of graphOrder.getExecutionOrder(graph)) {
         const name = node.definition.name;
@@ -293,9 +374,6 @@ export function getTSLGraphSupport(graph: NodeGraph): string | null {
         if (name === 'particleProperty') {
             const property = node.data.property;
             if (!PARTICLE_FIELDS[property]) return `particle property ${property} is not simulated on the GPU`;
-            if (property === 'life' && node.inputs[0] !== undefined) {
-                return 'writing the particle life is not supported on the GPU (slots are freed on the CPU)';
-            }
         }
         if (name === 'graphProperty' && node.inputs[0] !== undefined) {
             return 'writing graph properties is not supported on the GPU';
@@ -412,8 +490,103 @@ export function compileGraphToTSL(graph: NodeGraph, scope: TSLGraphScope) {
     }
 }
 
+// ---- particle lifetime bound ----------------------------------------------------------------------------------
+
+/** Nodes that write the particle `life` in `graph`. */
+function lifeWrites(graph: NodeGraph): Node[] {
+    return graphOrder
+        .getExecutionOrder(graph)
+        .filter((node) => node.definition.name === 'particleProperty' && node.data.property === 'life' && node.inputs[0] !== undefined);
+}
+
+/** Upper bound of a number input, or `null` when it is not known on the CPU. */
+function upperBound(input: unknown, depth = 0): number | null {
+    if (depth > 16 || input === undefined) return null;
+    if (input instanceof ConstantInput) {
+        const value = input.getValue();
+        return typeof value === 'number' ? value : null;
+    }
+    if (!(input instanceof Wire) || input.input instanceof Adapter) return null;
+    const source = input.input as Node;
+    const bound = (k: number) => upperBound(source.inputs[k], depth + 1);
+    switch (source.definition.name) {
+        case 'number':
+            return Number(source.data.value ?? 0);
+        case 'random':
+        case 'max':
+        case 'lerp': {
+            const a = bound(0);
+            const b = bound(1);
+            return a === null || b === null ? null : Math.max(a, b);
+        }
+        case 'min': {
+            const a = bound(0);
+            const b = bound(1);
+            return a === null ? b : b === null ? a : Math.min(a, b);
+        }
+        case 'clamp':
+            return bound(2);
+        case 'add': {
+            const a = bound(0);
+            const b = bound(1);
+            return a === null || b === null ? null : a + b;
+        }
+        default:
+            return null;
+    }
+}
+
 /**
- * The GPU simulation program of a {@link NodeVFX}: its update graph compiled to TSL.
+ * Upper bound of the lifetime of a NodeVFX's particles, seconds: the largest `life` the init and update graphs can
+ * write (1, the NodeParticle default, when the graph that runs at spawn writes none). `Infinity` when a written value
+ * has no bound known on the CPU; the GPU simulation then counts live particles from the GPU counters only.
+ */
+export function maxNodeVFXLife(system: NodeVFX): number {
+    const spawnWrites = lifeWrites(system.initGraph ?? system.updateGraph);
+    const writes = system.initGraph ? [...spawnWrites, ...lifeWrites(system.updateGraph)] : spawnWrites;
+    let max = spawnWrites.length === 0 ? 1 : -Infinity;
+    for (const node of writes) {
+        const bound = upperBound(node.inputs[0]);
+        if (bound === null) return Infinity;
+        max = Math.max(max, bound);
+    }
+    return Math.max(0, max);
+}
+
+/**
+ * The GPU emission of a {@link NodeVFX}: its init graph (or, without one, its update graph with `delta` 0, like the
+ * CPU) compiled into the spawn kernel, followed by the emitter transform of world space effects.
+ */
+export function createNodeGraphEmission(system: NodeVFX): GPUEmissionProgram {
+    const spawnGraph = () => system.initGraph ?? system.updateGraph;
+    return {
+        support() {
+            const reason = getTSLGraphSupport(spawnGraph());
+            return reason === null ? null : `${system.initGraph ? 'init' : 'update'} graph: ${reason}`;
+        },
+        watch(ctx) {
+            ctx.watch(spawnGraph, false);
+            ctx.watch(() => spawnGraph().revision, false);
+        },
+        compile(ctx, p, e) {
+            compileGraphToTSL(spawnGraph(), {ctx, p, system, emission: e});
+            if (ctx.worldSpace) applyEmitterTransform(p, e, p.size);
+            // NodeParticles have no start values: the record holds the current ones (as for CPU spawn records)
+            p.startColor.assign(p.color);
+            p.startSize.assign(p.size);
+        },
+        maxLife() {
+            return maxNodeVFXLife(system);
+        },
+        rangeValues(emissionState, out) {
+            out.push(emissionState.time / system.duration, emissionState.time, 0);
+        },
+    };
+}
+
+/**
+ * The GPU simulation program of a {@link NodeVFX}: its update graph compiled to TSL, and its init graph for GPU
+ * emission.
  */
 export function createNodeGraphProgram(system: NodeVFX): GPUSimulationProgram {
     return {
@@ -434,6 +607,7 @@ export function createNodeGraphProgram(system: NodeVFX): GPUSimulationProgram {
         compile(ctx, p) {
             compileGraphToTSL(system.updateGraph, {ctx, p, system});
         },
+        emission: createNodeGraphEmission(system),
     };
 }
 
