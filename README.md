@@ -313,8 +313,8 @@ MIT
 [github-url]: https://github.com/Alchemist0823/three.quarks
 [npm]: https://img.shields.io/npm/v/three.quarks
 [npm-url]: https://www.npmjs.com/package/three.quarks
-[build-size]: https://badgen.net/bundlephobia/minzip/three.quarks
-[build-size-url]: https://bundlephobia.com/result?p=three.quarks
+[build-size]: https://deno.bundlejs.com/badge?q=three.quarks&config=%7B%22esbuild%22%3A%7B%22external%22%3A%5B%22three%22%5D%7D%7D
+[build-size-url]: https://bundlejs.com/?q=three.quarks&config=%7B%22esbuild%22%3A%7B%22external%22%3A%5B%22three%22%5D%7D%7D
 [npm-downloads]: https://img.shields.io/npm/dw/three.quarks
 [npmtrends-url]: https://www.npmtrends.com/three.quarks
 [discord]: https://img.shields.io/discord/1042342883056963664

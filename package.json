@@ -57,20 +57,25 @@
     "yalc": "^1.0.0-pre.53"
   },
   "overrides": {
-    "typedoc-google-tag-manager-plugin": {
-      "typedoc": "$typedoc"
-    },
-    "typedoc-plugin-script-inject": {
-      "typedoc": "$typedoc"
+    "typedoc": {
+      ".": "$typedoc",
+      "minimatch": "^10.2.6"
     },
     "nx": {
       "brace-expansion": "^5.0.6",
       "yaml": "^2.9.0"
     },
     "markdown-it": "^14.1.1",
-    "minimatch": "^9.0.7",
+    "minimatch@>=7 <11.0.1": "^11.0.1",
     "react": "$react",
-    "react-dom": "$react-dom"
+    "react-dom": "$react-dom",
+    "glob@>=9 <14.0.2": "^14.0.2",
+    "js-yaml@>=4 <4.3.2": "^4.3.2",
+    "pacote@>=11.2.7 <21.5.1": "^21.5.3",
+    "axios": "^1.21.1",
+    "follow-redirects": "^1.16.3",
+    "smol-toml": "^1.9.1",
+    "tar": "^7.5.21"
   },
   "lint-staged": {
     "**/*.ts": "prettier --write --ignore-unknown"
