@@ -4,7 +4,11 @@
   "description": "node based behavior and render system for quarks engine",
   "type": "module",
   "dependencies": {
+    "quarks.core": "*",
     "three.quarks": "*"
+  },
+  "peerDependencies": {
+    "three": ">=0.182.0"
   },
   "devDependencies": {
     "@types/three": "^0.187.0",
@@ -16,9 +20,20 @@
   "module": "./dist/quarks.nodes.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/quarks.nodes.esm.js",
-      "require": "./dist/quarks.nodes.cjs",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/quarks.nodes.cjs"
+    },
+    "./webgpu": {
+      "types": "./dist/types/webgpu/index.d.ts",
+      "import": "./dist/quarks.nodes.webgpu.esm.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "webgpu": [
+        "./dist/types/webgpu/index.d.ts"
+      ]
     }
   },
   "files": [

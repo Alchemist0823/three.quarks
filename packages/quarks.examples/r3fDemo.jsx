@@ -26,7 +26,8 @@ import {
 
 // ?renderer=webgpu renders the same scene with WebGPURenderer (React Three Fiber 9) and the WebGPU batch renderer
 const useWebGPU = new URLSearchParams(window.location.search).get('renderer') === 'webgpu';
-const createWebGPUBatchedRenderer = () => new WebGPUBatchedRenderer({ target: 'auto' });
+// `gl` (the R3F canvas renderer) lets large systems be simulated on the GPU
+const createWebGPUBatchedRenderer = (gl) => new WebGPUBatchedRenderer({ target: 'auto', renderer: gl, gpuSimulation: 'auto' });
 
 // Load textures
 const textureLoader = new THREE.TextureLoader();

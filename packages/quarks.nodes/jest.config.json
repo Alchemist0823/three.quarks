@@ -31,6 +31,8 @@
         "^three$": "<rootDir>/../../node_modules/three/build/three.module.js",
         "^three/webgpu$": "<rootDir>/../../node_modules/three/build/three.webgpu.js",
         "^three/tsl$": "<rootDir>/../../node_modules/three/build/three.tsl.js",
-        "^three\\.quarks$": "<rootDir>/../three.quarks/src/index.ts"
+        "^three\\.quarks$": "<rootDir>/../three.quarks/src/index.ts",
+        "^three\\.quarks/webgpu$": "<rootDir>/../three.quarks/src/webgpu/index.ts",
+        "^quarks\\.nodes$": "<rootDir>/src/index.ts"
     }
 }

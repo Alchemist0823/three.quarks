@@ -80,8 +80,54 @@ export function rotateByQuaternion(q: N, v: N): N {
     return v.add(cross(qv, cross(qv, v).add(v.mul(q.w))).mul(2.0));
 }
 
+/**
+ * Where a particle material reads the per-particle values from.
+ *
+ * The default source is the batch's per-instance attributes (CPU simulation, {@link attributeFields}). GPU simulated
+ * systems read the simulation's storage buffer instead (`GPUParticleBatchSimulation.createRenderFields()`); those values
+ * must be wrapped in `vertexStage()` where the fragment stage uses them (`color`, `uvTile`).
+ */
+export interface ParticleFields {
+    /** vec3 position in batch (world) space */
+    offset: N;
+    /** float angle (billboards) or vec4 quaternion (meshes) */
+    rotation: N;
+    /** vec3 size */
+    size: N;
+    /** float sprite sheet tile index */
+    uvTile: N;
+    /** vec4 color */
+    color: N;
+    /** vec4: velocity * speedFactor, lengthFactor (stretched billboards) */
+    velocity: N;
+    /**
+     * `true` when every material of a kind can share one node graph (attributes); per-system sources (storage
+     * buffers) build their own graph.
+     */
+    shared: boolean;
+}
+
+const attributeFieldSets = new Map<boolean, ParticleFields>();
+
+/** The per-instance attributes written by the CPU batches (see `BatchLayouts`). */
+export function attributeFields(mesh: boolean): ParticleFields {
+    let fields = attributeFieldSets.get(mesh);
+    if (fields === undefined) {
+        fields = {
+            offset: attribute('offset', 'vec3'),
+            rotation: attribute('rotation', mesh ? 'vec4' : 'float'),
+            size: attribute('size', 'vec3'),
+            uvTile: attribute('uvTile', 'float'),
+            color: attribute('color', 'vec4'),
+            velocity: attribute('velocity', 'vec4'),
+            shared: true,
+        };
+        attributeFieldSets.set(mesh, fields);
+    }
+    return fields;
+}
+
 const tileCount = vec2(materialProperty('uTileCount', 'float'), materialProperty('vTileCount', 'float'));
-const uvTile = attribute('uvTile', 'float');
 
 /**
  * UV of tile `tileIndex` of the material's `uTileCount` x `vTileCount` sprite sheet
@@ -96,10 +142,13 @@ export function tileUV(uvNode: N, tileIndex: N): N {
 /**
  * View space position of a camera facing (or vertical / horizontal) billboard vertex. Port of `particle_vert.glsl`.
  */
-export function billboardPositionView(mode: 'billboard' | 'horizontal' | 'vertical'): N {
-    const offset = attribute('offset', 'vec3');
-    const rotation = attribute('rotation', 'float');
-    const size = attribute('size', 'vec3');
+export function billboardPositionView(
+    mode: 'billboard' | 'horizontal' | 'vertical',
+    fields: ParticleFields = attributeFields(false)
+): N {
+    const offset = fields.offset;
+    const rotation = fields.rotation;
+    const size = fields.size;
 
     const aligned = positionGeometry.xy.mul(size.xy);
     const c = rotation.cos();
@@ -118,16 +167,16 @@ export function billboardPositionView(mode: 'billboard' | 'horizontal' | 'vertic
 }
 
 /** View space position of a stretched billboard vertex. Port of `stretched_bb_particle_vert.glsl`. */
-export function stretchedBillboardPositionView(): N {
-    const offset = attribute('offset', 'vec3');
-    const size = attribute('size', 'vec3');
-    const velocity = attribute('velocity', 'vec4');
+export function stretchedBillboardPositionView(fields: ParticleFields = attributeFields(false)): N {
+    const offset = fields.offset;
+    const size = fields.size;
+    const velocity = fields.velocity;
 
     const lengthFactor = velocity.w;
     const avgSize = size.x.add(size.y).mul(0.5);
     const mvPosition = modelViewMatrix.mul(vec4(offset, 1.0)).xyz;
     // normalMatrix * velocity (normal matrix of the model-view transform)
-    const viewVelocity = cameraViewMatrix.mul(vec4(modelNormalMatrix.mul(velocity.xyz), 0.0)).xyz;
+    const viewVelocity = cameraViewMatrix.mul(vec4((modelNormalMatrix as N).mul(velocity.xyz), 0.0)).xyz;
     const vlength = viewVelocity.length();
     const side = cross(mvPosition, viewVelocity).normalize().mul(positionGeometry.y).mul(avgSize);
     const along = viewVelocity
@@ -142,10 +191,15 @@ export function stretchedBillboardPositionView(): N {
  * `positionLocal` / `normalLocal`. Port of the matrix built in `local_particle_vert.glsl`.
  * Must be called from `NodeMaterial.setupPosition` (vertex stage).
  */
-export function applyParticleMeshTransform(builder: N, positionLocal: N, normalLocal: N) {
-    const offset = attribute('offset', 'vec3');
-    const rotation = attribute('rotation', 'vec4');
-    const size = attribute('size', 'vec3');
+export function applyParticleMeshTransform(
+    builder: N,
+    positionLocal: N,
+    normalLocal: N,
+    fields: ParticleFields = attributeFields(true)
+) {
+    const offset = fields.offset;
+    const rotation = fields.rotation;
+    const size = fields.size;
 
     positionLocal.assign(rotateByQuaternion(rotation, positionLocal.mul(size)).add(offset));
     if (builder.hasGeometryAttribute('normal')) {
@@ -217,32 +271,43 @@ export function inFrontOfScene(): N {
 /**
  * Samples a (possibly frame-blended) sprite sheet of the material's `map`.
  */
-export function sampleMap(tiled: boolean, blendTiles: boolean): N {
+export function sampleMap(tiled: boolean, blendTiles: boolean, uvTile: N = attributeFields(false).uvTile): N {
     if (!tiled) return materialTextureAt('map', uv());
     const texel = materialTextureAt('map', tileUV(uv(), floor(uvTile)));
     if (!blendTiles) return texel;
     return mix(texel, materialTextureAt('map', tileUV(uv(), ceil(uvTile))), (vertexStage as N)(fract(uvTile)));
 }
 
-// One tiled UV per UV channel, so that textures sharing a channel share a varying.
-const tiledUVs = new Map<number, N>();
+const tileUVContexts = new WeakMap<object, N>();
 
 /**
  * A material context that samples the material's 2D textures (map, normal map, roughness map, ...) at the
- * particle's tile, for lit mesh particles (approach from PR #115). Cube textures (env maps) are left alone.
+ * particle's tile `uvTile`, for lit mesh particles (approach from PR #115). Cube textures (env maps) are left alone.
  */
-export const tileUVContext: N = (context as N)({
-    getUV: (textureNode: N) => {
-        const map = textureNode.value as Texture;
-        if ((map as N).isCubeTexture) return null;
-        let tiled = tiledUVs.get(map.channel);
-        if (tiled === undefined) {
-            tiled = tileUV(uv(map.channel), floor(uvTile));
-            tiledUVs.set(map.channel, tiled);
-        }
-        return tiled;
-    },
-});
+export function createTileUVContext(uvTile: N): N {
+    let tileContext = tileUVContexts.get(uvTile);
+    if (tileContext === undefined) {
+        // one tiled UV per UV channel, so that textures sharing a channel share a varying
+        const tiledUVs = new Map<number, N>();
+        tileContext = (context as N)({
+            getUV: (textureNode: N) => {
+                const map = textureNode.value as Texture;
+                if ((map as N).isCubeTexture) return null;
+                let tiled = tiledUVs.get(map.channel);
+                if (tiled === undefined) {
+                    tiled = tileUV(uv(map.channel), floor(uvTile));
+                    tiledUVs.set(map.channel, tiled);
+                }
+                return tiled;
+            },
+        });
+        tileUVContexts.set(uvTile, tileContext);
+    }
+    return tileContext;
+}
+
+/** {@link createTileUVContext} of the per-instance `uvTile` attribute. */
+export const tileUVContext: N = createTileUVContext(attributeFields(true).uvTile);
 
 /**
  * A vertex of a trail ribbon, decoded from the trail's storage buffer of points (see `TRAIL_POINT_LAYOUT`): each

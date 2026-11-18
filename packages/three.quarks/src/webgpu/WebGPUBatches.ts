@@ -20,6 +20,7 @@ import {
     ParticleTrailNodeMaterial,
 } from './ParticleNodeMaterials';
 import {createPerformanceProfile, QuarksPerformanceProfile} from './PerformanceProfile';
+import type {ParticleFields} from './ParticleNodes';
 
 /**
  * Display-space compositing state set by {@link QuarksCompositor} on the batch renderer.
@@ -29,7 +30,7 @@ export interface CompositingState {
     depthTexture: Texture;
 }
 
-function buildMaterialOptions(
+export function buildMaterialOptions(
     settings: StoredBatchSettings,
     profile: QuarksPerformanceProfile,
     depthTexture: Texture | null,
@@ -62,7 +63,7 @@ function buildMaterialOptions(
     };
 }
 
-function applyBlendState(target: Material, source: Material, composited: boolean) {
+export function applyBlendState(target: Material, source: Material, composited: boolean) {
     target.transparent = source.transparent;
     target.depthWrite = !source.transparent;
     target.blending = source.blending;
@@ -76,13 +77,59 @@ function applyBlendState(target: Material, source: Material, composited: boolean
 }
 
 /** `true` for a CubeTexture whose images have not been loaded yet. */
-function isPendingCubeTexture(texture: any): boolean {
+export function isPendingCubeTexture(texture: any): boolean {
     return !!texture && texture.isCubeTexture === true && texture.isRenderTargetTexture !== true && texture.version === 0;
 }
 
 /** Base for the WebGPU batches: access to the renderer's compositing state. */
-interface CompositingSource {
+export interface CompositingSource {
     compositing: CompositingState | null;
+}
+
+/**
+ * Creates the node material of a sprite / mesh batch.
+ * @returns the material and a CubeTexture env map that is not loaded yet (the material is rebuilt once it is)
+ */
+export function createSpriteBatchMaterial(
+    settings: StoredBatchSettings,
+    profile: QuarksPerformanceProfile,
+    depthTexture: Texture | null,
+    compositing: CompositingState | null,
+    fields?: ParticleFields
+): {material: Material; pendingEnvMap: Texture | null} {
+    const source = settings.material;
+    const options = buildMaterialOptions(settings, profile, depthTexture, compositing);
+    options.fields = fields;
+    const composited = options.manualDepthTest === true;
+
+    if (
+        settings.renderMode === RenderMode.Mesh &&
+        (source.type === 'MeshStandardMaterial' || source.type === 'MeshPhysicalMaterial')
+    ) {
+        const litOptions = {
+            uTileCount: settings.uTileCount,
+            vTileCount: settings.vTileCount,
+            displaySpace: composited,
+            manualDepthTest: composited,
+            depthTexture: composited ? options.depthTexture : null,
+            fields,
+        };
+        const material =
+            source.type === 'MeshStandardMaterial'
+                ? new ParticleMeshStandardNodeMaterial(source, litOptions)
+                : new ParticleMeshPhysicalNodeMaterial(source, litOptions);
+        if (composited) material.depthTest = false;
+        // Workaround for three r187: binding a CubeTexture env map before its images are loaded raises a WebGPU
+        // validation error. Render without it until it is loaded, then rebuild.
+        const envMap = (material as any).envMap;
+        const pendingEnvMap = isPendingCubeTexture(envMap) ? envMap : null;
+        if (pendingEnvMap) (material as any).envMap = null;
+        return {material, pendingEnvMap};
+    }
+    const material = new ParticleSpriteNodeMaterial(options);
+    applyBlendState(material, source, composited);
+    if (!composited) material.depthTest = source.depthTest;
+    return {material, pendingEnvMap: null};
 }
 
 /**
@@ -112,38 +159,14 @@ export class WebGPUSpriteBatch extends BaseSpriteBatch {
 
     rebuildMaterial() {
         this.layers.mask = this.settings.layers.mask;
-        const source = this.settings.material;
         const compositing = this.compositingSource_ ? this.compositingSource_.compositing : null;
-        const options = buildMaterialOptions(this.settings, this.profile, this.depthTexture_, compositing);
-        const composited = options.manualDepthTest === true;
-
-        let material: Material;
-        if (
-            this.settings.renderMode === RenderMode.Mesh &&
-            (source.type === 'MeshStandardMaterial' || source.type === 'MeshPhysicalMaterial')
-        ) {
-            const litOptions = {
-                uTileCount: this.settings.uTileCount,
-                vTileCount: this.settings.vTileCount,
-                displaySpace: composited,
-                manualDepthTest: composited,
-                depthTexture: composited ? options.depthTexture : null,
-            };
-            material =
-                source.type === 'MeshStandardMaterial'
-                    ? new ParticleMeshStandardNodeMaterial(source, litOptions)
-                    : new ParticleMeshPhysicalNodeMaterial(source, litOptions);
-            if (composited) material.depthTest = false;
-            // Workaround for three r187: binding a CubeTexture env map before its images are loaded raises a WebGPU
-            // validation error. Render without it until it is loaded, then rebuild.
-            const envMap = (material as any).envMap;
-            this.pendingEnvMap_ = isPendingCubeTexture(envMap) ? envMap : null;
-            if (this.pendingEnvMap_) (material as any).envMap = null;
-        } else {
-            material = new ParticleSpriteNodeMaterial(options);
-            applyBlendState(material, source, composited);
-            if (!composited) material.depthTest = source.depthTest;
-        }
+        const {material, pendingEnvMap} = createSpriteBatchMaterial(
+            this.settings,
+            this.profile,
+            this.depthTexture_,
+            compositing
+        );
+        this.pendingEnvMap_ = pendingEnvMap;
 
         const previous = this.material as Material;
         this.material = material;

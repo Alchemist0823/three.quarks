@@ -22,6 +22,9 @@ import {BillboardDemo} from './billboardDemo.js';
 import {SoftParticleDemo} from './softParticleDemo.js';
 import {CustomBlendingDemo} from './customBlendingDemo.js';
 import {FollowObjectDemo} from './followObjectDemo.js';
+import {NodeBasedVFXDemo} from './nodeBasedVFXDemo.js';
+// registers the TSL compiler of node graphs: NodeVFX effects can then be simulated on the GPU
+import 'quarks.nodes/webgpu';
 
 /*
  * Same demos as vanilla.html, rendered with three.js WebGPURenderer + three.quarks/webgpu.
@@ -52,6 +55,12 @@ const forceWebGL = (params.get('forceWebGL') ?? stored('quarks.forceWebGL')) ===
 const blendMode = (params.get('blend') ?? stored('quarks.blend')) === 'exact' ? 'exact' : 'linear';
 // halfFloat=1: pack color / size as float16 (native Float16Array required)
 const halfFloat = (params.get('halfFloat') ?? stored('quarks.halfFloat')) === '1';
+// sim=gpu: simulate large supported particle systems with compute shaders (gpuSimulation: 'auto'); sim=all: every
+// supported system
+const simParam = params.get('sim') ?? stored('quarks.sim');
+const gpuSimulation = simParam === 'gpu' ? 'auto' : simParam === 'all' ? 'all' : 'off';
+// emit=cpu: GPU simulated systems emit on the CPU and upload their spawned particles (default: emitted on the GPU)
+const gpuEmission = (params.get('emit') ?? stored('quarks.emit')) !== 'cpu';
 
 const demos = [
     MuzzleFlashDemo,
@@ -68,6 +77,7 @@ const demos = [
     SoftParticleDemo,
     CustomBlendingDemo,
     FollowObjectDemo,
+    NodeBasedVFXDemo,
 ];
 const demoFiles = [
     'muzzleFlashDemo.js',
@@ -84,6 +94,7 @@ const demoFiles = [
     'softParticleDemo.js',
     'customBlendingDemo.js',
     'followObjectDemo.js',
+    'nodeBasedVFXDemo.js',
 ];
 const GITHUB_BASE = 'https://github.com/Alchemist0823/three.quarks/blob/master/packages/quarks.examples/';
 
@@ -102,6 +113,14 @@ function countParticles(root) {
     return count;
 }
 
+function countGPUSystems() {
+    const batchRenderer = demo && demo.batchRenderer;
+    if (!batchRenderer || !batchRenderer.isGPUSimulated) return '';
+    let gpu = 0;
+    for (const system of batchRenderer.systemToBatchIndex.keys()) if (batchRenderer.isGPUSimulated(system)) gpu++;
+    return ` · GPU simulated systems ${gpu}/${batchRenderer.systemToBatchIndex.size}`;
+}
+
 function updateHud() {
     const hud = document.getElementById('hud');
     if (!hud || frameStats.frames === 0) return;
@@ -110,9 +129,10 @@ function updateHud() {
     const backend = renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL2 (fallback)';
     hud.innerText =
         `${backend} · target: ${profile.target}${requestedTarget === 'auto' ? ' (auto)' : ''}` +
-        ` · blending: ${blendMode === 'exact' ? 'WebGL-exact' : 'linear'}${halfFloat ? ' · f16' : ''}\n` +
+        ` · blending: ${blendMode === 'exact' ? 'WebGL-exact' : 'linear'}${halfFloat ? ' · f16' : ''}` +
+        ` · simulation: ${gpuSimulation === 'off' ? 'CPU' : `GPU (${gpuSimulation}, ${gpuEmission ? 'GPU' : 'CPU'} emission)`}\n` +
         `${fps} fps · CPU ${cpu} ms/frame\n` +
-        `draw calls ${renderer.info.render.drawCalls} · particles ${countParticles(scene)}`;
+        `draw calls ${renderer.info.render.drawCalls} · particles ${countParticles(scene)}${countGPUSystems()}`;
     frameStats.frames = 0;
     frameStats.cpu = 0;
     frameStats.elapsed = 0;
@@ -128,7 +148,7 @@ function createDemo(index) {
     demoIndex = (index + demos.length) % demos.length;
     demo = new demos[demoIndex](camera, renderer, controls, {
         BatchedRenderer: WebGPUBatchedRenderer,
-        batchRendererOptions: {target: requestedTarget, halfFloat},
+        batchRendererOptions: {target: requestedTarget, halfFloat, renderer, gpuSimulation, gpuEmission},
     });
     document.querySelector('#demo-name').innerText = demo.name;
     document.getElementById('source-link').href = GITHUB_BASE + demoFiles[demoIndex];
@@ -187,6 +207,16 @@ async function init() {
             store('quarks.blend', mode);
             const url = new URL(window.location.href);
             url.searchParams.set('blend', mode);
+            window.location.href = url.toString();
+        });
+    }
+    for (const button of document.querySelectorAll('[data-sim]')) {
+        const mode = button.getAttribute('data-sim');
+        button.classList.toggle('active', mode === (simParam === 'gpu' || simParam === 'all' ? simParam : 'cpu'));
+        button.addEventListener('click', () => {
+            store('quarks.sim', mode);
+            const url = new URL(window.location.href);
+            url.searchParams.set('sim', mode);
             window.location.href = url.toString();
         });
     }

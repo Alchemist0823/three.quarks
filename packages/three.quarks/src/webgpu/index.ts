@@ -18,6 +18,14 @@ export * from './PerformanceProfile';
 export * from './WebGPUBatches';
 export * from './WebGPUBatchedRenderer';
 export * from './QuarksCompositor';
+export * from './gpu/GPUParticleLayout';
+export * from './gpu/GPUCompileContext';
+export * from './gpu/GPUGenerators';
+export * from './gpu/GPUBehaviors';
+export * from './gpu/GPUEmission';
+export * from './gpu/GPUSimulationProgram';
+export * from './gpu/GPUParticleSimulation';
+export * from './gpu/GPUParticleBatch';
 
 /**
  * WebGPU batch renderer (alias of {@link WebGPUBatchedRenderer}).

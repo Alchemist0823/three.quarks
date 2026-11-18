@@ -21,6 +21,11 @@ export async function initWebGPU(): Promise<WebGPUDeviceContext> {
     };
 }
 
+/**
+ * Standalone raw-WebGPU renderer for experiments with {@link WebGPUCompiler}; it owns the canvas and cannot be combined
+ * with a three.js scene.
+ * @deprecated use three.js `WebGPURenderer` with `three.quarks/webgpu` and `quarks.nodes/webgpu`.
+ */
 export class WebGPURenderer {
     // simulation
     private numLiveParticles: number = 0;

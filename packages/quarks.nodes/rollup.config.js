@@ -14,6 +14,8 @@ const banner = `/**
 
 const production = process.env.NODE_ENV === 'production';
 const globals = {three: 'THREE'};
+// shared packages are imported at runtime, never bundled (a second copy breaks instanceof checks and registries)
+const external = ['three', 'three/webgpu', 'three/tsl', 'quarks.core', 'three.quarks', 'three.quarks/webgpu'];
 const extensions = ['.js', '.jsx', '.ts', '.tsx', '.wgsl'];
 
 function wgslPlugin() {
@@ -37,7 +39,7 @@ function wgslPlugin() {
 export const lib = {
     main: {
         input: 'src/index.ts',
-        external: Object.keys(globals),
+        external,
         plugins: [
             wgslPlugin(),
             resolve({
@@ -70,9 +72,30 @@ export const lib = {
         ],
     },
 
+    // `quarks.nodes/webgpu`: TSL compiler of update graphs (GPU simulation). Imports `quarks.nodes` at runtime.
+    webgpu: {
+        input: 'src/webgpu/index.ts',
+        external: [...external, 'quarks.nodes'],
+        plugins: [
+            resolve({extensions}),
+            babel({
+                extensions,
+                include: ['src/**/*'],
+                babelHelpers: 'bundled',
+            }),
+        ],
+        output: [
+            {
+                file: pkg.exports['./webgpu'].import,
+                format: 'esm',
+                banner,
+            },
+        ],
+    },
+
     min: {
         input: pkg.module,
-        external: Object.keys(globals),
+        external,
         plugins: [
             terser({
                 keep_classnames: true,
@@ -96,4 +119,4 @@ export const lib = {
         ],
     },
 };
-export default production ? [lib.main, lib.min] : [lib.main];
+export default production ? [lib.main, lib.webgpu, lib.min] : [lib.main, lib.webgpu];

@@ -34,6 +34,8 @@ const importMap = {
         'quarks.core': './lib/quarks.core.esm.js',
         'three.quarks': './lib/three.quarks.esm.js',
         'three.quarks/webgpu': './lib/three.quarks.webgpu.esm.js',
+        'quarks.nodes': './lib/quarks.nodes.esm.js',
+        'quarks.nodes/webgpu': './lib/quarks.nodes.webgpu.esm.js',
         // published baseline used by the benchmark ("webgl-legacy")
         'three.quarks-legacy': 'https://cdn.jsdelivr.net/npm/three.quarks@0.17.1/dist/three.quarks.esm.js',
     },
@@ -76,6 +78,11 @@ for (const entry of fs.readdirSync(outDir)) fs.rmSync(path.join(outDir, entry), 
 // libraries
 copy(path.join(packages, 'quarks.core', 'dist', 'quarks.core.esm.js'), path.join(outDir, 'lib', 'quarks.core.esm.js'));
 copy(path.join(packages, 'three.quarks', 'dist', 'three.quarks.esm.js'), path.join(outDir, 'lib', 'three.quarks.esm.js'));
+copy(path.join(packages, 'quarks.nodes', 'dist', 'quarks.nodes.esm.js'), path.join(outDir, 'lib', 'quarks.nodes.esm.js'));
+copy(
+    path.join(packages, 'quarks.nodes', 'dist', 'quarks.nodes.webgpu.esm.js'),
+    path.join(outDir, 'lib', 'quarks.nodes.webgpu.esm.js')
+);
 copy(
     path.join(packages, 'three.quarks', 'dist', 'three.quarks.webgpu.esm.js'),
     path.join(outDir, 'lib', 'three.quarks.webgpu.esm.js')
@@ -88,7 +95,7 @@ if (prevDist) {
 
 // example sources (plain ES modules)
 for (const file of fs.readdirSync(examples)) {
-    if (file.endsWith('.js') && file !== 'vite.config.js' && file !== 'webgpu.js' && file !== 'nodeBasedVFXDemo.js') {
+    if (file.endsWith('.js') && file !== 'vite.config.js' && file !== 'webgpu.js') {
         let js = fs.readFileSync(path.join(examples, file), 'utf8');
         if (file === 'main.js' || file === 'main-webgpu.js') {
             js = js.replace(/const GITHUB_BASE = '[^']*';/, "const GITHUB_BASE = 'https://github.com/Alchemist0823/three.quarks/blob/master/packages/quarks.examples/';");

@@ -1,8 +1,13 @@
-import {Vector2} from 'quarks.core';
+import {MathUtils, Vector2} from 'quarks.core';
 import {NodeValueType} from './NodeValueType';
 import {ExecutionContext, NodeDef} from './NodeDef';
 
+/**
+ * Per-node settings (`value` of constants, `property` / `type` of property nodes, ...). Keys starting with `_` hold
+ * runtime state (e.g. the accumulator of a `rate` node) and are not serialized.
+ */
 export type NodeData = {[key: string]: any};
+
 export class Node {
     id: string;
     inputs: (Wire | ConstInput | Adapter | undefined)[] = [];
@@ -18,7 +23,7 @@ export class Node {
     outputValues: any[] = [];
 
     constructor(definition: NodeDef, signatureIndex: number = -1, data: NodeData = {}) {
-        this.id = '' + Math.round(Math.random() * 100000); //TODO use real random
+        this.id = MathUtils.generateUUID();
         this.definition = definition;
         this.signatureIndex = signatureIndex;
         this.data = data;
@@ -51,6 +56,18 @@ export interface ConstInput {
     getValue(context: ExecutionContext): any;
 }
 
+/**
+ * A constant input value (number, boolean or vector) of a node. Unlike an arbitrary {@link ConstInput}, it is
+ * serialized with the graph and becomes a uniform in the GPU compiler, so it can be edited without a rebuild.
+ */
+export class ConstantInput implements ConstInput {
+    constructor(public value: any) {}
+
+    getValue(): any {
+        return this.value;
+    }
+}
+
 export class Wire {
     input: Node | Adapter;
     inputIndex: number;
@@ -67,6 +84,11 @@ export class Wire {
     }
 }
 
+/**
+ * Splits a vector output of `node` into its components (`isInput: false`, `outputs[k]` are the wires of component
+ * `k`), or builds a vector input of `node` from components (`isInput: true`, `inputs[k]` are the wires of component
+ * `k`). The `split` node and the vector constructor nodes do the same and are easier to serialize.
+ */
 export class Adapter {
     node: Node;
     isInput: boolean;
@@ -74,6 +96,8 @@ export class Adapter {
     type: NodeValueType;
     inputs: (Wire | undefined) [];
     outputs: Wire [][];
+    /** vector built by an input adapter (interpreter) */
+    value: any = undefined;
 
     constructor(type: NodeValueType, isInput:boolean, node: Node, paramIndex: number) {
         this.type = type;

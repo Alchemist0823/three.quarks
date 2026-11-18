@@ -19,6 +19,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.0",
     "@react-three/fiber": "^9.8.0",
+    "quarks.nodes": "*",
     "quarks.r3f": "*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

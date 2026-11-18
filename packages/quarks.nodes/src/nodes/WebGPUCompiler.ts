@@ -321,6 +321,10 @@ const nodeBuilders: { [key: string]: NodeBuilder } = {
     },
 };
 
+/**
+ * Experimental WGSL string compiler used by the standalone {@link WebGPURenderer} of this package.
+ * @deprecated use `quarks.nodes/webgpu` (TSL compiler + three.js `WebGPURenderer`), which supports every node.
+ */
 export class WebGPUCompiler extends BaseCompiler {
     run(graph: NodeGraph, context: ExecutionContext): void {
         throw new Error('Method not implemented.');

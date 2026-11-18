@@ -3,6 +3,7 @@ import {registerShaderChunks} from './shaders';
 import { loadPlugin } from 'quarks.core';
 export * from './ParticleEmitter';
 export * from './ParticleSystem';
+export * from './ParticleSimulation';
 export * from './VFXBatch';
 export * from './BatchLayouts';
 export * from './BaseSpriteBatch';

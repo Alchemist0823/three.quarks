@@ -18,6 +18,7 @@ import {BillboardDemo} from "./billboardDemo.js";
 import {SoftParticleDemo} from "./softParticleDemo.js";
 import {CustomBlendingDemo} from "./customBlendingDemo.js";
 import {FollowObjectDemo} from "./followObjectDemo.js";
+import {NodeBasedVFXDemo} from "./nodeBasedVFXDemo.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 
 const WEBGL = {
@@ -78,8 +79,8 @@ let stats;
 let scene;
 let demo;
 
-let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, SoftParticleDemo, CustomBlendingDemo, FollowObjectDemo];
-let demoFiles = ['muzzleFlashDemo.js', 'explosionDemo.js', 'emitterShapeDemo.js', 'trailDemo.js', 'sequencerDemo.js', 'meshMaterialDemo.js', 'subEmitterDemo.js', 'turbulenceDemo.js', 'alphaTestDemo.js', 'customPluginDemo.js', 'billboardDemo.js', 'softParticleDemo.js', 'customBlendingDemo.js', 'followObjectDemo.js'];
+let demos = [MuzzleFlashDemo, ExplosionDemo, EmitterShapeDemo, TrailDemo, SequencerDemo, MeshMaterialDemo, SubEmitterDemo, TurbulenceDemo, AlphaTestDemo, CustomPluginDemo, BillboardDemo, SoftParticleDemo, CustomBlendingDemo, FollowObjectDemo, NodeBasedVFXDemo];
+let demoFiles = ['muzzleFlashDemo.js', 'explosionDemo.js', 'emitterShapeDemo.js', 'trailDemo.js', 'sequencerDemo.js', 'meshMaterialDemo.js', 'subEmitterDemo.js', 'turbulenceDemo.js', 'alphaTestDemo.js', 'customPluginDemo.js', 'billboardDemo.js', 'softParticleDemo.js', 'customBlendingDemo.js', 'followObjectDemo.js', 'nodeBasedVFXDemo.js'];
 let demoIndex = 0;
 const GITHUB_BASE = 'https://github.com/Alchemist0823/three.quarks/blob/master/packages/quarks.examples/';
 

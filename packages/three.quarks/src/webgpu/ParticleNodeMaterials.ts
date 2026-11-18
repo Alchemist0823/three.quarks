@@ -4,10 +4,10 @@ import {
     Fn,
     If,
     all,
-    attribute,
     cameraProjectionMatrix,
     equal,
     float,
+    materialReference,
     modelViewMatrix,
     normalLocal,
     normalize,
@@ -21,8 +21,11 @@ import {
 import type {Material, Texture} from 'three';
 import {RenderMode} from 'three.quarks';
 import {
+    ParticleFields,
     applyParticleMeshTransform,
+    attributeFields,
     billboardPositionView,
+    createTileUVContext,
     decodeDisplayColor,
     inFrontOfScene,
     materialProperty,
@@ -30,7 +33,6 @@ import {
     sampleMap,
     softParticleFade,
     stretchedBillboardPositionView,
-    tileUVContext,
     trailVertex,
 } from './ParticleNodes';
 
@@ -69,6 +71,12 @@ export interface ParticleNodeMaterialOptions {
     fastColorDecode: boolean;
     /** discard fragments behind `depthTexture` (display-space compositor: the particle target has no depth buffer) */
     manualDepthTest?: boolean;
+    /** where per-particle values are read from (default: the batch's instance attributes) */
+    fields?: ParticleFields;
+}
+
+function fieldsOf(options: {fields?: ParticleFields}, mesh: boolean): ParticleFields {
+    return options.fields ?? attributeFields(mesh);
 }
 
 const ONE = float(1.0);
@@ -94,6 +102,7 @@ const spriteGraphs = new Map<string, SpriteGraph>();
  * shader build); the values come from the material through `materialReference()`.
  */
 function spriteGraph(options: ParticleNodeMaterialOptions): SpriteGraph {
+    const fields = fieldsOf(options, options.renderMode === RenderMode.Mesh);
     const tiled = options.uTileCount > 1 || options.vTileCount > 1;
     const hasMap = options.map !== null;
     const blend = hasMap && tiled && options.blendTiles;
@@ -109,10 +118,10 @@ function spriteGraph(options: ParticleNodeMaterialOptions): SpriteGraph {
         options.fastColorDecode,
         !!options.manualDepthTest,
     ].join('|');
-    let graph = spriteGraphs.get(key);
+    let graph = fields.shared ? spriteGraphs.get(key) : undefined;
     if (graph === undefined) {
-        let color: N = attribute('color', 'vec4');
-        if (hasMap) color = color.mul(sampleMap(tiled, blend));
+        let color: N = fields.color;
+        if (hasMap) color = color.mul(sampleMap(tiled, blend, fields.uvTile));
         const diffuse = color.toVar('quarksDiffuse');
 
         let mask: N | null = null;
@@ -130,7 +139,7 @@ function spriteGraph(options: ParticleNodeMaterialOptions): SpriteGraph {
             rgba = rgba.mul(softParticleFade(options.depthTexture !== null));
         }
         graph = {color: encodeColor(rgba, options), mask};
-        spriteGraphs.set(key, graph);
+        if (fields.shared) spriteGraphs.set(key, graph);
     }
     return graph;
 }
@@ -148,6 +157,8 @@ export class ParticleSpriteNodeMaterial extends NodeMaterial {
     readonly renderMode: RenderMode;
     /** whether this material fades against the scene depth */
     readonly softParticles: boolean;
+    /** where per-particle values are read from */
+    readonly particleFields: ParticleFields;
 
     // per-batch values, read by the shared node graph through materialReference()
     map: Texture | null;
@@ -162,6 +173,7 @@ export class ParticleSpriteNodeMaterial extends NodeMaterial {
         super();
         this.renderMode = options.renderMode;
         this.softParticles = options.softParticles;
+        this.particleFields = fieldsOf(options, options.renderMode === RenderMode.Mesh);
         this.map = options.map;
         this.uTileCount = options.uTileCount;
         this.vTileCount = options.vTileCount;
@@ -185,15 +197,16 @@ export class ParticleSpriteNodeMaterial extends NodeMaterial {
     }
 
     setupPositionView(builder: N): N {
+        const fields = this.particleFields;
         switch (this.renderMode) {
             case RenderMode.BillBoard:
-                return billboardPositionView('billboard');
+                return billboardPositionView('billboard', fields);
             case RenderMode.HorizontalBillBoard:
-                return billboardPositionView('horizontal');
+                return billboardPositionView('horizontal', fields);
             case RenderMode.VerticalBillBoard:
-                return billboardPositionView('vertical');
+                return billboardPositionView('vertical', fields);
             case RenderMode.StretchedBillBoard:
-                return stretchedBillboardPositionView();
+                return stretchedBillboardPositionView(fields);
             default:
                 return (super.setupPositionView as any)(builder);
         }
@@ -202,7 +215,7 @@ export class ParticleSpriteNodeMaterial extends NodeMaterial {
     setupPosition(builder: N): N {
         const result = (super.setupPosition as any)(builder);
         if (this.renderMode === RenderMode.Mesh) {
-            applyParticleMeshTransform(builder, positionLocal, normalLocal);
+            applyParticleMeshTransform(builder, positionLocal, normalLocal, this.particleFields);
         }
         return result;
     }
@@ -237,26 +250,38 @@ function copyMaterialProperties(target: Material, source: Material) {
     target.name = source.name;
 }
 
-interface LitParticleOptions {
+export interface LitParticleOptions {
     uTileCount: number;
     vTileCount: number;
     displaySpace: boolean;
     manualDepthTest: boolean;
     depthTexture: Texture | null;
+    /** where per-particle values are read from (default: the batch's instance attributes) */
+    fields?: ParticleFields;
 }
 
 function setupLitParticle(material: N, source: Material, options: LitParticleOptions) {
     copyMaterialProperties(material, source);
-    // the per-instance `color` attribute (vec4) goes through three's vertex color path, like USE_COLOR +
-    // USE_COLOR_ALPHA in the WebGL shader; this keeps the map alpha intact for alpha test / transparency
-    material.vertexColors = true;
+    const fields = fieldsOf(options, true);
+    material.particleFields = fields;
+    if (fields.shared) {
+        // the per-instance `color` attribute (vec4) goes through three's vertex color path, like USE_COLOR +
+        // USE_COLOR_ALPHA in the WebGL shader; this keeps the map alpha intact for alpha test / transparency
+        material.vertexColors = true;
+    } else {
+        // same product as the vertex color path (material color * map * particle color, before the alpha test)
+        material.vertexColors = false;
+        let base: N = (vec4 as N)(materialReference('color', 'color'), 1.0);
+        if ((source as N).map) base = base.mul(materialReference('map', 'texture'));
+        material.colorNode = base.mul(fields.color);
+    }
     material.uTileCount = options.uTileCount;
     material.vTileCount = options.vTileCount;
     material.depthTexture = options.depthTexture;
     material.displaySpace = options.displaySpace;
     if (options.uTileCount > 1 || options.vTileCount > 1) {
         // every 2D texture of the material (map, normal map, roughness map, ...) samples the particle's tile
-        material.contextNode = tileUVContext;
+        material.contextNode = createTileUVContext(fields.uvTile);
     }
     if (options.manualDepthTest) {
         material.maskNode = inFrontOfScene();
@@ -282,6 +307,7 @@ export class ParticleMeshStandardNodeMaterial extends MeshStandardNodeMaterial {
     vTileCount = 1;
     depthTexture: Texture | null = null;
     displaySpace = false;
+    particleFields: ParticleFields = attributeFields(true);
 
     constructor(source: Material, options: LitParticleOptions) {
         super();
@@ -294,7 +320,7 @@ export class ParticleMeshStandardNodeMaterial extends MeshStandardNodeMaterial {
 
     setupPosition(builder: N): N {
         const result = (super.setupPosition as any)(builder);
-        applyParticleMeshTransform(builder, positionLocal, normalLocal);
+        applyParticleMeshTransform(builder, positionLocal, normalLocal, this.particleFields);
         return result;
     }
 
@@ -322,6 +348,7 @@ export class ParticleMeshPhysicalNodeMaterial extends MeshPhysicalNodeMaterial {
     vTileCount = 1;
     depthTexture: Texture | null = null;
     displaySpace = false;
+    particleFields: ParticleFields = attributeFields(true);
 
     constructor(source: Material, options: LitParticleOptions) {
         super();
@@ -334,7 +361,7 @@ export class ParticleMeshPhysicalNodeMaterial extends MeshPhysicalNodeMaterial {
 
     setupPosition(builder: N): N {
         const result = (super.setupPosition as any)(builder);
-        applyParticleMeshTransform(builder, positionLocal, normalLocal);
+        applyParticleMeshTransform(builder, positionLocal, normalLocal, this.particleFields);
         return result;
     }
 

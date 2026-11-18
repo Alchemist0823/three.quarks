@@ -1,5 +1,46 @@
 # Change Log
 
+## Unreleased
+
+- WebGPU: GPU particle simulation (`new BatchedRenderer({renderer, gpuSimulation: 'auto' | 'all'})`). TSL compute
+  kernels generated from the behaviors update the particles in a storage buffer that the batch draws from directly.
+  - GPU emission (`gpuEmission`, default `true`): the CPU only decides how many particles each system emits and sends
+    one range per emission call; spawn kernels run the emitter shape (point, sphere, hemisphere, cone, circle, donut,
+    rectangle, grid; every emitter mode), the start values and behavior `initialize()` (`ChangeEmitDirection`).
+    `MeshSurfaceEmitter`, custom shapes / initializers and sub-emitter children emit on the CPU and upload their
+    particles; `getGPUEmissionSupport()`, `registerGPUEmitterShape()`
+  - slots are allocated and freed on the GPU (free-slot stack with atomics); one indirect draw per batch whose instance
+    count the kernels write; `particleNum` is an upper bound tightened by asynchronous counter readbacks
+  - 100k-particle burst: 108 → 0.16 ms of CPU in that frame; steady 500k billboards: 1.15 → 0.47 ms CPU per frame
+    (RTX 4080 Laptop GPU)
+  - GPU versions of the over-life, by-speed, force, orbit, speed limit, noise and turbulence behaviors and of every
+    value / color / vector / rotation generator; `registerGPUBehavior()` for custom behaviors
+  - GPU systems are batched like CPU ones: equal renderer settings share one particle buffer and one draw call;
+    systems whose behaviors have the same shape share one compute kernel (per-system parameter rows)
+  - `'auto'` takes systems with at least `gpuSimulationThreshold` (default 128) estimated live particles; unsupported
+    systems, edits that make a system unsupported and the WebGL2 backend fall back to the CPU automatically
+  - particles are kept across renderer setting changes (copied on the GPU between batches) and CPU → GPU switches
+  - 20 systems, RTX 4080 Laptop: 200k billboards 38.8 → 1.3 ms CPU per frame (25 → 250 fps), 500k 126 → 2.1 ms
+    (8 → 250 fps); Intel UHD Gen12: 50k 5.3 → 0.44 ms, 200k 19.2 → 0.81 ms; same draw calls as CPU simulation;
+    600 muzzle-flash systems: 10 draw calls and 5 kernels
+- `ParticleSystem.simulationDelegate` / `ParticleSimulationDelegate`: renderer-agnostic hook for external simulation
+- `QuarksLoader` loads registered particle system types (`ParticleSystemTypes`, e.g. `NodeVFX`)
+- quarks.nodes: node graph mode completed
+  - `NodeVFX`: init graph, once-per-loop `startEvent`, `rate` emission, trail particles, graph properties,
+    `particleDied` events, JSON (`toJSON` / `fromJSON` / `clone`)
+  - `quarks.nodes/webgpu`: TSL compiler of init and update graphs; NodeVFX effects are emitted and simulated on the
+    GPU (the emission graph only counts particles on the CPU, one batch per step); update graphs may write `life`;
+    the GPU `noise` node is the CPU's Perlin noise (same permutation table), so GPU and CPU effects match
+  - `emit` hands whole batches to `context.signalCount`; `rate` / `repeater` build event lists without per-event objects
+  - interpreter: adapters, recompilation after edits, no global compiler hijacking; fixed `smoothstep`; new nodes `rate`,
+    `split`, `noise`, `pow`, `sqrt`, `exp`, `log`, `floor`, `ceil`, `fract`, `sign`, `negate`, `mod`, `step`, `atan2`,
+    `input`, component-wise vector `mul`
+  - `NodeGraph` / `NodeGraphBehavior` JSON; `ConstantInput` for serializable constants
+  - the bundle no longer inlines three.quarks / quarks.core
+- quarks.r3f: `createBatchedRenderer` receives the canvas renderer (`gl`)
+- Examples: node graph vortex demo (WebGL and WebGPU pages); CPU / GPU simulation switch on the WebGPU page (`emit=cpu`
+  for CPU emission); GPU simulation cases in `benchmark.html` (CPU simulation, GPU simulation with CPU / GPU emission)
+
 ## Version 0.18.0
 
 - Add `three.quarks/webgpu`: batch renderer for three.js `WebGPURenderer`, built on TSL node materials (also runs on the WebGL2 fallback backend)

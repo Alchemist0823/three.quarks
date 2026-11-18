@@ -160,6 +160,9 @@
 <div class="targets">
     <button data-blend="linear" title="WebGPURenderer's linear blending">linear blend</button>
     <button data-blend="exact" title="QuarksCompositor: blend transparent particles in display space like WebGLRenderer">WebGL-exact blend</button>
+    <button data-sim="cpu" title="Simulate particles on the CPU">CPU sim</button>
+    <button data-sim="gpu" title="Simulate large supported particle systems with compute shaders (gpuSimulation: 'auto')">GPU sim</button>
+    <button data-sim="all" title="Simulate every supported particle system on the GPU (gpuSimulation: 'all')">GPU sim (all)</button>
     <button data-backend="webgpu" title="WebGPURenderer on the WebGPU backend">WebGPU</button>
     <button data-backend="webgl2" title="WebGPURenderer on its WebGL2 fallback backend">WebGL2 fallback</button>
     <button data-target="desktop">desktop</button>

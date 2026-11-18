@@ -1,7 +1,10 @@
-# This workflow builds, tests, and publishes packages when a version tag is pushed
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+# This workflow builds, tests, and stages packages for publishing when a version tag is pushed.
+# Staged packages are not live until a maintainer approves them with 2FA, either on npmjs.com or with
+#   npm stage approve <stage-id> --otp=<code>
+# (approve quarks.core first: three.quarks and quarks.r3f depend on it).
+# For more information see: https://docs.npmjs.com/cli/commands/npm-stage
 
-name: Publish to NPM
+name: Stage NPM release
 
 on:
   push:
@@ -21,7 +24,7 @@ jobs:
       - run: npm run build
       - run: npm test
 
-  publish-npm:
+  stage-npm:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
@@ -33,15 +36,32 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: npm run build
-      - name: Publish quarks.core
-        run: npm publish --workspace=quarks.core --access public
+      # `npm stage` needs npm 11.15 or later (Node 20 ships npm 10)
+      - name: Install npm with staged publishing
+        run: npm install -g npm@11.15.0
+      - name: Stage quarks.core
+        run: npm stage publish --workspace=quarks.core --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-      - name: Publish three.quarks
-        run: npm publish --workspace=three.quarks --access public
+      - name: Stage three.quarks
+        run: npm stage publish --workspace=three.quarks --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-      - name: Publish quarks.r3f
-        run: npm publish --workspace=quarks.r3f --access public
+      - name: Stage quarks.r3f
+        run: npm stage publish --workspace=quarks.r3f --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - name: List staged packages to approve
+        continue-on-error: true
+        run: |
+          {
+            echo '### Staged packages: approve on npmjs.com or with `npm stage approve <stage-id> --otp=<code>`'
+            echo '```'
+            for p in quarks.core three.quarks quarks.r3f; do
+              echo "== $p"
+              npm stage list "$p"
+            done
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

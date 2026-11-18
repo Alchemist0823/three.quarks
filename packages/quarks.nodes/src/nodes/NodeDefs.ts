@@ -425,9 +425,15 @@ particlePropertyNode.addSignature(
 NodeTypes['particleProperty'] = particlePropertyNode;
 
 // emit
+// one particle per event: `context.signalCount(n)` when the runner takes a whole batch at once (GPU emission),
+// otherwise `context.signal(index, event)` per event
 const emitNode = new NodeDef('emit', NodeType.Function);
 emitNode.addSignature([NodeValueType.EventStream], [], (context, data, inputs, outputs) => {
     const arr = inputs[0] as Array<any>;
+    if (context.signalCount) {
+        if (arr.length > 0) context.signalCount(arr.length);
+        return;
+    }
     for (let i = 0; i < arr.length; i++) {
         context.signal(i, arr[i]);
     }
@@ -457,9 +463,11 @@ graphPropertyNode.addSignature(
 );
 NodeTypes['graphProperty'] = graphPropertyNode;
 
+// one event when the emission starts (NodeVFX sets `context.isStart` on the first step of every loop); a graph run
+// without `isStart` in its context always fires
 const startEventNode = new NodeDef('startEvent', NodeType.Expression);
 startEventNode.addSignature([], [NodeValueType.EventStream], (context, data, inputs, outputs) => {
-    outputs[0] = [{type: 'start'}];
+    outputs[0] = context.isStart === false ? [] : [{type: 'start'}];
 });
 NodeTypes['startEvent'] = startEventNode;
 
@@ -469,13 +477,9 @@ repeaterNode.addSignature(
     [NodeValueType.EventStream],
     (context, data, inputs, outputs) => {
         const arr = inputs[0] as Array<any>;
-        const count = inputs[1] as number;
-        const result = [];
-        for (let j = 0; j < arr.length; j++) {
-            for (let i = 0; i < count; i++) {
-                result.push(arr[j]);
-            }
-        }
+        const count = Math.max(0, Math.floor(inputs[1] as number));
+        const result = new Array(arr.length * count);
+        for (let j = 0; j < arr.length; j++) result.fill(arr[j], j * count, (j + 1) * count);
         outputs[0] = result;
     }
 );
@@ -493,23 +497,23 @@ deltaNode.addSignature([], [NodeValueType.Number], (context, data, inputs, outpu
 });
 NodeTypes['delta'] = deltaNode;
 
-// input output
+// input output (sub graphs: `context.inputs` / `context.outputs`, slot `data.index`)
+const inputNode = new NodeDef('input', NodeType.Storage);
+inputNode.addSignature([], [NodeValueType.NullableAnyType], (context, data, inputs, outputs) => {
+    outputs[0] = (context.inputs ? context.inputs[data.index ?? 0] : undefined) as any;
+});
+NodeTypes['input'] = inputNode;
+
+const writeOutput = (context: any, data: any, inputs: any[], outputs: any[]) => {
+    outputs[0] = inputs[0];
+    if (context.outputs) context.outputs[data.index ?? 0] = inputs[0];
+};
 const outputNode = new NodeDef('output', NodeType.Storage);
-outputNode.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
-    outputs[0] = inputs[0];
-});
-outputNode.addSignature([NodeValueType.Vec2], [NodeValueType.Vec2], (context, data, inputs, outputs) => {
-    outputs[0] = inputs[0];
-});
-outputNode.addSignature([NodeValueType.Vec3], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
-    outputs[0] = inputs[0];
-});
-outputNode.addSignature([NodeValueType.Vec4], [NodeValueType.Vec4], (context, data, inputs, outputs) => {
-    outputs[0] = inputs[0];
-});
-outputNode.addSignature([NodeValueType.Boolean], [NodeValueType.Boolean], (context, data, inputs, outputs) => {
-    outputs[0] = inputs[0];
-});
+outputNode.addSignature([NodeValueType.Number], [NodeValueType.Number], writeOutput);
+outputNode.addSignature([NodeValueType.Vec2], [NodeValueType.Vec2], writeOutput);
+outputNode.addSignature([NodeValueType.Vec3], [NodeValueType.Vec3], writeOutput);
+outputNode.addSignature([NodeValueType.Vec4], [NodeValueType.Vec4], writeOutput);
+outputNode.addSignature([NodeValueType.Boolean], [NodeValueType.Boolean], writeOutput);
 NodeTypes['output'] = outputNode;
 
 // More math
@@ -623,8 +627,11 @@ smoothstepNode.addSignature(
     [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
     [NodeValueType.Number],
     (context, data, inputs, outputs) => {
-        const x = Math.max(Math.min(inputs[0] as number, inputs[2] as number), inputs[1] as number);
-        outputs[0] = x * x * (3 - 2 * x);
+        // smoothstep(x, edge0, edge1)
+        const edge0 = inputs[1] as number;
+        const edge1 = inputs[2] as number;
+        const t = Math.max(0, Math.min(1, ((inputs[0] as number) - edge0) / (edge1 - edge0)));
+        outputs[0] = t * t * (3 - 2 * t);
     }
 );
 NodeTypes['smoothstep'] = smoothstepNode;
@@ -695,4 +702,175 @@ bsdfNode.addSignature(
 );
 
 NodeTypes['bsdf'] = bsdfNode;
+
+// ---- emission -----------------------------------------------------------------------------------------------
+
+// `rate` particles per second: events accumulated over `context.delta` (continuous emission)
+const RATE_EVENT = Object.freeze({type: 'rate'});
+const rateNode = new NodeDef('rate', NodeType.Expression);
+rateNode.addSignature([NodeValueType.Number], [NodeValueType.EventStream], (context, data, inputs, outputs) => {
+    data._accumulated = (data._accumulated ?? 0) + Math.max(0, inputs[0] as number) * (context.delta ?? 0);
+    const count = Math.floor(data._accumulated);
+    data._accumulated -= count;
+    outputs[0] = new Array(count).fill(RATE_EVENT);
+});
+NodeTypes['rate'] = rateNode;
+
+// ---- more math ----------------------------------------------------------------------------------------------
+
+function unary(name: string, f: (x: number) => number) {
+    const def = new NodeDef(name, NodeType.Expression);
+    def.addSignature([NodeValueType.Number], [NodeValueType.Number], (context, data, inputs, outputs) => {
+        outputs[0] = f(inputs[0] as number);
+    });
+    NodeTypes[name] = def;
+}
+function binary(name: string, f: (a: number, b: number) => number) {
+    const def = new NodeDef(name, NodeType.Expression);
+    def.addSignature(
+        [NodeValueType.Number, NodeValueType.Number],
+        [NodeValueType.Number],
+        (context, data, inputs, outputs) => {
+            outputs[0] = f(inputs[0] as number, inputs[1] as number);
+        }
+    );
+    NodeTypes[name] = def;
+}
+unary('sqrt', Math.sqrt);
+unary('exp', Math.exp);
+unary('log', Math.log);
+unary('floor', Math.floor);
+unary('ceil', Math.ceil);
+unary('fract', (x) => x - Math.floor(x));
+unary('sign', Math.sign);
+unary('negate', (x) => -x);
+binary('pow', Math.pow);
+binary('mod', (a, b) => a - b * Math.floor(a / b));
+// step(edge, x)
+binary('step', (edge, x) => (x < edge ? 0 : 1));
+binary('atan2', Math.atan2);
+
+// component-wise vector products (appended: existing signature indices keep their meaning)
+mulNode.addSignature([NodeValueType.Vec2, NodeValueType.Vec2], [NodeValueType.Vec2], (context, data, inputs, outputs) => {
+    (outputs[0] as Vector2).copy(inputs[0] as Vector2).multiply(inputs[1] as Vector2);
+});
+mulNode.addSignature([NodeValueType.Vec3, NodeValueType.Vec3], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
+    (outputs[0] as Vector3).copy(inputs[0] as Vector3).multiply(inputs[1] as Vector3);
+});
+mulNode.addSignature([NodeValueType.Vec4, NodeValueType.Vec4], [NodeValueType.Vec4], (context, data, inputs, outputs) => {
+    const a = inputs[0] as Vector4;
+    const b = inputs[1] as Vector4;
+    (outputs[0] as Vector4).set(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+});
+
+// vector components
+const splitNode = new NodeDef('split', NodeType.Expression);
+splitNode.addSignature([NodeValueType.Vec2], [NodeValueType.Number, NodeValueType.Number], (context, data, inputs, outputs) => {
+    outputs[0] = (inputs[0] as Vector2).x;
+    outputs[1] = (inputs[0] as Vector2).y;
+});
+splitNode.addSignature(
+    [NodeValueType.Vec3],
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        outputs[0] = (inputs[0] as Vector3).x;
+        outputs[1] = (inputs[0] as Vector3).y;
+        outputs[2] = (inputs[0] as Vector3).z;
+    }
+);
+splitNode.addSignature(
+    [NodeValueType.Vec4],
+    [NodeValueType.Number, NodeValueType.Number, NodeValueType.Number, NodeValueType.Number],
+    (context, data, inputs, outputs) => {
+        outputs[0] = (inputs[0] as Vector4).x;
+        outputs[1] = (inputs[0] as Vector4).y;
+        outputs[2] = (inputs[0] as Vector4).z;
+        outputs[3] = (inputs[0] as Vector4).w;
+    }
+);
+NodeTypes['split'] = splitNode;
+
+// ---- noise --------------------------------------------------------------------------------------------------
+
+// Ken Perlin's improved noise (reference permutation), output in about [-1, 1]
+const PERMUTATION = [
+    151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240,
+    21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88,
+    237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83,
+    111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80,
+    73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64,
+    52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182,
+    189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22,
+    39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210,
+    144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204,
+    176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66,
+    215, 61, 156, 180,
+];
+const P = new Uint8Array(512);
+for (let i = 0; i < 512; i++) P[i] = PERMUTATION[i & 255];
+/** permutation table of {@link perlinNoise3}, 512 entries (the GPU version reads the same table) */
+export const PERLIN_PERMUTATION: Readonly<Uint8Array> = P;
+const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
+const grad = (hash: number, x: number, y: number, z: number) => {
+    const h = hash & 15;
+    const u = h < 8 ? x : y;
+    const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
+    return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+};
+const lerp = (t: number, a: number, b: number) => a + t * (b - a);
+
+/** 3D gradient noise in about [-1, 1] (CPU version of the `noise` node). */
+export function perlinNoise3(x: number, y: number, z: number): number {
+    const X = Math.floor(x) & 255,
+        Y = Math.floor(y) & 255,
+        Z = Math.floor(z) & 255;
+    x -= Math.floor(x);
+    y -= Math.floor(y);
+    z -= Math.floor(z);
+    const u = fade(x),
+        v = fade(y),
+        w = fade(z);
+    const A = P[X] + Y,
+        AA = P[A] + Z,
+        AB = P[A + 1] + Z;
+    const B = P[X + 1] + Y,
+        BA = P[B] + Z,
+        BB = P[B + 1] + Z;
+    return lerp(
+        w,
+        lerp(
+            v,
+            lerp(u, grad(P[AA], x, y, z), grad(P[BA], x - 1, y, z)),
+            lerp(u, grad(P[AB], x, y - 1, z), grad(P[BB], x - 1, y - 1, z))
+        ),
+        lerp(
+            v,
+            lerp(u, grad(P[AA + 1], x, y, z - 1), grad(P[BA + 1], x - 1, y, z - 1)),
+            lerp(u, grad(P[AB + 1], x, y - 1, z - 1), grad(P[BB + 1], x - 1, y - 1, z - 1))
+        )
+    );
+}
+
+// offsets that decorrelate the channels of the vector noise (same on the GPU)
+export const NOISE_CHANNEL_OFFSETS = [0, 31.416, 57.73];
+
+const noiseNode = new NodeDef('noise', NodeType.Expression);
+noiseNode.addSignature([NodeValueType.Vec3], [NodeValueType.Number], (context, data, inputs, outputs) => {
+    const p = inputs[0] as Vector3;
+    outputs[0] = perlinNoise3(p.x, p.y, p.z);
+});
+noiseNode.addSignature([NodeValueType.Vec3], [NodeValueType.Vec3], (context, data, inputs, outputs) => {
+    const p = inputs[0] as Vector3;
+    const o = NOISE_CHANNEL_OFFSETS;
+    (outputs[0] as Vector3).set(
+        perlinNoise3(p.x + o[0], p.y + o[0], p.z + o[0]),
+        perlinNoise3(p.x + o[1], p.y + o[1], p.z + o[1]),
+        perlinNoise3(p.x + o[2], p.y + o[2], p.z + o[2])
+    );
+});
+NodeTypes['noise'] = noiseNode;
+
 export const OutputNodeTypeNames = new Set<string>(['output', 'particleProperty', 'graphProperty', 'emit']);
+
+/** Node types that produce or consume event streams (emission graphs only). */
+export const EventNodeTypeNames = new Set<string>(['emit', 'startEvent', 'repeater', 'rate']);

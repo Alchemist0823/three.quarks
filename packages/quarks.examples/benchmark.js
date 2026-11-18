@@ -267,7 +267,10 @@ export async function runCase(
 
     const texture = await loadTexture(scenario === 'soft' ? 'textures/cfxr smoke cloud x4.png' : 'textures/particle_default.png');
     const BatchedRendererClass = isWebGPURenderer ? lib.WebGPUBatchedRenderer : lib.BatchedRenderer;
-    const batchRenderer = isWebGPURenderer ? new BatchedRendererClass({target, ...(profile || {})}) : new BatchedRendererClass();
+    // `renderer` lets the WebGPU batch renderer dispatch GPU simulation (profile: {gpuSimulation: 'all'})
+    const batchRenderer = isWebGPURenderer
+        ? new BatchedRendererClass({target, renderer, ...(profile || {})})
+        : new BatchedRendererClass();
     scene.add(batchRenderer);
     const systems = buildSystems(lib, scenario, count, texture);
     for (const ps of systems) {
@@ -290,13 +293,15 @@ export async function runCase(
     if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
     const compileMs = performance.now() - compileStart;
 
-    const stats = {sim: [], fill: [], submit: [], cpu: [], gpu: [], frameTimes: [], drawCalls: 0};
+    const stats = {sim: [], fill: [], submit: [], cpu: [], gpu: [], gpuCompute: [], frameTimes: [], drawCalls: 0};
     const delta = 1 / 60;
     let lastTime = 0;
 
     const renderFrame = (record) => {
         const t0 = performance.now();
         for (const ps of systems) ps.update(delta);
+        // GPU simulation: dispatch the compute work of this frame (part of the simulation cost)
+        if (batchRenderer.flush) batchRenderer.flush();
         const t1 = performance.now();
         for (const batch of batchRenderer.batches) batch.update();
         const t2 = performance.now();
@@ -351,6 +356,9 @@ export async function runCase(
                 renderer.resolveTimestampsAsync('render').then((ms) => {
                     if (typeof ms === 'number' && ms > 0) stats.gpu.push(ms);
                 });
+                renderer.resolveTimestampsAsync('compute').then((ms) => {
+                    if (typeof ms === 'number' && ms > 0) stats.gpuCompute.push(ms);
+                });
             }
             pollGL();
             frame++;
@@ -370,6 +378,8 @@ export async function runCase(
         for (const ps of systems) ps.update(delta);
         for (const batch of batchRenderer.batches) batch.update();
         const t0 = performance.now();
+        // the GPU simulation's compute pass is GPU work of the frame too
+        if (batchRenderer.flush) batchRenderer.flush();
         if (depthTarget) {
             renderer.setRenderTarget(depthTarget);
             batchRenderer.visible = false;
@@ -402,7 +412,8 @@ export async function runCase(
         fillMs: trimmedMean(stats.fill),
         submitMs: trimmedMean(stats.submit),
         cpuMs: trimmedMean(stats.cpu),
-        gpuMs: trimmedMean(stats.gpu),
+        gpuMs: trimmedMean(stats.gpu) + (stats.gpuCompute.length ? trimmedMean(stats.gpuCompute) : 0),
+        gpuComputeMs: stats.gpuCompute.length ? trimmedMean(stats.gpuCompute) : 0,
         syncMs: trimmedMean(syncSamples),
         compileMs,
         fps: 1000 / median(stats.frameTimes),
@@ -436,7 +447,29 @@ export const DEFAULT_MATRIX = [
         {scenario: 'stretched', count: 20000},
         {scenario: 'mesh', count: 5000},
     ].map((c) => ({renderer: 'webgpu', ...c, profile: {halfFloat: true}})),
+    // hybrid GPU simulation (compute shaders), compare with the plain 'webgpu' rows
+    ...GPU_SIM_MATRIX(),
 ];
+
+/**
+ * CPU simulation vs GPU simulation with CPU emission (spawned particles uploaded) vs GPU simulation with GPU emission,
+ * on WebGPU at increasing particle counts.
+ */
+export function GPU_SIM_MATRIX() {
+    return [
+        {scenario: 'billboard', count: 10000},
+        {scenario: 'billboard', count: 50000},
+        {scenario: 'billboard', count: 200000},
+        {scenario: 'billboard', count: 500000},
+        {scenario: 'stretched', count: 20000},
+        {scenario: 'mesh', count: 5000},
+        {scenario: 'soft', count: 3000},
+    ].flatMap((c) => [
+        {renderer: 'webgpu', ...c},
+        {renderer: 'webgpu', ...c, profile: {gpuSimulation: 'all', gpuEmission: false}},
+        {renderer: 'webgpu', ...c, profile: {gpuSimulation: 'all'}},
+    ]);
+}
 
 export async function runMatrix(cases, host, onResult) {
     const results = [];
