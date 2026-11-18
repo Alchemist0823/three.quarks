@@ -13,9 +13,9 @@ import {
 
 /**
  * Renders the GPU simulated particle systems that share renderer settings, like a CPU batch does: one storage buffer
- * of particles ({@link GPUParticleBatchSimulation}), one material and **one draw call** of `highWater` instances. Every
- * per-particle value is read from the simulation's buffers; nothing is uploaded per frame except spawned particles
- * and a few floats per system.
+ * of particles ({@link GPUParticleBatchSimulation}), one material and **one indirect draw call** whose instance count
+ * (the high-water mark of live particles) is written by the simulation's kernels. Every per-particle value is read
+ * from the simulation's buffers; per frame the CPU only uploads emission calls and a few floats per system.
  */
 export class GPUParticleBatch extends VFXBatch {
     readonly isWebGPUBatch = true;
@@ -95,11 +95,15 @@ export class GPUParticleBatch extends VFXBatch {
         if (this.geometry) this.geometry.dispose();
         const source = this.settings.instancingGeometry;
         this.geometry = new InstancedBufferGeometry();
-        this.geometry.instanceCount = 0;
         this.geometry.setIndex(source.getIndex());
         this.geometry.setAttribute('position', source.getAttribute('position'));
         if (source.hasAttribute('normal')) this.geometry.setAttribute('normal', source.getAttribute('normal'));
         if (source.hasAttribute('uv')) this.geometry.setAttribute('uv', source.getAttribute('uv'));
+        // the instance count comes from the GPU; three.js only needs a non-zero CPU count to issue the draw
+        const index = source.getIndex();
+        this.simulation.setDrawCount(index ? index.count : source.getAttribute('position').count);
+        this.geometry.setIndirect(this.simulation.drawArgs as any);
+        this.geometry.instanceCount = this.simulation.capacity;
     }
 
     expandBuffers(): void {
@@ -132,7 +136,7 @@ export class GPUParticleBatch extends VFXBatch {
             this.rebuildMaterial();
         }
         simulation.updateRenderData();
-        this.geometry.instanceCount = simulation.highWater;
+        this.geometry.instanceCount = simulation.capacity;
     }
 
     applyDepthTexture(depthTexture: Texture | null): void {

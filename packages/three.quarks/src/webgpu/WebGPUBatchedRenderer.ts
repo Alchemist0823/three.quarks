@@ -23,7 +23,8 @@ import {
  * - `'all'`: every system whose behaviors all have a GPU version.
  *
  * GPU simulated systems are batched like CPU ones: systems with equal renderer settings share one buffer and one draw
- * call, and systems with the same kind of behaviors also share one compute kernel.
+ * call, and systems with the same kind of behaviors also share one compute kernel. Their particles are also emitted
+ * on the GPU (see `gpuEmission`).
  *
  * GPU simulation needs the `renderer` and its WebGPU backend; anything else falls back to the CPU.
  */
@@ -43,6 +44,13 @@ export interface WebGPUBatchedRendererOptions extends QuarksPerformanceProfileOp
      * simulating the particles on the CPU.
      */
     gpuSimulationThreshold?: number;
+    /**
+     * Emit the particles of GPU simulated systems on the GPU too, default `true`: the CPU only decides how many
+     * particles each system emits, the emitter shape, start values and behavior `initialize()` run in compute
+     * kernels. Systems the GPU cannot emit (custom emitter shapes or behaviors without a GPU version, sub-emitter
+     * children) emit on the CPU and upload their particles.
+     */
+    gpuEmission?: boolean;
 }
 
 /**
@@ -80,6 +88,9 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
     /** the `WebGPURenderer` used to dispatch the GPU simulation */
     renderer: any;
 
+    /** emit the particles of GPU simulated systems on the GPU (see {@link WebGPUBatchedRendererOptions.gpuEmission}) */
+    gpuEmission: boolean;
+
     private queued_: GPUParticleBatchSimulation[] = [];
     private gpuUnavailable_ = false;
 
@@ -89,6 +100,7 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         this.renderer = options.renderer ?? null;
         this.gpuSimulation = options.gpuSimulation ?? 'off';
         this.gpuSimulationThreshold = options.gpuSimulationThreshold ?? 128;
+        this.gpuEmission = options.gpuEmission ?? true;
     }
 
     protected createBatch(settings: VFXBatchSettings): VFXBatch {
@@ -114,7 +126,8 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
     }
 
     /**
-     * Switches between CPU and GPU simulation at runtime. Systems that change sides restart with no particles.
+     * Switches between CPU and GPU simulation at runtime. Systems moving to the GPU keep their particles; systems
+     * moving back to the CPU restart with no particles (GPU particles are not read back).
      */
     setGPUSimulation(mode: GPUSimulationMode) {
         if (mode === this.gpuSimulation) return;
@@ -268,20 +281,20 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         this.queued_ = [];
         const nodes: any[] = [];
         for (const batch of queued) nodes.push(...batch.takePending());
-        const renderer = this.renderer;
         // compute work before the backend is ready is dropped: those particles are not drawn
-        if (nodes.length > 0 && renderer && !(renderer.hasInitialized && !renderer.hasInitialized())) {
-            renderer.compute(nodes);
+        const ran = this.dispatch(nodes);
+        for (const batch of queued) {
+            batch.afterDispatch(ran);
+            if (ran) batch.readCounters(this.renderer);
         }
-        for (const batch of queued) batch.afterDispatch();
     }
 
     /** @internal {@link GPUSimulationHost} */
-    dispatch(nodes: any[]) {
+    dispatch(nodes: any[]): boolean {
         const renderer = this.renderer;
-        if (nodes.length > 0 && renderer && !(renderer.hasInitialized && !renderer.hasInitialized())) {
-            renderer.compute(nodes);
-        }
+        if (!renderer || (renderer.hasInitialized && !renderer.hasInitialized())) return false;
+        if (nodes.length > 0) renderer.compute(nodes);
+        return true;
     }
 
     /**
@@ -326,6 +339,7 @@ export class WebGPUBatchedRenderer extends BaseBatchedRenderer implements GPUSim
         this.profile = createPerformanceProfile(options);
         if (options.gpuSimulation !== undefined) this.gpuSimulation = options.gpuSimulation;
         if (options.gpuSimulationThreshold !== undefined) this.gpuSimulationThreshold = options.gpuSimulationThreshold;
+        if (options.gpuEmission !== undefined) this.gpuEmission = options.gpuEmission;
         if (options.renderer !== undefined) this.renderer = options.renderer;
         this.rebuildBatches();
     }

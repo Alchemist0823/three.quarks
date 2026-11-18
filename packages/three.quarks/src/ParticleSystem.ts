@@ -411,7 +411,8 @@ export class ParticleSystem implements IParticleSystem {
 
     /**
      * Simulates the particles instead of the CPU loop in `update()` when set (GPU simulation of
-     * `three.quarks/webgpu`). Emission stays on the CPU. See {@link ParticleSimulationDelegate}.
+     * `three.quarks/webgpu`). The emission count is computed on the CPU; the delegate may also emit the particles
+     * (`ParticleSimulationDelegate.emit`). See {@link ParticleSimulationDelegate}.
      */
     simulationDelegate: ParticleSimulationDelegate | null = null;
 
@@ -816,6 +817,10 @@ export class ParticleSystem implements IParticleSystem {
     }
 
     private spawn(count: number, emissionState: EmissionState, matrix: Matrix4) {
+        if (count <= 0) return;
+        // a simulation delegate that emits on its own (e.g. on the GPU) takes the whole call
+        const delegate = this.simulationDelegate;
+        if (delegate && delegate.emit && delegate.emit(this, count, emissionState, matrix)) return;
         tempQ.setFromRotationMatrix(matrix as unknown as Matrix4);
         const translation = tempV;
         const quaternion = tempQ;

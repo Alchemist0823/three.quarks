@@ -80,6 +80,18 @@ export function quatFromEuler(x: N, y: N, z: N, order: string): N {
 
 // ---- value generators ---------------------------------------------------------------------------------------
 
+/** Upper bound of a value generator, or `null` if unknown. */
+export function maxGeneratorValue(gen: unknown): number | null {
+    if (gen instanceof ConstantValue) return gen.value;
+    if (gen instanceof IntervalValue) return Math.max(gen.a, gen.b);
+    if (gen instanceof PiecewiseBezier) {
+        let max = -Infinity;
+        for (const [bezier] of gen.functions) for (const p of bezier.p) max = Math.max(max, p);
+        return Number.isFinite(max) ? max : null;
+    }
+    return null;
+}
+
 /** Whether {@link compileValue} supports the generator. */
 export function canCompileValue(gen: unknown): boolean {
     return gen instanceof ConstantValue || gen instanceof IntervalValue || gen instanceof PiecewiseBezier;

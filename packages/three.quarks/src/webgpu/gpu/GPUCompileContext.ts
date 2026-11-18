@@ -74,11 +74,14 @@ export class GPUCompileContext {
      * @param worldSpace whether the system simulates in world space
      * @param source where parameters are read from; omit to record
      * @param frame shared step counter uniform
+     * @param streamBase first random stream: code that runs on the same particles with the same seed (emission and
+     *   update) uses disjoint stream ranges, so their random values are independent
      */
     constructor(
         readonly worldSpace: boolean,
         readonly source: GPUParameterSource | null = null,
-        frame: N = uniform(0)
+        frame: N = uniform(0),
+        readonly streamBase = 0
     ) {
         this.frame = frame;
     }
@@ -134,13 +137,13 @@ export class GPUCompileContext {
      * fills in `startGen()`). Each call returns an independent stream.
      */
     random(): N {
-        const stream = uint(streamConstant(this.randomStreams_++));
+        const stream = uint(streamConstant(this.streamBase + this.randomStreams_++));
         return hash(this.seed.bitXor(stream));
     }
 
     /** A random value in [0, 1) that changes every step (generators that call `Math.random()` per evaluation). */
     randomPerStep(): N {
-        const stream = uint(streamConstant(this.randomStreams_++));
+        const stream = uint(streamConstant(this.streamBase + this.randomStreams_++));
         const frame = this.frame.toUint().mul(uint(0x632be5ab));
         return hash(this.seed.bitXor(stream).add(frame));
     }

@@ -451,17 +451,22 @@ export const DEFAULT_MATRIX = [
     ...GPU_SIM_MATRIX(),
 ];
 
-/** CPU vs GPU simulation on WebGPU at increasing particle counts. */
+/**
+ * CPU simulation vs GPU simulation with CPU emission (spawned particles uploaded) vs GPU simulation with GPU emission,
+ * on WebGPU at increasing particle counts.
+ */
 export function GPU_SIM_MATRIX() {
     return [
         {scenario: 'billboard', count: 10000},
         {scenario: 'billboard', count: 50000},
         {scenario: 'billboard', count: 200000},
+        {scenario: 'billboard', count: 500000},
         {scenario: 'stretched', count: 20000},
         {scenario: 'mesh', count: 5000},
         {scenario: 'soft', count: 3000},
     ].flatMap((c) => [
         {renderer: 'webgpu', ...c},
+        {renderer: 'webgpu', ...c, profile: {gpuSimulation: 'all', gpuEmission: false}},
         {renderer: 'webgpu', ...c, profile: {gpuSimulation: 'all'}},
     ]);
 }

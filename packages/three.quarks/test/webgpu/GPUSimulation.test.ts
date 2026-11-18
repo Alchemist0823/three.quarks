@@ -1,13 +1,17 @@
-import {MeshBasicMaterial, NormalBlending, Scene, Texture} from 'three';
+import {BoxGeometry, Matrix4, MeshBasicMaterial, NormalBlending, Scene, Texture} from 'three';
 import {
     ApplySequences,
     Bezier,
+    ChangeEmitDirection,
     ColorOverLife,
+    ConeEmitter,
+    EmitterMode,
     ConstantColor,
     ConstantValue,
     EmitSubParticleSystem,
     Gradient,
     IntervalValue,
+    MeshSurfaceEmitter,
     Noise,
     ParticleSystem,
     PiecewiseBezier,
@@ -20,14 +24,16 @@ import {
 } from '../../src';
 import {
     GPUParticleBatch,
-    GPUSlotAllocator,
+    GPU_COUNTER,
     GPU_SLOT,
     WebGPUBatchedRenderer,
     WebGPUSpriteBatch,
     createGPUParticleLayout,
     estimateGPUCapacity,
     estimateParticleCount,
+    getGPUEmissionSupport,
     getGPUSimulationSupport,
+    registerGPUBehavior,
     writeSpawnRecord,
 } from '../../src/webgpu';
 
@@ -80,80 +86,16 @@ function fakeRenderer(webgpu = true) {
     };
 }
 
-describe('GPUSlotAllocator', () => {
-    test('hands out the lowest free slot and frees slots when the clock passes their death', () => {
-        const allocator = new GPUSlotAllocator(256);
-        expect(allocator.allocate(1)).toBe(0);
-        expect(allocator.allocate(3)).toBe(1);
-        expect(allocator.allocate(2)).toBe(2);
-        expect(allocator.liveCount).toBe(3);
-        expect(allocator.highWater).toBe(64);
+/** A behavior with a GPU update whose `initialize()` must run on the CPU. */
+function cpuInitBehavior(): any {
+    return {...cpuOnlyBehavior(), type: 'CpuInitTestBehavior', clone: () => cpuInitBehavior()};
+}
+registerGPUBehavior('CpuInitTestBehavior', {supports: () => true, compile: () => undefined});
 
-        expect(allocator.advance(1.5)).toBe(1); // slot 0 (life 1) died
-        expect(allocator.liveCount).toBe(2);
-        expect(allocator.allocate(10)).toBe(0); // lowest free slot again
+const simulationOf = (batch: unknown) => (batch as GPUParticleBatch).simulation as any;
 
-        allocator.advance(1.0); // t = 2.5: slot 2 (dies at 2) freed
-        expect(allocator.liveCount).toBe(2);
-        allocator.advance(10);
-        expect(allocator.liveCount).toBe(0);
-        expect(allocator.highWater).toBe(0);
-    });
-
-    test('the high-water mark covers every live slot and shrinks by block', () => {
-        const allocator = new GPUSlotAllocator(1024);
-        for (let i = 0; i < 200; i++) allocator.allocate(i < 100 ? 10 : 1);
-        expect(allocator.highWater).toBe(256);
-        allocator.advance(2); // slots 100..199 die
-        expect(allocator.liveCount).toBe(100);
-        expect(allocator.highWater).toBe(128);
-    });
-
-    test('a full allocator returns -1 and keeps its live slots when grown', () => {
-        const allocator = new GPUSlotAllocator(64);
-        for (let i = 0; i < 64; i++) expect(allocator.allocate(5)).toBe(i);
-        expect(allocator.allocate(5)).toBe(-1);
-        allocator.grow(128);
-        expect(allocator.capacity).toBe(128);
-        expect(allocator.allocate(5)).toBe(64);
-        allocator.advance(6);
-        expect(allocator.liveCount).toBe(0);
-        // every slot is free again and comes back in ascending order
-        for (let i = 0; i < 128; i++) expect(allocator.allocate(1)).toBe(i);
-    });
-
-    test('matches a reference model over random spawns and deaths', () => {
-        const allocator = new GPUSlotAllocator(64);
-        const live = new Map<number, number>(); // slot -> death time
-        let time = 0;
-        let seed = 12345;
-        const random = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
-        for (let step = 0; step < 500; step++) {
-            const spawns = Math.floor(random() * 20);
-            for (let i = 0; i < spawns; i++) {
-                const life = random() * 2;
-                let slot = allocator.allocate(life);
-                if (slot < 0) {
-                    allocator.grow(allocator.capacity * 2);
-                    slot = allocator.allocate(life);
-                }
-                // lowest free slot
-                let expected = 0;
-                while (live.has(expected)) expected++;
-                expect(slot).toBe(expected);
-                live.set(slot, time + life);
-            }
-            const delta = random() * 0.1;
-            time += delta;
-            allocator.advance(delta);
-            for (const [slot, death] of live) if (death <= time) live.delete(slot);
-            expect(allocator.liveCount).toBe(live.size);
-            const maxSlot = Math.max(-1, ...live.keys());
-            expect(allocator.highWater).toBeGreaterThan(maxSlot);
-            expect(allocator.highWater - maxSlot - 1).toBeLessThan(64);
-        }
-    });
-});
+/** floats per emission range in the range buffer */
+const RANGE_FLOATS = 12;
 
 describe('GPU particle records', () => {
     test('layout adds quaternion and noise slots only when needed', () => {
@@ -219,6 +161,29 @@ describe('GPU simulation support', () => {
         expect(getGPUSimulationSupport(listened)).toMatch(/particleDied/);
     });
 
+    test('emission runs on the GPU for the built-in shapes, start values and behaviors', () => {
+        for (const shape of [
+            new SphereEmitter({radius: 1}),
+            new ConeEmitter({mode: EmitterMode.Loop}),
+            new SphereEmitter({mode: EmitterMode.Burst, spread: 0.1}),
+        ]) {
+            const system = makeSystem(RenderMode.Mesh, {shape});
+            system.addBehavior(new ColorOverLife(new Gradient()));
+            system.addBehavior(new ChangeEmitDirection(new IntervalValue(0, 1)));
+            system.addBehavior(new Noise(new ConstantValue(1), new ConstantValue(1)));
+            expect(getGPUEmissionSupport(system)).toBeNull();
+        }
+    });
+
+    test('reports why a system emits on the CPU', () => {
+        const surface = makeSystem(RenderMode.BillBoard, {shape: new MeshSurfaceEmitter(new BoxGeometry())});
+        expect(getGPUEmissionSupport(surface)).toMatch(/mesh_surface/);
+        const custom = makeSystem(RenderMode.BillBoard);
+        custom.addBehavior(cpuInitBehavior());
+        expect(getGPUSimulationSupport(custom)).toBeNull();
+        expect(getGPUEmissionSupport(custom)).toMatch(/CpuInitTestBehavior/);
+    });
+
     test('estimates live particles from emission rate, lifetime and bursts', () => {
         const system = makeSystem(RenderMode.BillBoard, {
             emissionBursts: [{time: 0, count: new ConstantValue(50), cycle: 2, interval: 0.1, probability: 1}],
@@ -264,18 +229,31 @@ describe('WebGPUBatchedRenderer GPU simulation', () => {
         expect(renderer.dispatches.length).toBe(0);
         batchRenderer.update(0.1);
         expect(renderer.dispatches.length).toBe(1);
-        // spawn + update kernel of each GPU system
+        // per batch: spawn and update kernel
         expect(renderer.dispatches[0].length).toBe(4);
-        // 400 / s for 0.1 s
+        // 400 / s for 0.1 s, emitted on the GPU: nothing was emitted on the CPU
         expect(a.particleNum).toBe(40);
+        expect(a.pendingSpawnCount).toBe(0);
         const batch = batchRenderer.batches[batchRenderer.systemToBatchIndex.get(a)!] as GPUParticleBatch;
-        expect(batch.geometry.instanceCount).toBe(64);
+        expect(batch.geometry.indirect).toBe(batch.simulation.drawArgs);
+        expect(batch.geometry.instanceCount).toBe(batch.simulation.capacity);
         expect(batch.visible).toBe(true);
 
         // particles die after their 2 s life
         for (let i = 0; i < 24; i++) batchRenderer.update(0.1);
         expect(a.particleNum).toBeGreaterThan(700);
         expect(a.particleNum).toBeLessThanOrEqual(800);
+    });
+
+    test('spawns raise the draw count; the high-water mark shrinks every 32 dispatches', () => {
+        const system = makeSystem(RenderMode.BillBoard);
+        const {renderer, batchRenderer} = setup({gpuSimulation: 'all'}, system);
+        for (let i = 0; i < 40; i++) batchRenderer.update(0.01);
+        const simulation = simulationOf(batchRenderer.batches[0]);
+        const shrinks = renderer.dispatches.filter((nodes) => nodes.includes(simulation.endNode_)).length;
+        expect(shrinks).toBe(1);
+        // the same draw arguments are read by the indirect draw and written (atomically) by the kernels
+        expect(simulation.argsNode_.value).toBe(simulation.drawArgs);
     });
 
     test("'auto' only takes systems above the particle threshold", () => {
@@ -330,12 +308,11 @@ describe('WebGPUBatchedRenderer GPU simulation', () => {
         system.restart();
         expect(system.particleNum).toBe(0);
         batchRenderer.update(0.05);
-        // the clear kernel runs first in the next dispatch
-        // dead records over the old particles go out with the spawn kernel
-        const batch = batchRenderer.batches[0] as GPUParticleBatch;
-        const spawn = (batch.simulation as any).spawnNode_;
-        expect(renderer.dispatches[renderer.dispatches.length - 1]).toContain(spawn);
-        expect(spawn.count).toBeGreaterThanOrEqual(40);
+        // the kill kernel removes the old particles first in the next dispatch, then the high-water mark shrinks
+        const simulation = simulationOf(batchRenderer.batches[0]);
+        const nodes = renderer.dispatches[renderer.dispatches.length - 1];
+        expect(nodes[0]).toBe(simulation.killNode_);
+        expect(nodes.slice(-2)).toEqual([simulation.finalizeNode_, simulation.endNode_]);
         batchRenderer.update(0.05);
         expect(system.particleNum).toBeGreaterThan(0);
         expect(system.particleNum).toBeLessThanOrEqual(40);
@@ -373,12 +350,14 @@ describe('WebGPUBatchedRenderer GPU simulation', () => {
         const batch = batchRenderer.batches[0] as GPUParticleBatch;
         expect(batch.simulation.members.length).toBe(20);
         expect(batch.simulation.groupCount).toBe(1);
+        expect(batch.simulation.emissionGroupCount).toBe(1);
         batchRenderer.update(0.1);
         batchRenderer.update(0.1);
-        // one compute call: spawn kernel + one update kernel for all 20 systems
+        // one compute call: one spawn and one update kernel for all 20 systems
         expect(renderer.dispatches[renderer.dispatches.length - 1].length).toBe(2);
         for (const system of systems) expect(system.particleNum).toBe(40);
-        expect(batch.geometry.instanceCount).toBeGreaterThanOrEqual(800);
+        expect(batch.simulation.liveCount).toBe(800);
+        expect(batch.simulation.capacity).toBeGreaterThanOrEqual(800);
     });
 
     test('systems with different behaviors share the draw call with one kernel per kind', () => {
@@ -393,6 +372,8 @@ describe('WebGPUBatchedRenderer GPU simulation', () => {
         expect(batchRenderer.batches.length).toBe(1);
         const batch = batchRenderer.batches[0] as GPUParticleBatch;
         expect(batch.simulation.groupCount).toBe(2);
+        // the behaviors only differ in their update: one spawn kernel
+        expect(batch.simulation.emissionGroupCount).toBe(1);
         batchRenderer.update(0.1);
         batchRenderer.update(0.1);
         // spawn + 2 update kernels
@@ -443,10 +424,122 @@ describe('WebGPUBatchedRenderer GPU simulation', () => {
         // a parent's EmitSubParticleSystem calls emit() between the child's updates
         child.emissionBursts = [{time: 0, count: new ConstantValue(5), cycle: 1, interval: 0.01, probability: 1}] as any;
         child.emit(0.01, child.emissionState, child.emitter.matrixWorld as any);
+        // at the child's own emitter: emitted on the GPU
+        expect(child.pendingSpawnCount).toBe(0);
+        batchRenderer.update(0.1);
+        expect(child.particleNum).toBe(5);
+
+        // at a parent particle: emitted on the CPU and uploaded
+        child.emissionState.burstIndex = 0;
+        child.emissionState.time = 0;
+        child.emit(0.01, child.emissionState, new Matrix4().makeTranslation(1, 2, 3) as any);
         expect(child.pendingSpawnCount).toBe(5);
         batchRenderer.update(0.1);
         expect(child.pendingSpawnCount).toBe(0);
-        expect(child.particleNum).toBe(5);
+        expect(child.particleNum).toBe(10);
+    });
+
+    test('systems the GPU cannot emit upload their CPU emitted particles', () => {
+        const custom = makeSystem(RenderMode.BillBoard);
+        custom.addBehavior(cpuInitBehavior());
+        const {renderer, batchRenderer} = setup({gpuSimulation: 'all'}, custom);
+        expect(batchRenderer.isGPUSimulated(custom)).toBe(true);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        const simulation = simulationOf(batchRenderer.batches[0]);
+        expect(simulation.emissionGroupCount).toBe(0);
+        expect(renderer.dispatches[renderer.dispatches.length - 1]).toContain(simulation.recordNode_);
+        expect(simulation.recordNode_.count).toBe(40);
+        expect(custom.particleNum).toBe(40);
+    });
+
+    test('gpuEmission: false emits on the CPU; switching it back re-records the emission', () => {
+        const system = makeSystem(RenderMode.BillBoard);
+        const {renderer, batchRenderer} = setup({gpuSimulation: 'all', gpuEmission: false}, system);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        const simulation = simulationOf(batchRenderer.batches[0]);
+        expect(renderer.dispatches[renderer.dispatches.length - 1]).toContain(simulation.recordNode_);
+        batchRenderer.gpuEmission = true;
+        batchRenderer.update(0.1);
+        expect(simulation.emissionGroupCount).toBe(1);
+        expect(renderer.dispatches[renderer.dispatches.length - 1]).not.toContain(simulation.recordNode_);
+        expect(system.particleNum).toBe(80);
+    });
+
+    test('emission calls of a frame become ranges of their spawn kernel', () => {
+        const a = makeSystem(RenderMode.BillBoard);
+        const b = makeSystem(RenderMode.BillBoard, {
+            emissionBursts: [{time: 0, count: new ConstantValue(7), cycle: 1, interval: 0.1, probability: 1}],
+        });
+        const shared = new MeshBasicMaterial({map: new Texture(), blending: NormalBlending, transparent: true});
+        a.material = shared;
+        b.material = shared;
+        const {batchRenderer} = setup({gpuSimulation: 'all'}, a, b);
+        batchRenderer.update(0.1);
+        const simulation = simulationOf(batchRenderer.batches[0]);
+        const ranges = simulation.rangesData_ as Float32Array;
+        // frame 1: only b's burst: (system, first spawn, count), burst size
+        expect(Array.from(ranges.subarray(0, 3))).toEqual([simulation.memberOf(b).index, 0, 7]);
+        expect(ranges[7]).toBe(7);
+        batchRenderer.update(0.1);
+        // frame 2: one continuous call per system, packed back to back
+        expect([ranges[2], ranges[RANGE_FLOATS + 2]]).toEqual([40, 40]);
+        expect(ranges[RANGE_FLOATS + 1]).toBe(40);
+        // continuous calls are not bursts
+        expect(ranges[7]).toBe(0);
+        const group = Array.from(simulation.emissionGroups_.values())[0] as any;
+        expect(group.node.count).toBe(80);
+        expect(group.rangeCount.value).toBe(2);
+    });
+
+    test('the particle buffer grows ahead of the live particles; growth copies run first', () => {
+        const system = makeSystem(RenderMode.BillBoard);
+        const {renderer, batchRenderer} = setup({gpuSimulation: 'all'}, system);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        const simulation = simulationOf(batchRenderer.batches[0]);
+        const capacity = simulation.capacity;
+        const before = renderer.dispatches.length;
+        system.emissionOverTime = new ConstantValue(100000);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        expect(simulation.capacity).toBeGreaterThan(capacity);
+        expect(simulation.capacity).toBeGreaterThanOrEqual(system.particleNum);
+        // state copy, free stack rebuild and free count update before the frame's spawn and update kernels
+        const grown = renderer.dispatches.slice(before).find((nodes) => nodes.length >= 5);
+        expect(grown).toBeDefined();
+        expect(grown!.indexOf(simulation.emissionGroups_.values().next().value.node)).toBe(3);
+    });
+
+    test('counter readbacks tighten particleNum', async () => {
+        const system = makeSystem(RenderMode.BillBoard, {startLife: new IntervalValue(0.1, 2)});
+        const {renderer, batchRenderer} = setup({gpuSimulation: 'all'}, system);
+        const reads: Array<(counters: Int32Array) => void> = [];
+        (renderer as any).getArrayBufferAsync = (attribute: any) =>
+            new Promise<ArrayBuffer>((resolve) =>
+                reads.push((counters) => {
+                    const data = new Int32Array((attribute.array as Int32Array).length);
+                    data.set(counters.subarray(0, data.length));
+                    resolve(data.buffer);
+                })
+            );
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        batchRenderer.update(0.1);
+        // upper bound from the lifetimes: 80 spawned within 2 s
+        expect(system.particleNum).toBe(80);
+        const simulation = simulationOf(batchRenderer.batches[0]);
+        const counters = new Int32Array(GPU_COUNTER.SYSTEMS + 16);
+        counters[GPU_COUNTER.SYSTEMS + simulation.memberOf(system).index] = 25;
+        // one readback in flight: the one taken after the first dispatch (40 spawned)
+        expect(reads.length).toBe(1);
+        reads[0](counters);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        batchRenderer.update(0.1);
+        // 25 alive after the first dispatch + 40 spawned in each of the two dispatches since
+        expect(system.particleNum).toBe(25 + 40 + 40);
+        expect(simulation.stats).not.toBeNull();
     });
 });
 

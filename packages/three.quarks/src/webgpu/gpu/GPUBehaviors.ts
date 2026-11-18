@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * TSL versions of the quarks behaviors' per-particle `update()`, used by the GPU simulation kernel.
+ * TSL versions of the quarks behaviors' per-particle `update()` and `initialize()`, used by the GPU simulation
+ * kernels.
  *
- * `initialize()` and `frameUpdate()` keep running on the CPU (spawn and per-frame state such as `ApplyForce`'s rolled
- * magnitude or `TurbulenceField`'s time offset), so only the per-particle update is ported. Third-party behaviors can
- * opt in with {@link registerGPUBehavior}; a system with any behavior that has no GPU version is simulated on the
- * CPU.
+ * `frameUpdate()` keeps running on the CPU (per-frame state such as `ApplyForce`'s rolled magnitude or
+ * `TurbulenceField`'s time offset, read by the kernels as parameters). `initialize()` runs on the GPU when particles
+ * are emitted on the GPU: most behaviors only roll per-particle random values there, which the GPU code derives from
+ * the particle seed ({@link GPUBehaviorCompiler.trivialInitialize}); `ChangeEmitDirection` has a GPU version.
+ * Third-party behaviors can opt in with {@link registerGPUBehavior}; a system with any behavior that has no GPU
+ * version is simulated on the CPU, and one whose behaviors initialize particles on the CPU only is emitted on the CPU.
  */
 import * as TSL from 'three/tsl';
 import {PiecewiseBezier, RenderMode, Vector3Function} from 'three.quarks';
@@ -75,6 +78,17 @@ export interface GPUBehaviorCompiler {
     compile(ctx: GPUCompileContext, behavior: Behavior, p: GPUParticleState, system: ParticleSystem): void;
     /** the behavior keeps per-particle Noise state */
     usesNoiseState?: boolean;
+    /**
+     * GPU version of `behavior.initialize()` for particle `p` (emitted on the GPU, after the emitter shape and the
+     * emitter transform, like on the CPU).
+     */
+    initialize?(ctx: GPUCompileContext, behavior: Behavior, p: GPUParticleState, system: ParticleSystem): void;
+    /**
+     * `initialize()` only rolls per-particle random values (generator memory), which the GPU code of {@link compile}
+     * derives from the particle seed: particles can be emitted on the GPU without an {@link initialize}. Without
+     * this flag or {@link initialize}, systems with the behavior emit their particles on the CPU.
+     */
+    trivialInitialize?: boolean;
 }
 
 const compilers = new Map<string, GPUBehaviorCompiler>();
@@ -348,8 +362,41 @@ registerGPUBehavior('Noise', {
 
 // ---- initialize-only / not applicable -----------------------------------------------------------------------
 
-const noUpdate: GPUBehaviorCompiler = {supports: () => true, compile: () => undefined};
-// changes the emit direction in initialize(), which runs on the CPU at spawn
-registerGPUBehavior('ChangeEmitDirection', noUpdate);
+// changes the emit direction at spawn: tilts the velocity by `angle` toward a random side, keeping its length
+registerGPUBehavior('ChangeEmitDirection', {
+    supports: (b: any) => canCompileValue(b.angle),
+    compile: () => undefined,
+    initialize(ctx, b: any, p) {
+        const v = p.velocity;
+        const len = length(v);
+        const dir = v.div(max(len, 1e-30));
+        const side = select(dir.x.equal(0).and(dir.y.equal(0)), vec3(0, dir.z, 0), vec3(dir.y.negate(), dir.x, 0));
+        const tilted = quatRotate(quatFromAxisAngle(normalize(side), compileValue(ctx, b.angle, float(0))), dir);
+        const turned = quatRotate(quatFromAxisAngle(dir, ctx.random().mul(Math.PI * 2)), tilted);
+        p.velocity.assign(select(len.greaterThan(0), normalize(turned).mul(len), v));
+    },
+});
 // trails only (trails are not simulated on the GPU)
-registerGPUBehavior('WidthOverLength', noUpdate);
+registerGPUBehavior('WidthOverLength', {supports: () => true, compile: () => undefined, trivialInitialize: true});
+
+// built-in behaviors whose initialize() only rolls generator memory or resets state the GPU record starts with
+for (const type of [
+    'ColorOverLife',
+    'SizeOverLife',
+    'RotationOverLife',
+    'Rotation3DOverLife',
+    'SpeedOverLife',
+    'FrameOverLife',
+    'OrbitOverLife',
+    'LimitSpeedOverLife',
+    'ColorBySpeed',
+    'SizeBySpeed',
+    'RotationBySpeed',
+    'ApplyForce',
+    'GravityForce',
+    'ForceOverLife',
+    'TurbulenceField',
+    'Noise',
+]) {
+    compilers.get(type)!.trivialInitialize = true;
+}

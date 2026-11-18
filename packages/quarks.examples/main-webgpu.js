@@ -59,6 +59,8 @@ const halfFloat = (params.get('halfFloat') ?? stored('quarks.halfFloat')) === '1
 // supported system
 const simParam = params.get('sim') ?? stored('quarks.sim');
 const gpuSimulation = simParam === 'gpu' ? 'auto' : simParam === 'all' ? 'all' : 'off';
+// emit=cpu: GPU simulated systems emit on the CPU and upload their spawned particles (default: emitted on the GPU)
+const gpuEmission = (params.get('emit') ?? stored('quarks.emit')) !== 'cpu';
 
 const demos = [
     MuzzleFlashDemo,
@@ -128,7 +130,7 @@ function updateHud() {
     hud.innerText =
         `${backend} · target: ${profile.target}${requestedTarget === 'auto' ? ' (auto)' : ''}` +
         ` · blending: ${blendMode === 'exact' ? 'WebGL-exact' : 'linear'}${halfFloat ? ' · f16' : ''}` +
-        ` · simulation: ${gpuSimulation === 'off' ? 'CPU' : `GPU (${gpuSimulation})`}\n` +
+        ` · simulation: ${gpuSimulation === 'off' ? 'CPU' : `GPU (${gpuSimulation}, ${gpuEmission ? 'GPU' : 'CPU'} emission)`}\n` +
         `${fps} fps · CPU ${cpu} ms/frame\n` +
         `draw calls ${renderer.info.render.drawCalls} · particles ${countParticles(scene)}${countGPUSystems()}`;
     frameStats.frames = 0;
@@ -146,7 +148,7 @@ function createDemo(index) {
     demoIndex = (index + demos.length) % demos.length;
     demo = new demos[demoIndex](camera, renderer, controls, {
         BatchedRenderer: WebGPUBatchedRenderer,
-        batchRendererOptions: {target: requestedTarget, halfFloat, renderer, gpuSimulation},
+        batchRendererOptions: {target: requestedTarget, halfFloat, renderer, gpuSimulation, gpuEmission},
     });
     document.querySelector('#demo-name').innerText = demo.name;
     document.getElementById('source-link').href = GITHUB_BASE + demoFiles[demoIndex];

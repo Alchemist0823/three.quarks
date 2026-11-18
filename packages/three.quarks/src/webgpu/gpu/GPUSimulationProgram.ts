@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {ConstantValue, IntervalValue, ParticleSystem, PiecewiseBezier} from 'three.quarks';
+import {ParticleSystem} from 'three.quarks';
 import type {GPUCompileContext} from './GPUCompileContext';
 import {getGPUBehaviorCompiler, GPUParticleState} from './GPUBehaviors';
+import {createBehaviorEmission, GPUEmissionProgram} from './GPUEmission';
+import {maxGeneratorValue} from './GPUGenerators';
 
 /**
  * The per-particle update a GPU simulation runs, for one particle system.
@@ -24,6 +26,11 @@ export interface GPUSimulationProgram {
     watch(ctx: GPUCompileContext): void;
     /** Emits the TSL code of one update step of particle `p` (called while the kernel is built). */
     compile(ctx: GPUCompileContext, p: GPUParticleState): void;
+    /**
+     * How particles are emitted on the GPU. Without it (or when its `support()` fails) the system emits on the CPU
+     * and its spawned particles are uploaded.
+     */
+    emission?: GPUEmissionProgram | null;
 }
 
 /** Creates the GPU program of a particle system, or returns `null` for systems it does not handle. */
@@ -46,18 +53,6 @@ export function createGPUSimulationProgram(system: any): GPUSimulationProgram | 
 }
 
 // ---- ParticleSystem -----------------------------------------------------------------------------------------
-
-/** Upper bound of a value generator, or `null` if unknown. */
-export function maxGeneratorValue(gen: unknown): number | null {
-    if (gen instanceof ConstantValue) return gen.value;
-    if (gen instanceof IntervalValue) return Math.max(gen.a, gen.b);
-    if (gen instanceof PiecewiseBezier) {
-        let max = -Infinity;
-        for (const [bezier] of gen.functions) for (const p of bezier.p) max = Math.max(max, p);
-        return Number.isFinite(max) ? max : null;
-    }
-    return null;
-}
 
 /**
  * The program of a {@link ParticleSystem}: the GPU versions of its behaviors, in order (see `GPUBehaviors`).
@@ -99,6 +94,7 @@ export function createBehaviorProgram(system: ParticleSystem): GPUSimulationProg
                 getGPUBehaviorCompiler(behavior)!.compile(ctx, behavior, p, system);
             }
         },
+        emission: createBehaviorEmission(system),
     };
 }
 
