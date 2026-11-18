@@ -90,9 +90,9 @@ function animate() {
 
 ## 🌐 WebGPU (three.js `WebGPURenderer`)
 
-three.quarks also renders with three.js' [`WebGPURenderer`](https://threejs.org/docs/#api/en/renderers/webgpu/WebGPURenderer).
-Particle systems, behaviors, emitters and JSON effects are shared; only the batch renderer changes.
-It is built on TSL node materials, so it runs on the WebGPU backend **and** on WebGPURenderer's WebGL2 fallback.
+three.quarks also works with three.js' [`WebGPURenderer`](https://threejs.org/docs/#api/en/renderers/webgpu/WebGPURenderer).
+Your particle systems, behaviors, emitters and JSON effects stay the same; only the batch renderer is imported from
+`three.quarks/webgpu`. On browsers without WebGPU it falls back to WebGL2 automatically.
 
 ```javascript
 import {WebGPURenderer} from 'three/webgpu';
@@ -101,8 +101,7 @@ import {BatchedRenderer, ParticleSystem /* ... */} from 'three.quarks/webgpu';
 const renderer = new WebGPURenderer({antialias: true});
 await renderer.init();
 
-// 'desktop' (default, full fidelity) | 'mobile' | 'auto'
-const batchRenderer = new BatchedRenderer({target: 'auto'});
+const batchRenderer = new BatchedRenderer({target: 'auto'}); // 'desktop' (default) | 'mobile' | 'auto'
 scene.add(batchRenderer);
 
 renderer.setAnimationLoop(() => {
@@ -116,16 +115,15 @@ renderer.setAnimationLoop(() => {
 | Billboard / vertical / horizontal / stretched / mesh / trail | ✅ | ✅ |
 | Lit mesh particles (`MeshStandardMaterial`, `MeshPhysicalMaterial`, env maps) | ✅ | ✅ |
 | Sprite sheets, frame blending, alpha test, custom blending, layers, render order | ✅ | ✅ |
-| Soft particles | needs a depth pre-pass + `setDepthTexture` | automatic (reads the framebuffer depth), `setDepthTexture` still supported |
+| Soft particles | ✅ needs a depth pre-pass + `setDepthTexture` | ✅ automatic |
+| GPU simulation (see below) | ❌ | ✅ |
 
-**Targets.** `desktop` matches the WebGL output; `mobile` is tuned for tile-based GPUs (soft particles off, cheaper
-sRGB decode, smaller buffers). Any option can be overridden, e.g. `{target: 'mobile', softParticles: true}`.
-`halfFloat: true` uploads float16 attributes: fewer bytes but more CPU in desktop Chrome, so it is off by default.
-
-**Colors.** The default `colorSpaceMode: 'webgl-compatible'` looks like WebGL, except that semi-transparent overlaps
-blend slightly lighter. For identical blending, create `new QuarksCompositor(renderer, batchRenderer)` and call its
-`render(scene, camera)` instead of `renderer.render` (two extra full-screen passes). `colorSpaceMode: 'linear'` is
-fully physically based.
+- **`target`**: `'desktop'` looks exactly like WebGL, `'mobile'` turns off soft particles and uses cheaper shading for
+  phones, `'auto'` picks one for the device. Each option can still be set by hand, e.g.
+  `{target: 'mobile', softParticles: true}`.
+- **Colors**: particles look like WebGL, except that overlapping transparent particles can come out slightly lighter.
+  For an exact match, render with `new QuarksCompositor(renderer, batchRenderer).render(scene, camera)` instead of
+  `renderer.render(scene, camera)` (create the compositor once).
 
 **React Three Fiber 9.** Pass the WebGPU batch renderer to the provider and create `WebGPURenderer` in the canvas:
 
@@ -142,32 +140,49 @@ import {WebGPUBatchedRenderer} from 'three.quarks/webgpu';
 
 ## ⚙️ CPU and GPU Simulation
 
-A particle system is simulated in one of two places:
+three.quarks can move your particles in two ways:
 
-- **CPU simulation** (the default, with every renderer). Every frame, `batchRenderer.update(delta)` emits, ages and
-  moves the particles in JavaScript, runs the behaviors and uploads the result to the GPU. Particles are plain objects
-  in `system.particles`, and every feature is supported.
-- **GPU simulation** (`three.quarks/webgpu` on the WebGPU backend). Compute shaders emit, age and move the particles,
-  which never leave GPU memory. The CPU only decides how many particles each system emits (rate, bursts, emission over
-  distance) and uploads a few values per system, so its cost no longer grows with the particle count.
+- **CPU simulation**: the default. Works with every renderer and every feature.
+- **GPU simulation**: the graphics card moves the particles (WebGPU only). Hundreds of thousands of particles cost
+  almost no CPU time, which leaves the main thread free for your game or app.
 
-Effects, the particle system API and the JSON format are the same on both paths, and so is rendering: GPU simulated
-batches use the same materials, blending modes, sprite sheets and soft particles as CPU batches. The choice is made per
-system, so in one scene large systems can run on the GPU while small or unsupported ones stay on the CPU.
+Your effects don't change: the same particle systems, behaviors and JSON files run either way. GPU simulation is turned
+on with one option, and the choice is made for each particle system, so one scene can mix both.
+
+### Which one should I use?
+
+| Your scene | Best choice |
+|---|---|
+| Many particle systems with only a few particles each (muzzle flashes, sparks, hit effects, UI effects) | **CPU** |
+| Particle systems with more than ~10k particles (smoke, rain, snow, fireflies, swarms, magic fields) | **GPU** |
+| Big bursts: an explosion that spawns thousands of particles at once | **GPU** |
+| Both kinds in one scene | **`'auto'`**: large systems go to the GPU, small ones stay on the CPU |
+| Your code reads particle positions, listens to `particleDied` or needs an exact particle count | **CPU** |
+| Effects with trails, ApplySequences or sub-emitters (the parent system) | **CPU** (chosen automatically) |
+| WebGL renderer, or a browser without WebGPU | **CPU** (the only option) |
+
+Why: every GPU simulated system has a small fixed cost each frame, so a system with a few hundred particles is just as
+fast, or faster, on the CPU. On the CPU the cost grows with every particle, while on the GPU it stays almost flat:
+
+| CPU time per frame (RTX 4080 Laptop GPU) | CPU simulation | GPU simulation |
+|---|---:|---:|
+| 20 systems × 250 mesh particles (5k in total) | **0.98 ms** | 1.46 ms |
+| 20 systems × 10k billboards (200k in total) | 22.3 ms (42 fps) | **0.46 ms** (250 fps, capped) |
+| 20 systems × 25k billboards (500k in total) | 62.2 ms (17 fps) | **0.47 ms** (250 fps, capped) |
+
+A 100k-particle explosion costs 0.16 ms of CPU on the GPU path. Open `benchmark.html` to measure your own devices.
 
 ### Renderer support
 
-| Renderer | CPU simulation | GPU simulation | GPU emission | Use case |
-|---|:---:|:---:|:---:|---|
-| `BatchedRenderer` from `three.quarks` with `WebGLRenderer` | ✅ always | ❌ | ❌ | Existing WebGL apps; the widest browser and device support |
-| `BatchedRenderer` (alias of `WebGPUBatchedRenderer`) from `three.quarks/webgpu` with `WebGPURenderer`, WebGPU backend | ✅ default | ✅ `gpuSimulation: 'auto'` or `'all'` | ✅ default for GPU simulated systems | New projects, large effects, many instances of an effect, CPU-bound apps |
-| `WebGPUBatchedRenderer` with `WebGPURenderer`, WebGL2 fallback (`forceWebGL: true`, or the browser has no WebGPU) | ✅ | ↩️ falls back to the CPU automatically | ❌ | The same code still runs where WebGPU is missing |
+| Renderer | CPU simulation | GPU simulation | Use case |
+|---|:---:|:---:|---|
+| `BatchedRenderer` from `three.quarks` (`WebGLRenderer`) | ✅ | ❌ | Existing WebGL apps, the widest device support |
+| `BatchedRenderer` from `three.quarks/webgpu` (`WebGPURenderer` on WebGPU) | ✅ | ✅ | Large effects, CPU-heavy apps, new projects |
+| `BatchedRenderer` from `three.quarks/webgpu` (`WebGPURenderer` on its WebGL2 fallback) | ✅ | falls back to the CPU automatically | The same code on browsers without WebGPU |
 
-`quarks.r3f` uses whichever batch renderer you give `QuarksProvider` through `createBatchedRenderer`; without one it
-creates the WebGL `BatchedRenderer`. `NodeVFX` effects (`quarks.nodes`) run in a CPU interpreter with every renderer,
-and on the GPU after `import 'quarks.nodes/webgpu'`.
+With `quarks.r3f`, simulation follows the batch renderer you pass to `QuarksProvider` (see React Three Fiber 9 above).
 
-### Turning GPU simulation on and off
+### Turning it on
 
 ```javascript
 import {WebGPURenderer} from 'three/webgpu';
@@ -177,135 +192,63 @@ const renderer = new WebGPURenderer();
 await renderer.init();
 
 const batchRenderer = new BatchedRenderer({
-    renderer, // required for GPU simulation: the batch renderer dispatches the compute work
+    renderer, // needed for GPU simulation
     gpuSimulation: 'auto', // 'off' (default) | 'auto' | 'all'
-    gpuSimulationThreshold: 128, // 'auto' only: estimated live particles a system needs to move to the GPU
-    gpuEmission: true, // default; false emits on the CPU and uploads every new particle
+    gpuSimulationThreshold: 10000, // 'auto': systems with fewer particles stay on the CPU (default 128)
 });
 scene.add(batchRenderer);
-// then add and update systems as usual: batchRenderer.addSystem(system); batchRenderer.update(delta);
+// add systems and call batchRenderer.update(delta) as usual
 ```
 
-| Option | Default | Effect |
-|---|---|---|
-| `gpuSimulation` | `'off'` | `'off'`: every system runs on the CPU, like the WebGL renderer. `'auto'` (recommended): systems with at least `gpuSimulationThreshold` live particles, estimated from emission rate, lifetime and bursts, run on the GPU. `'all'`: every supported system runs on the GPU. |
-| `gpuSimulationThreshold` | `128` | Used by `'auto'`. Raise it for scenes made of many small systems (see below). |
-| `gpuEmission` | `true` | GPU simulated systems also emit on the GPU. `false` emits on the CPU and uploads each new particle. |
-| `renderer` | none | The `WebGPURenderer`. Without it every system stays on the CPU; `setRenderer(renderer)` sets it later. |
+- `gpuSimulation: 'off'` keeps everything on the CPU, `'auto'` sends systems with at least `gpuSimulationThreshold`
+  particles to the GPU, `'all'` sends every supported system to the GPU.
+- `'auto'` estimates each system's particle count from its emission rate, lifetime and bursts. If your scene is made of
+  many small systems, keep the threshold high so they stay on the CPU.
+- Switch at runtime with `batchRenderer.setGPUSimulation('off' | 'auto' | 'all')`.
+- `batchRenderer.isGPUSimulated(system)` tells you where a system runs, and `batchRenderer.getGPUSimulationSupport(system)`
+  tells you why it stays on the CPU.
+- To keep one particular system on the CPU, add it to a second batch renderer created with `gpuSimulation: 'off'`.
 
-At runtime:
+### What runs on the GPU
 
-```javascript
-batchRenderer.setGPUSimulation('off'); // 'off' | 'auto' | 'all'; systems leaving the GPU restart without particles
-batchRenderer.gpuEmission = false; // can be switched at any time
-batchRenderer.isGPUSimulated(system); // true when the system runs on the GPU right now
-batchRenderer.getGPUSimulationSupport(system); // null, or why the system stays on the CPU
-getGPUEmissionSupport(system); // null, or why a GPU simulated system emits on the CPU (from three.quarks/webgpu)
-```
-
-Systems that use a feature without a GPU version stay on the CPU automatically; nothing has to be configured. To keep
-one particular system on the CPU anyway, add it to a second batch renderer created with `gpuSimulation: 'off'` (its
-batches cost their own draw calls).
-
-### Feature support
-
-| Feature | CPU simulation | GPU simulation |
+| Feature | CPU | GPU |
 |---|:---:|:---:|
-| Billboard, vertical / horizontal / stretched billboard, mesh particles (lit and unlit) | ✅ | ✅ |
-| Trail particles | ✅ | ❌ stays on the CPU |
-| Point, sphere, hemisphere, cone, circle, donut, rectangle and grid emitters, every emitter mode | ✅ | ✅ emitted on the GPU |
-| `MeshSurfaceEmitter` and custom emitter shapes | ✅ | ✅ simulated on the GPU, emitted on the CPU (`registerGPUEmitterShape` adds a GPU version) |
-| ColorOverLife, SizeOverLife, RotationOverLife, Rotation3DOverLife, SpeedOverLife, FrameOverLife, ColorBySpeed, SizeBySpeed, RotationBySpeed, ApplyForce, GravityForce, ForceOverLife, OrbitOverLife, LimitSpeedOverLife, Noise, TurbulenceField, ChangeEmitDirection | ✅ | ✅ |
-| Value, color, vector and rotation generators (constants, random ranges, curves, gradients) | ✅ | ✅ as uniforms: editing them does not rebuild a shader |
-| ApplySequences | ✅ | ❌ stays on the CPU |
-| Custom behaviors (plugins) | ✅ | ✅ with `registerGPUBehavior`, otherwise stays on the CPU |
-| Sub-emitters: the parent system (`EmitSubParticleSystem`) | ✅ | ❌ stays on the CPU |
-| Sub-emitters: the child system | ✅ | ✅ in world space (emitted on the CPU); local space stays on the CPU |
-| `particleDied` listeners | ✅ | ❌ stays on the CPU |
-| Reading particles from JavaScript (`system.particles`) | ✅ | ❌ particles live in GPU buffers |
-| `system.particleNum` | exact | upper bound, tightened by asynchronous GPU readbacks |
-| Node graph effects (`NodeVFX`) | ✅ interpreter | ✅ init and update graphs compiled to TSL; the emission graph counts on the CPU |
+| Billboards, stretched / vertical / horizontal billboards, mesh particles | ✅ | ✅ |
+| Trails | ✅ | ❌ |
+| Emitter shapes: point, sphere, hemisphere, cone, circle, donut, rectangle, grid | ✅ | ✅ |
+| Mesh surface and custom emitter shapes | ✅ | ✅ |
+| Color, size, rotation, speed, frame (sprite sheet), orbit and force over life; speed limit | ✅ | ✅ |
+| Color, size and rotation by speed | ✅ | ✅ |
+| ApplyForce, GravityForce, Noise, TurbulenceField, ChangeEmitDirection | ✅ | ✅ |
+| Curves, gradients and random ranges for every value | ✅ | ✅ |
+| ApplySequences | ✅ | ❌ |
+| Sub-emitters | ✅ | the child can run on the GPU, the parent stays on the CPU |
+| Custom behaviors | ✅ | ✅ after `registerGPUBehavior`, otherwise CPU |
+| `particleDied` events, reading `system.particles` | ✅ | ❌ |
+| `system.particleNum` | exact | estimate |
+| Node graph effects (`NodeVFX`) | ✅ | ✅ with `import 'quarks.nodes/webgpu'` |
 
-Both paths produce the same distributions (positions, speeds, colors over life) but not the same individual particles,
-because the GPU draws its own random numbers.
-
-### When to use which
-
-**GPU simulation is the better choice when**
-
-- systems are large. CPU simulation costs about 0.1 ms of CPU per 1,000 billboards per frame on a fast laptop CPU;
-  with GPU simulation the CPU cost stays near 0.5 ms whether the scene has 200k or 500k particles;
-- effects burst many particles at once (explosions, impacts). With GPU emission a 100k-particle burst costs 0.16 ms
-  of CPU; emitting it on the CPU is a 108 ms hitch;
-- many instances of the same effect play at once. They share one compute kernel and one draw call;
-- the main thread is busy with game logic, physics or React. GPU simulation gives that time back;
-- node graph effects run large update graphs. The CPU interpreter evaluates the graph for every particle: the vortex
-  demo costs 36.5 ms of CPU per frame on the CPU and 0.6 ms on the GPU.
-
-**CPU simulation is the better choice when**
-
-- systems are small (muzzle flashes, sparks, UI effects with a few dozen particles). Every GPU simulated system and
-  batch has a fixed per-frame cost (parameter upload, emitter transform, kernel dispatch). `'auto'` keeps systems below
-  `gpuSimulationThreshold` on the CPU; raise the threshold for scenes made of many small systems. For example, 20
-  systems of 250 lit mesh particles cost 0.98 ms of CPU per frame on the CPU and 1.46 ms on the GPU;
-- game code needs the particles: reading positions for gameplay or collisions, `particleDied` events, an exact
-  `particleNum`;
-- the effect relies on a CPU-only feature: trails, ApplySequences, sub-emitter parents, custom behaviors without a GPU
-  version (these stay on the CPU automatically);
-- the device has no WebGPU (the WebGL renderer or the WebGL2 fallback), or its GPU is already the bottleneck: on weak or
-  fill-rate-bound mobile GPUs the compute kernels compete with rendering. Measure with `benchmark.html`.
-
-**Recommendation:** on WebGPU, use `gpuSimulation: 'auto'`. Large supported systems move to the GPU and everything else
-stays on the CPU. If a system you expected on the GPU is not there, `getGPUSimulationSupport(system)` says why.
-
-### Performance
-
-CPU time per frame, 20 systems, Chrome on an RTX 4080 Laptop GPU:
-
-| Scenario | CPU simulation | GPU simulation, CPU emission | GPU simulation, GPU emission |
-|---|---:|---:|---:|
-| 200k billboards | 22.3 ms (42 fps) | 1.14 ms | 0.46 ms (250 fps, capped) |
-| 500k billboards | 62.2 ms (17 fps) | 1.15 ms | 0.47 ms (250 fps, capped) |
-| 5k lit mesh particles | 0.98 ms | 1.36 ms | 1.46 ms |
-| 100k-particle burst (that frame) | not measured | 108 ms | 0.16 ms |
-
-500k GPU simulated billboards take 1.8 ms of GPU time in total. On an Intel UHD (Gen12) iGPU with CPU emission, 50k
-billboards drop from 5.3 to 0.44 ms of CPU per frame and 200k from 19.2 to 0.81 ms (50 → 85 fps). 600 small
-muzzle-flash systems share 10 draw calls. `benchmark.html` runs these scenarios on your own devices.
-
-### How GPU simulation works
-
-Spawn kernels run the emitter shape, the start values and every behavior's `initialize()`, and take free slots from a
-GPU stack with atomics. Update kernels generated from the behaviors age, move and free the particles. Each batch draws
-with one indirect draw call whose instance count the kernels write, so nothing waits for the GPU: `particleNum` is an
-upper bound (particles spawned within their maximum lifetime), tightened by per-system counters read back
-asynchronously.
-
-GPU simulated systems are batched like CPU ones: systems with equal renderer settings share one particle buffer and
-**one draw call**, and systems whose behaviors have the same shape (for example many instances of one effect) share
-**one compute kernel**. Per-system values (emitter transform, curve keys, force magnitudes) live in small per-system
-buffers, so editing an effect never recompiles a shader, and instances with different values still share the kernel.
+A system that uses a ❌ feature stays on the CPU automatically while the rest of the scene runs on the GPU. Effects look
+the same on both paths, but individual particles differ because each path uses its own random numbers.
 
 ### Node graph effects (`quarks.nodes`)
 
-`NodeVFX` describes an effect with three node graphs: the emission graph spawns particles (`rate`, `startEvent`,
-`repeater` → `emit`), the init graph sets up every spawned particle and the update graph runs on every particle every
-step (`particleProperty` nodes read and write position, velocity, color, size, rotation, uv tile, age, life). The graphs
-run in a CPU interpreter with any renderer. Importing `quarks.nodes/webgpu` compiles the init and update graphs to TSL,
-so with `gpuSimulation` the particles are emitted and simulated on the GPU like regular particle systems; only the
-emission graph, which decides how many particles to spawn, runs on the CPU. Graphs that use a node without a GPU
-version, or write graph properties, stay on the CPU. Effects serialize to JSON and load through `QuarksLoader`.
+`NodeVFX` builds an effect from three node graphs: the **emission graph** decides when and how many particles to
+spawn, the **init graph** sets up each new particle, and the **update graph** changes every particle each frame
+(position, velocity, color, size, rotation, sprite frame, life). Node graph effects work with every renderer; one extra
+import lets them run on the GPU:
 
 ```javascript
 import {NodeVFX} from 'quarks.nodes';
-import 'quarks.nodes/webgpu'; // GPU emission and simulation of init / update graphs
+import 'quarks.nodes/webgpu'; // lets NodeVFX effects run on the GPU
 
 const vfx = new NodeVFX({emissionGraph, initGraph, updateGraph, material, maxParticles: 5000});
 batchRenderer.addSystem(vfx);
 scene.add(vfx.emitter);
 ```
 
-See `nodeBasedVFXDemo.js` for a complete effect built in code.
+Node graphs run for every particle, so they gain the most from the GPU: the vortex demo drops from 36.5 ms to 0.6 ms of
+CPU per frame. Effects save to JSON and load with `QuarksLoader`. See `nodeBasedVFXDemo.js` for a complete effect.
 
 ## 📂 Loading VFX from JSON
 
