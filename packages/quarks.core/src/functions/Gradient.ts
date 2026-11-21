@@ -14,7 +14,7 @@ export class Gradient implements FunctionColorGenerator {
     constructor(
         color: Array<[Vector3, number]> = [
             [new Vector3(0, 0, 0), 0],
-            [new Vector3(1, 1, 1), 0],
+            [new Vector3(1, 1, 1), 1],
         ],
         alpha: Array<[number, number]> = [
             [1, 0],
