@@ -45,29 +45,26 @@ export class ContinuousLinearFunction<T extends ObjectValueType<T> | number> {
 
     genValue(value: T, t: number): T {
         const index = this.findKey(t);
-        if (this.subType === 'Number') {
-            if (index === -1) {
-                return this.keys[0][0];
-            } else if (index + 1 >= this.keys.length) {
-                return this.keys[this.keys.length - 1][0];
-            }
-            return (((this.keys[index + 1][0] as number) - (this.keys[index][0] as number)) *
-                ((t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index))) +
-                (this.keys[index][0] as number)) as T;
-        } else {
-            if (index === -1) {
-                return (value as ObjectValueType<T>).copy(this.keys[0][0]) as T;
-            }
-            if (index + 1 >= this.keys.length) {
-                return (value as ObjectValueType<T>).copy(this.keys[this.keys.length - 1][0]) as T;
-            }
-            return (value as ObjectValueType<T>)
-                .copy(this.keys[index][0])
-                .lerp(
-                    this.keys[index + 1][0],
-                    (t - this.getStartX(index)) / (this.getEndX(index) - this.getStartX(index))
-                ) as T;
+        const numeric = this.subType === 'Number';
+        if (index === -1 || index + 1 >= this.keys.length) {
+            const keyValue = this.keys[index === -1 ? 0 : this.keys.length - 1][0];
+            return numeric ? keyValue : ((value as ObjectValueType<T>).copy(keyValue) as T);
         }
+
+        const start = this.keys[index][0];
+        const end = this.keys[index + 1][0];
+        const startX = this.getStartX(index);
+        const endX = this.getEndX(index);
+        // A zero-width segment represents an instantaneous jump to its end value.
+        if (endX === startX) {
+            return numeric ? end : ((value as ObjectValueType<T>).copy(end) as T);
+        }
+
+        const progress = (t - startX) / (endX - startX);
+        if (numeric) {
+            return (((end as number) - (start as number)) * progress + (start as number)) as T;
+        }
+        return (value as ObjectValueType<T>).copy(start).lerp(end, progress) as T;
     }
 
     toJSON(): FunctionJSON {

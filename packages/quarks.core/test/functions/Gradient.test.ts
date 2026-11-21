@@ -4,6 +4,35 @@ describe('Gradient', () => {
     const memory: never[] = [];
     const jsonOutput = `{"type":"Gradient","color":{"type":"CLinearFunction","subType":"Color","keys":[{"value":{"r":0,"g":0.25,"b":0.75},"pos":0},{"value":{"r":1,"g":0.75,"b":0.25},"pos":1}]},"alpha":{"type":"CLinearFunction","subType":"Number","keys":[{"value":1,"pos":0},{"value":0,"pos":1}]}}`;
 
+    test('interpolates the default colors over the full range', () => {
+        const gradient = new Gradient();
+        const color = new Vector4();
+        expect(gradient.genColor(memory, color, 0).toArray()).toEqual([0, 0, 0, 1]);
+        expect(gradient.genColor(memory, color, 0.5).toArray()).toEqual([0.5, 0.5, 0.5, 1]);
+        expect(gradient.genColor(memory, color, 1).toArray()).toEqual([1, 1, 1, 1]);
+    });
+
+    test('samples coincident color and alpha stops without NaN', () => {
+        const gradient = new Gradient(
+            [
+                [new Vector3(1, 0, 0), 0],
+                [new Vector3(0, 1, 0), 0.5],
+                [new Vector3(0, 0, 1), 0.5],
+                [new Vector3(1, 1, 1), 1],
+            ],
+            [
+                [0, 0.5],
+                [1, 0.5],
+            ]
+        );
+        const color = new Vector4();
+        expect(gradient.genColor(memory, color, 0.499).y).toBeCloseTo(0.998);
+        expect(color.w).toBe(0);
+        expect(gradient.genColor(memory, color, 0.5).toArray()).toEqual([0, 0, 1, 1]);
+        expect(gradient.genColor(memory, color, 0.501).z).toBe(1);
+        expect(color.w).toBe(1);
+    });
+
     test('.genColor', () => {
         const gradient = new Gradient(
             [
